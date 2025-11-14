@@ -57,7 +57,7 @@ const Workspace = () => {
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-chat-border">
+        <div className="p-3 border-b border-chat-border space-y-2">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -65,22 +65,20 @@ const Workspace = () => {
               className="pl-9 bg-chat-bg border-chat-border text-white placeholder:text-muted-foreground"
             />
           </div>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate("/")}
+          >
+            Go to AgentStore
+          </Button>
         </div>
 
         {/* Agent List */}
         <ScrollArea className="flex-1">
           <div className="p-2">
-            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground flex items-center justify-between">
+            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
               <span>Your Agents</span>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-7 px-2"
-              onClick={() => navigate("/")}
-            >
-              <span className="text-xs">Add Agent</span>
-              <Plus className="h-4 w-4" />
-            </Button>
             </div>
             <div className="space-y-1">
               {agents.map((agent) => (
