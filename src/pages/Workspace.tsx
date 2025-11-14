@@ -78,8 +78,8 @@ const Workspace = () => {
               className="h-7 px-2"
               onClick={() => navigate("/")}
             >
-              <Plus className="h-4 w-4" />
               <span className="text-xs">Add Agent</span>
+              <Plus className="h-4 w-4" />
             </Button>
             </div>
             <div className="space-y-1">
