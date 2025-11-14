@@ -72,14 +72,15 @@ const Workspace = () => {
           <div className="p-2">
             <div className="px-3 py-2 text-xs font-semibold text-muted-foreground flex items-center justify-between">
               <span>Your Agents</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0"
-                onClick={() => navigate("/")}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2"
+              onClick={() => navigate("/")}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="text-xs">Add Agent</span>
+            </Button>
             </div>
             <div className="space-y-1">
               {agents.map((agent) => (
