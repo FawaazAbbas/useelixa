@@ -1,15 +1,35 @@
 import { useState } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const agents = [
-  { id: "1", name: "customer-support-pro", status: "online" },
-  { id: "2", name: "content-creator-ai", status: "online" },
-  { id: "3", name: "data-analyst", status: "offline" },
+  { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
+  { id: "2", name: "content-creator-ai", status: "online", type: "individual" },
+  { id: "3", name: "data-analyst", status: "offline", type: "individual" },
+];
+
+const groupChats = [
+  { 
+    id: "g1", 
+    name: "Marketing Team", 
+    members: ["content-creator-ai", "data-analyst", "social-media-bot"],
+    memberCount: 3,
+    type: "group",
+    lastActivity: "2m ago"
+  },
+  { 
+    id: "g2", 
+    name: "Customer Success Squad", 
+    members: ["customer-support-pro", "feedback-analyzer", "email-responder"],
+    memberCount: 3,
+    type: "group",
+    lastActivity: "1h ago"
+  },
 ];
 
 const mockMessages = [
@@ -36,10 +56,47 @@ const mockMessages = [
   },
 ];
 
+const mockGroupMessages = [
+  {
+    id: "g1",
+    sender: "content-creator-ai",
+    content: "I've drafted 5 new blog posts for this week's content calendar. Would you like me to share them?",
+    timestamp: "9:15 AM",
+    isAgent: true,
+    avatar: "CC"
+  },
+  {
+    id: "g2",
+    sender: "data-analyst",
+    content: "Great! I analyzed last month's content performance. The tutorial posts got 3x more engagement than news posts.",
+    timestamp: "9:17 AM",
+    isAgent: true,
+    avatar: "DA"
+  },
+  {
+    id: "g3",
+    sender: "You",
+    content: "Perfect! Let's focus more on tutorials then. Can you both collaborate on a series?",
+    timestamp: "9:20 AM",
+    isAgent: false,
+  },
+  {
+    id: "g4",
+    sender: "social-media-bot",
+    content: "I can schedule those across our social channels. I suggest posting tutorials on Tuesday and Thursday for maximum reach.",
+    timestamp: "9:22 AM",
+    isAgent: true,
+    avatar: "SM"
+  },
+];
+
 const Workspace = () => {
   const navigate = useNavigate();
-  const [selectedAgent, setSelectedAgent] = useState(agents[0]);
+  const [selectedChat, setSelectedChat] = useState<any>(agents[0]);
   const [message, setMessage] = useState("");
+  
+  const isGroupChat = selectedChat.type === "group";
+  const currentMessages = isGroupChat ? mockGroupMessages : mockMessages;
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
@@ -50,7 +107,7 @@ const Workspace = () => {
           <button className="flex items-center justify-between w-full hover:bg-muted/50 rounded px-3 py-2 transition-colors">
             <div>
               <div className="font-bold text-white">My Workspace</div>
-              <div className="text-xs text-muted-foreground">3 active agents</div>
+              <div className="text-xs text-muted-foreground">{agents.length} agents • {groupChats.length} groups</div>
             </div>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -76,26 +133,63 @@ const Workspace = () => {
 
         {/* Agent List */}
         <ScrollArea className="flex-1">
-          <div className="p-2">
-            <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
-              <span>Your Agents</span>
+          <div className="p-2 space-y-4">
+            {/* Direct Messages */}
+            <div>
+              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                <span>Direct Messages</span>
+              </div>
+              <div className="space-y-1">
+                {agents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    onClick={() => setSelectedChat(agent)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-muted/50 transition-colors ${
+                      selectedChat.id === agent.id ? "bg-primary/20 text-white" : "text-muted-foreground"
+                    }`}
+                  >
+                    <Hash className="h-4 w-4" />
+                    <span className="text-sm font-medium truncate">{agent.name}</span>
+                    {agent.status === "online" && (
+                      <div className="ml-auto h-2 w-2 rounded-full bg-green-500" />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="space-y-1">
-              {agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => setSelectedAgent(agent)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-muted/50 transition-colors ${
-                    selectedAgent.id === agent.id ? "bg-primary/20 text-white" : "text-muted-foreground"
-                  }`}
+
+            {/* Group Chats */}
+            <div>
+              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                <span>Group Chats</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-5 w-5 p-0"
+                  onClick={() => {}}
                 >
-                  <Hash className="h-4 w-4" />
-                  <span className="text-sm font-medium truncate">{agent.name}</span>
-                  {agent.status === "online" && (
-                    <div className="ml-auto h-2 w-2 rounded-full bg-green-500" />
-                  )}
-                </button>
-              ))}
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="space-y-1">
+                {groupChats.map((group) => (
+                  <button
+                    key={group.id}
+                    onClick={() => setSelectedChat(group)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-muted/50 transition-colors ${
+                      selectedChat.id === group.id ? "bg-primary/20 text-white" : "text-muted-foreground"
+                    }`}
+                  >
+                    <div className="relative">
+                      <Users className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm font-medium truncate">{group.name}</div>
+                      <div className="text-xs text-muted-foreground">{group.memberCount} members</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </ScrollArea>
@@ -122,7 +216,7 @@ const Workspace = () => {
           <div className="flex items-center gap-3">
             <Hash className="h-5 w-5 text-muted-foreground" />
             <div>
-              <h2 className="font-semibold">{selectedAgent.name}</h2>
+              <h2 className="font-semibold">{selectedChat.name}</h2>
             </div>
           </div>
           <Button variant="ghost" size="sm">
@@ -170,7 +264,7 @@ const Workspace = () => {
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-3">
               <Input
-                placeholder={`Message ${selectedAgent.name}...`}
+                placeholder={`Message ${selectedChat.name}...`}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={(e) => {
