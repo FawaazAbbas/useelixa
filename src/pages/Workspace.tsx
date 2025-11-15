@@ -6,6 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -99,7 +101,7 @@ const Workspace = () => {
   const currentMessages = isGroupChat ? mockGroupMessages : mockMessages;
 
   return (
-    <div className="h-screen flex overflow-hidden bg-background">
+    <div className="flex-1 flex overflow-hidden bg-background">
       {/* Sidebar */}
       <div className="w-64 bg-chat-sidebar border-r border-chat-border flex flex-col">
         {/* Workspace Header */}
@@ -210,7 +212,7 @@ const Workspace = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Chat Header */}
         <div className="h-14 border-b border-border px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -281,6 +283,59 @@ const Workspace = () => {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Right Sidebar - Automations */}
+      <div className="w-80 bg-sidebar-background border-l border-sidebar-border flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-sidebar-border">
+          <h3 className="font-semibold text-sidebar-foreground">Automations</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            Active for {selectedChat.name}
+          </p>
+        </div>
+        
+        <div className="flex-1 overflow-auto p-4 space-y-3">
+          {[
+            {
+              name: "Auto-respond to tickets",
+              status: "active",
+              lastRun: "2 min ago",
+              trigger: "New ticket created",
+            },
+            {
+              name: "Daily summary report",
+              status: "active",
+              lastRun: "1 hour ago",
+              trigger: "Every day at 9 AM",
+            },
+            {
+              name: "Escalate urgent issues",
+              status: "paused",
+              lastRun: "Yesterday",
+              trigger: "High priority ticket",
+            },
+          ].map((automation, idx) => (
+            <Card key={idx}>
+              <CardContent className="p-3">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="text-sm font-medium">{automation.name}</h4>
+                  <Badge
+                    variant={automation.status === "active" ? "default" : "secondary"}
+                    className="text-xs"
+                  >
+                    {automation.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Trigger: {automation.trigger}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Last run: {automation.lastRun}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>

@@ -7,7 +7,11 @@ import Marketplace from "./pages/Marketplace";
 import AgentDetail from "./pages/AgentDetail";
 import Workspace from "./pages/Workspace";
 import Publish from "./pages/Publish";
+import Tasks from "./pages/Tasks";
+import Calendar from "./pages/Calendar";
+import Logs from "./pages/Logs";
 import NotFound from "./pages/NotFound";
+import { MainNavSidebar } from "./components/MainNavSidebar";
 
 const queryClient = new QueryClient();
 
@@ -20,8 +24,34 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Marketplace />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
-          <Route path="/workspace" element={<Workspace />} />
           <Route path="/publish" element={<Publish />} />
+          
+          {/* App routes with main navigation */}
+          <Route path="/workspace" element={
+            <div className="flex h-screen overflow-hidden">
+              <MainNavSidebar />
+              <Workspace />
+            </div>
+          } />
+          <Route path="/tasks" element={
+            <div className="flex h-screen overflow-hidden">
+              <MainNavSidebar />
+              <Tasks />
+            </div>
+          } />
+          <Route path="/calendar" element={
+            <div className="flex h-screen overflow-hidden">
+              <MainNavSidebar />
+              <Calendar />
+            </div>
+          } />
+          <Route path="/logs" element={
+            <div className="flex h-screen overflow-hidden">
+              <MainNavSidebar />
+              <Logs />
+            </div>
+          } />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
