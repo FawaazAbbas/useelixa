@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -258,6 +258,18 @@ const Workspace = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Marketplace Button */}
+        <div className="p-3 border-t border-chat-border">
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={() => navigate('/marketplace')}
+          >
+            <Store className="h-4 w-4" />
+            <span>Browse Marketplace</span>
+          </Button>
         </div>
 
         {/* User Profile */}
