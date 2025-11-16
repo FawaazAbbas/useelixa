@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -122,6 +122,7 @@ const Workspace = () => {
   const [selectedChat, setSelectedChat] = useState<any>(agents[0]);
   const [message, setMessage] = useState("");
   const [automations, setAutomations] = useState<Automation[]>([]);
+  const [showAutomations, setShowAutomations] = useState(false);
   
   const isGroupChat = selectedChat.type === "group";
   const currentMessages = isGroupChat ? mockGroupMessages : mockMessages;
@@ -363,13 +364,23 @@ const Workspace = () => {
       </div>
 
       {/* Right Sidebar - Automations */}
-      <div className="hidden lg:block w-80 border-l bg-muted/30 p-4 overflow-y-auto">
+      <div className={`${showAutomations ? 'fixed inset-0 z-50 bg-background lg:relative lg:z-auto' : 'hidden'} lg:block w-full lg:w-80 border-l bg-muted/30 p-4 overflow-y-auto`}>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Automations</h3>
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setShowAutomations(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
