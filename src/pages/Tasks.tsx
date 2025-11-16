@@ -34,7 +34,7 @@ interface Task {
 }
 
 const Tasks = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -49,6 +49,8 @@ const Tasks = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!user) {
       navigate("/auth");
       return;
@@ -75,7 +77,7 @@ const Tasks = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchTasks = async () => {
     if (!user) return;
@@ -186,7 +188,7 @@ const Tasks = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
