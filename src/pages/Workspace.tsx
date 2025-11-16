@@ -275,7 +275,7 @@ const Workspace = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col">
         {/* Chat Header */}
         <div className="h-14 border-b flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
@@ -363,7 +363,7 @@ const Workspace = () => {
       </div>
 
       {/* Right Sidebar - Automations */}
-      <div className="w-full lg:w-80 border-l bg-muted/30 p-4">
+      <div className="w-80 border-l bg-muted/30 p-4 hidden lg:block">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Automations</h3>
