@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
+import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 
 const taskSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
@@ -31,12 +32,15 @@ interface Task {
   due_date: string | null;
   completed_at: string | null;
   created_at: string;
+  automation_count: number;
+  completed_automation_count: number;
 }
 
 const Tasks = () => {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -47,6 +51,8 @@ const Tasks = () => {
     due_date: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -79,12 +85,26 @@ const Tasks = () => {
     };
   }, [user, authLoading, navigate]);
 
+  // Handle deep linking to specific task
+  useEffect(() => {
+    const taskIdParam = searchParams.get('taskId');
+    if (taskIdParam && tasks.length > 0) {
+      const task = tasks.find(t => t.id === taskIdParam);
+      if (task) {
+        setSelectedTask(task);
+        setTaskDetailOpen(true);
+        // Remove query param
+        navigate('/tasks', { replace: true });
+      }
+    }
+  }, [searchParams, tasks, navigate]);
+
   const fetchTasks = async () => {
     if (!user) return;
 
     const { data, error } = await supabase
       .from("tasks")
-      .select("*")
+      .select("*, automation_count, completed_automation_count")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -126,51 +146,53 @@ const Tasks = () => {
         const fieldErrors: Record<string, string> = {};
         error.errors.forEach((err) => {
           if (err.path[0]) {
-            fieldErrors[err.path[0] as string] = err.message;
+            fieldErrors[err.path[0].toString()] = err.message;
           }
         });
         setErrors(fieldErrors);
       } else {
+        console.error("Error creating task:", error);
         toast({
-          variant: "destructive",
           title: "Error",
-          description: "Failed to create task"
+          description: "Failed to create task",
+          variant: "destructive"
         });
       }
     }
   };
 
-  const toggleTaskComplete = async (task: Task) => {
+  const toggleTaskComplete = async (taskId: string, currentStatus: string | null) => {
+    const newStatus = currentStatus === "completed" ? "pending" : "completed";
     const { error } = await supabase
       .from("tasks")
-      .update({
-        status: task.status === "completed" ? "pending" : "completed",
-        completed_at: task.status === "completed" ? null : new Date().toISOString()
+      .update({ 
+        status: newStatus,
+        completed_at: newStatus === "completed" ? new Date().toISOString() : null
       })
-      .eq("id", task.id);
+      .eq("id", taskId);
 
     if (error) {
+      console.error("Error updating task:", error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to update task"
+        description: "Failed to update task",
+        variant: "destructive"
       });
     }
   };
 
   const deleteTask = async (taskId: string) => {
-    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", taskId);
 
     if (error) {
+      console.error("Error deleting task:", error);
       toast({
-        variant: "destructive",
         title: "Error",
-        description: "Failed to delete task"
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Task deleted"
+        description: "Failed to delete task",
+        variant: "destructive"
       });
     }
   };
@@ -178,13 +200,13 @@ const Tasks = () => {
   const getPriorityColor = (priority: string | null) => {
     switch (priority) {
       case "high":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-500";
       case "medium":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-500";
       case "low":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-500";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-500";
     }
   };
 
@@ -197,16 +219,16 @@ const Tasks = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      <div className="border-b border-border px-6 py-4">
-        <div className="flex items-center justify-between mb-4">
+    <div className="flex-1 p-8 overflow-auto">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <CheckSquare className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-semibold">Tasks</h1>
+            <CheckSquare className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">Tasks</h1>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 New Task
               </Button>
@@ -217,12 +239,12 @@ const Tasks = () => {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Title *</Label>
+                  <Label htmlFor="title">Title</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Enter task title"
+                    placeholder="Task title"
                   />
                   {errors.title && <p className="text-sm text-destructive mt-1">{errors.title}</p>}
                 </div>
@@ -232,7 +254,7 @@ const Tasks = () => {
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Enter task description"
+                    placeholder="Task description (optional)"
                   />
                   {errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
                 </div>
@@ -258,72 +280,89 @@ const Tasks = () => {
                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                   />
                 </div>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" className="flex-1">Create Task</Button>
+                  <Button type="submit">Create Task</Button>
                 </div>
               </form>
             </DialogContent>
           </Dialog>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-auto p-6">
-        {tasks.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No tasks yet. Create one to get started!</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <Card key={task.id} className={task.status === "completed" ? "opacity-60" : ""}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={task.status === "completed"}
-                      onCheckedChange={() => toggleTaskComplete(task)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className={`font-medium ${task.status === "completed" ? "line-through" : ""}`}>
-                            {task.title}
-                          </h3>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+        <div className="grid gap-4">
+          {tasks.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">No tasks yet. Create one to get started!</p>
+              </CardContent>
+            </Card>
+          ) : (
+            tasks.map((task) => (
+              <Card
+                key={task.id}
+                className="cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => {
+                  setSelectedTask(task);
+                  setTaskDetailOpen(true);
+                }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4 flex-1">
+                      <Checkbox
+                        checked={task.status === "completed"}
+                        onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className="flex-1">
+                        <h3 className={`font-medium mb-1 ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+                          {task.title}
+                        </h3>
+                        {task.description && (
+                          <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          {task.due_date && (
+                            <span>Due: {new Date(task.due_date).toLocaleDateString()}</span>
+                          )}
+                          {task.automation_count > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {task.completed_automation_count}/{task.automation_count} automations
+                            </Badge>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteTask(task.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        {task.priority && (
-                          <Badge variant="outline" className={getPriorityColor(task.priority)}>
-                            {task.priority}
-                          </Badge>
-                        )}
-                        {task.due_date && (
-                          <span className="text-xs text-muted-foreground">
-                            Due: {new Date(task.due_date).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
+                      <span className="text-xs text-muted-foreground capitalize">{task.priority}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTask(task.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
+
+      <TaskDetailDialog
+        task={selectedTask}
+        open={taskDetailOpen}
+        onOpenChange={setTaskDetailOpen}
+      />
     </div>
   );
 };

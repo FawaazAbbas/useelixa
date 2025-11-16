@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, Users } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +8,11 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkspace } from "@/hooks/useWorkspace";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -41,6 +46,7 @@ const mockMessages = [
     content: "Hello! I'm ready to help with customer inquiries. You can ask me to check tickets, respond to customers, or analyze support trends.",
     timestamp: "10:30 AM",
     isAgent: true,
+    avatar: "CS"
   },
   {
     id: "2",
@@ -48,6 +54,7 @@ const mockMessages = [
     content: "Show me the latest customer tickets",
     timestamp: "10:32 AM",
     isAgent: false,
+    avatar: "U"
   },
   {
     id: "3",
@@ -55,6 +62,7 @@ const mockMessages = [
     content: "Here are the 5 most recent tickets:\n\n1. Ticket #234 - Login issue (Priority: High)\n2. Ticket #235 - Feature request (Priority: Low)\n3. Ticket #236 - Billing question (Priority: Medium)\n4. Ticket #237 - Bug report (Priority: High)\n5. Ticket #238 - General inquiry (Priority: Low)\n\nWould you like me to provide more details on any of these?",
     timestamp: "10:32 AM",
     isAgent: true,
+    avatar: "CS"
   },
 ];
 
@@ -92,13 +100,74 @@ const mockGroupMessages = [
   },
 ];
 
+interface Automation {
+  id: string;
+  name: string;
+  status: string;
+  trigger: string;
+  progress: number;
+  last_run: string | null;
+  task_id: string | null;
+  task?: {
+    id: string;
+    title: string;
+    status: string;
+  } | null;
+}
+
 const Workspace = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { workspaceId } = useWorkspace();
   const [selectedChat, setSelectedChat] = useState<any>(agents[0]);
   const [message, setMessage] = useState("");
+  const [automations, setAutomations] = useState<Automation[]>([]);
   
   const isGroupChat = selectedChat.type === "group";
   const currentMessages = isGroupChat ? mockGroupMessages : mockMessages;
+
+  useEffect(() => {
+    if (workspaceId) {
+      fetchAutomations();
+    }
+  }, [workspaceId]);
+
+  const fetchAutomations = async () => {
+    if (!workspaceId) return;
+
+    const { data, error } = await supabase
+      .from("automations")
+      .select(`
+        *,
+        task:tasks(id, title, status)
+      `)
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (error) {
+      console.error("Error fetching automations:", error);
+    } else {
+      setAutomations(data || []);
+    }
+  };
+
+  const handleSeeTask = (taskId: string) => {
+    navigate(`/tasks?taskId=${taskId}`);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "default";
+      case "completed":
+        return "secondary";
+      case "paused":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
 
   return (
     <div className="flex-1 flex overflow-hidden bg-background">
@@ -109,102 +178,96 @@ const Workspace = () => {
           <button className="flex items-center justify-between w-full hover:bg-muted/50 rounded px-3 py-2 transition-colors">
             <div>
               <div className="font-bold text-white">My Workspace</div>
-              <div className="text-xs text-muted-foreground">{agents.length} agents • {groupChats.length} groups</div>
+              <div className="text-xs text-muted-foreground">Premium Plan</div>
             </div>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-chat-border space-y-2">
+        <div className="p-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search agents..."
-              className="pl-9 bg-chat-bg border-chat-border text-white placeholder:text-muted-foreground"
+              placeholder="Search conversations..."
+              className="pl-9 bg-muted/50 border-0"
             />
           </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate("/")}
-          >
-            Go to AgentStore
-          </Button>
         </div>
 
-        {/* Agent List */}
-        <ScrollArea className="flex-1">
-          <div className="p-2 space-y-4">
-            {/* Direct Messages */}
-            <div>
-              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
-                <span>Direct Messages</span>
-              </div>
-              <div className="space-y-1">
-                {agents.map((agent) => (
-                  <button
-                    key={agent.id}
-                    onClick={() => setSelectedChat(agent)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-muted/50 transition-colors ${
-                      selectedChat.id === agent.id ? "bg-primary/20 text-white" : "text-muted-foreground"
-                    }`}
-                  >
-                    <Hash className="h-4 w-4" />
-                    <span className="text-sm font-medium truncate">{agent.name}</span>
-                    {agent.status === "online" && (
-                      <div className="ml-auto h-2 w-2 rounded-full bg-green-500" />
-                    )}
-                  </button>
-                ))}
-              </div>
+        {/* Direct Messages */}
+        <div className="flex-1 overflow-auto">
+          <div className="px-3 py-2">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase">Direct Messages</h3>
+              <Button variant="ghost" size="icon" className="h-5 w-5">
+                <Plus className="h-3 w-3" />
+              </Button>
             </div>
-
-            {/* Group Chats */}
-            <div>
-              <div className="px-3 py-2 text-xs font-semibold text-muted-foreground flex items-center justify-between">
-                <span>Group Chats</span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-5 w-5 p-0"
-                  onClick={() => {}}
+            <div className="space-y-1">
+              {agents.map((agent) => (
+                <button
+                  key={agent.id}
+                  onClick={() => setSelectedChat(agent)}
+                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
+                    selectedChat.id === agent.id ? "bg-muted/50" : ""
+                  }`}
                 >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-              <div className="space-y-1">
-                {groupChats.map((group) => (
-                  <button
-                    key={group.id}
-                    onClick={() => setSelectedChat(group)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-muted/50 transition-colors ${
-                      selectedChat.id === group.id ? "bg-primary/20 text-white" : "text-muted-foreground"
-                    }`}
-                  >
-                    <div className="relative">
-                      <Users className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-sm font-medium truncate">{group.name}</div>
-                      <div className="text-xs text-muted-foreground">{group.memberCount} members</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+                  <div className="relative">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className="text-xs">
+                        {agent.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
+                      agent.status === "online" ? "bg-green-500" : "bg-gray-500"
+                    }`} />
+                  </div>
+                  <span className="text-sm truncate text-white">{agent.name}</span>
+                </button>
+              ))}
             </div>
           </div>
-        </ScrollArea>
+
+          <Separator className="my-2" />
+
+          {/* Group Chats */}
+          <div className="px-3 py-2">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase">Group Chats</h3>
+              <Button variant="ghost" size="icon" className="h-5 w-5">
+                <Plus className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-1">
+              {groupChats.map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() => setSelectedChat(chat)}
+                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
+                    selectedChat.id === chat.id ? "bg-muted/50" : ""
+                  }`}
+                >
+                  <Hash className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex-1 text-left">
+                    <div className="text-sm truncate text-white">{chat.name}</div>
+                    <div className="text-xs text-muted-foreground">{chat.memberCount} members</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* User Profile */}
         <div className="p-3 border-t border-chat-border">
-          <button className="flex items-center gap-3 w-full px-3 py-2 rounded hover:bg-muted/50 transition-colors">
-            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-sm font-bold">
-              U
-            </div>
+          <button className="flex items-center gap-2 w-full hover:bg-muted/50 rounded px-2 py-1.5 transition-colors">
+            <Avatar className="h-6 w-6">
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-white">User</div>
-              <div className="text-xs text-muted-foreground">Active</div>
+              <div className="text-xs text-muted-foreground">Online</div>
             </div>
             <Settings className="h-4 w-4 text-muted-foreground" />
           </button>
@@ -212,48 +275,65 @@ const Workspace = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <div className="h-14 border-b border-border px-6 flex items-center justify-between">
+        <div className="h-14 border-b flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <Hash className="h-5 w-5 text-muted-foreground" />
-            <div>
-              <h2 className="font-semibold">{selectedChat.name}</h2>
-            </div>
+            {isGroupChat ? (
+              <>
+                <Hash className="h-5 w-5" />
+                <div>
+                  <div className="font-semibold">{selectedChat.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {selectedChat.members.join(", ")}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Avatar>
+                  <AvatarFallback>
+                    {selectedChat.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-semibold">{selectedChat.name}</div>
+                  <div className="text-xs text-muted-foreground">{selectedChat.status}</div>
+                </div>
+              </>
+            )}
           </div>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="icon">
             <Settings className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto space-y-4">
-            {mockMessages.map((msg) => (
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4 max-w-4xl mx-auto">
+            {currentMessages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-3 ${msg.isAgent ? "" : "flex-row-reverse"}`}
+                className={`flex gap-3 ${!msg.isAgent ? "flex-row-reverse" : ""}`}
               >
-                <div
-                  className={`h-10 w-10 rounded flex items-center justify-center flex-shrink-0 text-sm font-bold ${
-                    msg.isAgent ? "bg-primary text-primary-foreground" : "bg-muted"
-                  }`}
-                >
-                  {msg.sender.charAt(0).toUpperCase()}
-                </div>
-                <div className={`flex-1 ${msg.isAgent ? "" : "flex flex-col items-end"}`}>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="font-semibold text-sm">{msg.sender}</span>
+                <Avatar>
+                  <AvatarFallback>
+                    {msg.isAgent ? (msg.avatar || msg.sender.substring(0, 2).toUpperCase()) : "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className={`flex-1 ${!msg.isAgent ? "text-right" : ""}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-semibold">{msg.sender}</span>
                     <span className="text-xs text-muted-foreground">{msg.timestamp}</span>
                   </div>
                   <div
-                    className={`rounded-lg px-4 py-2 inline-block max-w-2xl ${
+                    className={`inline-block px-4 py-2 rounded-lg ${
                       msg.isAgent
                         ? "bg-muted"
                         : "bg-primary text-primary-foreground"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                   </div>
                 </div>
               </div>
@@ -262,80 +342,103 @@ const Workspace = () => {
         </ScrollArea>
 
         {/* Message Input */}
-        <div className="border-t border-border p-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex gap-3">
-              <Input
-                placeholder={`Message ${selectedChat.name}...`}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    // Handle send message
-                    setMessage("");
-                  }
-                }}
-                className="flex-1"
-              />
-              <Button size="icon">
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+        <div className="p-4 border-t">
+          <div className="flex gap-2 max-w-4xl mx-auto">
+            <Input
+              placeholder={`Message ${selectedChat.name}...`}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  // Handle send
+                }
+              }}
+            />
+            <Button size="icon">
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Right Sidebar - Automations */}
-      <div className="w-80 bg-sidebar-background border-l border-sidebar-border flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-sidebar-border">
-          <h3 className="font-semibold text-sidebar-foreground">Automations</h3>
-          <p className="text-xs text-muted-foreground mt-1">
-            Active for {selectedChat.name}
-          </p>
-        </div>
-        
-        <div className="flex-1 overflow-auto p-4 space-y-3">
-          {[
-            {
-              name: "Auto-respond to tickets",
-              status: "active",
-              lastRun: "2 min ago",
-              trigger: "New ticket created",
-            },
-            {
-              name: "Daily summary report",
-              status: "active",
-              lastRun: "1 hour ago",
-              trigger: "Every day at 9 AM",
-            },
-            {
-              name: "Escalate urgent issues",
-              status: "paused",
-              lastRun: "Yesterday",
-              trigger: "High priority ticket",
-            },
-          ].map((automation, idx) => (
-            <Card key={idx}>
-              <CardContent className="p-3">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="text-sm font-medium">{automation.name}</h4>
-                  <Badge
-                    variant={automation.status === "active" ? "default" : "secondary"}
-                    className="text-xs"
-                  >
-                    {automation.status}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mb-1">
-                  Trigger: {automation.trigger}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Last run: {automation.lastRun}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="w-80 border-l bg-muted/30 p-4 hidden lg:block">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Automations</h3>
+            <Button variant="ghost" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            {automations.length === 0 ? (
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    No automations yet
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              automations.map((automation) => (
+                <Card key={automation.id}>
+                  <CardContent className="p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="text-sm font-medium">{automation.name}</h4>
+                      <Badge
+                        variant={getStatusColor(automation.status)}
+                        className="text-xs"
+                      >
+                        {automation.status}
+                      </Badge>
+                    </div>
+
+                    {automation.task && (
+                      <div className="mb-2 space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          As part of{" "}
+                          <span className="font-medium text-foreground">
+                            {automation.task.title}
+                          </span>
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs w-full"
+                          onClick={() => handleSeeTask(automation.task!.id)}
+                        >
+                          See Task
+                        </Button>
+                      </div>
+                    )}
+
+                    {automation.progress !== null && automation.progress > 0 && (
+                      <div className="mb-2">
+                        <Progress value={automation.progress} className="h-1.5" />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {automation.progress}% complete
+                        </p>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Trigger: {automation.trigger}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Last run:{" "}
+                      {automation.last_run
+                        ? formatDistanceToNow(new Date(automation.last_run), {
+                            addSuffix: true,
+                          })
+                        : "Never"}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>
