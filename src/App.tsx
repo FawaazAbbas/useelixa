@@ -24,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Marketplace />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/publish" element={<Publish />} />
