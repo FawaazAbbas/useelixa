@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Store } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
@@ -6,6 +6,7 @@ const navItems = [
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: Activity, label: "Logs", path: "/logs" },
+  { icon: Store, label: "Marketplace", path: "/marketplace" },
 ];
 
 export const MainNavSidebar = () => {
