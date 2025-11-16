@@ -363,7 +363,7 @@ const Workspace = () => {
       </div>
 
       {/* Right Sidebar - Automations */}
-      <div className="w-full lg:w-80 border-l bg-muted/30 p-4 overflow-y-auto">
+      <div className="hidden lg:block w-80 border-l bg-muted/30 p-4 overflow-y-auto">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Automations</h3>
