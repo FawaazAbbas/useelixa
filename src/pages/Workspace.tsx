@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -374,24 +375,96 @@ const Workspace = () => {
         </div>
       </div>
 
-      {/* Right Sidebar - Automations */}
-      <div className={`${showAutomations ? 'fixed inset-0 z-50 bg-background lg:relative lg:z-auto' : 'hidden'} lg:block w-full lg:w-80 border-l bg-muted/30 p-4 overflow-y-auto`}>
+      {/* Automations Drawer for Mobile/Tablet */}
+      <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
+        <SheetContent side="right" className="w-full sm:w-96 p-0">
+          <div className="h-full flex flex-col">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Automations</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-2">
+                {automations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-32 gap-3">
+                    <p className="text-sm text-muted-foreground">No automations yet</p>
+                    <Button size="sm" onClick={() => navigate('/tasks')}>
+                      Create Automation
+                    </Button>
+                  </div>
+                ) : (
+                  automations.map((automation) => (
+                    <Card key={automation.id}>
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-sm font-medium">{automation.name}</h4>
+                          <Badge
+                            variant={getStatusColor(automation.status)}
+                            className="text-xs"
+                          >
+                            {automation.status}
+                          </Badge>
+                        </div>
+
+                        {automation.task && (
+                          <div className="mb-2 space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              As part of{" "}
+                              <span className="font-medium text-foreground">
+                                {automation.task.title}
+                              </span>
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs w-full"
+                              onClick={() => {
+                                handleSeeTask(automation.task!.id);
+                                setShowAutomations(false);
+                              }}
+                            >
+                              See Task
+                            </Button>
+                          </div>
+                        )}
+
+                        {automation.progress !== null && automation.progress > 0 && (
+                          <div className="mb-2">
+                            <Progress value={automation.progress} className="h-1.5" />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {automation.progress}% complete
+                            </p>
+                          </div>
+                        )}
+
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Trigger: {automation.trigger}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Last run:{" "}
+                          {automation.last_run
+                            ? formatDistanceToNow(new Date(automation.last_run), {
+                                addSuffix: true,
+                              })
+                            : "Never"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Right Sidebar - Automations (Desktop Only) */}
+      <div className="hidden lg:block w-80 border-l bg-muted/30 p-4 overflow-y-auto">
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">Automations</h3>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setShowAutomations(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
+            <Button variant="ghost" size="sm">
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
 
           <div className="space-y-2">
