@@ -220,7 +220,10 @@ export type Database = {
           id: string
           last_run: string | null
           name: string
+          progress: number | null
+          result_data: Json | null
           status: string | null
+          task_id: string | null
           trigger: string
           updated_at: string
           workspace_id: string
@@ -233,7 +236,10 @@ export type Database = {
           id?: string
           last_run?: string | null
           name: string
+          progress?: number | null
+          result_data?: Json | null
           status?: string | null
+          task_id?: string | null
           trigger: string
           updated_at?: string
           workspace_id: string
@@ -246,7 +252,10 @@ export type Database = {
           id?: string
           last_run?: string | null
           name?: string
+          progress?: number | null
+          result_data?: Json | null
           status?: string | null
+          task_id?: string | null
           trigger?: string
           updated_at?: string
           workspace_id?: string
@@ -257,6 +266,13 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automations_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
           {
@@ -470,7 +486,9 @@ export type Database = {
       tasks: {
         Row: {
           assigned_agent_id: string | null
+          automation_count: number | null
           completed_at: string | null
+          completed_automation_count: number | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -484,7 +502,9 @@ export type Database = {
         }
         Insert: {
           assigned_agent_id?: string | null
+          automation_count?: number | null
           completed_at?: string | null
+          completed_automation_count?: number | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -498,7 +518,9 @@ export type Database = {
         }
         Update: {
           assigned_agent_id?: string | null
+          automation_count?: number | null
           completed_at?: string | null
+          completed_automation_count?: number | null
           created_at?: string
           description?: string | null
           due_date?: string | null
