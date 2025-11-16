@@ -260,18 +260,6 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* Marketplace Button */}
-        <div className="p-3 border-t border-chat-border">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2"
-            onClick={() => navigate('/marketplace')}
-          >
-            <Store className="h-4 w-4" />
-            <span>Browse Marketplace</span>
-          </Button>
-        </div>
-
         {/* User Profile */}
         <div className="p-3 border-t border-chat-border">
           <button className="flex items-center gap-2 w-full hover:bg-muted/50 rounded px-2 py-1.5 transition-colors">
@@ -316,9 +304,20 @@ const Workspace = () => {
               </>
             )}
           </div>
-          <Button variant="ghost" size="icon">
-            <Settings className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setShowAutomations(!showAutomations)}
+            >
+              <LayoutList className="h-4 w-4" />
+              <span className="ml-2">Automations</span>
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Messages */}
