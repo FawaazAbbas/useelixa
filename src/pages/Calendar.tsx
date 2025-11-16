@@ -31,7 +31,7 @@ interface CalendarEvent {
 }
 
 const Calendar = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -51,6 +51,8 @@ const Calendar = () => {
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!user) {
       navigate("/auth");
       return;
@@ -77,7 +79,7 @@ const Calendar = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, navigate, currentWeek]);
+  }, [user, authLoading, navigate, currentWeek]);
 
   const fetchEvents = async () => {
     if (!user) return;
@@ -161,7 +163,7 @@ const Calendar = () => {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
