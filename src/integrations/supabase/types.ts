@@ -82,6 +82,38 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_configurations: {
+        Row: {
+          agent_installation_id: string
+          configuration: Json | null
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          agent_installation_id: string
+          configuration?: Json | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_installation_id?: string
+          configuration?: Json | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_configurations_agent_installation_id_fkey"
+            columns: ["agent_installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_installations: {
         Row: {
           agent_id: string
@@ -151,8 +183,10 @@ export type Database = {
       }
       agents: {
         Row: {
+          api_authentication_type: string | null
           capabilities: string[] | null
           category_id: string | null
+          configuration_schema: Json | null
           created_at: string
           description: string | null
           id: string
@@ -162,14 +196,19 @@ export type Database = {
           price: number | null
           publisher_id: string | null
           rating: number | null
+          response_timeout: number | null
           status: string | null
+          supported_features: string[] | null
           total_installs: number | null
           total_reviews: number | null
           updated_at: string
+          webhook_url: string | null
         }
         Insert: {
+          api_authentication_type?: string | null
           capabilities?: string[] | null
           category_id?: string | null
+          configuration_schema?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -179,14 +218,19 @@ export type Database = {
           price?: number | null
           publisher_id?: string | null
           rating?: number | null
+          response_timeout?: number | null
           status?: string | null
+          supported_features?: string[] | null
           total_installs?: number | null
           total_reviews?: number | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Update: {
+          api_authentication_type?: string | null
           capabilities?: string[] | null
           category_id?: string | null
+          configuration_schema?: Json | null
           created_at?: string
           description?: string | null
           id?: string
@@ -196,10 +240,13 @@ export type Database = {
           price?: number | null
           publisher_id?: string | null
           rating?: number | null
+          response_timeout?: number | null
           status?: string | null
+          supported_features?: string[] | null
           total_installs?: number | null
           total_reviews?: number | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Relationships: [
           {
@@ -417,8 +464,11 @@ export type Database = {
           chat_id: string
           content: string
           created_at: string
+          error_message: string | null
           id: string
           metadata: Json | null
+          processing_time_ms: number | null
+          response_metadata: Json | null
           user_id: string | null
         }
         Insert: {
@@ -426,8 +476,11 @@ export type Database = {
           chat_id: string
           content: string
           created_at?: string
+          error_message?: string | null
           id?: string
           metadata?: Json | null
+          processing_time_ms?: number | null
+          response_metadata?: Json | null
           user_id?: string | null
         }
         Update: {
@@ -435,8 +488,11 @@ export type Database = {
           chat_id?: string
           content?: string
           created_at?: string
+          error_message?: string | null
           id?: string
           metadata?: Json | null
+          processing_time_ms?: number | null
+          response_metadata?: Json | null
           user_id?: string | null
         }
         Relationships: [
