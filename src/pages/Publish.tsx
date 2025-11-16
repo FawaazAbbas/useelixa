@@ -1,17 +1,181 @@
-import { ArrowLeft, Upload, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, Upload, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const agentSchema = z.object({
+  name: z.string().trim().min(3, "Name must be at least 3 characters").max(100, "Name must be less than 100 characters"),
+  description: z.string().trim().min(10, "Description must be at least 10 characters").max(200, "Description must be less than 200 characters"),
+  long_description: z.string().trim().min(50, "Full description must be at least 50 characters").max(2000, "Full description must be less than 2000 characters"),
+  category_id: z.string().uuid("Please select a category"),
+  price: z.number().min(0, "Price must be 0 or greater").max(999, "Price must be less than 1000"),
+  capabilities: z.string().trim().min(10, "Please list at least one capability")
+});
 
 const Publish = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    long_description: "",
+    category_id: "",
+    price: "0",
+    capabilities: ""
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    const fetchCategories = async () => {
+      const { data } = await supabase
+        .from("agent_categories")
+        .select("id, name")
+        .order("name");
+
+      if (data) {
+        setCategories(data);
+      }
+    };
+
+    fetchCategories();
+  }, [user, navigate]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Image must be less than 5MB"
+      });
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload an image file"
+      });
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const validatedData = agentSchema.parse({
+        ...formData,
+        price: parseFloat(formData.price)
+      });
+
+      let imageUrl = null;
+
+      if (imageFile) {
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("agent-images")
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("agent-images")
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
+      }
+
+      const capabilitiesArray = validatedData.capabilities
+        .split("\n")
+        .map(cap => cap.trim())
+        .filter(cap => cap.length > 0);
+
+      const { error: insertError } = await supabase
+        .from("agents")
+        .insert({
+          name: validatedData.name,
+          description: validatedData.description,
+          long_description: validatedData.long_description,
+          category_id: validatedData.category_id,
+          price: validatedData.price,
+          capabilities: capabilitiesArray,
+          image_url: imageUrl,
+          publisher_id: user.id,
+          status: "active"
+        });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Success!",
+        description: "Your agent has been published successfully."
+      });
+
+      navigate("/");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to publish agent. Please try again."
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
       <nav className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <Button
@@ -25,7 +189,6 @@ const Publish = () => {
         </div>
       </nav>
 
-      {/* Content */}
       <div className="max-w-4xl mx-auto px-6 py-12">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -38,118 +201,129 @@ const Publish = () => {
         </div>
 
         <Card className="p-8">
-          <form className="space-y-8">
-            {/* Basic Info */}
+          <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
               <div>
-                <Label htmlFor="name" className="text-base">Agent Name</Label>
+                <Label htmlFor="name" className="text-base">Agent Name *</Label>
                 <Input
                   id="name"
                   placeholder="e.g., Customer Support Pro"
                   className="mt-2"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
+                {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
               </div>
 
               <div>
-                <Label htmlFor="tagline" className="text-base">Tagline</Label>
+                <Label htmlFor="description" className="text-base">Short Description *</Label>
                 <Input
-                  id="tagline"
-                  placeholder="Brief description in one line"
+                  id="description"
+                  placeholder="Brief one-line description"
                   className="mt-2"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
+                {errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
               </div>
 
               <div>
-                <Label htmlFor="description" className="text-base">Full Description</Label>
+                <Label htmlFor="long_description" className="text-base">Full Description *</Label>
                 <Textarea
-                  id="description"
+                  id="long_description"
                   placeholder="Describe what your agent does and how it helps users..."
                   className="mt-2 min-h-32"
+                  value={formData.long_description}
+                  onChange={(e) => setFormData({ ...formData, long_description: e.target.value })}
                 />
+                {errors.long_description && <p className="text-sm text-destructive mt-1">{errors.long_description}</p>}
               </div>
 
               <div>
-                <Label htmlFor="category" className="text-base">Category</Label>
-                <Input
-                  id="category"
-                  placeholder="e.g., Customer Service, Marketing, Analytics"
-                  className="mt-2"
-                />
+                <Label htmlFor="category_id" className="text-base">Category *</Label>
+                <Select value={formData.category_id} onValueChange={(value) => setFormData({ ...formData, category_id: value })}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.category_id && <p className="text-sm text-destructive mt-1">{errors.category_id}</p>}
               </div>
 
               <div>
-                <Label htmlFor="price" className="text-base">Price (USD/month)</Label>
+                <Label htmlFor="price" className="text-base">Price (USD/month) *</Label>
                 <Input
                   id="price"
                   type="number"
                   placeholder="49"
                   className="mt-2"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 />
-              </div>
-            </div>
-
-            {/* Media */}
-            <div className="space-y-6">
-              <div>
-                <Label className="text-base">Icon/Screenshot</Label>
-                <div className="mt-2 border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Click to upload or drag and drop
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    PNG, JPG or WebP (max. 2MB)
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Agent Configuration */}
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="api" className="text-base">Agent API Endpoint</Label>
-                <Input
-                  id="api"
-                  placeholder="https://api.yourdomain.com/agent"
-                  className="mt-2"
-                />
-                <p className="text-xs text-muted-foreground mt-2">
-                  The endpoint where your agent receives and processes requests
-                </p>
+                {errors.price && <p className="text-sm text-destructive mt-1">{errors.price}</p>}
               </div>
 
               <div>
-                <Label htmlFor="capabilities" className="text-base">Key Capabilities</Label>
+                <Label htmlFor="capabilities" className="text-base">Key Features *</Label>
                 <Textarea
                   id="capabilities"
-                  placeholder="List the main features and capabilities of your agent..."
+                  placeholder="Enter one feature per line"
                   className="mt-2 min-h-24"
+                  value={formData.capabilities}
+                  onChange={(e) => setFormData({ ...formData, capabilities: e.target.value })}
                 />
+                {errors.capabilities && <p className="text-sm text-destructive mt-1">{errors.capabilities}</p>}
+                <p className="text-xs text-muted-foreground mt-1">Enter one feature per line</p>
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 pt-6">
-              <Button type="button" variant="outline" className="flex-1">
-                Save Draft
+            <div className="space-y-6">
+              <div>
+                <Label className="text-base">Agent Image</Label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className="mt-2 border-2 border-dashed border-border rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer block"
+                >
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+                  ) : (
+                    <>
+                      <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        PNG, JPG or WebP (max. 5MB)
+                      </p>
+                    </>
+                  )}
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-6">
+              <Button type="button" variant="outline" onClick={() => navigate("/")} className="flex-1">
+                Cancel
               </Button>
-              <Button type="submit" className="flex-1">
+              <Button type="submit" disabled={loading} className="flex-1">
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Publish Agent
               </Button>
             </div>
           </form>
-        </Card>
-
-        {/* Guidelines */}
-        <Card className="mt-8 p-6 bg-muted/50">
-          <h3 className="font-semibold mb-3">Publishing Guidelines</h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• Ensure your agent has been thoroughly tested</li>
-            <li>• Provide clear documentation and examples</li>
-            <li>• Set fair pricing based on your agent's capabilities</li>
-            <li>• Respond promptly to user reviews and feedback</li>
-            <li>• Keep your agent updated and secure</li>
-          </ul>
         </Card>
       </div>
     </div>

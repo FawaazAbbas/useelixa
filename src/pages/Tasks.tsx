@@ -1,197 +1,326 @@
-import { Calendar, CheckSquare, Clock, User, Filter, Plus, List, LayoutGrid, Search, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CheckSquare, Plus, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { z } from "zod";
 
-const mockTaskGroups = [
-  {
-    dateRange: "Mon Nov 10 - Sun Nov 16",
-    count: 4,
-    status: "current",
-    tasks: [
-      {
-        id: "1",
-        title: "Respond to customer tickets",
-        project: "Customer Support",
-        projectColor: "bg-blue-500",
-        status: "Todo",
-        dueDate: "Fri Nov 14",
-        estimate: "0m of 4h",
-        assignee: "CS",
-        priority: "high",
-        comments: 0,
-      },
-      {
-        id: "2",
-        title: "Draft blog post on AI trends",
-        project: "Content Creation",
-        projectColor: "bg-purple-500",
-        status: "Todo",
-        dueDate: "Thu Nov 13",
-        estimate: "0m of 3h",
-        assignee: "CC",
-        priority: "medium",
-        comments: 1,
-      },
-    ],
-  },
-  {
-    dateRange: "Mon Nov 17 - Sun Nov 23",
-    count: 3,
-    status: "upcoming",
-    tasks: [
-      {
-        id: "3",
-        title: "Analyze Q4 performance metrics",
-        project: "Data Analysis",
-        projectColor: "bg-green-500",
-        status: "Todo",
-        dueDate: "Mon Nov 17",
-        estimate: "0m of 2h",
-        assignee: "DA",
-        priority: "low",
-        comments: 0,
-      },
-    ],
-  },
-  {
-    dateRange: "Mon Dec 1 - Sun Dec 7",
-    count: 2,
-    status: "future",
-    tasks: [
-      {
-        id: "4",
-        title: "Execute campaign launch",
-        project: "Marketing",
-        projectColor: "bg-orange-500",
-        status: "Todo",
-        dueDate: "Wed Dec 3",
-        estimate: "0m of 2h",
-        assignee: "MK",
-        priority: "high",
-        comments: 0,
-      },
-    ],
-  },
-];
+const taskSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
+  description: z.string().trim().max(1000, "Description must be less than 1000 characters").optional(),
+  priority: z.enum(["low", "medium", "high"]),
+  due_date: z.string().optional()
+});
+
+interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string | null;
+  status: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
 
 const Tasks = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    priority: "medium",
+    due_date: ""
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    fetchTasks();
+
+    const channel = supabase
+      .channel("tasks-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "tasks",
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchTasks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, navigate]);
+
+  const fetchTasks = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching tasks:", error);
+    } else {
+      setTasks(data || []);
+    }
+    setLoading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    try {
+      const validatedData = taskSchema.parse(formData);
+
+      const { error } = await supabase.from("tasks").insert([{
+        title: validatedData.title,
+        description: validatedData.description || null,
+        priority: validatedData.priority,
+        due_date: validatedData.due_date || null,
+        user_id: user?.id!,
+        status: "pending"
+      }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Task created successfully"
+      });
+
+      setDialogOpen(false);
+      setFormData({ title: "", description: "", priority: "medium", due_date: "" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to create task"
+        });
+      }
+    }
+  };
+
+  const toggleTaskComplete = async (task: Task) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({
+        status: task.status === "completed" ? "pending" : "completed",
+        completed_at: task.status === "completed" ? null : new Date().toISOString()
+      })
+      .eq("id", task.id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update task"
+      });
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete task"
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Task deleted"
+      });
+    }
+  };
+
+  const getPriorityColor = (priority: string | null) => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "medium":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "low":
+        return "bg-green-100 text-green-800 border-green-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      {/* Header */}
       <div className="border-b border-border px-6 py-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <CheckSquare className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-semibold">Projects & Tasks</h1>
+            <h1 className="text-2xl font-semibold">Tasks</h1>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters (1)
-            </Button>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              New Task
-            </Button>
-          </div>
-        </div>
-
-        {/* View Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Tabs defaultValue="deadline" className="w-auto">
-              <TabsList>
-                <TabsTrigger value="deadline">Group by: Deadline</TabsTrigger>
-                <TabsTrigger value="project">Group by: Project</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button variant="ghost" size="sm">
-              <List className="h-4 w-4 mr-2" />
-              List
-            </Button>
-            <Button variant="ghost" size="sm">
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Kanban
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search" className="pl-9 w-64" />
-            </div>
-          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                New Task
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Task</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Enter task title"
+                  />
+                  {errors.title && <p className="text-sm text-destructive mt-1">{errors.title}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Enter task description"
+                  />
+                  {errors.description && <p className="text-sm text-destructive mt-1">{errors.description}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select value={formData.priority} onValueChange={(value) => setFormData({ ...formData, priority: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="due_date">Due Date</Label>
+                  <Input
+                    id="due_date"
+                    type="date"
+                    value={formData.due_date}
+                    onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="flex-1">Create Task</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      {/* Task Groups */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="flex gap-4">
-            {mockTaskGroups.map((group) => (
-              <div key={group.dateRange} className="flex-1 min-w-[320px]">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-sm">{group.dateRange}</h3>
-                    <Badge variant="secondary" className="text-xs">{group.count}</Badge>
-                    {group.status === "current" && (
-                      <Badge className="text-xs">Current</Badge>
-                    )}
-                  </div>
-                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="space-y-3">
-                  {group.tasks.map((task) => (
-                    <Card key={task.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <Checkbox className="mt-0.5" />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className={`h-3 w-3 rounded-full ${task.projectColor}`} />
-                              <span className="text-xs text-muted-foreground">{task.project}</span>
-                            </div>
-                            <h4 className="font-medium text-sm mb-2">{task.title}</h4>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {task.estimate}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {task.dueDate}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Avatar className="h-4 w-4">
-                                  <AvatarFallback className="text-[8px]">{task.assignee}</AvatarFallback>
-                                </Avatar>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            ))}
-            
-            {/* Add Column */}
-            <div className="flex-1 min-w-[320px]">
-              <Button variant="ghost" className="w-full h-12 border-2 border-dashed">
-                <Plus className="h-4 w-4 mr-2" />
-                Add time period
-              </Button>
-            </div>
+      <div className="flex-1 overflow-auto p-6">
+        {tasks.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No tasks yet. Create one to get started!</p>
           </div>
-        </div>
+        ) : (
+          <div className="space-y-3">
+            {tasks.map((task) => (
+              <Card key={task.id} className={task.status === "completed" ? "opacity-60" : ""}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={task.status === "completed"}
+                      onCheckedChange={() => toggleTaskComplete(task)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className={`font-medium ${task.status === "completed" ? "line-through" : ""}`}>
+                            {task.title}
+                          </h3>
+                          {task.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteTask(task.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        {task.priority && (
+                          <Badge variant="outline" className={getPriorityColor(task.priority)}>
+                            {task.priority}
+                          </Badge>
+                        )}
+                        {task.due_date && (
+                          <span className="text-xs text-muted-foreground">
+                            Due: {new Date(task.due_date).toLocaleDateString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
