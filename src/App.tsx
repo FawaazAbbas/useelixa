@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Marketplace from "./pages/Marketplace";
 import AgentDetail from "./pages/AgentDetail";
 import Workspace from "./pages/Workspace";
+import Auth from "./pages/Auth";
 import Publish from "./pages/Publish";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
@@ -24,6 +25,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Marketplace />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/publish" element={<Publish />} />
           
           {/* App routes with main navigation */}

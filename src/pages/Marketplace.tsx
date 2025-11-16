@@ -1,93 +1,83 @@
-import { Search, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { Star, Search } from "lucide-react";
 import { AgentCard } from "@/components/AgentCard";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
-const featuredAgents = [
-  {
-    id: "1",
-    name: "Customer Support Pro",
-    description: "Handle customer inquiries with intelligent responses and ticket routing",
-    price: 49,
-    rating: 4.8,
-    reviews: 1240,
-    category: "Customer Service",
-    image: "customer-support",
-  },
-  {
-    id: "2",
-    name: "Content Creator AI",
-    description: "Generate blog posts, social media content, and marketing copy instantly",
-    price: 39,
-    rating: 4.9,
-    reviews: 2100,
-    category: "Marketing",
-    image: "content-creator",
-  },
-  {
-    id: "3",
-    name: "Data Analyst Assistant",
-    description: "Analyze datasets, create visualizations, and generate insights automatically",
-    price: 79,
-    rating: 4.7,
-    reviews: 890,
-    category: "Analytics",
-    image: "data-analyst",
-  },
-  {
-    id: "4",
-    name: "Email Automator",
-    description: "Smart email management with auto-responses and priority filtering",
-    price: 29,
-    rating: 4.6,
-    reviews: 1560,
-    category: "Productivity",
-    image: "email-automator",
-  },
-  {
-    id: "5",
-    name: "Code Review Bot",
-    description: "Automated code reviews with best practices and security checks",
-    price: 59,
-    rating: 4.8,
-    reviews: 720,
-    category: "Development",
-    image: "code-review",
-  },
-  {
-    id: "6",
-    name: "Sales Assistant",
-    description: "Qualify leads, schedule meetings, and track sales pipelines",
-    price: 69,
-    rating: 4.7,
-    reviews: 980,
-    category: "Sales",
-    image: "sales-assistant",
-  },
-];
-
-const categories = [
-  "All",
-  "Customer Service",
-  "Marketing",
-  "Analytics",
-  "Productivity",
-  "Development",
-  "Sales",
-];
+interface Agent {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  rating: number;
+  total_reviews: number;
+  category: string;
+  image_url: string;
+}
 
 const Marketplace = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [agentsRes, categoriesRes] = await Promise.all([
+        supabase
+          .from("agents")
+          .select(`
+            id,
+            name,
+            description,
+            price,
+            rating,
+            total_reviews,
+            image_url,
+            agent_categories(name)
+          `)
+          .eq("status", "active"),
+        supabase.from("agent_categories").select("name")
+      ]);
+
+      if (agentsRes.data) {
+        setAgents(
+          agentsRes.data.map((agent: any) => ({
+            id: agent.id,
+            name: agent.name,
+            description: agent.description || "",
+            price: agent.price || 0,
+            rating: agent.rating || 0,
+            total_reviews: agent.total_reviews || 0,
+            category: agent.agent_categories?.name || "Uncategorized",
+            image_url: agent.image_url || ""
+          }))
+        );
+      }
+
+      if (categoriesRes.data) {
+        setCategories(categoriesRes.data.map((c: any) => c.name));
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  const featuredAgents = agents.slice(0, 4);
+  const topAgents = agents.slice(4, 8);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
       <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
               AgentStore
             </h1>
             <div className="hidden md:flex gap-6">
@@ -102,21 +92,25 @@ const Marketplace = () => {
               </button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/workspace")}
-            >
-              My Agents
-            </Button>
-            <Button onClick={() => navigate("/publish")}>
-              Publish Agent
-            </Button>
+          <div className="flex gap-4">
+            {user ? (
+              <>
+                <Button onClick={() => navigate("/workspace")} variant="outline">
+                  My Agents
+                </Button>
+                <Button onClick={() => navigate("/publish")} variant="default">
+                  Publish Agent
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => navigate("/auth")} variant="default">
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
         <div className="max-w-7xl mx-auto px-6 py-20">
           <div className="max-w-3xl">
@@ -127,64 +121,55 @@ const Marketplace = () => {
               Browse thousands of AI agents built by creators worldwide. 
               Deploy them instantly into your workflow.
             </p>
-            <div className="relative max-w-2xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Search agents, categories, creators..."
-                className="pl-12 h-14 text-lg border-2 focus-visible:ring-2"
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input 
+                placeholder="Search for agents..." 
+                className="pl-12 py-6 text-lg border-2"
               />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="border-b border-border bg-background/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex gap-2 overflow-x-auto">
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-12 overflow-x-auto">
+          <div className="flex gap-3 pb-4">
             {categories.map((category) => (
-              <Button
-                key={category}
-                variant={category === "All" ? "default" : "ghost"}
-                className="whitespace-nowrap"
-                size="sm"
-              >
+              <Button key={category} variant="outline" className="whitespace-nowrap">
                 {category}
               </Button>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Featured Agents */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h3 className="text-3xl font-bold mb-2">Featured Agents</h3>
-          <p className="text-muted-foreground">
-            Top-rated agents hand-picked by our team
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredAgents.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
-        </div>
-      </section>
+        {loading ? (
+          <div className="text-center py-12">Loading agents...</div>
+        ) : (
+          <>
+            <section className="mb-16">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+                Featured Agents
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {featuredAgents.map((agent) => (
+                  <AgentCard key={agent.id} agent={agent} />
+                ))}
+              </div>
+            </section>
 
-      {/* Top Charts Section */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h3 className="text-3xl font-bold mb-2">Top Charts</h3>
-          <p className="text-muted-foreground">
-            Most popular agents this week
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredAgents.slice(0, 3).map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
-        </div>
-      </section>
+            <section>
+              <h2 className="text-2xl font-bold mb-6">Top Charts</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {topAgents.map((agent) => (
+                  <AgentCard key={agent.id} agent={agent} />
+                ))}
+              </div>
+            </section>
+          </>
+        )}
+      </div>
     </div>
   );
 };
