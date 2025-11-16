@@ -9,9 +9,9 @@ interface Agent {
   description: string;
   price: number;
   rating: number;
-  reviews: number;
+  total_reviews: number;
   category: string;
-  image: string;
+  image_url: string;
 }
 
 interface AgentCardProps {
@@ -62,7 +62,7 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
           <div className="flex items-center gap-1 text-sm">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{agent.rating}</span>
-            <span className="text-muted-foreground">({agent.reviews})</span>
+            <span className="text-muted-foreground">({agent.total_reviews})</span>
           </div>
           <div className="text-xl font-bold text-primary">
             ${agent.price}
