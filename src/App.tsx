@@ -11,6 +11,7 @@ import Publish from "./pages/Publish";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Logs from "./pages/Logs";
+import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/publish" element={<Publish />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
           
           {/* App routes with main navigation */}
           <Route path="/workspace" element={

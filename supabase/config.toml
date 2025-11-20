@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.process-workflow]
 verify_jwt = false
+
+[functions.exchange-oauth-token]
+verify_jwt = false
