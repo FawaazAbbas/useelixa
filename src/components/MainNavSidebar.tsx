@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Store } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
@@ -26,8 +26,18 @@ export const MainNavSidebar = () => {
         ))}
       </div>
 
-      {/* Spacer to push marketplace to bottom */}
+      {/* Spacer to push bottom items down */}
       <div className="flex-1" />
+
+      {/* Connections Button */}
+      <NavLink
+        to="/connections"
+        className="flex flex-col items-center gap-1 p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+        activeClassName="bg-sidebar-accent text-sidebar-primary"
+      >
+        <Plug className="h-6 w-6" />
+        <span className="text-xs font-medium">Connections</span>
+      </NavLink>
 
       {/* Marketplace Button at Bottom */}
       <NavLink

@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { code, credentialType, installationId } = await req.json();
+    const { code, credentialType, userId } = await req.json();
 
-    if (!code || !credentialType || !installationId) {
+    if (!code || !credentialType || !userId) {
       throw new Error("Missing required parameters");
     }
 
@@ -52,51 +52,37 @@ serve(async (req) => {
 
     const tokens = await tokenResponse.json();
 
-    // Store tokens in agent_configurations
-    const supabase = createClient(
+    // Store tokens in user_credentials table
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: existingConfig } = await supabase
-      .from("agent_configurations")
-      .select("configuration")
-      .eq("agent_installation_id", installationId)
-      .maybeSingle();
-
-    const newConfig = {
-      ...existingConfig?.configuration,
-      credentials: {
-        ...existingConfig?.configuration?.credentials,
-        [credentialType]: {
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
-          expires_at: Date.now() + (tokens.expires_in || 3600) * 1000,
-          token_type: tokens.token_type,
-        },
-      },
-    };
-
-    await supabase
-      .from("agent_configurations")
+    const { error: upsertError } = await supabaseClient
+      .from("user_credentials")
       .upsert({
-        agent_installation_id: installationId,
-        configuration: newConfig,
+        user_id: userId,
+        credential_type: credentialType,
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+        expires_at: tokens.expires_in 
+          ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+          : null,
+        token_type: tokens.token_type || "Bearer",
+      }, {
+        onConflict: "user_id,credential_type"
       });
 
-    // Get agent ID for redirect
-    const { data: installation } = await supabase
-      .from("agent_installations")
-      .select("agent_id")
-      .eq("id", installationId)
-      .single();
+    if (upsertError) {
+      console.error("Error storing credentials:", upsertError);
+      throw upsertError;
+    }
 
-    console.log(`Successfully stored ${credentialType} credentials`);
+    console.log(`Successfully stored ${credentialType} credentials for user`);
 
     return new Response(
       JSON.stringify({
-        success: true,
-        agentId: installation?.agent_id,
+        success: true
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
