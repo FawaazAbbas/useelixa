@@ -11,6 +11,7 @@ import Publish from "./pages/Publish";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Logs from "./pages/Logs";
+import Connections from "./pages/Connections";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 import { MainNavSidebar } from "./components/MainNavSidebar";
@@ -54,6 +55,12 @@ const App = () => (
             <div className="flex h-screen overflow-hidden">
               <MainNavSidebar />
               <Logs />
+            </div>
+          } />
+          <Route path="/connections" element={
+            <div className="flex h-screen overflow-hidden">
+              <MainNavSidebar />
+              <Connections />
             </div>
           } />
           

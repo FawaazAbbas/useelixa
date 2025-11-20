@@ -62,17 +62,8 @@ serve(async (req) => {
           requiredCredentials: parsedWorkflow.requiredCredentials
         });
 
-        // 2. Fetch user credentials
-        const { data: installation } = await supabase
-          .from("agent_installations")
-          .select("id")
-          .eq("agent_id", agent_id)
-          .eq("user_id", user_id)
-          .maybeSingle();
-
-        const userCredentials = installation 
-          ? await fetchUserCredentials(installation.id, supabase)
-          : {};
+        // 2. Fetch user credentials from user_credentials table
+        const userCredentials = await fetchUserCredentials(user_id, supabase);
 
         // 3. Check if required credentials are configured
         const credentialCheck = hasRequiredCredentials(parsedWorkflow, userCredentials);

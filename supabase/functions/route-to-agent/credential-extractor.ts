@@ -27,21 +27,31 @@ export function extractCredentialPlaceholders(
 }
 
 export async function fetchUserCredentials(
-  agentInstallationId: string,
+  userId: string,
   supabase: any
 ): Promise<Record<string, any>> {
   const { data, error } = await supabase
-    .from('agent_configurations')
-    .select('configuration')
-    .eq('agent_installation_id', agentInstallationId)
-    .maybeSingle();
+    .from('user_credentials')
+    .select('*')
+    .eq('user_id', userId);
     
   if (error) {
     console.error('Error fetching user credentials:', error);
     return {};
   }
   
-  return data?.configuration?.credentials || {};
+  // Transform array of credentials into an object keyed by credential_type
+  const credentials: Record<string, any> = {};
+  data?.forEach((cred: any) => {
+    credentials[cred.credential_type] = {
+      access_token: cred.access_token,
+      refresh_token: cred.refresh_token,
+      token_type: cred.token_type,
+      expires_at: cred.expires_at,
+    };
+  });
+  
+  return credentials;
 }
 
 export function hasRequiredCredentials(
