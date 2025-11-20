@@ -390,6 +390,45 @@ export type Database = {
           },
         ]
       }
+      chat_agents: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          agent_id: string
+          chat_id: string
+          id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          agent_id: string
+          chat_id: string
+          id?: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          agent_id?: string
+          chat_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_agents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_agents_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_participants: {
         Row: {
           chat_id: string
