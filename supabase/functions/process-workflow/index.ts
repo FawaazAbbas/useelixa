@@ -18,6 +18,18 @@ serve(async (req) => {
     );
 
     const { workflowJson, agentId } = await req.json();
+    
+    // Extract required credentials from workflow
+    const requiredCredentials = new Set<string>();
+    if (workflowJson?.nodes) {
+      workflowJson.nodes.forEach((node: any) => {
+        if (node.credentials) {
+          Object.keys(node.credentials).forEach(credType => {
+            requiredCredentials.add(credType);
+          });
+        }
+      });
+    }
 
     // 1. Validate workflow JSON
     if (!workflowJson || typeof workflowJson !== 'object') {
@@ -95,6 +107,7 @@ serve(async (req) => {
         success: true,
         agentId,
         requiredIntegrations,
+        requiredCredentials: Array.from(requiredCredentials),
         permissions: uniquePermissions,
         status: 'active'
       }),
