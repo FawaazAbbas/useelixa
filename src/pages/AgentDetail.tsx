@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { AgentOAuthSetup } from "@/components/AgentOAuthSetup";
 
 const AgentDetail = () => {
   const { id } = useParams();
@@ -17,6 +18,8 @@ const AgentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [installing, setInstalling] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [installationId, setInstallationId] = useState<string | null>(null);
+  const [requiredCredentials, setRequiredCredentials] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchAgent = async () => {
@@ -52,13 +55,31 @@ const AgentDetail = () => {
         .select("id")
         .eq("agent_id", id)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       setIsInstalled(!!data);
+      setInstallationId(data?.id || null);
     };
 
     checkInstallation();
   }, [user, id]);
+
+  useEffect(() => {
+    if (!agent?.workflow_json) return;
+
+    // Extract required credentials from workflow
+    const credentials = new Set<string>();
+    if (agent.workflow_json.nodes) {
+      agent.workflow_json.nodes.forEach((node: any) => {
+        if (node.credentials) {
+          Object.keys(node.credentials).forEach(credType => {
+            credentials.add(credType);
+          });
+        }
+      });
+    }
+    setRequiredCredentials(Array.from(credentials));
+  }, [agent]);
 
   const handleInstall = async () => {
     if (!user) {
@@ -232,6 +253,22 @@ const AgentDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* OAuth Setup for workflow-based agents */}
+            {isInstalled && agent.is_workflow_based && installationId && requiredCredentials.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Service Connections</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AgentOAuthSetup
+                    agentId={agent.id}
+                    installationId={installationId}
+                    requiredCredentials={requiredCredentials}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="space-y-6">
