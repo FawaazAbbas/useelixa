@@ -137,18 +137,20 @@ const Workspace = () => {
     if (chats.length > 0 && !selectedChat) {
       const firstChat = chats[0];
       setSelectedChat(firstChat);
-      fetchMessages(firstChat.id);
+      if (firstChat?.id) {
+        fetchMessages(firstChat.id);
+      }
     }
   }, [chats, selectedChat, fetchMessages]);
 
   useEffect(() => {
-    if (selectedChat) {
+    if (selectedChat?.id) {
       fetchMessages(selectedChat.id);
     }
   }, [selectedChat, fetchMessages]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedChat || sending) return;
+    if (!message.trim() || !selectedChat?.id || !selectedChat?.agent_id || sending) return;
 
     const messageText = message;
     setMessage("");
@@ -281,7 +283,7 @@ const Workspace = () => {
                   key={chat.id}
                   onClick={() => setSelectedChat(chat)}
                   className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                    selectedChat.id === chat.id ? "bg-muted/50" : ""
+                    selectedChat?.id === chat.id ? "bg-muted/50" : ""
                   }`}
                 >
                   <Hash className="h-4 w-4 text-muted-foreground" />
