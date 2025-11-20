@@ -21,10 +21,10 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch agent details including webhook URL
+    // Fetch agent details including webhook URL and workflow
     const { data: agent, error: agentError } = await supabase
       .from('agents')
-      .select('webhook_url, api_authentication_type, response_timeout, name, configuration_schema')
+      .select('webhook_url, api_authentication_type, response_timeout, name, configuration_schema, is_workflow_based, workflow_json')
       .eq('id', agent_id)
       .single();
 
@@ -33,8 +33,9 @@ serve(async (req) => {
       throw new Error('Agent not found');
     }
 
-    if (!agent.webhook_url) {
-      throw new Error('Agent webhook URL not configured');
+    // Check if agent is workflow-based or webhook-based
+    if (!agent.is_workflow_based && !agent.webhook_url) {
+      throw new Error('Agent not properly configured');
     }
 
     // Get agent installation and configuration
@@ -78,80 +79,134 @@ serve(async (req) => {
       }
     };
 
-    console.log('Sending payload to webhook:', agent.webhook_url);
-
-    // Call agent's webhook
     const startTime = Date.now();
-    const timeout = (agent.response_timeout || 30) * 1000;
+    let content = '';
+    let processingTime = 0;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    let agentResponse;
-    try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add authentication if needed
-      if (agent.api_authentication_type === 'bearer' && userConfiguration.bearer_token) {
-        headers['Authorization'] = `Bearer ${userConfiguration.bearer_token}`;
-      } else if (agent.api_authentication_type === 'api_key' && userConfiguration.api_key) {
-        headers['X-API-Key'] = userConfiguration.api_key;
-      }
-
-      agentResponse = await fetch(agent.webhook_url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error(`Agent response timeout after ${agent.response_timeout}s`);
-      }
-      throw error;
-    }
-
-    const processingTime = Date.now() - startTime;
-
-    if (!agentResponse.ok) {
-      const errorText = await agentResponse.text();
-      console.error('Agent webhook error:', errorText);
+    // Handle workflow-based agents with Lovable AI
+    if (agent.is_workflow_based && agent.workflow_json) {
+      console.log('Executing workflow-based agent with Lovable AI');
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
       
-      // Save error message to database
-      await supabase.from('messages').insert({
-        chat_id,
-        agent_id,
-        content: `Error: Agent returned status ${agentResponse.status}`,
-        error_message: errorText,
-        processing_time_ms: processingTime,
-      });
+      if (!LOVABLE_API_KEY) {
+        throw new Error('Lovable AI not configured');
+      }
 
-      // Log activity
-      await supabase.from('activity_logs').insert({
-        action: 'agent_message_error',
-        entity_type: 'agent',
-        entity_id: agent_id,
-        agent_id,
-        user_id,
-        status: 'error',
-        metadata: {
-          error: errorText,
-          status_code: agentResponse.status,
-          processing_time_ms: processingTime,
+      try {
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an AI agent named "${agent.name}". Your workflow configuration defines your capabilities and behavior. Previous conversation context: ${previousMessages?.map((m: any) => `${m.user_id ? 'User' : 'Agent'}: ${m.content}`).join('\n')}`
+              },
+              { role: 'user', content: message }
+            ],
+          }),
+        });
+
+        if (!aiResponse.ok) {
+          throw new Error(`Lovable AI error: ${aiResponse.status}`);
         }
-      });
 
-      throw new Error(`Agent returned status ${agentResponse.status}`);
+        const aiData = await aiResponse.json();
+        content = aiData.choices?.[0]?.message?.content || 'No response generated';
+        processingTime = Date.now() - startTime;
+
+      } catch (error: any) {
+        processingTime = Date.now() - startTime;
+        console.error('AI execution error:', error);
+        
+        await supabase.from('messages').insert({
+          chat_id,
+          agent_id,
+          content: `Error: ${error.message}`,
+          error_message: error.message,
+          processing_time_ms: processingTime,
+        });
+
+        throw error;
+      }
+
+    } else if (agent.webhook_url) {
+      // Handle webhook-based agents
+      console.log('Sending payload to webhook:', agent.webhook_url);
+      
+      const timeout = (agent.response_timeout || 30) * 1000;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+      let agentResponse;
+      try {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        // Add authentication if needed
+        if (agent.api_authentication_type === 'bearer' && userConfiguration.bearer_token) {
+          headers['Authorization'] = `Bearer ${userConfiguration.bearer_token}`;
+        } else if (agent.api_authentication_type === 'api_key' && userConfiguration.api_key) {
+          headers['X-API-Key'] = userConfiguration.api_key;
+        }
+
+        agentResponse = await fetch(agent.webhook_url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        processingTime = Date.now() - startTime;
+        
+        if (error.name === 'AbortError') {
+          throw new Error(`Agent response timeout after ${agent.response_timeout}s`);
+        }
+        throw error;
+      }
+
+      processingTime = Date.now() - startTime;
+
+      if (!agentResponse.ok) {
+        const errorText = await agentResponse.text();
+        console.error('Agent webhook error:', errorText);
+        
+        await supabase.from('messages').insert({
+          chat_id,
+          agent_id,
+          content: `Error: Agent returned status ${agentResponse.status}`,
+          error_message: errorText,
+          processing_time_ms: processingTime,
+        });
+
+        await supabase.from('activity_logs').insert({
+          action: 'agent_message_error',
+          entity_type: 'agent',
+          entity_id: agent_id,
+          agent_id,
+          user_id,
+          status: 'error',
+          metadata: {
+            error: errorText,
+            status_code: agentResponse.status,
+            processing_time_ms: processingTime,
+          }
+        });
+
+        throw new Error(`Agent returned status ${agentResponse.status}`);
+      }
+
+      const responseData = await agentResponse.json();
+      content = responseData.content || responseData.response || responseData.message || JSON.stringify(responseData);
     }
-
-    // Parse agent response
-    const responseData = await agentResponse.json();
-    const content = responseData.content || responseData.response || responseData.message || JSON.stringify(responseData);
 
     console.log('Agent response received:', { content, processingTime });
 
@@ -163,7 +218,7 @@ serve(async (req) => {
         agent_id,
         content,
         processing_time_ms: processingTime,
-        response_metadata: responseData.metadata || null,
+        response_metadata: null,
       })
       .select()
       .single();

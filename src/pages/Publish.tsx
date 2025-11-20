@@ -29,6 +29,8 @@ const Publish = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [workflowFile, setWorkflowFile] = useState<File | null>(null);
+  const [workflowJson, setWorkflowJson] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -89,6 +91,50 @@ const Publish = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleWorkflowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Workflow JSON must be less than 5MB"
+      });
+      return;
+    }
+
+    if (!file.name.endsWith('.json')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Please upload a JSON file"
+      });
+      return;
+    }
+
+    setWorkflowFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      try {
+        const json = JSON.parse(reader.result as string);
+        setWorkflowJson(json);
+        toast({
+          title: "Workflow loaded",
+          description: "Your workflow JSON has been loaded successfully"
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Invalid JSON",
+          description: "The file does not contain valid JSON"
+        });
+        setWorkflowFile(null);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -131,7 +177,7 @@ const Publish = () => {
         .map(cap => cap.trim())
         .filter(cap => cap.length > 0);
 
-      const { error: insertError } = await supabase
+      const { data: insertedAgent, error: insertError } = await supabase
         .from("agents")
         .insert({
           name: validatedData.name,
@@ -143,14 +189,40 @@ const Publish = () => {
           image_url: imageUrl,
           publisher_id: user.id,
           status: "active"
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
-      toast({
-        title: "Success!",
-        description: "Your agent has been published successfully."
-      });
+      // If workflow JSON is provided, process it
+      if (workflowJson && insertedAgent) {
+        const { data, error: workflowError } = await supabase.functions.invoke('process-workflow', {
+          body: {
+            workflowJson,
+            agentId: insertedAgent.id
+          }
+        });
+
+        if (workflowError) {
+          console.error('Workflow processing error:', workflowError);
+          toast({
+            variant: "destructive",
+            title: "Warning",
+            description: "Agent published but workflow processing failed. You can update it later."
+          });
+        } else {
+          toast({
+            title: "Success!",
+            description: `Your workflow-based agent has been published successfully.`
+          });
+        }
+      } else {
+        toast({
+          title: "Success!",
+          description: "Your agent has been published successfully."
+        });
+      }
 
       navigate("/");
     } catch (error) {
@@ -307,6 +379,43 @@ const Publish = () => {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         PNG, JPG or WebP (max. 5MB)
+                      </p>
+                    </>
+                  )}
+                </label>
+              </div>
+
+              <div>
+                <Label className="text-base">AI Workflow (Optional)</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Upload your n8n workflow JSON to make your agent executable on our platform
+                </p>
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleWorkflowChange}
+                  className="hidden"
+                  id="workflow-upload"
+                />
+                <label
+                  htmlFor="workflow-upload"
+                  className="mt-2 border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer block"
+                >
+                  {workflowJson ? (
+                    <div className="text-left">
+                      <p className="font-medium mb-2">✓ Workflow loaded</p>
+                      <p className="text-xs text-muted-foreground">
+                        Nodes: {workflowJson.nodes?.length || 0} | File: {workflowFile?.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Sparkles className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Click to upload workflow JSON
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        n8n workflow format (max. 5MB)
                       </p>
                     </>
                   )}
