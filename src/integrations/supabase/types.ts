@@ -191,6 +191,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          is_workflow_based: boolean | null
           long_description: string | null
           name: string
           price: number | null
@@ -203,6 +204,8 @@ export type Database = {
           total_reviews: number | null
           updated_at: string
           webhook_url: string | null
+          workflow_file_path: string | null
+          workflow_json: Json | null
         }
         Insert: {
           api_authentication_type?: string | null
@@ -213,6 +216,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_workflow_based?: boolean | null
           long_description?: string | null
           name: string
           price?: number | null
@@ -225,6 +229,8 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           webhook_url?: string | null
+          workflow_file_path?: string | null
+          workflow_json?: Json | null
         }
         Update: {
           api_authentication_type?: string | null
@@ -235,6 +241,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_workflow_based?: boolean | null
           long_description?: string | null
           name?: string
           price?: number | null
@@ -247,6 +254,8 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           webhook_url?: string | null
+          workflow_file_path?: string | null
+          workflow_json?: Json | null
         }
         Relationships: [
           {

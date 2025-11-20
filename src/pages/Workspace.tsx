@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
+import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -120,19 +121,40 @@ const Workspace = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { workspaceId } = useWorkspace();
-  const [selectedChat, setSelectedChat] = useState<any>(agents[0]);
+  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage } = useRealTimeChat(user?.id, workspaceId);
+  const [selectedChat, setSelectedChat] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [showAutomations, setShowAutomations] = useState(false);
-  
-  const isGroupChat = selectedChat.type === "group";
-  const currentMessages = isGroupChat ? mockGroupMessages : mockMessages;
 
   useEffect(() => {
     if (workspaceId) {
       fetchAutomations();
     }
   }, [workspaceId]);
+
+  useEffect(() => {
+    if (chats.length > 0 && !selectedChat) {
+      const firstChat = chats[0];
+      setSelectedChat(firstChat);
+      fetchMessages(firstChat.id);
+    }
+  }, [chats, selectedChat, fetchMessages]);
+
+  useEffect(() => {
+    if (selectedChat) {
+      fetchMessages(selectedChat.id);
+    }
+  }, [selectedChat, fetchMessages]);
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !selectedChat || sending) return;
+
+    const messageText = message;
+    setMessage("");
+    
+    await sendMessage(selectedChat.id, selectedChat.agent_id, messageText);
+  };
 
   const fetchAutomations = async () => {
     if (!workspaceId) return;
@@ -207,27 +229,39 @@ const Workspace = () => {
               </Button>
             </div>
             <div className="space-y-1">
-              {agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  onClick={() => setSelectedChat(agent)}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                    selectedChat.id === agent.id ? "bg-muted/50" : ""
-                  }`}
-                >
-                  <div className="relative">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-xs">
-                        {agent.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background ${
-                      agent.status === "online" ? "bg-green-500" : "bg-gray-500"
-                    }`} />
-                  </div>
-                  <span className="text-sm truncate text-white">{agent.name}</span>
-                </button>
-              ))}
+              {chatLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              ) : chats.length === 0 ? (
+                <div className="px-2 py-4 text-center">
+                  <p className="text-xs text-muted-foreground mb-2">No agents installed</p>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/')}>
+                    <Store className="h-3 w-3 mr-1" />
+                    Browse Marketplace
+                  </Button>
+                </div>
+              ) : (
+                chats.map((chat) => (
+                  <button
+                    key={chat.id}
+                    onClick={() => setSelectedChat(chat)}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
+                      selectedChat?.id === chat.id ? "bg-muted/50" : ""
+                    }`}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="text-xs">
+                          {chat.agent?.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background bg-green-500" />
+                    </div>
+                    <span className="text-sm truncate text-white">{chat.agent?.name}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
@@ -281,28 +315,20 @@ const Workspace = () => {
         {/* Chat Header */}
         <div className="h-14 border-b flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            {isGroupChat ? (
-              <>
-                <Hash className="h-5 w-5" />
-                <div>
-                  <div className="font-semibold">{selectedChat.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {selectedChat.members.join(", ")}
-                  </div>
-                </div>
-              </>
-            ) : (
+            {selectedChat ? (
               <>
                 <Avatar>
                   <AvatarFallback>
-                    {selectedChat.name.substring(0, 2).toUpperCase()}
+                    {selectedChat.agent?.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-semibold">{selectedChat.name}</div>
-                  <div className="text-xs text-muted-foreground">{selectedChat.status}</div>
+                  <div className="font-semibold">{selectedChat.agent?.name}</div>
+                  <div className="text-xs text-muted-foreground">online</div>
                 </div>
               </>
+            ) : (
+              <div className="font-semibold">No chat selected</div>
             )}
           </div>
           <div className="flex items-center gap-2">
@@ -324,33 +350,66 @@ const Workspace = () => {
         {/* Messages */}
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4 max-w-4xl mx-auto">
-            {currentMessages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-3 ${!msg.isAgent ? "flex-row-reverse" : ""}`}
-              >
+            {!selectedChat ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3">
+                <p className="text-muted-foreground">Select an agent to start chatting</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full gap-3">
+                <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+              </div>
+            ) : (
+              messages.map((msg) => {
+                const isUserMessage = !!msg.user_id;
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""}`}
+                  >
+                    <Avatar>
+                      <AvatarFallback>
+                        {isUserMessage ? "U" : selectedChat.agent?.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className={`flex-1 ${isUserMessage ? "text-right" : ""}`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-semibold">
+                          {isUserMessage ? "You" : selectedChat.agent?.name}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(msg.created_at).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <div
+                        className={`inline-block px-4 py-2 rounded-lg ${
+                          isUserMessage
+                            ? "bg-primary text-primary-foreground"
+                            : msg.error_message
+                            ? "bg-destructive/10 border border-destructive"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+            {sending && (
+              <div className="flex gap-3">
                 <Avatar>
                   <AvatarFallback>
-                    {msg.isAgent ? (msg.avatar || msg.sender.substring(0, 2).toUpperCase()) : "U"}
+                    {selectedChat?.agent?.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className={`flex-1 ${!msg.isAgent ? "text-right" : ""}`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-semibold">{msg.sender}</span>
-                    <span className="text-xs text-muted-foreground">{msg.timestamp}</span>
-                  </div>
-                  <div
-                    className={`inline-block px-4 py-2 rounded-lg ${
-                      msg.isAgent
-                        ? "bg-muted"
-                        : "bg-primary text-primary-foreground"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                <div className="flex-1">
+                  <div className="inline-block px-4 py-2 rounded-lg bg-muted">
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </ScrollArea>
 
@@ -358,18 +417,19 @@ const Workspace = () => {
         <div className="p-4 border-t">
           <div className="flex gap-2 max-w-4xl mx-auto">
             <Input
-              placeholder={`Message ${selectedChat.name}...`}
+              placeholder={selectedChat ? `Message ${selectedChat.agent?.name}...` : "Select an agent..."}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  // Handle send
+                  handleSendMessage();
                 }
               }}
+              disabled={!selectedChat || sending}
             />
-            <Button size="icon">
-              <Send className="h-4 w-4" />
+            <Button size="icon" onClick={handleSendMessage} disabled={!selectedChat || sending || !message.trim()}>
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
         </div>
