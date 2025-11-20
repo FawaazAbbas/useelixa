@@ -68,35 +68,67 @@ const AgentDetail = () => {
 
     setInstalling(true);
 
-    const { error: installError } = await supabase
-      .from("agent_installations")
-      .insert({
-        agent_id: id,
-        user_id: user.id,
-      });
+    try {
+      // Install the agent
+      const { error: installError } = await supabase
+        .from("agent_installations")
+        .insert({
+          agent_id: id,
+          user_id: user.id,
+        });
 
-    if (installError) {
-      toast({
-        variant: "destructive",
-        title: "Installation failed",
-        description: installError.message,
-      });
-    } else {
-      const { error: updateError } = await supabase
+      if (installError) throw installError;
+
+      // Get user's workspace
+      const { data: workspaceData } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (workspaceData) {
+        // Create chat for the agent
+        const { data: newChat, error: chatError } = await supabase
+          .from("chats")
+          .insert({
+            workspace_id: workspaceData.workspace_id,
+            agent_id: id,
+            type: "direct",
+            name: agent.name,
+            created_by: user.id,
+          })
+          .select()
+          .single();
+
+        if (!chatError && newChat) {
+          // Add user as chat participant
+          await supabase.from("chat_participants").insert({
+            chat_id: newChat.id,
+            user_id: user.id,
+          });
+        }
+      }
+
+      // Update install count
+      await supabase
         .from("agents")
         .update({ total_installs: (agent?.total_installs || 0) + 1 })
         .eq("id", id);
 
-      if (!updateError) {
-        setIsInstalled(true);
-        toast({
-          title: "Success!",
-          description: "Agent installed successfully. Check your workspace!",
-        });
-      }
+      setIsInstalled(true);
+      toast({
+        title: "Success!",
+        description: "Agent installed successfully. Check your workspace!",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Installation failed",
+        description: error.message,
+      });
+    } finally {
+      setInstalling(false);
     }
-
-    setInstalling(false);
   };
 
   if (loading) {

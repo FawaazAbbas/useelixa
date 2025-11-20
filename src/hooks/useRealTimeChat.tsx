@@ -158,14 +158,14 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     }
   }, [userId, toast]);
 
-  // Subscribe to real-time messages
+  // Subscribe to real-time messages and chats
   useEffect(() => {
     if (!userId) return;
 
     fetchChats();
 
     const channel = supabase
-      .channel('messages')
+      .channel('workspace-updates')
       .on(
         'postgres_changes',
         {
@@ -180,6 +180,18 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
             if (prev.some(m => m.id === newMessage.id)) return prev;
             return [...prev, newMessage];
           });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chats',
+        },
+        () => {
+          // Refresh chats when a new chat is created
+          fetchChats();
         }
       )
       .subscribe();
