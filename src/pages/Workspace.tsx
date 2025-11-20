@@ -478,8 +478,10 @@ const Workspace = () => {
                               size="sm"
                               className="h-7 text-xs w-full"
                               onClick={() => {
-                                handleSeeTask(automation.task!.id);
-                                setShowAutomations(false);
+                                if (automation.task?.id) {
+                                  handleSeeTask(automation.task.id);
+                                  setShowAutomations(false);
+                                }
                               }}
                             >
                               See Task
@@ -562,7 +564,11 @@ const Workspace = () => {
                           variant="outline"
                           size="sm"
                           className="h-7 text-xs w-full"
-                          onClick={() => handleSeeTask(automation.task!.id)}
+                          onClick={() => {
+                            if (automation.task?.id) {
+                              handleSeeTask(automation.task.id);
+                            }
+                          }}
                         >
                           See Task
                         </Button>
