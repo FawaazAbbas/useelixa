@@ -19,13 +19,25 @@ const Auth = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/workspace");
+        const redirectTo = sessionStorage.getItem('redirectAfterAuth');
+        if (redirectTo) {
+          sessionStorage.removeItem('redirectAfterAuth');
+          navigate(redirectTo);
+        } else {
+          navigate("/workspace");
+        }
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/workspace");
+        const redirectTo = sessionStorage.getItem('redirectAfterAuth');
+        if (redirectTo) {
+          sessionStorage.removeItem('redirectAfterAuth');
+          navigate(redirectTo);
+        } else {
+          navigate("/workspace");
+        }
       }
     });
 

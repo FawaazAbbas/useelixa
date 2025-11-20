@@ -43,6 +43,7 @@ const Publish = () => {
 
   useEffect(() => {
     if (!user) {
+      sessionStorage.setItem('redirectAfterAuth', '/publish');
       navigate("/auth");
       return;
     }
@@ -139,6 +140,7 @@ const Publish = () => {
     e.preventDefault();
     
     if (!user) {
+      sessionStorage.setItem('redirectAfterAuth', '/publish');
       navigate("/auth");
       return;
     }
