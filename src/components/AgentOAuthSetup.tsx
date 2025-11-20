@@ -75,22 +75,26 @@ export function AgentOAuthSetup({
     setConnecting(credentialType);
     
     try {
-      // For now, show a toast that OAuth setup is coming soon
-      // In production, this would trigger the actual OAuth flow
-      toast.info('OAuth Setup Coming Soon', {
-        description: `The ${CREDENTIAL_LABELS[credentialType] || credentialType} OAuth flow will be available in the next update. For now, you can manually configure credentials in the agent settings.`
-      });
+      // Build OAuth URL for the specific service
+      const state = btoa(JSON.stringify({ installationId, credentialType, agentId }));
+      const redirectUri = `${window.location.origin}/oauth/callback`;
       
-      // TODO: Implement actual OAuth flow
-      // const redirectUrl = `${window.location.origin}/oauth/callback`;
-      // const state = btoa(JSON.stringify({ installationId, credentialType }));
-      // const authUrl = getOAuthUrl(credentialType, redirectUrl, state);
-      // window.location.href = authUrl;
+      const authUrl = getOAuthUrl(credentialType, redirectUri, state);
+      
+      if (!authUrl) {
+        toast.info('OAuth Setup Coming Soon', {
+          description: `The ${CREDENTIAL_LABELS[credentialType] || credentialType} OAuth flow is being configured. For now, you can manually add credentials in the agent settings.`
+        });
+        setConnecting(null);
+        return;
+      }
+      
+      // Redirect to OAuth provider
+      window.location.href = authUrl;
       
     } catch (error) {
       console.error('Error initiating OAuth:', error);
       toast.error('Failed to start connection');
-    } finally {
       setConnecting(null);
     }
   };
@@ -142,38 +146,21 @@ export function AgentOAuthSetup({
   }
 
   if (requiredCredentials.length === 0) {
-    return (
-      <Card className="p-6">
-        <div className="text-center text-muted-foreground">
-          <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500" />
-          <p>This agent doesn't require any external service connections.</p>
-        </div>
-      </Card>
-    );
+    return null; // Don't show component if no credentials needed
   }
 
   const allConnected = requiredCredentials.every(cred => connectedCredentials.has(cred));
 
   return (
-    <Card className="p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold mb-2">Service Connections</h3>
-        <p className="text-sm text-muted-foreground">
-          This agent needs access to the following services to function properly:
-        </p>
-        {allConnected && (
-          <Badge className="mt-2" variant="default">
-            <CheckCircle2 className="h-3 w-3 mr-1" />
-            All services connected
-          </Badge>
-        )}
-        {!allConnected && (
-          <Badge className="mt-2" variant="secondary">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            Setup required
-          </Badge>
-        )}
-      </div>
+    <div className="space-y-4">
+      {!allConnected && (
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+          <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            Connect your accounts to enable this agent's full capabilities
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {requiredCredentials.map(credType => {
@@ -229,6 +216,39 @@ export function AgentOAuthSetup({
           );
         })}
       </div>
-    </Card>
+    </div>
   );
+}
+
+// Helper function to generate OAuth URLs
+function getOAuthUrl(credentialType: string, redirectUri: string, state: string): string | null {
+  // These would need to be configured with actual client IDs
+  // For now, return null to show "coming soon" message
+  
+  const oauthUrls: Record<string, string> = {
+    googleOAuth2Api: `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=YOUR_GOOGLE_CLIENT_ID&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=code&` +
+      `scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/spreadsheets')}&` +
+      `state=${state}&` +
+      `access_type=offline&` +
+      `prompt=consent`,
+    
+    notionApi: `https://api.notion.com/v1/oauth/authorize?` +
+      `client_id=YOUR_NOTION_CLIENT_ID&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=code&` +
+      `owner=user&` +
+      `state=${state}`,
+    
+    slackOAuth2Api: `https://slack.com/oauth/v2/authorize?` +
+      `client_id=YOUR_SLACK_CLIENT_ID&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent('chat:write,channels:read')}&` +
+      `state=${state}`,
+  };
+
+  // Return null for now - OAuth client IDs need to be configured
+  return null;
 }
