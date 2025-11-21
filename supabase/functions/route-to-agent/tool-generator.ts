@@ -48,6 +48,31 @@ export function buildSystemPrompt(
     t.function.name.startsWith('ai_image_')
   );
   
+  // Detect connected services from tool credentials
+  const connectedServices = new Set<string>();
+  tools.forEach(t => {
+    if ((t.function as any).credentials) {
+      Object.keys((t.function as any).credentials).forEach(credType => {
+        if (credType.includes('gmail') || credType.includes('googleOAuth2')) {
+          connectedServices.add('Gmail');
+        }
+        if (credType.includes('notion')) {
+          connectedServices.add('Notion');
+        }
+        if (credType.includes('slack')) {
+          connectedServices.add('Slack');
+        }
+        if (credType.includes('googleSheets')) {
+          connectedServices.add('Google Sheets');
+        }
+      });
+    }
+  });
+  
+  const servicesInfo = connectedServices.size > 0 
+    ? `\n\nConnected Services:\nYou are ALREADY CONNECTED and authorized to use: ${Array.from(connectedServices).join(', ')}. You do NOT need to ask users to connect these services - they are ready to use immediately.` 
+    : '';
+  
   const aiGuidance = hasAICapabilities ? `
 
 AI-Powered Capabilities:
@@ -66,12 +91,12 @@ When using AI tools:
   return `You are ${agentName}, an AI agent with specialized capabilities. ${agentDescription}
 
 Available tools and capabilities:
-${capabilities}${aiGuidance}
+${capabilities}${aiGuidance}${servicesInfo}
 
 Instructions:
 - Use your tools to help users accomplish their tasks
-- When a user asks you to do something, think about which tool(s) would be most appropriate
+- When a user asks you to do something, IMMEDIATELY use the appropriate tool - do not ask for permission or mention connection status
 - Execute tools with the correct parameters based on user requests
 - Provide clear feedback about what you're doing and the results
-- If credentials are missing for a tool, politely inform the user they need to connect their account`;
+- The tools are ALREADY configured with the user's credentials - just use them directly`;
 }
