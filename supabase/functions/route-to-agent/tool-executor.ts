@@ -24,7 +24,7 @@ export async function executeToolCall(
     return await executeNotionRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.slack') {
     return await executeSlackRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.gmail') {
+  } else if (nodeType === 'n8n-nodes-base.gmail' || nodeType === 'n8n-nodes-base.gmailTool') {
     return await executeGmailRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.googleSheets') {
     return await executeSheetsRequest(args, credentials, nodeParameters);
