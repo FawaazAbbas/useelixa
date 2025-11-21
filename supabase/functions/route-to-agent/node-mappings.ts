@@ -133,6 +133,34 @@ export const NODE_TO_TOOL_MAP: Record<string, (node: N8nNode) => LovableAITool> 
     };
   },
 
+  'n8n-nodes-base.gmailTool': (node) => {
+    return {
+      type: 'function',
+      function: {
+        name: `gmail_send_${node.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        description: `Send emails via Gmail: ${node.parameters.description || 'Send emails using your Gmail account'}`,
+        parameters: {
+          type: 'object',
+          properties: {
+            to: {
+              type: 'string',
+              description: 'Recipient email address'
+            },
+            subject: {
+              type: 'string',
+              description: 'Email subject'
+            },
+            message: {
+              type: 'string',
+              description: 'Email body content'
+            }
+          },
+          required: ['to', 'subject', 'message']
+        }
+      }
+    };
+  },
+
   'n8n-nodes-base.googleSheets': (node) => {
     const operation = node.parameters.operation || 'append';
     

@@ -180,26 +180,41 @@ async function executeGmailRequest(
   credentials: any,
   nodeParameters: any
 ): Promise<any> {
-  if (!credentials.googleOAuth2Api?.access_token) {
+  if (!credentials.googleOAuth2Api?.access_token && !credentials.gmailOAuth2?.access_token) {
     throw new Error('Gmail credentials not configured');
   }
   
+  const accessToken = credentials.googleOAuth2Api?.access_token || credentials.gmailOAuth2?.access_token;
   const operation = nodeParameters.operation || 'send';
   
   if (operation === 'send') {
+    console.log('Sending email via Gmail API:', {
+      to: args.to,
+      subject: args.subject,
+      hasMessage: !!args.message
+    });
+
+    // Create email in RFC 2822 format
     const email = [
       `To: ${args.to}`,
+      args.cc ? `Cc: ${args.cc}` : '',
+      args.bcc ? `Bcc: ${args.bcc}` : '',
       `Subject: ${args.subject}`,
+      'Content-Type: text/plain; charset=utf-8',
       '',
       args.message
-    ].join('\n');
+    ].filter(Boolean).join('\r\n');
     
-    const encodedEmail = btoa(email).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    // Encode email in base64url format
+    const encodedEmail = btoa(email)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
     
     const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${credentials.googleOAuth2Api.access_token}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -209,10 +224,18 @@ async function executeGmailRequest(
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('Gmail API error:', response.status, errorText);
       throw new Error(`Gmail API ${response.status}: ${errorText}`);
     }
     
-    return await response.json();
+    const result = await response.json();
+    console.log('✓ Email sent successfully via Gmail API:', result.id);
+    
+    return {
+      success: true,
+      messageId: result.id,
+      result: `Email sent successfully to ${args.to}`
+    };
   }
   
   throw new Error(`Unsupported Gmail operation: ${operation}`);
