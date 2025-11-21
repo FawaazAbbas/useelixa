@@ -26,7 +26,7 @@ export async function executeToolCall(
     return await executeSlackRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.gmail' || nodeType === 'n8n-nodes-base.gmailTool') {
     return await executeGmailRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.googleSheets') {
+  } else if (nodeType === 'n8n-nodes-base.googleSheets' || nodeType === 'n8n-nodes-base.googleSheetsTool') {
     return await executeSheetsRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.openAi') {
     return await executeOpenAIRequest(args, credentials, nodeParameters);
@@ -249,26 +249,77 @@ async function executeSheetsRequest(
   credentials: any,
   nodeParameters: any
 ): Promise<any> {
-  if (!credentials.googleOAuth2Api?.access_token) {
+  // Support both direct googleOAuth2Api and aliased credentials
+  const accessToken = 
+    credentials.googleOAuth2Api?.access_token || 
+    credentials.googleSheetsOAuth2?.access_token ||
+    credentials.googleSheetsOAuth2Api?.access_token;
+
+  if (!accessToken) {
     throw new Error('Google Sheets credentials not configured');
   }
   
-  const operation = nodeParameters.operation || 'append';
-  const spreadsheetId = args.spreadsheet_id;
-  const range = args.sheet_name ? `${args.sheet_name}!A1` : 'Sheet1!A1';
+  const operation = args.operation || nodeParameters.operation || 'append';
+  const spreadsheetId = args.spreadsheet_id || nodeParameters.spreadsheetId;
+  const sheetName = args.sheet_name || nodeParameters.sheetName || 'Sheet1';
+  const range = args.range || nodeParameters.range || `${sheetName}!A1`;
   
-  if (operation === 'append') {
+  console.log(`Google Sheets ${operation}:`, { spreadsheetId, range });
+  
+  // Handle different operations
+  if (operation === 'append' || operation === 'appendOrUpdate') {
+    const values = args.values || nodeParameters.values || [];
+    
     const response = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}:append?valueInputOption=RAW`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${credentials.googleOAuth2Api.access_token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          values: args.values || []
-        })
+        body: JSON.stringify({ values })
+      }
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Google Sheets API error:', response.status, errorText);
+      throw new Error(`Google Sheets API ${response.status}: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✓ Data appended to Google Sheets:', result.updates);
+    return result;
+  } else if (operation === 'update') {
+    const values = args.values || nodeParameters.values || [];
+    
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueInputOption=RAW`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values })
+      }
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Google Sheets API ${response.status}: ${errorText}`);
+    }
+    
+    return await response.json();
+  } else if (operation === 'get' || operation === 'read') {
+    const response = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
       }
     );
     
