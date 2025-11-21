@@ -191,6 +191,44 @@ export const NODE_TO_TOOL_MAP: Record<string, (node: N8nNode) => LovableAITool> 
     };
   },
 
+  // Google Sheets Tool (LangChain)
+  'n8n-nodes-base.googleSheetsTool': (node) => {
+    return {
+      type: 'function',
+      function: {
+        name: `sheets_tool_${node.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        description: `Google Sheets operations: ${node.parameters.description || 'Read, write, and manage Google Sheets data'}`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: {
+              type: 'string',
+              description: 'Operation to perform (get, append, update, create, etc.)'
+            },
+            spreadsheet_id: {
+              type: 'string',
+              description: 'The ID of the Google Sheet'
+            },
+            sheet_name: {
+              type: 'string',
+              description: 'Name of the sheet/tab'
+            },
+            range: {
+              type: 'string',
+              description: 'Cell range (e.g., A1:B10)'
+            },
+            values: {
+              type: 'array',
+              description: 'Values to write (array of arrays)'
+            }
+          },
+          required: ['spreadsheet_id']
+        }
+      }
+    };
+  },
+
+
   // OpenAI nodes mapped to Lovable AI
   'n8n-nodes-base.openAi': (node) => {
     const resource = node.parameters.resource || 'text';
@@ -272,14 +310,33 @@ export const NODE_TO_TOOL_MAP: Record<string, (node: N8nNode) => LovableAITool> 
   }
 };
 
+// Orchestration/infrastructure nodes that should NOT be exposed as tools
+const NON_EXECUTABLE_NODE_TYPES = [
+  '@n8n/n8n-nodes-langchain.agent',           // AI Agent orchestration
+  '@n8n/n8n-nodes-langchain.chatTrigger',     // Chat trigger (input)
+  '@n8n/n8n-nodes-langchain.memoryBufferWindow', // Memory management
+  '@n8n/n8n-nodes-langchain.lmChatAnthropic', // LLM model config
+  '@n8n/n8n-nodes-langchain.lmChatOpenAi',    // LLM model config
+  '@n8n/n8n-nodes-langchain.lmChatGoogleGemini', // LLM model config
+  'n8n-nodes-base.manualTrigger',              // Manual workflow trigger
+  'n8n-nodes-base.scheduleTrigger',            // Schedule trigger
+  'n8n-nodes-base.webhookTrigger',             // Webhook trigger
+];
+
 export function convertNodeToTool(node: N8nNode): LovableAITool | null {
+  // Skip orchestration/infrastructure nodes
+  if (NON_EXECUTABLE_NODE_TYPES.includes(node.type)) {
+    console.log(`Skipping non-executable node type: ${node.type}`);
+    return null;
+  }
+
   const converter = NODE_TO_TOOL_MAP[node.type];
   
   if (converter) {
     return converter(node);
   }
   
-  // Generic fallback for unknown node types
+  // Generic fallback for unknown but potentially executable node types
   console.log(`Unknown node type: ${node.type}, creating generic tool`);
   return {
     type: 'function',
