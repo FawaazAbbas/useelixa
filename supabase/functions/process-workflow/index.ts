@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { parseN8nWorkflow } from "./workflow-parser.ts";
+import { NodeRegistry } from "./node-registry.ts";
+import { WorkflowValidator } from "./workflow-validator.ts";
+import { CredentialResolver } from "./credential-resolver.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,17 +23,10 @@ serve(async (req) => {
 
     const { workflowJson, agentId } = await req.json();
     
-    // Extract required credentials from workflow
-    const requiredCredentials = new Set<string>();
-    if (workflowJson?.nodes) {
-      workflowJson.nodes.forEach((node: any) => {
-        if (node.credentials) {
-          Object.keys(node.credentials).forEach(credType => {
-            requiredCredentials.add(credType);
-          });
-        }
-      });
-    }
+    // Initialize validation components
+    const nodeRegistry = new NodeRegistry();
+    const credentialResolver = new CredentialResolver();
+    const workflowValidator = new WorkflowValidator(nodeRegistry, credentialResolver);
 
     // 1. Validate workflow JSON
     if (!workflowJson || typeof workflowJson !== 'object') {
@@ -46,6 +43,15 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Parse workflow for validation
+    const parsedWorkflow = parseN8nWorkflow(workflowJson);
+    
+    // Perform upload-time validation (without user credentials)
+    const validationResult = await workflowValidator.validateWorkflowStructure(parsedWorkflow);
+    
+    console.log('📋 Workflow Validation Results:', validationResult);
+    console.log(workflowValidator.generateReport(validationResult));
 
     // 2. Detect real API keys (basic check)
     const workflowString = JSON.stringify(workflowJson);
@@ -107,9 +113,20 @@ serve(async (req) => {
         success: true,
         agentId,
         requiredIntegrations,
-        requiredCredentials: Array.from(requiredCredentials),
+        requiredCredentials: parsedWorkflow.requiredCredentials,
         permissions: uniquePermissions,
-        status: 'active'
+        status: 'active',
+        validation: {
+          totalNodes: validationResult.totalNodeCount,
+          supportedNodes: validationResult.supportedNodeCount,
+          executableNodes: validationResult.executableNodeCount,
+          orchestrationNodes: validationResult.orchestrationNodeCount,
+          unknownNodes: validationResult.unknownNodeCount,
+          warnings: validationResult.warnings,
+          errors: validationResult.errors,
+          isFullySupported: validationResult.unknownNodeCount === 0 && validationResult.errors.length === 0,
+          report: workflowValidator.generateReport(validationResult)
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

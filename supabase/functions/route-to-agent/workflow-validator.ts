@@ -29,8 +29,10 @@ export interface ValidationResult {
   totalNodeCount: number;
   executableNodeCount: number;
   orchestrationNodeCount: number;
+  unknownNodeCount: number;
   missingCredentials: string[];
   credentialResolutions: Record<string, string>;
+  requiredCredentialTypes: string[];
 }
 
 /**
@@ -49,7 +51,39 @@ export class WorkflowValidator {
   ) {}
 
   /**
-   * Validate a complete workflow against available credentials
+   * Validate workflow structure without user credentials (for upload-time validation)
+   */
+  async validateWorkflowStructure(workflow: ParsedWorkflow): Promise<ValidationResult> {
+    const result: ValidationResult = {
+      isValid: true,
+      warnings: [],
+      errors: [],
+      supportedNodeCount: 0,
+      totalNodeCount: workflow.nodes.length,
+      executableNodeCount: 0,
+      orchestrationNodeCount: 0,
+      unknownNodeCount: 0,
+      missingCredentials: [],
+      credentialResolutions: {},
+      requiredCredentialTypes: workflow.requiredCredentials
+    };
+
+    console.log(`\n🔍 Validating workflow structure (upload-time)...`);
+
+    // Validate node support and executors only (no credentials check)
+    this.validateNodeSupport(workflow, result);
+    this.validateExecutors(workflow, result);
+
+    console.log(`✓ Supported: ${result.supportedNodeCount}/${result.totalNodeCount} nodes`);
+    console.log(`✓ Executable: ${result.executableNodeCount} nodes`);
+    console.log(`✓ Orchestration: ${result.orchestrationNodeCount} nodes`);
+    console.log(`❓ Unknown: ${result.unknownNodeCount} nodes`);
+
+    return result;
+  }
+
+  /**
+   * Validate a complete workflow against available credentials (for execution-time)
    */
   async validateWorkflow(
     workflow: ParsedWorkflow,
@@ -63,8 +97,10 @@ export class WorkflowValidator {
       totalNodeCount: workflow.nodes.length,
       executableNodeCount: 0,
       orchestrationNodeCount: 0,
+      unknownNodeCount: 0,
       missingCredentials: [],
-      credentialResolutions: {}
+      credentialResolutions: {},
+      requiredCredentialTypes: workflow.requiredCredentials
     };
 
     console.log(`\n🔍 Validating workflow with ${workflow.nodes.length} nodes...`);
@@ -104,6 +140,7 @@ export class WorkflowValidator {
       
       if (!definition) {
         // Unknown node type
+        result.unknownNodeCount++;
         result.warnings.push({
           nodeId: node.id,
           nodeName: node.name,
@@ -189,7 +226,7 @@ export class WorkflowValidator {
    * Generate user-friendly validation report
    */
   generateReport(result: ValidationResult): string {
-    if (result.isValid && result.warnings.length === 0) {
+    if (result.isValid && result.warnings.length === 0 && result.errors.length === 0) {
       return `✅ Workflow validated successfully\n` +
              `   ${result.executableNodeCount} tools ready to execute\n` +
              `   ${result.orchestrationNodeCount} orchestration nodes`;
@@ -202,7 +239,16 @@ export class WorkflowValidator {
     report += `  Total nodes: ${result.totalNodeCount}\n`;
     report += `  Executable tools: ${result.executableNodeCount}\n`;
     report += `  Orchestration: ${result.orchestrationNodeCount}\n`;
-    report += `  Supported: ${result.supportedNodeCount}/${result.totalNodeCount}\n\n`;
+    report += `  Unknown: ${result.unknownNodeCount}\n`;
+    report += `  Supported: ${result.supportedNodeCount}/${result.totalNodeCount}\n`;
+    
+    if (result.requiredCredentialTypes.length > 0) {
+      report += `\nRequired Credentials:\n`;
+      result.requiredCredentialTypes.forEach(cred => {
+        report += `  • ${this.getServiceName(cred)}\n`;
+      });
+    }
+    report += `\n`;
 
     // Errors
     if (result.errors.length > 0) {
