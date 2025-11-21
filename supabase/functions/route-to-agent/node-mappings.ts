@@ -161,6 +161,86 @@ export const NODE_TO_TOOL_MAP: Record<string, (node: N8nNode) => LovableAITool> 
         }
       }
     };
+  },
+
+  // OpenAI nodes mapped to Lovable AI
+  'n8n-nodes-base.openAi': (node) => {
+    const resource = node.parameters.resource || 'text';
+    const operation = node.parameters.operation || 'complete';
+    
+    // Map different OpenAI operations
+    if (resource === 'text' || resource === 'chat') {
+      return {
+        type: 'function',
+        function: {
+          name: `ai_chat_${node.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+          description: `AI-powered chat completion: ${node.parameters.description || 'Generate intelligent responses using AI'}`,
+          parameters: {
+            type: 'object',
+            properties: {
+              prompt: {
+                type: 'string',
+                description: 'The prompt or question for the AI'
+              },
+              system_message: {
+                type: 'string',
+                description: 'Optional system message to set AI behavior'
+              },
+              temperature: {
+                type: 'number',
+                description: 'Controls randomness (0-1)'
+              },
+              max_tokens: {
+                type: 'number',
+                description: 'Maximum length of response'
+              }
+            },
+            required: ['prompt']
+          }
+        }
+      };
+    } else if (resource === 'image') {
+      return {
+        type: 'function',
+        function: {
+          name: `ai_image_${node.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+          description: `AI image generation: ${node.parameters.description || 'Generate images from text descriptions'}`,
+          parameters: {
+            type: 'object',
+            properties: {
+              prompt: {
+                type: 'string',
+                description: 'Description of the image to generate'
+              },
+              size: {
+                type: 'string',
+                description: 'Image size (e.g., 1024x1024)'
+              }
+            },
+            required: ['prompt']
+          }
+        }
+      };
+    }
+    
+    // Generic AI operation fallback
+    return {
+      type: 'function',
+      function: {
+        name: `ai_${operation}_${node.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+        description: `AI operation: ${node.parameters.description || 'AI-powered functionality'}`,
+        parameters: {
+          type: 'object',
+          properties: {
+            input: {
+              type: 'string',
+              description: 'Input for the AI operation'
+            }
+          },
+          required: ['input']
+        }
+      }
+    };
   }
 };
 

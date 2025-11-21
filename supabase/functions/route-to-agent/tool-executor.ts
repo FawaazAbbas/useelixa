@@ -28,6 +28,8 @@ export async function executeToolCall(
     return await executeGmailRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.googleSheets') {
     return await executeSheetsRequest(args, credentials, nodeParameters);
+  } else if (nodeType === 'n8n-nodes-base.openAi') {
+    return await executeOpenAIRequest(args, credentials, nodeParameters);
   }
   
   throw new Error(`Unsupported node type: ${nodeType}`);
@@ -253,4 +255,109 @@ async function executeSheetsRequest(
   }
   
   throw new Error(`Unsupported Sheets operation: ${operation}`);
+}
+
+async function executeOpenAIRequest(
+  args: any,
+  credentials: any,
+  nodeParameters: any
+): Promise<any> {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  
+  if (!LOVABLE_API_KEY) {
+    throw new Error('Lovable AI is not configured');
+  }
+  
+  const resource = nodeParameters.resource || 'text';
+  const operation = nodeParameters.operation || 'complete';
+  
+  console.log(`Executing OpenAI request via Lovable AI: ${resource} ${operation}`);
+  
+  // Handle image generation
+  if (resource === 'image') {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: args.prompt
+          }
+        ],
+        modalities: ['image', 'text']
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Lovable AI Image Generation ${response.status}: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    return {
+      success: true,
+      image_url: imageUrl,
+      message: data.choices?.[0]?.message?.content
+    };
+  }
+  
+  // Handle chat/text completion
+  // Map n8n model parameter to Lovable AI model
+  let model = 'google/gemini-2.5-flash'; // Default
+  const n8nModel = nodeParameters.model?.toLowerCase() || '';
+  
+  if (n8nModel.includes('gpt-4') || n8nModel.includes('gpt4')) {
+    model = 'openai/gpt-5';
+  } else if (n8nModel.includes('gpt-3.5') || n8nModel.includes('gpt3')) {
+    model = 'openai/gpt-5-mini';
+  }
+  
+  const messages = [];
+  
+  if (args.system_message || nodeParameters.systemMessage) {
+    messages.push({
+      role: 'system',
+      content: args.system_message || nodeParameters.systemMessage
+    });
+  }
+  
+  messages.push({
+    role: 'user',
+    content: args.prompt || args.input
+  });
+  
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model,
+      messages,
+      max_completion_tokens: args.max_tokens || nodeParameters.maxTokens || 1000,
+      // Note: temperature not supported for newer models
+    })
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Lovable AI Chat ${response.status}: ${errorText}`);
+  }
+  
+  const data = await response.json();
+  
+  return {
+    success: true,
+    response: data.choices?.[0]?.message?.content,
+    model_used: model,
+    usage: data.usage
+  };
 }
