@@ -1,2 +1,192 @@
-// Re-export from route-to-agent for use in process-workflow
-export { NodeRegistry } from '../route-to-agent/node-registry.ts';
+// Simplified node registry for upload-time validation (no executors needed)
+
+export interface N8nNode {
+  id: string;
+  name: string;
+  type: string;
+  parameters: any;
+  credentials?: Record<string, any>;
+}
+
+export interface NodeDefinition {
+  nodeTypes: string[];           // All node type variants this handler supports
+  category: 'communication' | 'storage' | 'database' | 'ai' | 'automation' | 'utility';
+  credentialPatterns: string[];  // Credential types this node might need
+  isExecutable: boolean;         // Can this node be called as a tool?
+}
+
+/**
+ * Simplified Node Registry for upload-time validation
+ * Contains node definitions without executors or tool generators
+ */
+export const NODE_REGISTRY: Record<string, NodeDefinition> = {
+  gmail: {
+    nodeTypes: [
+      'n8n-nodes-base.gmail',
+      'n8n-nodes-base.gmailTool',
+    ],
+    category: 'communication',
+    credentialPatterns: ['gmail*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  googleSheets: {
+    nodeTypes: [
+      'n8n-nodes-base.googleSheets',
+      'n8n-nodes-base.googleSheetsTool',
+    ],
+    category: 'storage',
+    credentialPatterns: ['googleSheets*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  googleDocs: {
+    nodeTypes: [
+      'n8n-nodes-base.googleDocs',
+      'n8n-nodes-base.googleDocsTool',
+    ],
+    category: 'storage',
+    credentialPatterns: ['googleDocs*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  googleDrive: {
+    nodeTypes: [
+      'n8n-nodes-base.googleDrive',
+      'n8n-nodes-base.googleDriveTool',
+    ],
+    category: 'storage',
+    credentialPatterns: ['googleDrive*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  googleCalendar: {
+    nodeTypes: [
+      'n8n-nodes-base.googleCalendar',
+      'n8n-nodes-base.googleCalendarTool',
+    ],
+    category: 'automation',
+    credentialPatterns: ['googleCalendar*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  notion: {
+    nodeTypes: [
+      'n8n-nodes-base.notion',
+      'n8n-nodes-base.notionTool',
+    ],
+    category: 'storage',
+    credentialPatterns: ['notion*'],
+    isExecutable: true,
+  },
+
+  slack: {
+    nodeTypes: [
+      'n8n-nodes-base.slack',
+      'n8n-nodes-base.slackTool',
+    ],
+    category: 'communication',
+    credentialPatterns: ['slack*'],
+    isExecutable: true,
+  },
+
+  httpRequest: {
+    nodeTypes: [
+      'n8n-nodes-base.httpRequest',
+      'n8n-nodes-base.httpRequestTool',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+  },
+
+  openai: {
+    nodeTypes: [
+      'n8n-nodes-base.openAi',
+      '@n8n/n8n-nodes-langchain.openAi',
+    ],
+    category: 'ai',
+    credentialPatterns: ['openAi*'],
+    isExecutable: true,
+  },
+
+  // Orchestration nodes (not executable as tools)
+  langchainAgent: {
+    nodeTypes: [
+      '@n8n/n8n-nodes-langchain.agent',
+    ],
+    category: 'automation',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
+
+  langchainChatTrigger: {
+    nodeTypes: [
+      '@n8n/n8n-nodes-langchain.chatTrigger',
+    ],
+    category: 'automation',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
+
+  langchainMemory: {
+    nodeTypes: [
+      '@n8n/n8n-nodes-langchain.memoryBufferWindow',
+      '@n8n/n8n-nodes-langchain.memoryManager',
+    ],
+    category: 'automation',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
+
+  langchainOutputParser: {
+    nodeTypes: [
+      '@n8n/n8n-nodes-langchain.outputParserStructured',
+    ],
+    category: 'automation',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
+};
+
+/**
+ * NodeRegistry class for looking up node definitions
+ */
+export class NodeRegistry {
+  findDefinition(nodeType: string): NodeDefinition | null {
+    for (const [_, definition] of Object.entries(NODE_REGISTRY)) {
+      if (definition.nodeTypes.includes(nodeType)) {
+        return definition;
+      }
+    }
+    return null;
+  }
+
+  isExecutable(nodeType: string): boolean {
+    const definition = this.findDefinition(nodeType);
+    return definition?.isExecutable ?? false;
+  }
+
+  getRequiredCredentials(nodeType: string): string[] {
+    const definition = this.findDefinition(nodeType);
+    return definition?.credentialPatterns ?? [];
+  }
+
+  getAllSupportedNodeTypes(): string[] {
+    const allTypes: string[] = [];
+    for (const definition of Object.values(NODE_REGISTRY)) {
+      allTypes.push(...definition.nodeTypes);
+    }
+    return allTypes;
+  }
+
+  getRegistryStats() {
+    const definitions = Object.values(NODE_REGISTRY);
+    return {
+      totalDefinitions: definitions.length,
+      executableNodes: definitions.filter(d => d.isExecutable).length,
+      orchestrationNodes: definitions.filter(d => !d.isExecutable).length,
+      totalNodeTypes: this.getAllSupportedNodeTypes().length,
+    };
+  }
+}
