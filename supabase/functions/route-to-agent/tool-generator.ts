@@ -1,35 +1,71 @@
 import { ParsedWorkflow } from './workflow-parser.ts';
 import { LovableAITool, convertNodeToTool } from './node-mappings.ts';
+import { NodeRegistry } from './node-registry.ts';
+import { CredentialResolver } from './credential-resolver.ts';
+
+// Re-export LovableAITool for use in other modules
+export type { LovableAITool };
+
+// Initialize registry and resolver
+const nodeRegistry = new NodeRegistry();
+const credentialResolver = new CredentialResolver();
 
 export function generateToolDefinitions(
   workflow: ParsedWorkflow,
   userCredentials: Record<string, any>
 ): LovableAITool[] {
   const tools: LovableAITool[] = [];
-  
-  workflow.nodes.forEach(node => {
-    const tool = convertNodeToTool(node);
+
+  console.log('\n🔧 Generating tool definitions from workflow...');
+
+  for (const node of workflow.nodes) {
+    // Check if node is executable using registry
+    if (!nodeRegistry.isExecutable(node.type)) {
+      console.log(`  - Skipping ${node.name} (${node.type}) - orchestration node`);
+      continue;
+    }
+
+    // Try to generate tool from registry first
+    let tool = nodeRegistry.generateTool(node);
     
-    if (tool) {
-      // Inject credential references into the tool
-      if (node.credentials) {
-        tool.function.credentials = {};
+    // Fallback to legacy converter if not in registry
+    if (!tool) {
+      console.log(`  ⚠ Using legacy converter for ${node.type}`);
+      tool = convertNodeToTool(node);
+    }
+
+    if (!tool) {
+      console.log(`  ✗ Could not generate tool for ${node.name} (${node.type})`);
+      continue;
+    }
+
+    // Resolve and inject credentials using intelligent resolver
+    if (node.credentials) {
+      const resolvedCreds: Record<string, any> = {};
+      
+      for (const credKey of Object.keys(node.credentials)) {
+        const resolved = credentialResolver.resolveCredential(credKey, userCredentials);
         
-        Object.keys(node.credentials).forEach(credType => {
-          if (userCredentials[credType]) {
-            tool.function.credentials![credType] = userCredentials[credType];
-          }
-        });
+        if (resolved) {
+          resolvedCreds[credKey] = resolved.credential;
+          console.log(`  ✓ Credential resolved: ${credKey} → ${resolved.resolvedAs} (${resolved.method})`);
+        } else {
+          console.log(`  ✗ Credential not found: ${credKey}`);
+        }
       }
       
-      // Store node metadata for execution
-      (tool.function as any).nodeType = node.type;
-      (tool.function as any).nodeParameters = node.parameters;
-      
-      tools.push(tool);
+      tool.function.credentials = resolvedCreds;
     }
-  });
-  
+
+    // Store node metadata for execution
+    (tool.function as any).nodeType = node.type;
+    (tool.function as any).nodeParameters = node.parameters;
+    
+    tools.push(tool);
+    console.log(`  ✓ Generated tool: ${tool.function.name}`);
+  }
+
+  console.log(`\n✓ Generated ${tools.length} tool definitions`);
   return tools;
 }
 
