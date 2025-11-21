@@ -1,3 +1,4 @@
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 import { LovableAITool } from './node-mappings.ts';
 
 export async function executeToolCall(
@@ -30,6 +31,8 @@ export async function executeToolCall(
     return await executeSheetsRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.openAi') {
     return await executeOpenAIRequest(args, credentials, nodeParameters);
+  } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
+    return await executeRSSRequest(args, credentials, nodeParameters);
   }
   
   throw new Error(`Unsupported node type: ${nodeType}`);
@@ -437,4 +440,84 @@ async function executeOpenAIRequest(
     model_used: model,
     usage: data.usage
   };
+}
+
+export async function executeRSSRequest(
+  args: any,
+  credentials: any,
+  nodeParameters: any
+): Promise<any> {
+  const feedUrl = args.feed_url || nodeParameters.url;
+  const maxItems = args.max_items || nodeParameters.maxItems || 10;
+  
+  if (!feedUrl) {
+    throw new Error('RSS feed URL is required');
+  }
+  
+  console.log(`Fetching RSS feed: ${feedUrl} (max ${maxItems} items)`);
+  
+  try {
+    const response = await fetch(feedUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch RSS feed: ${response.status} ${response.statusText}`);
+    }
+    
+    const xmlText = await response.text();
+    
+    // Parse RSS XML using DOMParser (available in Deno)
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+    
+    if (!doc) {
+      throw new Error('Failed to parse RSS feed XML');
+    }
+    
+    // Check for RSS or Atom feed
+    const items = doc.querySelectorAll('item');
+    const entries = doc.querySelectorAll('entry'); // Atom feeds
+    
+    const feedItems = items.length > 0 ? items : entries;
+    const isAtom = entries.length > 0;
+    
+    const parsedItems = [];
+    const limit = Math.min(feedItems.length, maxItems);
+    
+    for (let i = 0; i < limit; i++) {
+      const item = feedItems[i] as any;
+      
+      if (isAtom) {
+        // Atom feed format
+        parsedItems.push({
+          title: item.querySelector('title')?.textContent || '',
+          link: item.querySelector('link')?.getAttribute('href') || '',
+          description: item.querySelector('summary')?.textContent || item.querySelector('content')?.textContent || '',
+          pubDate: item.querySelector('published')?.textContent || item.querySelector('updated')?.textContent || '',
+          author: item.querySelector('author name')?.textContent || '',
+        });
+      } else {
+        // RSS feed format
+        parsedItems.push({
+          title: item.querySelector('title')?.textContent || '',
+          link: item.querySelector('link')?.textContent || '',
+          description: item.querySelector('description')?.textContent || '',
+          pubDate: item.querySelector('pubDate')?.textContent || '',
+          author: item.querySelector('author')?.textContent || item.querySelector('dc\\:creator')?.textContent || '',
+          guid: item.querySelector('guid')?.textContent || '',
+        });
+      }
+    }
+    
+    console.log(`✓ Parsed ${parsedItems.length} items from RSS feed`);
+    
+    return {
+      success: true,
+      feed_url: feedUrl,
+      items: parsedItems,
+      total_fetched: parsedItems.length
+    };
+  } catch (error) {
+    console.error('RSS feed error:', error);
+    throw new Error(`Failed to fetch/parse RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }

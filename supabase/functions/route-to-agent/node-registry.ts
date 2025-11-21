@@ -29,6 +29,7 @@ import {
   executeNotionRequest,
   executeSlackRequest,
   executeSheetsRequest,
+  executeRSSRequest,
 } from './tool-executor.ts';
 
 /**
@@ -205,6 +206,54 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     })
   },
 
+  rssFeedReader: {
+    nodeTypes: [
+      'n8n-nodes-base.rssFeedRead',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+    executor: executeRSSRequest,
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `rss_feed_reader_${node.id}`,
+        description: node.parameters.description || `Fetch and parse RSS feed`,
+        parameters: {
+          type: 'object',
+          properties: {
+            feed_url: { 
+              type: 'string', 
+              description: 'RSS feed URL to fetch' 
+            },
+            max_items: { 
+              type: 'number', 
+              description: 'Maximum number of items to return (default: 10)',
+              default: 10
+            }
+          },
+          required: ['feed_url']
+        }
+      }
+    })
+  },
+
+  // Data processing nodes - handled by AI (not executable as tools)
+  dataProcessing: {
+    nodeTypes: [
+      'n8n-nodes-base.filter',
+      'n8n-nodes-base.set',
+      'n8n-nodes-base.merge',
+      'n8n-nodes-base.aggregate',
+      'n8n-nodes-base.limit',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: false,
+    executor: null,
+    toolGenerator: () => null
+  },
+
   // Non-executable orchestration nodes (Langchain, triggers, etc.)
   langchainOrchestration: {
     nodeTypes: [
@@ -213,6 +262,8 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
       '@n8n/n8n-nodes-langchain.memoryBufferWindow',
       '@n8n/n8n-nodes-langchain.openAi',
       '@n8n/n8n-nodes-langchain.lmChatOpenAi',
+      'n8n-nodes-base.scheduleTrigger',
+      'n8n-nodes-base.stickyNote',
     ],
     category: 'automation',
     credentialPatterns: [],
