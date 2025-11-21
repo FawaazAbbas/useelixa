@@ -79,13 +79,13 @@ export function hasRequiredCredentials(
 ): { hasAll: boolean; missing: string[] } {
   const missing: string[] = [];
   
-  workflow.requiredCredentials.forEach(credType => {
+  for (const credType of workflow.requiredCredentials) {
     // Special case: OpenAI is handled by Lovable AI
     if (credType === 'openAiApi') {
       const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
       if (lovableApiKey) {
         console.log('✓ OpenAI requests will use Lovable AI (no user credential needed)');
-        return; // Skip this credential - Lovable AI handles it
+        continue; // Skip this credential - Lovable AI handles it
       }
     }
     
@@ -101,7 +101,7 @@ export function hasRequiredCredentials(
     } else {
       console.log(`✓ Found credential: ${credType}`);
     }
-  });
+  }
   
   return {
     hasAll: missing.length === 0,
