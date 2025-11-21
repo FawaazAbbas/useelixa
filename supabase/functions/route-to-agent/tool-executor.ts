@@ -85,7 +85,7 @@ async function executeHttpRequest(
   return await response.json();
 }
 
-async function executeNotionRequest(
+export async function executeNotionRequest(
   args: any,
   credentials: any,
   nodeParameters: any
@@ -132,7 +132,7 @@ async function executeNotionRequest(
   return await response.json();
 }
 
-async function executeSlackRequest(
+export async function executeSlackRequest(
   args: any,
   credentials: any,
   nodeParameters: any
@@ -175,7 +175,7 @@ async function executeSlackRequest(
   return data;
 }
 
-async function executeGmailRequest(
+export async function executeGmailRequest(
   args: any,
   credentials: any,
   nodeParameters: any
@@ -244,7 +244,7 @@ async function executeGmailRequest(
   throw new Error(`Unsupported Gmail operation: ${operation}`);
 }
 
-async function executeSheetsRequest(
+export async function executeSheetsRequest(
   args: any,
   credentials: any,
   nodeParameters: any

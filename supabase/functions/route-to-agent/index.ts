@@ -4,6 +4,13 @@ import { parseN8nWorkflow } from "./workflow-parser.ts";
 import { generateToolDefinitions, buildSystemPrompt } from "./tool-generator.ts";
 import { fetchUserCredentials, hasRequiredCredentials } from "./credential-extractor.ts";
 import { executeToolCall } from "./tool-executor.ts";
+import { WorkflowValidator } from "./workflow-validator.ts";
+import { NodeRegistry } from "./node-registry.ts";
+import { CredentialResolver } from "./credential-resolver.ts";
+
+// Initialize validator components
+const nodeRegistry = new NodeRegistry();
+const credentialResolver = new CredentialResolver();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,17 +72,26 @@ serve(async (req) => {
         // 2. Fetch user credentials from user_credentials table
         const userCredentials = await fetchUserCredentials(user_id, supabase);
 
-        // 3. Check if required credentials are configured
-        const credentialCheck = hasRequiredCredentials(parsedWorkflow, userCredentials);
+        // 3. Pre-flight validation using new validator system
+        const validator = new WorkflowValidator(nodeRegistry, credentialResolver);
+        const validation = await validator.validateWorkflow(parsedWorkflow, userCredentials);
         
-        if (!credentialCheck.hasAll) {
-          agentResponse = `I need you to connect the following services before I can help you: ${credentialCheck.missing.join(', ')}. Please go to my configuration page to set up these connections.`;
+        // Log validation report
+        console.log(validator.generateReport(validation));
+        
+        if (!validation.isValid) {
+          const errorMsg = validation.errors.map((e: any) => e.message).join('; ');
+          const missingCreds = validation.missingCredentials.length > 0
+            ? `Missing services: ${validation.missingCredentials.join(', ')}`
+            : '';
+          
+          agentResponse = `I need you to connect the following services before I can help you: ${validation.missingCredentials.join(', ')}. Please visit the Connections page to set up these integrations.`;
           
           await supabase.from("messages").insert({
             chat_id,
             agent_id,
             content: agentResponse,
-            error_message: `Missing credentials: ${credentialCheck.missing.join(', ')}`,
+            error_message: `Validation failed: ${errorMsg}. ${missingCreds}`,
             processing_time_ms: Date.now() - startTime
           });
 
@@ -84,7 +100,8 @@ serve(async (req) => {
               success: true, 
               response: agentResponse,
               requiresCredentials: true,
-              missingCredentials: credentialCheck.missing
+              missingCredentials: validation.missingCredentials,
+              validationErrors: validation.errors
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
