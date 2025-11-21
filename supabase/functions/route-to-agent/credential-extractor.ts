@@ -10,6 +10,7 @@ export interface CredentialPlaceholder {
 const CREDENTIAL_ALIASES: Record<string, string> = {
   'gmailOAuth2': 'googleOAuth2Api',
   'googleSheetsOAuth2': 'googleOAuth2Api',
+  'googleSheetsOAuth2Api': 'googleOAuth2Api',
   'googleDriveOAuth2': 'googleOAuth2Api',
 };
 
