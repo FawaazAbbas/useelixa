@@ -152,11 +152,21 @@ export class WorkflowValidator {
         // Executable tool node
         result.executableNodeCount++;
         result.supportedNodeCount++;
-        console.log(`  ✓ ${node.name} (${node.type}) - executable`);
+        console.log(`  ✓ ${node.name} (${node.type}) - executable tool`);
       } else {
-        // Orchestration node (expected, not an issue)
+        // Orchestration/data processing node (expected, not an issue)
         result.orchestrationNodeCount++;
-        console.log(`  - ${node.name} (${node.type}) - orchestration node (skipped)`);
+        result.supportedNodeCount++;
+        
+        // Add helpful info for data processing nodes
+        const dataProcessingTypes = ['filter', 'set', 'merge', 'aggregate', 'limit'];
+        const isDataProcessing = dataProcessingTypes.some(t => node.type.toLowerCase().includes(t));
+        
+        if (isDataProcessing) {
+          console.log(`  - ${node.name} (${node.type}) - data processing (handled by AI)`);
+        } else {
+          console.log(`  - ${node.name} (${node.type}) - orchestration node (skipped)`);
+        }
       }
     }
   }

@@ -147,6 +147,47 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     credentialPatterns: [],
     isExecutable: false,
   },
+
+  rssFeedReader: {
+    nodeTypes: [
+      'n8n-nodes-base.rssFeedRead',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+  },
+
+  // Data processing nodes - handled by AI (not executable as tools)
+  dataProcessing: {
+    nodeTypes: [
+      'n8n-nodes-base.filter',
+      'n8n-nodes-base.set',
+      'n8n-nodes-base.merge',
+      'n8n-nodes-base.aggregate',
+      'n8n-nodes-base.limit',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
+
+  scheduleTrigger: {
+    nodeTypes: [
+      'n8n-nodes-base.scheduleTrigger',
+    ],
+    category: 'automation',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
+
+  stickyNote: {
+    nodeTypes: [
+      'n8n-nodes-base.stickyNote',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: false,
+  },
 };
 
 /**
