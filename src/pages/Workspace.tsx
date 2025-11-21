@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useRealTimeChat } from "@/hooks/useRealTimeChat";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileChatNav } from "@/components/MobileChatNav";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -128,6 +130,7 @@ const Workspace = () => {
   const [message, setMessage] = useState("");
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [showAutomations, setShowAutomations] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (workspaceId) {
@@ -184,6 +187,21 @@ const Workspace = () => {
     navigate(`/tasks?taskId=${taskId}`);
   };
 
+  const handleSelectChat = (chatId: string, type: 'agent' | 'group') => {
+    if (type === 'agent') {
+      const chat = chats.find(c => c.id === chatId);
+      if (chat) {
+        setSelectedChat(chat);
+        fetchMessages(chat.id);
+      }
+    } else {
+      const group = groupChats.find(g => g.id === chatId);
+      if (group) {
+        setSelectedChat(group);
+      }
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -199,8 +217,23 @@ const Workspace = () => {
 
   return (
     <div className="flex-1 flex overflow-hidden bg-background">
-      {/* Sidebar */}
-      <div className="w-64 bg-chat-sidebar border-r border-chat-border flex flex-col">
+      {/* Mobile Navigation */}
+      {isMobile && (
+        <MobileChatNav
+          agents={chats.map(c => ({
+            id: c.id,
+            name: c.agent?.name || 'Agent',
+            status: 'online',
+            type: 'individual'
+          }))}
+          groupChats={groupChats}
+          selectedChat={selectedChat?.id}
+          onSelectChat={handleSelectChat}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
+      <div className={`${isMobile ? 'hidden' : 'w-64'} bg-chat-sidebar border-r border-chat-border flex flex-col`}>
         {/* Workspace Header */}
         <div className="p-4 border-b border-chat-border">
           <button className="flex items-center justify-between w-full hover:bg-muted/50 rounded px-3 py-2 transition-colors">
@@ -317,7 +350,7 @@ const Workspace = () => {
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Chat Header */}
-        <div className="h-14 border-b flex items-center justify-between px-4">
+        <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
           <div className="flex items-center gap-3">
             {selectedChat ? (
               <>
@@ -352,7 +385,7 @@ const Workspace = () => {
         </div>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 p-4">
+        <ScrollArea className={`flex-1 p-4 ${isMobile ? 'pb-20' : ''}`}>
           <div className="space-y-4 max-w-4xl mx-auto">
             {!selectedChat ? (
               <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -385,7 +418,7 @@ const Workspace = () => {
                         </span>
                       </div>
                       <div
-                        className={`inline-block px-4 py-2 rounded-lg ${
+                        className={`inline-block px-4 py-2 rounded-lg max-w-[85%] ${
                           isUserMessage
                             ? "bg-primary text-primary-foreground"
                             : msg.error_message
@@ -393,7 +426,7 @@ const Workspace = () => {
                             : "bg-muted"
                         }`}
                       >
-                        <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                        <div className={`text-sm prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'break-words' : ''}`}>
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {msg.content}
                           </ReactMarkdown>
@@ -422,7 +455,7 @@ const Workspace = () => {
         </ScrollArea>
 
         {/* Message Input */}
-        <div className="p-4 border-t">
+        <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
           <div className="flex gap-2 max-w-4xl mx-auto">
             <Input
               placeholder={selectedChat ? `Message ${selectedChat.agent?.name}...` : "Select an agent..."}
@@ -435,8 +468,14 @@ const Workspace = () => {
                 }
               }}
               disabled={!selectedChat || sending}
+              className={isMobile ? 'text-base' : ''}
             />
-            <Button size="icon" onClick={handleSendMessage} disabled={!selectedChat || sending || !message.trim()}>
+            <Button 
+              size="icon" 
+              onClick={handleSendMessage} 
+              disabled={!selectedChat || sending || !message.trim()}
+              className={isMobile ? 'h-10 w-10' : ''}
+            >
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
