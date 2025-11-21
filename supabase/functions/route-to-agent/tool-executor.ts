@@ -467,7 +467,7 @@ export async function executeRSSRequest(
     
     // Parse RSS XML using DOMParser (available in Deno)
     const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlText, 'text/xml');
+    const doc = parser.parseFromString(xmlText, 'text/html');
     
     if (!doc) {
       throw new Error('Failed to parse RSS feed XML');
