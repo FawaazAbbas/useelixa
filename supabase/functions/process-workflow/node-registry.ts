@@ -157,6 +157,98 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     isExecutable: true,
   },
 
+  googleTasks: {
+    nodeTypes: [
+      'n8n-nodes-base.googleTasks',
+    ],
+    category: 'automation',
+    credentialPatterns: ['googleTasks*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  googleContacts: {
+    nodeTypes: [
+      'n8n-nodes-base.googleContacts',
+    ],
+    category: 'communication',
+    credentialPatterns: ['googleContacts*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
+  discord: {
+    nodeTypes: [
+      'n8n-nodes-base.discord',
+    ],
+    category: 'communication',
+    credentialPatterns: ['discord*'],
+    isExecutable: true,
+  },
+
+  telegram: {
+    nodeTypes: [
+      'n8n-nodes-base.telegram',
+      'n8n-nodes-base.telegramTrigger',
+    ],
+    category: 'communication',
+    credentialPatterns: ['telegram*'],
+    isExecutable: true,
+  },
+
+  webhook: {
+    nodeTypes: [
+      'n8n-nodes-base.webhook',
+    ],
+    category: 'automation',
+    credentialPatterns: [],
+    isExecutable: true,
+  },
+
+  airtable: {
+    nodeTypes: [
+      'n8n-nodes-base.airtable',
+    ],
+    category: 'storage',
+    credentialPatterns: ['airtable*'],
+    isExecutable: true,
+  },
+
+  github: {
+    nodeTypes: [
+      'n8n-nodes-base.github',
+    ],
+    category: 'automation',
+    credentialPatterns: ['github*'],
+    isExecutable: true,
+  },
+
+  linear: {
+    nodeTypes: [
+      'n8n-nodes-base.linear',
+    ],
+    category: 'automation',
+    credentialPatterns: ['linear*'],
+    isExecutable: true,
+  },
+
+  trello: {
+    nodeTypes: [
+      'n8n-nodes-base.trello',
+    ],
+    category: 'automation',
+    credentialPatterns: ['trello*'],
+    isExecutable: true,
+  },
+
+  twitter: {
+    nodeTypes: [
+      'n8n-nodes-base.twitter',
+      'n8n-nodes-base.twitterV2',
+    ],
+    category: 'communication',
+    credentialPatterns: ['twitter*'],
+    isExecutable: true,
+  },
+
   // Data processing nodes - handled by AI (not executable as tools)
   dataProcessing: {
     nodeTypes: [
