@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,8 @@ interface Agent {
   total_reviews: number;
   category: string;
   image_url: string;
+  workflow_json?: any;
+  is_workflow_based?: boolean;
 }
 
 interface AgentCardProps {
@@ -20,6 +22,11 @@ interface AgentCardProps {
 
 export const AgentCard = ({ agent }: AgentCardProps) => {
   const navigate = useNavigate();
+
+  // Check if agent has AI capabilities
+  const hasAICapabilities = agent.is_workflow_based && agent.workflow_json?.nodes?.some(
+    (node: any) => node.type === 'n8n-nodes-base.openAi'
+  );
 
   // Generate a gradient background based on the agent name
   const getGradient = (name: string) => {
@@ -51,9 +58,17 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
           <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
             {agent.name}
           </h3>
-          <Badge variant="secondary" className="text-xs">
-            {agent.category}
-          </Badge>
+          <div className="flex gap-2">
+            {hasAICapabilities && (
+              <Badge variant="default" className="text-xs gap-1 bg-gradient-to-r from-purple-500 to-pink-500">
+                <Sparkles className="h-3 w-3" />
+                AI-Powered
+              </Badge>
+            )}
+            <Badge variant="secondary" className="text-xs">
+              {agent.category}
+            </Badge>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
           {agent.description}

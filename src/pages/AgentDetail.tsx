@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Download, Shield, Loader2 } from "lucide-react";
+import { ArrowLeft, Star, Download, Shield, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ const AgentDetail = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [installationId, setInstallationId] = useState<string | null>(null);
   const [requiredCredentials, setRequiredCredentials] = useState<string[]>([]);
+  const [hasAICapabilities, setHasAICapabilities] = useState(false);
 
   useEffect(() => {
     const fetchAgent = async () => {
@@ -69,8 +70,15 @@ const AgentDetail = () => {
 
     // Extract required credentials from workflow
     const credentials = new Set<string>();
+    let aiEnabled = false;
+    
     if (agent.workflow_json.nodes) {
       agent.workflow_json.nodes.forEach((node: any) => {
+        // Check for AI capabilities
+        if (node.type === 'n8n-nodes-base.openAi') {
+          aiEnabled = true;
+        }
+        
         if (node.credentials) {
           Object.keys(node.credentials).forEach(credType => {
             credentials.add(credType);
@@ -78,6 +86,8 @@ const AgentDetail = () => {
         }
       });
     }
+    
+    setHasAICapabilities(aiEnabled);
     setRequiredCredentials(Array.from(credentials));
   }, [agent]);
 
@@ -184,9 +194,17 @@ const AgentDetail = () => {
           <div className="lg:col-span-2 space-y-8">
             <div className="space-y-6">
               <div className="flex items-start justify-between">
-                <Badge variant="secondary" className="text-sm">
-                  {agent.agent_categories?.name || "Uncategorized"}
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge variant="secondary" className="text-sm">
+                    {agent.agent_categories?.name || "Uncategorized"}
+                  </Badge>
+                  {hasAICapabilities && (
+                    <Badge variant="default" className="text-sm gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500">
+                      <Sparkles className="h-4 w-4" />
+                      AI-Powered
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold">{agent.name}</h1>
@@ -236,6 +254,20 @@ const AgentDetail = () => {
                 <p className="text-muted-foreground leading-relaxed">
                   {agent.long_description || agent.description}
                 </p>
+                
+                {hasAICapabilities && (
+                  <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg border border-purple-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="h-5 w-5 text-purple-500" />
+                      <h3 className="font-semibold">AI-Powered Agent</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      This agent uses advanced AI models for intelligent content generation, analysis, and image creation. 
+                      No API keys required - AI capabilities work instantly upon installation.
+                    </p>
+                  </div>
+                )}
+                
                 {agent.capabilities && agent.capabilities.length > 0 && (
                   <div className="pt-4">
                     <h3 className="font-semibold mb-3">Key Features:</h3>
