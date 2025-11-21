@@ -205,8 +205,11 @@ async function executeGmailRequest(
       args.message
     ].filter(Boolean).join('\r\n');
     
-    // Encode email in base64url format
-    const encodedEmail = btoa(email)
+    // Encode email in base64url format with UTF-8 support (for emojis, international chars)
+    const encoder = new TextEncoder();
+    const emailBytes = encoder.encode(email);
+    const base64 = btoa(String.fromCharCode(...emailBytes));
+    const encodedEmail = base64
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
