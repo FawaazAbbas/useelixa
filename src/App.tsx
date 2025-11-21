@@ -15,6 +15,7 @@ import Connections from "./pages/Connections";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 import { MainNavSidebar } from "./components/MainNavSidebar";
+import { MobileRedirect } from "./components/MobileRedirect";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <MobileRedirect />
         <Routes>
           <Route path="/" element={<Marketplace />} />
           <Route path="/marketplace" element={<Marketplace />} />
@@ -35,7 +37,9 @@ const App = () => (
           {/* App routes with main navigation */}
           <Route path="/workspace" element={
             <div className="flex h-screen overflow-hidden">
-              <MainNavSidebar />
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
               <Workspace />
             </div>
           } />
