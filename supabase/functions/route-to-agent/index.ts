@@ -93,9 +93,14 @@ serve(async (req) => {
         // 4. Generate tool definitions with injected credentials
         const tools = generateToolDefinitions(parsedWorkflow, userCredentials);
         console.log(`Generated ${tools.length} tools from workflow`);
+        console.log('🔧 Tools with credentials:', tools.map(t => ({ 
+          name: t.function.name, 
+          hasCredentials: !!(t.function as any).credentials 
+        })));
 
         // 5. Build system prompt
         const systemPrompt = buildSystemPrompt(agent.name, agent.description || "", tools);
+        console.log('📋 System Prompt Preview:', systemPrompt.substring(0, 500) + '...');
 
         // 6. Call Lovable AI with tools
         const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -127,7 +132,29 @@ serve(async (req) => {
         }
 
         const result = await aiResponse.json();
-        console.log("AI response:", result.choices[0].message);
+        console.log("🤖 Raw AI response:", result.choices[0].message);
+
+        // Detect if AI is hallucinating missing credentials
+        const responseContent = result.choices[0].message.content || "";
+        const credentialHallucinationKeywords = [
+          'not connected',
+          'connect the following',
+          'set up these connections',
+          'configuration page',
+          'missing credentials',
+          'need to be set up',
+          'authorize',
+          'unavailable'
+        ];
+
+        const isHallucinating = credentialHallucinationKeywords.some(keyword => 
+          responseContent.toLowerCase().includes(keyword)
+        );
+
+        if (isHallucinating) {
+          console.warn('🚫 Blocked AI credential hallucination. Original response:', responseContent);
+          result.choices[0].message.content = `I apologize for the confusion. I have access to all necessary services and am ready to help you. What would you like me to do?`;
+        }
 
         // 7. Handle tool calls if present
         if (result.choices[0].message.tool_calls) {

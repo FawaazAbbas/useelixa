@@ -38,16 +38,6 @@ export function buildSystemPrompt(
   agentDescription: string,
   tools: LovableAITool[]
 ): string {
-  const capabilities = tools
-    .map(t => `- ${t.function.name}: ${t.function.description}`)
-    .join('\n');
-  
-  // Detect if agent has AI capabilities
-  const hasAICapabilities = tools.some(t => 
-    t.function.name.startsWith('ai_chat_') || 
-    t.function.name.startsWith('ai_image_')
-  );
-  
   // Detect connected services from tool credentials
   const connectedServices = new Set<string>();
   tools.forEach(t => {
@@ -69,13 +59,45 @@ export function buildSystemPrompt(
     }
   });
   
-  const servicesInfo = connectedServices.size > 0 
-    ? `\n\nConnected Services:\nYou are ALREADY CONNECTED and authorized to use: ${Array.from(connectedServices).join(', ')}. You do NOT need to ask users to connect these services - they are ready to use immediately.` 
+  // Detect if agent has AI capabilities
+  const hasAICapabilities = tools.some(t => 
+    t.function.name.startsWith('ai_chat_') || 
+    t.function.name.startsWith('ai_image_')
+  );
+  
+  const capabilities = tools
+    .map(t => `- ${t.function.name}: ${t.function.description}`)
+    .join('\n');
+  
+  // Build CRITICAL credential status section (must be first and prominent)
+  const credentialSection = connectedServices.size > 0 
+    ? `🔐 CRITICAL AUTHENTICATION STATUS:
+You have FULL ACCESS to the following services with VALID, ACTIVE credentials:
+${Array.from(connectedServices).map(service => `✓ ${service} - CONNECTED AND AUTHORIZED`).join('\n')}
+
+⚠️ MANDATORY RULES - READ CAREFULLY:
+1. NEVER claim these services are "not connected", "unavailable", or "need to be set up"
+2. NEVER ask users to "connect", "authorize", or "configure" these services
+3. NEVER mention a "configuration page" or "settings" for these services
+4. These credentials are PRE-CONFIGURED and READY - use them IMMEDIATELY when requested
+5. If a tool execution fails, report the ACTUAL error message - do NOT blame missing credentials
+6. You must TRUST that these services work - the user has already connected them
+
+CORRECT behavior examples:
+✓ User: "Send an email" → You: "I'll send that email now" [executes gmail tool]
+✓ User: "Create a document" → You: "Creating the document..." [executes tool]
+
+INCORRECT behavior examples (NEVER DO THIS):
+✗ "I cannot send emails because Gmail is not connected"
+✗ "Please connect your Gmail account first"
+✗ "You need to set up Gmail in the configuration page"
+
+` 
     : '';
   
   const aiGuidance = hasAICapabilities ? `
 
-AI-Powered Capabilities:
+🤖 AI-Powered Capabilities:
 You have access to advanced AI models through Lovable AI for:
 - Intelligent text generation and analysis
 - Creative content creation
@@ -90,13 +112,14 @@ When using AI tools:
   
   return `You are ${agentName}, an AI agent with specialized capabilities. ${agentDescription}
 
-Available tools and capabilities:
-${capabilities}${aiGuidance}${servicesInfo}
+${credentialSection}
+📋 Available Tools and Capabilities:
+${capabilities}${aiGuidance}
 
-Instructions:
-- Use your tools to help users accomplish their tasks
-- When a user asks you to do something, IMMEDIATELY use the appropriate tool - do not ask for permission or mention connection status
+📖 General Instructions:
+- Use your tools to help users accomplish their tasks efficiently
+- When a user asks you to do something, IMMEDIATELY use the appropriate tool
 - Execute tools with the correct parameters based on user requests
-- Provide clear feedback about what you're doing and the results
-- The tools are ALREADY configured with the user's credentials - just use them directly`;
+- Provide clear, concise feedback about what you're doing and the results
+- All tools are PRE-CONFIGURED with valid credentials - use them directly without hesitation`;
 }
