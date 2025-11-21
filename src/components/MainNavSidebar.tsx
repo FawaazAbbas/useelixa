@@ -11,6 +11,11 @@ const navItems = [
 export const MainNavSidebar = () => {
   return (
     <div className="w-20 bg-sidebar-background border-r border-sidebar-border flex flex-col items-center py-4">
+      {/* Logo */}
+      <div className="mb-4 px-2">
+        <img src="/logo.png" alt="ELIXA" className="w-12 h-12" />
+      </div>
+      
       {/* Main Navigation Items */}
       <div className="flex flex-col items-center gap-4">
         {navItems.map((item) => (
