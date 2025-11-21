@@ -31,6 +31,8 @@ const Publish = () => {
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [workflowFile, setWorkflowFile] = useState<File | null>(null);
   const [workflowJson, setWorkflowJson] = useState<any>(null);
+  const [validationScore, setValidationScore] = useState<any>(null);
+  const [validating, setValidating] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -116,21 +118,51 @@ const Publish = () => {
 
     setWorkflowFile(file);
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       try {
         const json = JSON.parse(reader.result as string);
         setWorkflowJson(json);
-        toast({
-          title: "Workflow loaded",
-          description: "Your workflow JSON has been loaded successfully"
+        
+        // Validate workflow immediately
+        setValidating(true);
+        const { data, error } = await supabase.functions.invoke('process-workflow', {
+          body: {
+            workflowJson: json,
+            agentId: 'validation-only' // Special ID for validation-only mode
+          }
         });
+
+        setValidating(false);
+
+        if (error || !data?.success) {
+          setValidationScore(data?.validation || null);
+          toast({
+            variant: "destructive",
+            title: "Workflow validation failed",
+            description: data?.validation?.blockers?.[0] || "Your workflow has issues that need to be fixed"
+          });
+        } else {
+          setValidationScore(data.validation);
+          const grade = data.validation.grade;
+          const canPublish = data.validation.canPublish;
+          
+          toast({
+            title: canPublish ? "Workflow validated" : "Validation warning",
+            description: canPublish 
+              ? `Grade ${grade} - Your workflow is ready to publish!`
+              : `Grade ${grade} - ${data.validation.warnings[0] || 'Check validation details'}`,
+            variant: canPublish ? "default" : "destructive"
+          });
+        }
       } catch (error) {
+        setValidating(false);
         toast({
           variant: "destructive",
           title: "Invalid JSON",
           description: "The file does not contain valid JSON"
         });
         setWorkflowFile(null);
+        setValidationScore(null);
       }
     };
     reader.readAsText(file);
@@ -197,9 +229,10 @@ const Publish = () => {
 
       if (insertError) throw insertError;
 
-      // If workflow JSON is provided, process it
+      // If workflow JSON is provided, process it (skip if validation-only already ran)
       if (workflowJson && insertedAgent) {
-        const { data, error: workflowError } = await supabase.functions.invoke('process-workflow', {
+        // Re-run processing to save to database with actual agent ID
+        const { error: workflowError } = await supabase.functions.invoke('process-workflow', {
           body: {
             workflowJson,
             agentId: insertedAgent.id
@@ -216,7 +249,7 @@ const Publish = () => {
         } else {
           toast({
             title: "Success!",
-            description: `Your workflow-based agent has been published successfully.`
+            description: `Your ${validationScore?.grade || 'workflow-based'} grade agent has been published!`
           });
         }
       } else {
@@ -390,7 +423,7 @@ const Publish = () => {
               <div>
                 <Label className="text-base">AI Workflow (Optional)</Label>
                 <p className="text-sm text-muted-foreground mb-2">
-                  Upload your n8n workflow JSON to make your agent executable on our platform
+                  Upload your n8n workflow JSON - Real-time validation will check compatibility
                 </p>
                 <input
                   type="file"
@@ -398,12 +431,104 @@ const Publish = () => {
                   onChange={handleWorkflowChange}
                   className="hidden"
                   id="workflow-upload"
+                  disabled={validating}
                 />
                 <label
                   htmlFor="workflow-upload"
-                  className="mt-2 border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer block"
+                  className={`mt-2 border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer block ${
+                    validating ? 'border-muted cursor-not-allowed' : 
+                    validationScore?.canPublish ? 'border-green-500 hover:border-green-600' :
+                    validationScore && !validationScore.canPublish ? 'border-destructive hover:border-destructive' :
+                    'border-border hover:border-primary'
+                  }`}
                 >
-                  {workflowJson ? (
+                  {validating ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-sm">Validating workflow...</span>
+                    </div>
+                  ) : workflowJson && validationScore ? (
+                    <div className="text-left space-y-3">
+                      {/* Grade Badge */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`text-2xl font-bold px-3 py-1 rounded ${
+                            validationScore.grade === 'A' ? 'bg-green-100 text-green-700' :
+                            validationScore.grade === 'B' ? 'bg-blue-100 text-blue-700' :
+                            validationScore.grade === 'C' ? 'bg-yellow-100 text-yellow-700' :
+                            validationScore.grade === 'D' ? 'bg-orange-100 text-orange-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {validationScore.grade}
+                          </div>
+                          <div>
+                            <p className="font-semibold">{validationScore.overall}% Compatible</p>
+                            <p className="text-xs text-muted-foreground">{workflowFile?.name}</p>
+                          </div>
+                        </div>
+                        {validationScore.canPublish ? (
+                          <span className="text-green-600 text-sm font-medium">✓ Ready to publish</span>
+                        ) : (
+                          <span className="text-destructive text-sm font-medium">✗ Cannot publish</span>
+                        )}
+                      </div>
+
+                      {/* Node Stats */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-muted p-2 rounded">
+                          <span className="text-muted-foreground">Total Nodes:</span>
+                          <span className="ml-1 font-medium">{validationScore.details.totalNodes}</span>
+                        </div>
+                        <div className="bg-muted p-2 rounded">
+                          <span className="text-muted-foreground">Executable:</span>
+                          <span className="ml-1 font-medium text-green-600">{validationScore.details.executableNodes}</span>
+                        </div>
+                        <div className="bg-muted p-2 rounded">
+                          <span className="text-muted-foreground">Supported:</span>
+                          <span className="ml-1 font-medium">{validationScore.details.supportedNodes}</span>
+                        </div>
+                        <div className="bg-muted p-2 rounded">
+                          <span className="text-muted-foreground">Unsupported:</span>
+                          <span className="ml-1 font-medium text-destructive">{validationScore.details.unknownNodes}</span>
+                        </div>
+                      </div>
+
+                      {/* Blockers */}
+                      {validationScore.blockers.length > 0 && (
+                        <div className="bg-destructive/10 border border-destructive/20 rounded p-2">
+                          <p className="text-xs font-semibold text-destructive mb-1">Critical Issues:</p>
+                          {validationScore.blockers.map((blocker: string, i: number) => (
+                            <p key={i} className="text-xs text-destructive">• {blocker}</p>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Warnings */}
+                      {validationScore.warnings.length > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
+                          <p className="text-xs font-semibold text-yellow-700 mb-1">Warnings:</p>
+                          {validationScore.warnings.slice(0, 3).map((warning: string, i: number) => (
+                            <p key={i} className="text-xs text-yellow-700">• {warning}</p>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* What Works */}
+                      {validationScore.details.nodeBreakdown.supported.length > 0 && (
+                        <div className="bg-green-50 border border-green-200 rounded p-2">
+                          <p className="text-xs font-semibold text-green-700 mb-1">✓ What Works:</p>
+                          {validationScore.details.nodeBreakdown.supported.slice(0, 3).map((node: any, i: number) => (
+                            <p key={i} className="text-xs text-green-700">• {node.name}</p>
+                          ))}
+                          {validationScore.details.nodeBreakdown.supported.length > 3 && (
+                            <p className="text-xs text-green-600 mt-1">
+                              + {validationScore.details.nodeBreakdown.supported.length - 3} more
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : workflowJson ? (
                     <div className="text-left">
                       <p className="font-medium mb-2">✓ Workflow loaded</p>
                       <p className="text-xs text-muted-foreground">
@@ -429,9 +554,13 @@ const Publish = () => {
               <Button type="button" variant="outline" onClick={() => navigate("/")} className="flex-1">
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading} className="flex-1">
+              <Button 
+                type="submit" 
+                disabled={loading || (validationScore && !validationScore.canPublish)} 
+                className="flex-1"
+              >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Publish Agent
+                {validationScore && !validationScore.canPublish ? 'Cannot Publish - Fix Issues' : 'Publish Agent'}
               </Button>
             </div>
           </form>

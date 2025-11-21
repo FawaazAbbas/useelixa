@@ -4,6 +4,7 @@ import { parseN8nWorkflow } from "./workflow-parser.ts";
 import { NodeRegistry } from "./node-registry.ts";
 import { WorkflowValidator } from "./workflow-validator.ts";
 import { CredentialResolver } from "./credential-resolver.ts";
+import { WorkflowScorer } from "./workflow-scorer.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +28,7 @@ serve(async (req) => {
     const nodeRegistry = new NodeRegistry();
     const credentialResolver = new CredentialResolver();
     const workflowValidator = new WorkflowValidator(nodeRegistry, credentialResolver);
+    const scorer = new WorkflowScorer(nodeRegistry);
 
     // 1. Validate workflow JSON
     if (!workflowJson || typeof workflowJson !== 'object') {
@@ -47,36 +49,36 @@ serve(async (req) => {
     // Parse workflow for validation
     const parsedWorkflow = parseN8nWorkflow(workflowJson);
     
-    // Perform upload-time validation (without user credentials)
-    const validationResult = await workflowValidator.validateWorkflowStructure(parsedWorkflow);
+    // Score and validate workflow comprehensively
+    const scoreResult = scorer.scoreWorkflow(parsedWorkflow);
     
-    console.log('📋 Workflow Validation Results:', validationResult);
-    console.log(workflowValidator.generateReport(validationResult));
+    console.log('\n📊 Validation & Scoring Report:');
+    console.log(scorer.generateReport(scoreResult));
+    console.log('');
 
-    // 2. Detect real API keys (basic check)
-    const workflowString = JSON.stringify(workflowJson);
-    const keyPatterns = [
-      /sk-[a-zA-Z0-9]{20,}/g,  // OpenAI
-      /AIza[a-zA-Z0-9_-]{35}/g, // Google
-      /xoxb-[a-zA-Z0-9-]+/g,    // Slack bot
-      /xoxp-[a-zA-Z0-9-]+/g,    // Slack user
-    ];
-
-    for (const pattern of keyPatterns) {
-      if (pattern.test(workflowString)) {
-        return new Response(
-          JSON.stringify({ error: 'Workflow contains real API keys. Please use placeholders like {{OPENAI_KEY}}' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    // Block publication if validation fails
+    if (!scoreResult.canPublish) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Workflow validation failed',
+          validation: scoreResult,
+          report: scorer.generateReport(scoreResult)
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400
+        }
+      );
     }
 
-    // 3. Extract required integrations from placeholders
+    // 2. Extract required integrations from placeholders
     const placeholderRegex = /\{\{([A-Z_]+)\}\}/g;
+    const workflowString = JSON.stringify(workflowJson);
     const matches = workflowString.matchAll(placeholderRegex);
     const requiredIntegrations = [...new Set([...matches].map(m => m[1]))];
 
-    // 4. Derive permissions from node types
+    // 3. Derive permissions from node types
     const permissions: string[] = [];
     for (const node of workflowJson.nodes) {
       const nodeType = node.type?.toLowerCase() || '';
@@ -90,7 +92,19 @@ serve(async (req) => {
 
     const uniquePermissions = [...new Set(permissions)];
 
-    // 5. Update agent with workflow data
+    // 4. Update agent with workflow data (skip if validation-only mode)
+    // Skip database update if this is a validation-only request
+    if (agentId === 'validation-only') {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          validation: scoreResult,
+          report: scorer.generateReport(scoreResult)
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { error: updateError } = await supabase
       .from('agents')
       .update({
@@ -116,17 +130,8 @@ serve(async (req) => {
         requiredCredentials: parsedWorkflow.requiredCredentials,
         permissions: uniquePermissions,
         status: 'active',
-        validation: {
-          totalNodes: validationResult.totalNodeCount,
-          supportedNodes: validationResult.supportedNodeCount,
-          executableNodes: validationResult.executableNodeCount,
-          orchestrationNodes: validationResult.orchestrationNodeCount,
-          unknownNodes: validationResult.unknownNodeCount,
-          warnings: validationResult.warnings,
-          errors: validationResult.errors,
-          isFullySupported: validationResult.unknownNodeCount === 0 && validationResult.errors.length === 0,
-          report: workflowValidator.generateReport(validationResult)
-        }
+        validation: scoreResult,
+        report: scorer.generateReport(scoreResult)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
