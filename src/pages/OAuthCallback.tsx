@@ -29,14 +29,14 @@ export default function OAuthCallback() {
         throw new Error('Missing OAuth parameters');
       }
 
-      // Decode state to get installation ID and credential type
-      const { installationId, credentialType } = JSON.parse(atob(state));
+      // Decode state to get user ID and credential type
+      const { userId, credentialType, returnTo } = JSON.parse(atob(state));
 
       setMessage('Exchanging authorization code for access token...');
 
       // Exchange code for token via edge function
       const { data, error: exchangeError } = await supabase.functions.invoke('exchange-oauth-token', {
-        body: { code, credentialType, installationId }
+        body: { code, credentialType, userId }
       });
 
       if (exchangeError) {
@@ -46,9 +46,9 @@ export default function OAuthCallback() {
       setStatus('success');
       setMessage('Authentication successful! Redirecting...');
 
-      // Redirect back to agent detail page after 2 seconds
+      // Redirect back to connections page after 2 seconds
       setTimeout(() => {
-        navigate(`/agent/${data.agentId}`);
+        navigate(returnTo || '/connections');
       }, 2000);
 
     } catch (error) {
