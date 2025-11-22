@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Upload, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Loader2, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { AuthDialog } from "@/components/AuthDialog";
 import { z } from "zod";
 
 const agentSchema = z.object({
@@ -23,15 +25,16 @@ const agentSchema = z.object({
 
 const Publish = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [workflowFile, setWorkflowFile] = useState<File | null>(null);
   const [workflowJson, setWorkflowJson] = useState<any>(null);
-  const [validationScore, setValidationScore] = useState<any>(null);
+  const [validationResult, setValidationResult] = useState<any>(null);
   const [validating, setValidating] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -44,12 +47,7 @@ const Publish = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!user) {
-      sessionStorage.setItem('redirectAfterAuth', '/publish');
-      navigate("/auth");
-      return;
-    }
-
+    // Don't redirect, just show auth dialog if not logged in
     const fetchCategories = async () => {
       const { data } = await supabase
         .from("agent_categories")
@@ -62,7 +60,7 @@ const Publish = () => {
     };
 
     fetchCategories();
-  }, [user, navigate]);
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,23 +133,21 @@ const Publish = () => {
         setValidating(false);
 
         if (error || !data?.success) {
-          setValidationScore(data?.validation || null);
+          setValidationResult(data?.validation || null);
           toast({
             variant: "destructive",
             title: "Workflow validation failed",
-            description: data?.validation?.blockers?.[0] || "Your workflow has issues that need to be fixed"
+            description: data?.validation?.errors?.[0]?.message || "Your workflow has issues that need to be fixed"
           });
         } else {
-          setValidationScore(data.validation);
-          const grade = data.validation.grade;
-          const canPublish = data.validation.canPublish;
+          setValidationResult(data.validation);
           
           toast({
-            title: canPublish ? "Workflow validated" : "Validation warning",
-            description: canPublish 
-              ? `Grade ${grade} - Your workflow is ready to publish!`
-              : `Grade ${grade} - ${data.validation.warnings[0] || 'Check validation details'}`,
-            variant: canPublish ? "default" : "destructive"
+            title: data.validation.canPublish ? "Workflow validated successfully" : "Validation warnings",
+            description: data.validation.canPublish 
+              ? `Your workflow is ready to publish!`
+              : `${data.validation.errors.length} issues need to be fixed before publishing`,
+            variant: data.validation.canPublish ? "default" : "destructive"
           });
         }
       } catch (error) {
@@ -162,7 +158,7 @@ const Publish = () => {
           description: "The file does not contain valid JSON"
         });
         setWorkflowFile(null);
-        setValidationScore(null);
+        setValidationResult(null);
       }
     };
     reader.readAsText(file);
@@ -172,8 +168,7 @@ const Publish = () => {
     e.preventDefault();
     
     if (!user) {
-      sessionStorage.setItem('redirectAfterAuth', '/publish');
-      navigate("/auth");
+      setShowAuthDialog(true);
       return;
     }
 
@@ -249,7 +244,7 @@ const Publish = () => {
         } else {
           toast({
             title: "Success!",
-            description: `Your ${validationScore?.grade || 'workflow-based'} grade agent has been published!`
+            description: `Your agent has been published successfully!`
           });
         }
       } else {
@@ -437,8 +432,8 @@ const Publish = () => {
                   htmlFor="workflow-upload"
                   className={`mt-2 border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer block ${
                     validating ? 'border-muted cursor-not-allowed' : 
-                    validationScore?.canPublish ? 'border-green-500 hover:border-green-600' :
-                    validationScore && !validationScore.canPublish ? 'border-destructive hover:border-destructive' :
+                    validationResult?.canPublish ? 'border-green-500 hover:border-green-600' :
+                    validationResult && !validationResult.canPublish ? 'border-destructive hover:border-destructive' :
                     'border-border hover:border-primary'
                   }`}
                 >
@@ -447,29 +442,27 @@ const Publish = () => {
                       <Loader2 className="h-5 w-5 animate-spin" />
                       <span className="text-sm">Validating workflow...</span>
                     </div>
-                  ) : workflowJson && validationScore ? (
-                    <div className="text-left space-y-3">
-                      {/* Grade Badge */}
-                      <div className="flex items-center justify-between">
+                  ) : workflowJson && validationResult ? (
+                    <div className="text-left space-y-4">
+                      {/* Status Header */}
+                      <div className="flex items-center justify-between pb-3 border-b">
                         <div className="flex items-center gap-2">
-                          <div className={`text-2xl font-bold px-3 py-1 rounded ${
-                            validationScore.grade === 'A' ? 'bg-green-100 text-green-700' :
-                            validationScore.grade === 'B' ? 'bg-blue-100 text-blue-700' :
-                            validationScore.grade === 'C' ? 'bg-yellow-100 text-yellow-700' :
-                            validationScore.grade === 'D' ? 'bg-orange-100 text-orange-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {validationScore.grade}
-                          </div>
+                          {validationResult.canPublish ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-destructive" />
+                          )}
                           <div>
-                            <p className="font-semibold">{validationScore.overall}% Compatible</p>
+                            <p className="font-semibold">
+                              {validationResult.canPublish ? 'Ready to Publish' : 'Cannot Publish'}
+                            </p>
                             <p className="text-xs text-muted-foreground">{workflowFile?.name}</p>
                           </div>
                         </div>
-                        {validationScore.canPublish ? (
-                          <span className="text-green-600 text-sm font-medium">✓ Ready to publish</span>
-                        ) : (
-                          <span className="text-destructive text-sm font-medium">✗ Cannot publish</span>
+                        {validationResult.isChatCompatible && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                            Chat Compatible
+                          </span>
                         )}
                       </div>
 
@@ -477,55 +470,86 @@ const Publish = () => {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="bg-muted p-2 rounded">
                           <span className="text-muted-foreground">Total Nodes:</span>
-                          <span className="ml-1 font-medium">{validationScore.details.totalNodes}</span>
+                          <span className="ml-1 font-medium">{validationResult.stats.totalNodes}</span>
                         </div>
                         <div className="bg-muted p-2 rounded">
                           <span className="text-muted-foreground">Executable:</span>
-                          <span className="ml-1 font-medium text-green-600">{validationScore.details.executableNodes}</span>
+                          <span className="ml-1 font-medium text-green-600">{validationResult.stats.executableNodes}</span>
                         </div>
                         <div className="bg-muted p-2 rounded">
                           <span className="text-muted-foreground">Supported:</span>
-                          <span className="ml-1 font-medium">{validationScore.details.supportedNodes}</span>
+                          <span className="ml-1 font-medium">{validationResult.stats.supportedNodes}</span>
                         </div>
                         <div className="bg-muted p-2 rounded">
                           <span className="text-muted-foreground">Unsupported:</span>
-                          <span className="ml-1 font-medium text-destructive">{validationScore.details.unknownNodes}</span>
+                          <span className="ml-1 font-medium text-destructive">{validationResult.stats.unsupportedNodes}</span>
                         </div>
                       </div>
 
-                      {/* Blockers */}
-                      {validationScore.blockers.length > 0 && (
-                        <div className="bg-destructive/10 border border-destructive/20 rounded p-2">
-                          <p className="text-xs font-semibold text-destructive mb-1">Critical Issues:</p>
-                          {validationScore.blockers.map((blocker: string, i: number) => (
-                            <p key={i} className="text-xs text-destructive">• {blocker}</p>
+                      {/* Required Credentials */}
+                      {validationResult.requiredCredentials.length > 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                          <p className="text-xs font-semibold text-blue-700 mb-1">
+                            Required Connections:
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {validationResult.requiredCredentials.map((cred: string, i: number) => (
+                              <span key={i} className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                {cred}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Errors */}
+                      {validationResult.errors.length > 0 && (
+                        <div className="bg-destructive/10 border border-destructive/20 rounded p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                            <p className="text-xs font-semibold text-destructive">
+                              Critical Issues ({validationResult.errors.length}):
+                            </p>
+                          </div>
+                          {validationResult.errors.slice(0, 3).map((error: any, i: number) => (
+                            <div key={i} className="text-xs text-destructive mb-1">
+                              <span className="font-medium">{error.nodeName}:</span> {error.message}
+                            </div>
                           ))}
+                          {validationResult.errors.length > 3 && (
+                            <p className="text-xs text-destructive/70 mt-1">
+                              + {validationResult.errors.length - 3} more issues
+                            </p>
+                          )}
                         </div>
                       )}
 
                       {/* Warnings */}
-                      {validationScore.warnings.length > 0 && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded p-2">
-                          <p className="text-xs font-semibold text-yellow-700 mb-1">Warnings:</p>
-                          {validationScore.warnings.slice(0, 3).map((warning: string, i: number) => (
-                            <p key={i} className="text-xs text-yellow-700">• {warning}</p>
+                      {validationResult.warnings.length > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle className="h-4 w-4 text-yellow-700" />
+                            <p className="text-xs font-semibold text-yellow-700">
+                              Warnings ({validationResult.warnings.length}):
+                            </p>
+                          </div>
+                          {validationResult.warnings.slice(0, 2).map((warning: any, i: number) => (
+                            <div key={i} className="text-xs text-yellow-700 mb-1">
+                              <span className="font-medium">{warning.nodeName}:</span> {warning.message}
+                            </div>
                           ))}
                         </div>
                       )}
 
-                      {/* What Works */}
-                      {validationScore.details.nodeBreakdown.supported.length > 0 && (
-                        <div className="bg-green-50 border border-green-200 rounded p-2">
-                          <p className="text-xs font-semibold text-green-700 mb-1">✓ What Works:</p>
-                          {validationScore.details.nodeBreakdown.supported.slice(0, 3).map((node: any, i: number) => (
-                            <p key={i} className="text-xs text-green-700">• {node.name}</p>
-                          ))}
-                          {validationScore.details.nodeBreakdown.supported.length > 3 && (
-                            <p className="text-xs text-green-600 mt-1">
-                              + {validationScore.details.nodeBreakdown.supported.length - 3} more
-                            </p>
-                          )}
-                        </div>
+                      {/* Success State */}
+                      {validationResult.canPublish && validationResult.errors.length === 0 && (
+                        <Alert className="border-green-200 bg-green-50">
+                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          <AlertTitle className="text-green-700">Workflow Validated</AlertTitle>
+                          <AlertDescription className="text-xs text-green-600">
+                            Your workflow is compatible and ready to publish. Users will be able to install and use this agent immediately.
+                          </AlertDescription>
+                        </Alert>
                       )}
                     </div>
                   ) : workflowJson ? (
@@ -556,15 +580,26 @@ const Publish = () => {
               </Button>
               <Button 
                 type="submit" 
-                disabled={loading || (validationScore && !validationScore.canPublish)} 
+                disabled={loading || (validationResult && !validationResult.canPublish)} 
                 className="flex-1"
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {validationScore && !validationScore.canPublish ? 'Cannot Publish - Fix Issues' : 'Publish Agent'}
+                {validationResult && !validationResult.canPublish ? 'Fix Issues Before Publishing' : 'Publish Agent'}
               </Button>
             </div>
           </form>
         </Card>
+
+        {/* Auth Dialog */}
+        <AuthDialog 
+          open={showAuthDialog} 
+          onOpenChange={setShowAuthDialog}
+          onSuccess={() => {
+            setShowAuthDialog(false);
+            // Retry submit after auth
+            if (user) handleSubmit(new Event('submit') as any);
+          }}
+        />
       </div>
     </div>
   );

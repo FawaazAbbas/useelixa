@@ -100,45 +100,41 @@ const AgentDetail = () => {
     setInstalling(true);
 
     try {
-      // Install the agent
-      const { error: installError } = await supabase
-        .from("agent_installations")
-        .insert({
-          agent_id: id,
-          user_id: user.id,
-        });
-
-      if (installError) throw installError;
-
-      // Get user's workspace
-      const { data: workspaceData } = await supabase
+      // Get user's workspace first
+      const { data: workspaceData, error: workspaceError } = await supabase
         .from("workspace_members")
         .select("workspace_id")
         .eq("user_id", user.id)
         .single();
 
-      if (workspaceData) {
-        // Create chat for the agent
-        const { data: newChat, error: chatError } = await supabase
-          .from("chats")
-          .insert({
-            workspace_id: workspaceData.workspace_id,
-            agent_id: id,
-            type: "direct",
-            name: agent.name,
-            created_by: user.id,
-          })
-          .select()
-          .single();
-
-        if (!chatError && newChat) {
-          // Add user as chat participant
-          await supabase.from("chat_participants").insert({
-            chat_id: newChat.id,
-            user_id: user.id,
-          });
-        }
+      if (workspaceError || !workspaceData) {
+        throw new Error("No workspace found");
       }
+
+      // Install the agent
+      const { data: installation, error: installError } = await supabase
+        .from("agent_installations")
+        .insert({
+          agent_id: id,
+          user_id: user.id,
+          workspace_id: workspaceData.workspace_id,
+          install_state: {}
+        })
+        .select()
+        .single();
+
+      if (installError) throw installError;
+
+      // Create dedicated chat session for this installation (BLUEPRINT MODEL)
+      const { error: chatSessionError } = await supabase
+        .from("chat_sessions")
+        .insert({
+          installation_id: installation.id,
+          workspace_id: workspaceData.workspace_id,
+          agent_id: id
+        });
+
+      if (chatSessionError) throw chatSessionError;
 
       // Update install count
       await supabase
@@ -149,8 +145,11 @@ const AgentDetail = () => {
       setIsInstalled(true);
       toast({
         title: "Success!",
-        description: "Agent installed successfully. Check your workspace!",
+        description: "Agent installed successfully. Redirecting to your workspace...",
       });
+
+      // Navigate to workspace after brief delay
+      setTimeout(() => navigate("/workspace"), 1000);
     } catch (error: any) {
       toast({
         variant: "destructive",

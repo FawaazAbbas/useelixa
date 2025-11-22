@@ -118,18 +118,21 @@ export type Database = {
         Row: {
           agent_id: string
           id: string
+          install_state: Json | null
           installed_at: string
           user_id: string
         }
         Insert: {
           agent_id: string
           id?: string
+          install_state?: Json | null
           installed_at?: string
           user_id: string
         }
         Update: {
           agent_id?: string
           id?: string
+          install_state?: Json | null
           installed_at?: string
           user_id?: string
         }
@@ -191,13 +194,16 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          is_chat_compatible: boolean | null
           is_workflow_based: boolean | null
           long_description: string | null
           name: string
           price: number | null
           publisher_id: string | null
           rating: number | null
+          required_credentials: Json | null
           response_timeout: number | null
+          short_description: string | null
           status: string | null
           supported_features: string[] | null
           total_installs: number | null
@@ -216,13 +222,16 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_chat_compatible?: boolean | null
           is_workflow_based?: boolean | null
           long_description?: string | null
           name: string
           price?: number | null
           publisher_id?: string | null
           rating?: number | null
+          required_credentials?: Json | null
           response_timeout?: number | null
+          short_description?: string | null
           status?: string | null
           supported_features?: string[] | null
           total_installs?: number | null
@@ -241,13 +250,16 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_chat_compatible?: boolean | null
           is_workflow_based?: boolean | null
           long_description?: string | null
           name?: string
           price?: number | null
           publisher_id?: string | null
           rating?: number | null
+          required_credentials?: Json | null
           response_timeout?: number | null
+          short_description?: string | null
           status?: string | null
           supported_features?: string[] | null
           total_installs?: number | null
@@ -429,6 +441,41 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          sender_type: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          sender_type: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          sender_type?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_participants: {
         Row: {
           chat_id: string
@@ -454,6 +501,55 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          id: string
+          installation_id: string
+          updated_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          id?: string
+          installation_id: string
+          updated_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          id?: string
+          installation_id?: string
+          updated_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_sessions_installation_id_fkey"
+            columns: ["installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_sessions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
