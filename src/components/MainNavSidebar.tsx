@@ -1,10 +1,11 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
 const navItems = [
   { icon: MessageSquare, label: "Messenger", path: "/workspace" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
+  { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Activity, label: "Logs", path: "/logs" },
 ];
 

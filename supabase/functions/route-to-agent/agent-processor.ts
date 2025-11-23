@@ -5,6 +5,7 @@ import { executeToolCall } from "./tool-executor.ts";
 import { WorkflowValidator } from "./workflow-validator.ts";
 import { NodeRegistry } from "./node-registry.ts";
 import { CredentialResolver } from "./credential-resolver.ts";
+import { retrieveRelevantKnowledge, formatKnowledgeContext } from "./knowledge-retriever.ts";
 
 const nodeRegistry = new NodeRegistry();
 const credentialResolver = new CredentialResolver();
@@ -12,6 +13,7 @@ const credentialResolver = new CredentialResolver();
 export async function processAgentWorkflow(
   agent: any,
   userId: string,
+  workspaceId: string,
   message: string,
   conversationHistory: any[],
   supabase: any
@@ -34,6 +36,14 @@ export async function processAgentWorkflow(
       const parsedWorkflow = parseN8nWorkflow(agent.workflow_json);
       const userCredentials = await fetchUserCredentials(userId, supabase);
 
+      // Retrieve relevant knowledge from workspace
+      const relevantKnowledge = await retrieveRelevantKnowledge(
+        supabase,
+        workspaceId,
+        message
+      );
+      const knowledgeContext = formatKnowledgeContext(relevantKnowledge);
+
       // Validation
       const validator = new WorkflowValidator(nodeRegistry, credentialResolver);
       const validation = await validator.validateWorkflow(parsedWorkflow, userCredentials);
@@ -55,7 +65,7 @@ export async function processAgentWorkflow(
         agent.ai_instructions,
         agent.guard_rails,
         toolDefinitions
-      );
+      ) + knowledgeContext;
 
       const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
       if (!lovableApiKey) {
