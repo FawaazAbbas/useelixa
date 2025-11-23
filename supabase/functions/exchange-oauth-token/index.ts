@@ -108,6 +108,16 @@ function getTokenUrl(credentialType: string): string {
     notionApi: "https://api.notion.com/v1/oauth/token",
     slackOAuth2Api: "https://slack.com/api/oauth.v2.access",
     googleOAuth2Api: "https://oauth2.googleapis.com/token",
+    quickbooksApi: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+    microsoftOAuth2Api: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    calendlyApi: "https://auth.calendly.com/oauth/token",
+    hubspotOAuth2Api: "https://api.hubapi.com/oauth/v1/token",
+    mailchimpOAuth2Api: "https://login.mailchimp.com/oauth2/token",
+    facebookOAuth2Api: "https://graph.facebook.com/v18.0/oauth/access_token",
+    stripeApi: "https://connect.stripe.com/oauth/token",
+    twilioApi: "https://api.twilio.com/2010-04-01/oauth2/token",
+    typeformApi: "https://api.typeform.com/oauth/token",
+    shopifyApi: "https://shopify-dynamic.myshopify.com/admin/oauth/access_token",
   };
 
   return urls[credentialType] || "";
