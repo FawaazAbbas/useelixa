@@ -33,6 +33,8 @@ export async function executeToolCall(
     return await executeOpenAIRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
     return await executeRSSRequest(args, credentials, nodeParameters);
+  } else if (nodeType === 'workspace_document') {
+    return await executeWorkspaceDocumentRead(args);
   }
   
   throw new Error(`Unsupported node type: ${nodeType}`);
@@ -520,4 +522,96 @@ export async function executeRSSRequest(
     console.error('RSS feed error:', error);
     throw new Error(`Failed to fetch/parse RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+/**
+ * Execute workspace document read request
+ */
+async function executeWorkspaceDocumentRead(args: any): Promise<any> {
+  const { document_name } = args;
+
+  if (!document_name) {
+    throw new Error("document_name is required");
+  }
+
+  console.log(`Reading workspace document: ${document_name}`);
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase configuration missing");
+  }
+
+  // Import createClient dynamically
+  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.81.1");
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Find the document
+  const { data: documents, error: searchError } = await supabase
+    .from('workspace_documents')
+    .select('*')
+    .ilike('name', document_name)
+    .limit(1);
+
+  if (searchError) {
+    throw new Error(`Failed to search for document: ${searchError.message}`);
+  }
+
+  if (!documents || documents.length === 0) {
+    throw new Error(`Document "${document_name}" not found in workspace knowledge base`);
+  }
+
+  const document = documents[0];
+
+  // If we have extracted content, return it
+  if (document.extracted_content) {
+    return {
+      success: true,
+      document_name: document.name,
+      file_type: document.file_type,
+      description: document.description,
+      content: document.extracted_content,
+      tags: document.tags,
+      folder: document.folder
+    };
+  }
+
+  // Otherwise, try to download and read the file directly
+  const { data: fileData, error: downloadError } = await supabase.storage
+    .from('workspace-files')
+    .download(document.file_path);
+
+  if (downloadError) {
+    throw new Error(`Failed to download file: ${downloadError.message}`);
+  }
+
+  let content = '';
+
+  // Handle different file types
+  if (document.file_type === 'application/json' || document.file_type === 'text/json') {
+    const text = await fileData.text();
+    const json = JSON.parse(text);
+    content = JSON.stringify(json, null, 2);
+  } else if (document.file_type.startsWith('text/')) {
+    content = await fileData.text();
+  } else if (document.file_type.startsWith('image/')) {
+    const arrayBuffer = await fileData.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    content = `Image data (base64): ${base64.substring(0, 100)}... [truncated for brevity, ${base64.length} characters total]`;
+  } else {
+    const arrayBuffer = await fileData.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    content = `Binary file content (${bytes.length} bytes). File type: ${document.file_type}. Consider requesting specific information about this file.`;
+  }
+
+  return {
+    success: true,
+    document_name: document.name,
+    file_type: document.file_type,
+    description: document.description,
+    content: content,
+    tags: document.tags,
+    folder: document.folder
+  };
 }
