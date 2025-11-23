@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Upload, Sparkles, Loader2, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Loader2, AlertCircle, CheckCircle2, XCircle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,7 +43,17 @@ const Publish = () => {
     long_description: "",
     category_id: "",
     price: "0",
-    capabilities: ""
+    capabilities: "",
+    ai_personality: "",
+    ai_instructions: ""
+  });
+  const [guardRails, setGuardRails] = useState({
+    content_filter: true,
+    max_tokens: 2000,
+    allowed_topics: [] as string[],
+    blocked_topics: [] as string[],
+    tone: "professional",
+    refuse_harmful_requests: true
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -217,7 +228,10 @@ const Publish = () => {
           capabilities: capabilitiesArray,
           image_url: imageUrl,
           publisher_id: user.id,
-          status: "active"
+          status: "active",
+          ai_personality: formData.ai_personality || null,
+          ai_instructions: formData.ai_instructions || null,
+          guard_rails: guardRails
         })
         .select()
         .single();
@@ -385,6 +399,115 @@ const Publish = () => {
               </div>
             </div>
 
+            {/* AI Personality Section */}
+            <div className="space-y-4 p-6 border rounded-lg bg-muted/30">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Sparkles className="h-5 w-5" />
+                AI Personality & Behavior
+              </h3>
+              
+              <div>
+                <Label htmlFor="ai_personality">Personality Type</Label>
+                <Input 
+                  id="ai_personality"
+                  placeholder="e.g., Professional assistant, Creative helper, Technical expert"
+                  className="mt-2"
+                  value={formData.ai_personality}
+                  onChange={(e) => setFormData({...formData, ai_personality: e.target.value})}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Define the personality type for your agent
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="ai_instructions">Behavioral Instructions</Label>
+                <Textarea 
+                  id="ai_instructions"
+                  placeholder="Describe how your agent should behave, respond to users, and handle different scenarios. This will guide the AI wrapper."
+                  className="mt-2 min-h-32"
+                  value={formData.ai_instructions}
+                  onChange={(e) => setFormData({...formData, ai_instructions: e.target.value})}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  These instructions will be injected into the system prompt to control agent behavior
+                </p>
+              </div>
+            </div>
+
+            {/* Guard Rails Section */}
+            <div className="space-y-4 p-6 border rounded-lg bg-muted/30">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Safety & Guard Rails
+              </h3>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Enable Content Filter</Label>
+                  <p className="text-xs text-muted-foreground">Block harmful or inappropriate content</p>
+                </div>
+                <Switch 
+                  checked={guardRails.content_filter}
+                  onCheckedChange={(checked) => setGuardRails({...guardRails, content_filter: checked})}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Refuse Harmful Requests</Label>
+                  <p className="text-xs text-muted-foreground">Reject unethical or dangerous requests</p>
+                </div>
+                <Switch 
+                  checked={guardRails.refuse_harmful_requests}
+                  onCheckedChange={(checked) => setGuardRails({...guardRails, refuse_harmful_requests: checked})}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="tone">Response Tone</Label>
+                <Select value={guardRails.tone} onValueChange={(value) => setGuardRails({...guardRails, tone: value})}>
+                  <SelectTrigger id="tone" className="mt-2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="friendly">Friendly</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="blocked_topics">Blocked Topics (comma-separated)</Label>
+                <Input 
+                  id="blocked_topics"
+                  placeholder="politics, medical advice, financial advice"
+                  className="mt-2"
+                  value={guardRails.blocked_topics.join(', ')}
+                  onChange={(e) => setGuardRails({
+                    ...guardRails, 
+                    blocked_topics: e.target.value.split(',').map(t => t.trim()).filter(t => t.length > 0)
+                  })}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="max_tokens">Max Response Tokens</Label>
+                <Input 
+                  id="max_tokens"
+                  type="number"
+                  className="mt-2"
+                  value={guardRails.max_tokens}
+                  onChange={(e) => setGuardRails({...guardRails, max_tokens: parseInt(e.target.value) || 2000})}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Maximum length of agent responses (default: 2000)
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-6">
               <div>
                 <Label className="text-base">Agent Image</Label>
@@ -459,12 +582,51 @@ const Publish = () => {
                             <p className="text-xs text-muted-foreground">{workflowFile?.name}</p>
                           </div>
                         </div>
-                        {validationResult.isChatCompatible && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                            Chat Compatible
-                          </span>
-                        )}
                       </div>
+
+                      {/* Chat Compatibility Status - Prominent */}
+                      <div className={`p-3 rounded-lg ${validationResult.isChatCompatible ? 'bg-green-50 border border-green-200' : 'bg-destructive/10 border border-destructive/20'}`}>
+                        <div className="flex items-center gap-2">
+                          {validationResult.isChatCompatible ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-destructive" />
+                          )}
+                          <div>
+                            <p className="font-semibold text-sm">
+                              Chat Compatibility: {validationResult.isChatCompatible ? 'PASS' : 'FAIL'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {validationResult.isChatCompatible 
+                                ? 'This agent can be used in chat conversations' 
+                                : 'Missing required chat trigger node - cannot be used in conversations'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div className="p-2 bg-muted rounded text-center">
+                          <p className="font-semibold">{validationResult.stats?.totalNodes || 0}</p>
+                          <p className="text-xs text-muted-foreground">Total Nodes</p>
+                        </div>
+                        <div className="p-2 bg-muted rounded text-center">
+                          <p className="font-semibold">{validationResult.stats?.executableNodes || 0}</p>
+                          <p className="text-xs text-muted-foreground">Executable Tools</p>
+                        </div>
+                      </div>
+
+                      {/* Personality/Guard Rails Warnings */}
+                      {(!formData.ai_personality || !formData.ai_instructions) && (
+                        <Alert className="mb-3">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertTitle>Recommendation</AlertTitle>
+                          <AlertDescription className="text-xs">
+                            Configure AI personality and behavioral instructions to control how your agent responds
+                          </AlertDescription>
+                        </Alert>
+                      )}
 
                       {/* Node Stats */}
                       <div className="grid grid-cols-2 gap-2 text-xs">

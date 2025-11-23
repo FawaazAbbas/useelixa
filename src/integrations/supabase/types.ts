@@ -196,12 +196,15 @@ export type Database = {
       }
       agents: {
         Row: {
+          ai_instructions: string | null
+          ai_personality: string | null
           api_authentication_type: string | null
           capabilities: string[] | null
           category_id: string | null
           configuration_schema: Json | null
           created_at: string
           description: string | null
+          guard_rails: Json | null
           id: string
           image_url: string | null
           is_chat_compatible: boolean | null
@@ -224,12 +227,15 @@ export type Database = {
           workflow_json: Json | null
         }
         Insert: {
+          ai_instructions?: string | null
+          ai_personality?: string | null
           api_authentication_type?: string | null
           capabilities?: string[] | null
           category_id?: string | null
           configuration_schema?: Json | null
           created_at?: string
           description?: string | null
+          guard_rails?: Json | null
           id?: string
           image_url?: string | null
           is_chat_compatible?: boolean | null
@@ -252,12 +258,15 @@ export type Database = {
           workflow_json?: Json | null
         }
         Update: {
+          ai_instructions?: string | null
+          ai_personality?: string | null
           api_authentication_type?: string | null
           capabilities?: string[] | null
           category_id?: string | null
           configuration_schema?: Json | null
           created_at?: string
           description?: string | null
+          guard_rails?: Json | null
           id?: string
           image_url?: string | null
           is_chat_compatible?: boolean | null

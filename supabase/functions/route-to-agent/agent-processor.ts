@@ -23,6 +23,14 @@ export async function processAgentWorkflow(
     if (agent.is_workflow_based && agent.workflow_json) {
       console.log("Processing workflow-based agent:", agent.name);
 
+      // ❌ REJECT if not chat compatible
+      if (!agent.is_chat_compatible) {
+        return {
+          content: "⚠️ This agent is not configured for chat. It's missing a chat trigger node and cannot be used in conversations. Please contact the developer to make this agent chat-compatible.",
+          processingTime: Date.now() - startTime
+        };
+      }
+
       const parsedWorkflow = parseN8nWorkflow(agent.workflow_json);
       const userCredentials = await fetchUserCredentials(userId, supabase);
 
@@ -43,6 +51,9 @@ export async function processAgentWorkflow(
       const systemPrompt = buildSystemPrompt(
         agent.name,
         agent.description || agent.short_description || 'A helpful AI agent',
+        agent.ai_personality,
+        agent.ai_instructions,
+        agent.guard_rails,
         toolDefinitions
       );
 
