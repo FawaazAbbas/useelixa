@@ -187,8 +187,15 @@ serve(async (req) => {
           hasCredentials: !!(t.function as any).credentials 
         })));
 
-        // 5. Build system prompt
-        const systemPrompt = buildSystemPrompt(agent.name, agent.description || "", tools);
+        // 5. Build system prompt with personality and guard rails
+        const systemPrompt = buildSystemPrompt(
+          agent.name, 
+          agent.description || "",
+          agent.ai_personality || null,
+          agent.ai_instructions || null,
+          agent.guard_rails || null,
+          tools
+        );
         console.log('📋 System Prompt Preview:', systemPrompt.substring(0, 500) + '...');
 
         // 6. Call Lovable AI with tools

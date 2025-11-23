@@ -72,8 +72,28 @@ export function generateToolDefinitions(
 export function buildSystemPrompt(
   agentName: string,
   agentDescription: string,
+  aiPersonality: string | null,
+  aiInstructions: string | null,
+  guardRails: any | null,
   tools: LovableAITool[]
 ): string {
+  // Build guard rails section
+  const guardRailsSection = guardRails ? `
+🛡️ SAFETY & GUARD RAILS (MANDATORY RULES):
+${guardRails.content_filter ? '- Content filtering is ENABLED - refuse harmful/inappropriate requests' : ''}
+${guardRails.blocked_topics?.length > 0 ? `- BLOCKED TOPICS: Never discuss ${guardRails.blocked_topics.join(', ')}` : ''}
+${guardRails.tone ? `- Response tone MUST be: ${guardRails.tone}` : ''}
+${guardRails.max_tokens ? `- Keep responses under ${guardRails.max_tokens} tokens` : ''}
+${guardRails.refuse_harmful_requests ? '- REFUSE any harmful, unethical, or dangerous requests' : ''}
+` : '';
+
+  // Build personality section
+  const personalitySection = aiPersonality || aiInstructions ? `
+🎭 YOUR PERSONALITY & BEHAVIOR:
+${aiPersonality ? `Type: ${aiPersonality}` : ''}
+${aiInstructions ? `\nInstructions:\n${aiInstructions}` : ''}
+` : '';
+
   // Detect connected services from tool credentials
   const connectedServices = new Set<string>();
   tools.forEach(t => {
@@ -148,6 +168,8 @@ When using AI tools:
   
   return `You are ${agentName}, an AI agent with specialized capabilities. ${agentDescription}
 
+${personalitySection}
+${guardRailsSection}
 ${credentialSection}
 📋 Available Tools and Capabilities:
 ${capabilities}${aiGuidance}

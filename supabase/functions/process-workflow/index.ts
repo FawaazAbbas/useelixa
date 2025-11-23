@@ -222,40 +222,68 @@ serve(async (req) => {
 });
 
 function checkChatCompatibility(workflow: any, validation: any): boolean {
-  // Agent MUST have a chat trigger node to be chat-compatible
-  // This is the core requirement for integration with the Elixa chatbot system
+  console.log('\n🔍 STRICT CHAT COMPATIBILITY CHECK');
   
-  const hasChatTrigger = workflow.nodes.some((node: any) => 
+  // RULE 1: MUST have chatTrigger node (non-negotiable)
+  const chatTriggerNode = workflow.nodes.find((node: any) => 
     node.type === '@n8n/n8n-nodes-langchain.chatTrigger'
   );
   
-  if (!hasChatTrigger) {
+  if (!chatTriggerNode) {
     validation.errors.push({
-      nodeId: 'chatbot',
+      nodeId: 'MISSING_CHAT_TRIGGER',
       nodeName: 'Chat Trigger',
-      nodeType: 'system',
-      message: 'Agent is missing a Chat Trigger node. This agent cannot run as a chatbot in Elixa. Add a "When chat message received" trigger node to make it chat-compatible.',
+      nodeType: 'CRITICAL_REQUIREMENT',
+      message: '❌ CRITICAL: Your agent MUST have a "When chat message received" trigger node to work on Elixa. This is NON-NEGOTIABLE. Add the @n8n/n8n-nodes-langchain.chatTrigger node to your workflow.',
       severity: 'critical'
     });
+    console.log('  ❌ FAILED: No chat trigger found');
     return false;
   }
   
-  // Must have at least one executable tool
+  console.log('  ✓ Chat trigger found:', chatTriggerNode.name);
+  
+  // RULE 2: MUST have at least one executable tool
   if (validation.executableNodeCount === 0) {
     validation.errors.push({
-      nodeId: 'executable',
+      nodeId: 'NO_EXECUTABLE_TOOLS',
       nodeName: 'Tools',
-      nodeType: 'system',
-      message: 'Agent has no executable tools. Add at least one action node (Gmail, Sheets, HTTP, etc.) to make this agent functional.',
+      nodeType: 'CRITICAL_REQUIREMENT',
+      message: '❌ CRITICAL: Your agent has no executable actions. Add at least one tool node (Gmail, Sheets, HTTP Request, etc.) so your agent can DO something.',
       severity: 'critical'
     });
+    console.log('  ❌ FAILED: No executable tools');
     return false;
   }
   
-  // Check for critical errors
-  const hasCriticalErrors = validation.errors.some((err: any) => 
-    err.severity === 'critical'
+  console.log(`  ✓ Found ${validation.executableNodeCount} executable tools`);
+  
+  // RULE 3: Workflow must have proper flow (trigger → tools → output)
+  const hasOutput = workflow.nodes.some((node: any) => 
+    node.type.includes('respondToChat') || 
+    node.type.includes('output') ||
+    node.type.includes('returnLastMessage')
   );
   
-  return !hasCriticalErrors;
+  if (!hasOutput) {
+    validation.warnings.push({
+      nodeId: 'NO_OUTPUT_NODE',
+      nodeName: 'Response',
+      nodeType: 'BEST_PRACTICE',
+      message: '⚠️ WARNING: No explicit output/response node detected. Make sure your workflow returns a response to the chat.'
+    });
+  }
+  
+  // RULE 4: No critical errors from other validation
+  const hasCriticalErrors = validation.errors.some((err: any) => 
+    err.severity === 'critical' && err.nodeId !== 'MISSING_CHAT_TRIGGER' && err.nodeId !== 'NO_EXECUTABLE_TOOLS'
+  );
+  
+  if (hasCriticalErrors) {
+    console.log('  ❌ FAILED: Other critical errors present');
+    return false;
+  }
+  
+  console.log('  ✅ CHAT COMPATIBILITY: PASSED');
+  return true;
 }
