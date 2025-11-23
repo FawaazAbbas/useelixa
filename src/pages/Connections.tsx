@@ -293,7 +293,7 @@ export default function Connections() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto py-8 px-4 max-w-7xl overflow-y-auto h-full">
       {/* Hero Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
