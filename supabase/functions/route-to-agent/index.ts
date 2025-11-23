@@ -7,6 +7,7 @@ import { executeToolCall } from "./tool-executor.ts";
 import { WorkflowValidator } from "./workflow-validator.ts";
 import { NodeRegistry } from "./node-registry.ts";
 import { CredentialResolver } from "./credential-resolver.ts";
+import { processAgentWorkflow } from "./agent-processor.ts";
 
 // Initialize validator components
 const nodeRegistry = new NodeRegistry();
@@ -23,12 +24,83 @@ serve(async (req) => {
   }
 
   try {
-    const { message, chat_id, agent_id, user_id } = await req.json();
+    const { message, chat_id, agent_id, agent_ids, user_id, chat_type = 'direct' } = await req.json();
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Handle group chat with multiple agents
+    if (chat_type === 'group' && agent_ids && Array.isArray(agent_ids)) {
+      console.log("Processing group chat with agents:", agent_ids);
+      
+      const agentResponses = [];
+      
+      for (const agentId of agent_ids) {
+        // Fetch agent details
+        const { data: agent, error: agentError } = await supabase
+          .from("agents")
+          .select("*")
+          .eq("id", agentId)
+          .single();
+
+        if (agentError || !agent) {
+          console.error(`Agent ${agentId} not found`);
+          continue;
+        }
+
+        // Fetch previous messages for context
+        const { data: previousMessages } = await supabase
+          .from("messages")
+          .select("content, user_id, agent_id")
+          .eq("chat_id", chat_id)
+          .order("created_at", { ascending: true })
+          .limit(10);
+
+        const conversationHistory = (previousMessages || []).map((msg: any) => ({
+          role: msg.user_id ? "user" : "assistant",
+          content: msg.content,
+        }));
+
+        // Process each agent's workflow and get response
+        const agentResponse = await processAgentWorkflow(agent, user_id, message, conversationHistory, supabase);
+        
+        if (agentResponse) {
+          // Save agent response
+          const { data: savedMessage } = await supabase
+            .from("messages")
+            .insert({
+              chat_id,
+              agent_id: agentId,
+              content: agentResponse.content,
+              processing_time_ms: agentResponse.processingTime
+            })
+            .select()
+            .single();
+
+          if (savedMessage) {
+            agentResponses.push(savedMessage);
+          }
+        }
+      }
+
+      // Update chat activity
+      await supabase
+        .from("chats")
+        .update({ last_activity: new Date().toISOString() })
+        .eq("id", chat_id);
+
+      return new Response(
+        JSON.stringify({ success: true, messages: agentResponses }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Handle single agent (direct chat)
+    if (!agent_id) {
+      throw new Error("Agent ID required for direct chat");
+    }
 
     // Fetch agent details
     const { data: agent, error: agentError } = await supabase
