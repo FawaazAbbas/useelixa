@@ -121,6 +121,7 @@ export type Database = {
           install_state: Json | null
           installed_at: string
           user_id: string
+          workspace_id: string
         }
         Insert: {
           agent_id: string
@@ -128,6 +129,7 @@ export type Database = {
           install_state?: Json | null
           installed_at?: string
           user_id: string
+          workspace_id: string
         }
         Update: {
           agent_id?: string
@@ -135,6 +137,7 @@ export type Database = {
           install_state?: Json | null
           installed_at?: string
           user_id?: string
+          workspace_id?: string
         }
         Relationships: [
           {
@@ -142,6 +145,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_installations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
