@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2 } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileChatNav } from "@/components/MobileChatNav";
+import { GroupChatDialog } from "@/components/GroupChatDialog";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -125,11 +126,13 @@ const Workspace = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { workspaceId } = useWorkspace();
-  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage } = useRealTimeChat(user?.id, workspaceId);
+  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage, refreshChats } = useRealTimeChat(user?.id, workspaceId);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [showAutomations, setShowAutomations] = useState(false);
+  const [showGroupDialog, setShowGroupDialog] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -155,12 +158,17 @@ const Workspace = () => {
   }, [selectedChat, fetchMessages]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedChat?.id || !selectedChat?.agent_id || sending) return;
+    if (!message.trim() || !selectedChat?.id || sending) return;
 
     const messageText = message;
     setMessage("");
     
-    await sendMessage(selectedChat.id, selectedChat.agent_id, messageText);
+    if (selectedChat.type === 'group') {
+      const agentIds = selectedChat.agents?.map((a: any) => a.id) || [];
+      await sendMessage(selectedChat.id, agentIds, messageText, 'group');
+    } else {
+      await sendMessage(selectedChat.id, selectedChat.agent_id, messageText, 'direct');
+    }
   };
 
   const fetchAutomations = async () => {
@@ -187,18 +195,38 @@ const Workspace = () => {
     navigate(`/tasks?taskId=${taskId}`);
   };
 
-  const handleSelectChat = (chatId: string, type: 'agent' | 'group') => {
-    if (type === 'agent') {
-      const chat = chats.find(c => c.id === chatId);
-      if (chat) {
-        setSelectedChat(chat);
-        fetchMessages(chat.id);
+  const handleSelectChat = (chat: any) => {
+    setSelectedChat(chat);
+    if (chat?.id) {
+      fetchMessages(chat.id);
+    }
+  };
+
+  const handleCreateGroup = () => {
+    setEditingGroup(null);
+    setShowGroupDialog(true);
+  };
+
+  const handleEditGroup = (group: any) => {
+    setEditingGroup({
+      id: group.id,
+      name: group.name,
+      agentIds: group.agents?.map((a: any) => a.id) || []
+    });
+    setShowGroupDialog(true);
+  };
+
+  const handleDeleteGroup = async (groupId: string) => {
+    if (!confirm('Are you sure you want to delete this group chat?')) return;
+    
+    try {
+      await supabase.from('chats').delete().eq('id', groupId);
+      if (selectedChat?.id === groupId) {
+        setSelectedChat(null);
       }
-    } else {
-      const group = groupChats.find(g => g.id === chatId);
-      if (group) {
-        setSelectedChat(group);
-      }
+      refreshChats();
+    } catch (error) {
+      console.error('Error deleting group:', error);
     }
   };
 
@@ -217,18 +245,38 @@ const Workspace = () => {
 
   return (
     <div className="flex-1 flex overflow-hidden bg-background">
+      {/* Group Chat Dialog */}
+      <GroupChatDialog
+        open={showGroupDialog}
+        onOpenChange={setShowGroupDialog}
+        userId={user?.id || ''}
+        workspaceId={workspaceId || ''}
+        onGroupCreated={refreshChats}
+        editingGroup={editingGroup}
+      />
+
       {/* Mobile Navigation */}
       {isMobile && (
         <MobileChatNav
-          agents={chats.map(c => ({
+          agents={chats.filter(c => c.type === 'direct').map(c => ({
             id: c.id,
             name: c.agent?.name || 'Agent',
             status: 'online',
             type: 'individual'
           }))}
-          groupChats={groupChats}
+          groupChats={chats.filter(c => c.type === 'group').map(c => ({
+            id: c.id,
+            name: c.name || 'Group',
+            members: c.agents?.map(a => a.name) || [],
+            memberCount: c.agents?.length || 0,
+            type: 'group',
+            lastActivity: formatDistanceToNow(new Date(c.last_activity), { addSuffix: true })
+          }))}
           selectedChat={selectedChat?.id}
-          onSelectChat={handleSelectChat}
+          onSelectChat={(chatId, type) => {
+            const chat = chats.find(c => c.id === chatId);
+            if (chat) handleSelectChat(chat);
+          }}
         />
       )}
 
@@ -279,10 +327,10 @@ const Workspace = () => {
                   </Button>
                 </div>
               ) : (
-                chats.map((chat) => (
+                chats.filter(c => c.type === 'direct').map((chat) => (
                   <button
                     key={chat.id}
-                    onClick={() => setSelectedChat(chat)}
+                    onClick={() => handleSelectChat(chat)}
                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
                       selectedChat?.id === chat.id ? "bg-muted/50" : ""
                     }`}
@@ -308,23 +356,23 @@ const Workspace = () => {
           <div className="px-3 py-2">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase">Group Chats</h3>
-              <Button variant="ghost" size="icon" className="h-5 w-5">
+              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleCreateGroup}>
                 <Plus className="h-3 w-3" />
               </Button>
             </div>
             <div className="space-y-1">
-              {groupChats.map((chat) => (
+              {chats.filter(c => c.type === 'group').map((chat) => (
                 <button
                   key={chat.id}
-                  onClick={() => setSelectedChat(chat)}
+                  onClick={() => handleSelectChat(chat)}
                   className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
                     selectedChat?.id === chat.id ? "bg-muted/50" : ""
                   }`}
                 >
-                  <Hash className="h-4 w-4 text-muted-foreground" />
+                  <Users className="h-4 w-4 text-muted-foreground" />
                   <div className="flex-1 text-left">
                     <div className="text-sm truncate text-white">{chat.name}</div>
-                    <div className="text-xs text-muted-foreground">{chat.memberCount} members</div>
+                    <div className="text-xs text-muted-foreground">{chat.agents?.length || 0} agents</div>
                   </div>
                 </button>
               ))}
@@ -354,15 +402,33 @@ const Workspace = () => {
           <div className="flex items-center gap-3">
             {selectedChat ? (
               <>
-                <Avatar>
-                  <AvatarFallback>
-                    {selectedChat.agent?.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-semibold">{selectedChat.agent?.name}</div>
-                  <div className="text-xs text-muted-foreground">online</div>
-                </div>
+                {selectedChat.type === 'group' ? (
+                  <>
+                    <Avatar>
+                      <AvatarFallback>
+                        <Users className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold">{selectedChat.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {selectedChat.agents?.length || 0} agents • Group chat
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Avatar>
+                      <AvatarFallback>
+                        {selectedChat.agent?.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-semibold">{selectedChat.agent?.name}</div>
+                      <div className="text-xs text-muted-foreground">online</div>
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <div className="font-semibold">No chat selected</div>
@@ -398,6 +464,10 @@ const Workspace = () => {
             ) : (
               messages.map((msg) => {
                 const isUserMessage = !!msg.user_id;
+                const agentInfo = selectedChat.type === 'group' && msg.agent_id
+                  ? selectedChat.agents?.find((a: any) => a.id === msg.agent_id)
+                  : selectedChat.agent;
+                
                 return (
                   <div
                     key={msg.id}
@@ -405,13 +475,13 @@ const Workspace = () => {
                   >
                     <Avatar>
                       <AvatarFallback>
-                        {isUserMessage ? "U" : selectedChat.agent?.name.substring(0, 2).toUpperCase()}
+                        {isUserMessage ? "U" : agentInfo?.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className={`flex-1 ${isUserMessage ? "text-right" : ""}`}>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-semibold">
-                          {isUserMessage ? "You" : selectedChat.agent?.name}
+                          {isUserMessage ? "You" : agentInfo?.name}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {new Date(msg.created_at).toLocaleTimeString()}
@@ -437,11 +507,11 @@ const Workspace = () => {
                 );
               })
             )}
-            {sending && (
+            {sending && selectedChat && (
               <div className="flex gap-3">
                 <Avatar>
                   <AvatarFallback>
-                    {selectedChat?.agent?.name.substring(0, 2).toUpperCase()}
+                    {selectedChat.type === 'group' ? <Users className="h-4 w-4" /> : selectedChat.agent?.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
@@ -458,7 +528,11 @@ const Workspace = () => {
         <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
           <div className="flex gap-2 max-w-4xl mx-auto">
             <Input
-              placeholder={selectedChat ? `Message ${selectedChat.agent?.name}...` : "Select an agent..."}
+              placeholder={selectedChat 
+                ? selectedChat.type === 'group' 
+                  ? `Message ${selectedChat.name}...` 
+                  : `Message ${selectedChat.agent?.name}...`
+                : "Select a chat..."}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={(e) => {

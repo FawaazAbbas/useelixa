@@ -22,6 +22,11 @@ interface Chat {
     name: string;
     image_url: string | null;
   };
+  agents?: Array<{
+    id: string;
+    name: string;
+    image_url: string | null;
+  }>;
 }
 
 export const useRealTimeChat = (userId: string | undefined, workspaceId: string | undefined) => {
@@ -31,10 +36,11 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
 
-  // Fetch user's installed agents
+  // Fetch user's chats (both direct and group)
   const fetchChats = useCallback(async () => {
     if (!userId || !workspaceId) return;
 
+    // Fetch direct chats from installed agents
     const { data: installations } = await supabase
       .from('agent_installations')
       .select(`
@@ -43,50 +49,65 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
       `)
       .eq('user_id', userId);
 
-    if (installations) {
-      // Create or fetch chats for installed agents
-      const chatPromises = installations.map(async (inst) => {
-        const { data: existingChat } = await supabase
-          .from('chats')
-          .select('*')
-          .eq('workspace_id', workspaceId)
-          .eq('agent_id', inst.agent.id)
-          .eq('type', 'direct')
-          .single();
+    const directChatPromises = (installations || []).map(async (inst) => {
+      const { data: existingChat } = await supabase
+        .from('chats')
+        .select('*')
+        .eq('workspace_id', workspaceId)
+        .eq('agent_id', inst.agent.id)
+        .eq('type', 'direct')
+        .single();
 
-        if (existingChat) {
-          return { ...existingChat, agent: inst.agent };
-        }
+      if (existingChat) {
+        return { ...existingChat, agent: inst.agent };
+      }
 
-        // Create new chat
-        const { data: newChat } = await supabase
-          .from('chats')
-          .insert({
-            workspace_id: workspaceId,
-            agent_id: inst.agent.id,
-            type: 'direct',
-            name: inst.agent.name,
-            created_by: userId,
-          })
-          .select()
-          .single();
+      // Create new direct chat
+      const { data: newChat } = await supabase
+        .from('chats')
+        .insert({
+          workspace_id: workspaceId,
+          agent_id: inst.agent.id,
+          type: 'direct',
+          name: inst.agent.name,
+          created_by: userId,
+        })
+        .select()
+        .single();
 
-        if (newChat) {
-          // Add user as participant
-          await supabase.from('chat_participants').insert({
-            chat_id: newChat.id,
-            user_id: userId,
-          });
+      if (newChat) {
+        await supabase.from('chat_participants').insert({
+          chat_id: newChat.id,
+          user_id: userId,
+        });
 
-          return { ...newChat, agent: inst.agent };
-        }
-        return null;
-      });
+        return { ...newChat, agent: inst.agent };
+      }
+      return null;
+    });
 
-      const resolvedChats = await Promise.all(chatPromises);
-      setChats(resolvedChats.filter(Boolean) as Chat[]);
-    }
+    // Fetch group chats
+    const { data: groupChats } = await supabase
+      .from('chats')
+      .select(`
+        *,
+        chat_agents(
+          agent:agents(id, name, image_url)
+        )
+      `)
+      .eq('workspace_id', workspaceId)
+      .eq('type', 'group')
+      .order('last_activity', { ascending: false });
 
+    const resolvedDirectChats = await Promise.all(directChatPromises);
+    const allDirectChats = resolvedDirectChats.filter(Boolean) as Chat[];
+
+    const allGroupChats = (groupChats || []).map(chat => ({
+      ...chat,
+      agents: chat.chat_agents?.map((ca: any) => ca.agent).filter(Boolean) || []
+    }));
+
+    setChats([...allDirectChats, ...allGroupChats]);
     setLoading(false);
   }, [userId, workspaceId]);
 
@@ -103,8 +124,8 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     }
   }, []);
 
-  // Send message to agent
-  const sendMessage = useCallback(async (chatId: string, agentId: string, content: string) => {
+  // Send message (handles both direct and group chats)
+  const sendMessage = useCallback(async (chatId: string, agentIdOrIds: string | string[], content: string, chatType: 'direct' | 'group' = 'direct') => {
     if (!userId || !content.trim()) return;
 
     setSending(true);
@@ -131,8 +152,10 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
         body: {
           message: content.trim(),
           chat_id: chatId,
-          agent_id: agentId,
+          agent_id: chatType === 'direct' ? agentIdOrIds : null,
+          agent_ids: chatType === 'group' ? agentIdOrIds : null,
           user_id: userId,
+          chat_type: chatType,
         },
       });
 
@@ -142,8 +165,11 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           title: 'Agent Error',
           description: error.message || 'Failed to get response from agent',
         });
+      } else if (data?.messages) {
+        // Multiple agent responses for group chat
+        setMessages(prev => [...prev, ...data.messages]);
       } else if (data?.message) {
-        // Agent response saved by edge function, add to UI
+        // Single agent response
         setMessages(prev => [...prev, data.message]);
       }
     } catch (error) {
