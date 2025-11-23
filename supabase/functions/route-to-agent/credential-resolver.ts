@@ -17,10 +17,47 @@ const CREDENTIAL_MAPPINGS: CredentialMapping[] = [
   { pattern: /^google.*contacts.*oauth2.*/i, baseType: 'googleOAuth2Api', serviceCategory: 'google' },
   { pattern: /^google.*oauth2.*/i, baseType: 'googleOAuth2Api', serviceCategory: 'google' },
   
-  // Other services
+  // Slack
   { pattern: /^slack.*oauth2.*/i, baseType: 'slackOAuth2Api', serviceCategory: 'slack' },
+  
+  // Notion
   { pattern: /^notion.*/i, baseType: 'notionApi', serviceCategory: 'notion' },
+  
+  // AI
   { pattern: /^openai.*/i, baseType: 'LOVABLE_AI', serviceCategory: 'ai' },
+  
+  // QuickBooks
+  { pattern: /^quickbooks.*/i, baseType: 'quickbooksApi', serviceCategory: 'accounting' },
+  
+  // Microsoft 365 family
+  { pattern: /^microsoft.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
+  { pattern: /^outlook.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
+  { pattern: /^onedrive.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
+  
+  // Calendly
+  { pattern: /^calendly.*/i, baseType: 'calendlyApi', serviceCategory: 'scheduling' },
+  
+  // HubSpot
+  { pattern: /^hubspot.*/i, baseType: 'hubspotOAuth2Api', serviceCategory: 'crm' },
+  
+  // Mailchimp
+  { pattern: /^mailchimp.*/i, baseType: 'mailchimpOAuth2Api', serviceCategory: 'email' },
+  
+  // Facebook/Meta
+  { pattern: /^facebook.*oauth2.*/i, baseType: 'facebookOAuth2Api', serviceCategory: 'social' },
+  { pattern: /^meta.*oauth2.*/i, baseType: 'facebookOAuth2Api', serviceCategory: 'social' },
+  
+  // Stripe
+  { pattern: /^stripe.*/i, baseType: 'stripeApi', serviceCategory: 'payment' },
+  
+  // Twilio
+  { pattern: /^twilio.*/i, baseType: 'twilioApi', serviceCategory: 'sms' },
+  
+  // Typeform
+  { pattern: /^typeform.*/i, baseType: 'typeformApi', serviceCategory: 'forms' },
+  
+  // Shopify
+  { pattern: /^shopify.*/i, baseType: 'shopifyApi', serviceCategory: 'ecommerce' },
 ];
 
 export interface ResolvedCredential {
