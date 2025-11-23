@@ -135,7 +135,7 @@ export default function KnowledgeBase() {
       if (uploadError) throw uploadError;
 
       // Create document record
-      const { error: insertError } = await supabase
+      const { data: docData, error: insertError } = await supabase
         .from("workspace_documents")
         .insert({
           workspace_id: workspaceId,
@@ -145,9 +145,26 @@ export default function KnowledgeBase() {
           file_size: file.size,
           folder: "root",
           uploaded_by: user.id
-        });
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
+
+      // Trigger text extraction in background
+      supabase.functions.invoke('extract-document-text', {
+        body: {
+          documentId: docData.id,
+          filePath: filePath,
+          fileType: file.type
+        }
+      }).then(({ error: extractError }) => {
+        if (extractError) {
+          console.error('Background text extraction failed:', extractError);
+        } else {
+          console.log('Document text extraction started for:', file.name);
+        }
+      });
 
       toast.success("Document uploaded successfully");
       fetchKnowledge();

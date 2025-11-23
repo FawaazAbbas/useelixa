@@ -66,6 +66,33 @@ export function generateToolDefinitions(
   }
 
   console.log(`\n✓ Generated ${tools.length} tool definitions`);
+  
+  // Add workspace document access tool
+  const documentTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "read_workspace_document",
+      description: "Read and access the full content of a document from the workspace knowledge base. Use this when you need to see the actual content of uploaded files (Excel, PDF, images, JSON, etc.).",
+      parameters: {
+        type: "object",
+        properties: {
+          document_name: {
+            type: "string",
+            description: "The exact name of the document to read (e.g., 'New Keywords.xlsx')"
+          }
+        },
+        required: ["document_name"]
+      }
+    }
+  };
+  
+  // Add node metadata for execution
+  (documentTool.function as any).nodeType = "workspace_document";
+  (documentTool.function as any).nodeParameters = {};
+  (documentTool.function as any).credentials = {};
+  
+  tools.push(documentTool);
+
   return tools;
 }
 

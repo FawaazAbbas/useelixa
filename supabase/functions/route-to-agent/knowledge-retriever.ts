@@ -11,6 +11,7 @@ export interface RelevantKnowledge {
     name: string;
     description: string | null;
     file_type: string;
+    extracted_content: string | null;
   }>;
 }
 
@@ -61,10 +62,10 @@ export async function retrieveRelevantKnowledge(
       result.articles = articles;
     }
 
-    // Search documents by name
+    // Search documents by name and content
     const { data: documents, error: docsError } = await supabase
       .from("workspace_documents")
-      .select("name, description, file_type")
+      .select("name, description, file_type, extracted_content")
       .eq("workspace_id", workspaceId)
       .limit(maxDocuments);
 
@@ -75,7 +76,8 @@ export async function retrieveRelevantKnowledge(
       result.documents = documents.filter(doc =>
         searchTerms.some(term =>
           doc.name.toLowerCase().includes(term) ||
-          (doc.description && doc.description.toLowerCase().includes(term))
+          (doc.description && doc.description.toLowerCase().includes(term)) ||
+          (doc.extracted_content && doc.extracted_content.toLowerCase().includes(term))
         )
       );
     }
@@ -114,14 +116,22 @@ export function formatKnowledgeContext(knowledge: RelevantKnowledge): string {
 
   if (knowledge.documents.length > 0) {
     context += "### Available Documents:\n\n";
+    context += "**Important**: For detailed document content, use the `read_workspace_document` tool with the exact document name.\n\n";
     knowledge.documents.forEach((doc, idx) => {
-      context += `${idx + 1}. ${doc.name} (${doc.file_type})`;
+      context += `${idx + 1}. **${doc.name}** (${doc.file_type})`;
       if (doc.description) {
         context += ` - ${doc.description}`;
       }
       context += "\n";
+      
+      // Include extracted content preview if available
+      if (doc.extracted_content) {
+        const preview = doc.extracted_content.substring(0, 300);
+        context += `   Content preview: ${preview}${doc.extracted_content.length > 300 ? '...' : ''}\n`;
+        context += `   *Use read_workspace_document("${doc.name}") for full content*\n`;
+      }
+      context += "\n";
     });
-    context += "\n";
   }
 
   return context;
