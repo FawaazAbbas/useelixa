@@ -481,10 +481,10 @@ const Publish = () => {
               
               <div>
                 <Label htmlFor="blocked_topics">Blocked Topics (comma-separated)</Label>
-                <Input 
+                <Textarea 
                   id="blocked_topics"
                   placeholder="politics, medical advice, financial advice"
-                  className="mt-2"
+                  className="mt-2 min-h-24"
                   value={guardRails.blocked_topics.join(', ')}
                   onChange={(e) => setGuardRails({
                     ...guardRails, 
