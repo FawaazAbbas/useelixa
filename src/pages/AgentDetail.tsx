@@ -111,7 +111,7 @@ const AgentDetail = () => {
         throw new Error("No workspace found");
       }
 
-      // Install the agent
+      // Install the agent with workspace_id
       const { data: installation, error: installError } = await supabase
         .from("agent_installations")
         .insert({

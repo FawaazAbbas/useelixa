@@ -222,14 +222,40 @@ serve(async (req) => {
 });
 
 function checkChatCompatibility(workflow: any, validation: any): boolean {
-  // Agent is chat-compatible if:
-  // 1. Has at least one executable node (can perform actions)
-  // 2. No critical security issues
-  // 3. Has supported input/output mechanisms
+  // Agent MUST have a chat trigger node to be chat-compatible
+  // This is the core requirement for integration with the Elixa chatbot system
   
-  const hasCriticalErrors = validation.errors.some((err: any) => 
-    err.nodeType.toLowerCase().includes('security')
+  const hasChatTrigger = workflow.nodes.some((node: any) => 
+    node.type === '@n8n/n8n-nodes-langchain.chatTrigger'
   );
   
-  return validation.executableNodeCount > 0 && !hasCriticalErrors;
+  if (!hasChatTrigger) {
+    validation.errors.push({
+      nodeId: 'chatbot',
+      nodeName: 'Chat Trigger',
+      nodeType: 'system',
+      message: 'Agent is missing a Chat Trigger node. This agent cannot run as a chatbot in Elixa. Add a "When chat message received" trigger node to make it chat-compatible.',
+      severity: 'critical'
+    });
+    return false;
+  }
+  
+  // Must have at least one executable tool
+  if (validation.executableNodeCount === 0) {
+    validation.errors.push({
+      nodeId: 'executable',
+      nodeName: 'Tools',
+      nodeType: 'system',
+      message: 'Agent has no executable tools. Add at least one action node (Gmail, Sheets, HTTP, etc.) to make this agent functional.',
+      severity: 'critical'
+    });
+    return false;
+  }
+  
+  // Check for critical errors
+  const hasCriticalErrors = validation.errors.some((err: any) => 
+    err.severity === 'critical'
+  );
+  
+  return !hasCriticalErrors;
 }
