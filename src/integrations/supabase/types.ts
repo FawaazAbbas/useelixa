@@ -825,6 +825,106 @@ export type Database = {
         }
         Relationships: []
       }
+      workspace_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          folder: string | null
+          id: string
+          name: string
+          tags: string[] | null
+          updated_at: string
+          uploaded_by: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          folder?: string | null
+          id?: string
+          name: string
+          tags?: string[] | null
+          updated_at?: string
+          uploaded_by: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          folder?: string | null
+          id?: string
+          name?: string
+          tags?: string[] | null
+          updated_at?: string
+          uploaded_by?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_knowledge: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          search_vector: unknown
+          tags: string[] | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          search_vector?: unknown
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          search_vector?: unknown
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_knowledge_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_members: {
         Row: {
           id: string

@@ -12,6 +12,7 @@ import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import Logs from "./pages/Logs";
 import Connections from "./pages/Connections";
+import KnowledgeBase from "./pages/KnowledgeBase";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 import { MainNavSidebar } from "./components/MainNavSidebar";
@@ -65,6 +66,12 @@ const App = () => (
             <div className="flex h-screen overflow-hidden">
               <MainNavSidebar />
               <Connections />
+            </div>
+          } />
+          <Route path="/knowledge-base" element={
+            <div className="flex h-screen overflow-hidden">
+              <MainNavSidebar />
+              <KnowledgeBase />
             </div>
           } />
           

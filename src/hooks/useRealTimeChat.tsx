@@ -155,6 +155,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           agent_id: chatType === 'direct' ? agentIdOrIds : null,
           agent_ids: chatType === 'group' ? agentIdOrIds : null,
           user_id: userId,
+          workspace_id: workspaceId,
           chat_type: chatType,
         },
       });

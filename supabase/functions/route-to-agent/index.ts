@@ -24,7 +24,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, chat_id, agent_id, agent_ids, user_id, chat_type = 'direct' } = await req.json();
+    const { message, chat_id, agent_id, agent_ids, user_id, workspace_id, chat_type = 'direct' } = await req.json();
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -34,6 +34,17 @@ serve(async (req) => {
     // Handle group chat with multiple agents
     if (chat_type === 'group' && agent_ids && Array.isArray(agent_ids)) {
       console.log("Processing group chat with agents:", agent_ids);
+      
+      // Get workspace_id from chat if not provided
+      let effectiveWorkspaceId = workspace_id;
+      if (!effectiveWorkspaceId) {
+        const { data: chatData } = await supabase
+          .from("chats")
+          .select("workspace_id")
+          .eq("id", chat_id)
+          .single();
+        effectiveWorkspaceId = chatData?.workspace_id;
+      }
       
       const agentResponses = [];
       
@@ -64,7 +75,14 @@ serve(async (req) => {
         }));
 
         // Process each agent's workflow and get response
-        const agentResponse = await processAgentWorkflow(agent, user_id, message, conversationHistory, supabase);
+        const agentResponse = await processAgentWorkflow(
+          agent, 
+          user_id, 
+          effectiveWorkspaceId || '', 
+          message, 
+          conversationHistory, 
+          supabase
+        );
         
         if (agentResponse) {
           // Save agent response
@@ -100,6 +118,17 @@ serve(async (req) => {
     // Handle single agent (direct chat)
     if (!agent_id) {
       throw new Error("Agent ID required for direct chat");
+    }
+
+    // Get workspace_id from chat if not provided
+    let effectiveWorkspaceId = workspace_id;
+    if (!effectiveWorkspaceId) {
+      const { data: chatData } = await supabase
+        .from("chats")
+        .select("workspace_id")
+        .eq("id", chat_id)
+        .single();
+      effectiveWorkspaceId = chatData?.workspace_id;
     }
 
     // Fetch agent details
