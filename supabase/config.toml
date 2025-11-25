@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.exchange-oauth-token]
 verify_jwt = false
+
+[functions.extract-document-text]
+verify_jwt = false
+
+[functions.brian-task-assistant]
+verify_jwt = true

@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Calendar, Flag } from "lucide-react";
+import { Loader2, Calendar, Flag, Plus } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
+import { AutomationLogsSection } from "./AutomationLogsSection";
 
 interface Task {
   id: string;
@@ -160,6 +161,7 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Automations</h3>
               <Button size="sm" variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
                 Add Automation
               </Button>
             </div>
@@ -218,6 +220,9 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
               </div>
             )}
           </div>
+
+          {/* Automation Logs Section */}
+          <AutomationLogsSection taskId={task.id} />
         </div>
       </DialogContent>
     </Dialog>
