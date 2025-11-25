@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,11 @@ import { useRealTimeChat } from "@/hooks/useRealTimeChat";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileChatNav } from "@/components/MobileChatNav";
 import { GroupChatDialog } from "@/components/GroupChatDialog";
+import { ChatAutomationsPanel } from "@/components/ChatAutomationsPanel";
+import { ChatSettingsDialog } from "@/components/ChatSettingsDialog";
+import { AgentFilesPanel } from "@/components/AgentFilesPanel";
+import { ChatLogsPanel } from "@/components/ChatLogsPanel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -133,6 +138,8 @@ const Workspace = () => {
   const [showAutomations, setShowAutomations] = useState(false);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [rightSidebarTab, setRightSidebarTab] = useState("automations");
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -442,9 +449,14 @@ const Workspace = () => {
               onClick={() => setShowAutomations(!showAutomations)}
             >
               <LayoutList className="h-4 w-4" />
-              <span className="ml-2">Automations</span>
+              <span className="ml-2">Panels</span>
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowSettings(true)}
+              disabled={!selectedChat}
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
@@ -556,172 +568,158 @@ const Workspace = () => {
         </div>
       </div>
 
-      {/* Automations Drawer for Mobile/Tablet */}
+      {/* Chat Settings Dialog */}
+      {selectedChat && selectedChat.type === 'direct' && showSettings && (
+        <ChatSettingsDialog
+          chatId={selectedChat.id}
+          chatType="direct"
+          agentId={selectedChat.agent_id}
+          agentInstallationId={selectedChat.agent_installation_id}
+          currentName={selectedChat.custom_name || selectedChat.agent?.name || ''}
+          onClose={() => setShowSettings(false)}
+          onDeleted={() => {
+            setSelectedChat(null);
+            setShowSettings(false);
+            refreshChats();
+          }}
+        />
+      )}
+
+      {/* Panels Drawer for Mobile/Tablet */}
       <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
         <SheetContent side="right" className="w-full sm:w-96 p-0">
           <div className="h-full flex flex-col">
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>Automations</SheetTitle>
-            </SheetHeader>
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-2">
-                {automations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-32 gap-3">
-                    <p className="text-sm text-muted-foreground">No automations yet</p>
-                    <Button size="sm" onClick={() => navigate('/tasks')}>
-                      Create Automation
-                    </Button>
-                  </div>
-                ) : (
-                  automations.map((automation) => (
-                    <Card key={automation.id}>
-                      <CardContent className="p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="text-sm font-medium">{automation.name}</h4>
-                          <Badge
-                            variant={getStatusColor(automation.status)}
-                            className="text-xs"
-                          >
-                            {automation.status}
-                          </Badge>
-                        </div>
-
-                        {automation.task && (
-                          <div className="mb-2 space-y-1">
-                            <p className="text-xs text-muted-foreground">
-                              As part of{" "}
-                              <span className="font-medium text-foreground">
-                                {automation.task.title}
-                              </span>
-                            </p>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs w-full"
-                              onClick={() => {
-                                if (automation.task?.id) {
-                                  handleSeeTask(automation.task.id);
-                                  setShowAutomations(false);
-                                }
-                              }}
-                            >
-                              See Task
-                            </Button>
-                          </div>
-                        )}
-
-                        {automation.progress !== null && automation.progress > 0 && (
-                          <div className="mb-2">
-                            <Progress value={automation.progress} className="h-1.5" />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {automation.progress}% complete
-                            </p>
-                          </div>
-                        )}
-
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Trigger: {automation.trigger}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Last run:{" "}
-                          {automation.last_run
-                            ? formatDistanceToNow(new Date(automation.last_run), {
-                                addSuffix: true,
-                              })
-                            : "Never"}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
+            <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="flex-1 flex flex-col">
+              <div className="p-4 border-b">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="automations">
+                    <PlayCircle className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="files">
+                    <FileText className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="logs">
+                    <LayoutList className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="settings">
+                    <Settings className="h-4 w-4" />
+                  </TabsTrigger>
+                </TabsList>
               </div>
-            </ScrollArea>
+
+              <TabsContent value="automations" className="flex-1 m-0">
+                {selectedChat && (
+                  <ChatAutomationsPanel
+                    chatId={selectedChat.id}
+                    userId={user?.id || ''}
+                    workspaceId={workspaceId || ''}
+                  />
+                )}
+              </TabsContent>
+
+              <TabsContent value="files" className="flex-1 m-0">
+                {selectedChat && selectedChat.type === 'direct' && (
+                  <AgentFilesPanel
+                    agentInstallationId={selectedChat.agent_installation_id}
+                    workspaceId={workspaceId || ''}
+                  />
+                )}
+              </TabsContent>
+
+              <TabsContent value="logs" className="flex-1 m-0">
+                {selectedChat && (
+                  <ChatLogsPanel chatId={selectedChat.id} />
+                )}
+              </TabsContent>
+
+              <TabsContent value="settings" className="flex-1 m-0 p-4">
+                <p className="text-sm text-muted-foreground text-center">
+                  Click the settings icon in the header to manage chat settings
+                </p>
+              </TabsContent>
+            </Tabs>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Right Sidebar - Automations (Desktop Only) */}
-      <div className="hidden lg:block w-80 border-l bg-muted/30 p-4 overflow-y-auto">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Automations</h3>
-            <Button variant="ghost" size="sm">
-              <Settings className="h-4 w-4" />
-            </Button>
+      {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
+      <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
+        <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
+          <div className="p-4 pb-0">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="automations" className="text-xs">
+                <PlayCircle className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="files" className="text-xs">
+                <FileText className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="text-xs">
+                <LayoutList className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="text-xs">
+                <Settings className="h-4 w-4" />
+              </TabsTrigger>
+            </TabsList>
           </div>
 
-          <div className="space-y-2">
-            {automations.length === 0 ? (
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-sm text-muted-foreground text-center">
-                    No automations yet
-                  </p>
-                </CardContent>
-              </Card>
+          <TabsContent value="automations" className="flex-1 m-0 overflow-hidden">
+            {selectedChat ? (
+              <ChatAutomationsPanel
+                chatId={selectedChat.id}
+                userId={user?.id || ''}
+                workspaceId={workspaceId || ''}
+              />
             ) : (
-              automations.map((automation) => (
-                <Card key={automation.id}>
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="text-sm font-medium">{automation.name}</h4>
-                      <Badge
-                        variant={getStatusColor(automation.status)}
-                        className="text-xs"
-                      >
-                        {automation.status}
-                      </Badge>
-                    </div>
-
-                    {automation.task && (
-                      <div className="mb-2 space-y-1">
-                        <p className="text-xs text-muted-foreground">
-                          As part of{" "}
-                          <span className="font-medium text-foreground">
-                            {automation.task.title}
-                          </span>
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs w-full"
-                          onClick={() => {
-                            if (automation.task?.id) {
-                              handleSeeTask(automation.task.id);
-                            }
-                          }}
-                        >
-                          See Task
-                        </Button>
-                      </div>
-                    )}
-
-                    {automation.progress !== null && automation.progress > 0 && (
-                      <div className="mb-2">
-                        <Progress value={automation.progress} className="h-1.5" />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {automation.progress}% complete
-                        </p>
-                      </div>
-                    )}
-
-                    <p className="text-xs text-muted-foreground mb-1">
-                      Trigger: {automation.trigger}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Last run:{" "}
-                      {automation.last_run
-                        ? formatDistanceToNow(new Date(automation.last_run), {
-                            addSuffix: true,
-                          })
-                        : "Never"}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Select a chat to view automations</p>
+              </div>
             )}
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
+            {selectedChat && selectedChat.type === 'direct' ? (
+              <AgentFilesPanel
+                agentInstallationId={selectedChat.agent_installation_id}
+                workspaceId={workspaceId || ''}
+              />
+            ) : selectedChat && selectedChat.type === 'group' ? (
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Agent files are not available for group chats</p>
+              </div>
+            ) : (
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Select a chat to view files</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="logs" className="flex-1 m-0 overflow-hidden">
+            {selectedChat ? (
+              <ChatLogsPanel chatId={selectedChat.id} />
+            ) : (
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Select a chat to view logs</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="settings" className="flex-1 m-0 overflow-hidden p-4">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground mb-4">
+                Click the settings icon in the header to manage chat settings
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowSettings(true)}
+                disabled={!selectedChat}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Open Chat Settings
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
