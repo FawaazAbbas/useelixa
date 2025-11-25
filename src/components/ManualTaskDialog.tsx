@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { AgentSelector } from "./AgentSelector";
 
 const taskSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
@@ -21,12 +22,21 @@ const taskSchema = z.object({
   due_date: z.string().optional()
 });
 
+interface Agent {
+  id: string;
+  name: string;
+  description: string | null;
+  capabilities: string[] | null;
+}
+
 interface Automation {
   name: string;
   description: string;
   instruction: string;
   trigger: string;
   expectedOutput: string;
+  agentId: string;
+  agentName: string;
 }
 
 interface ManualTaskDialogProps {
@@ -45,35 +55,65 @@ export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTa
     due_date: "",
     is_asap: false
   });
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [currentAutomation, setCurrentAutomation] = useState<Automation>({
     name: "",
     description: "",
     instruction: "",
     trigger: "manual",
-    expectedOutput: ""
+    expectedOutput: "",
+    agentId: "",
+    agentName: ""
   });
   const [showAutomationForm, setShowAutomationForm] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      fetchAgents();
+    }
+  }, [open]);
+
+  const fetchAgents = async () => {
+    const { data, error } = await supabase
+      .from("agents")
+      .select("id, name, description, capabilities")
+      .eq("status", "active")
+      .order("name");
+
+    if (error) {
+      console.error("Error fetching agents:", error);
+      return;
+    }
+
+    setAgents(data || []);
+  };
+
   const handleAddAutomation = () => {
-    if (!currentAutomation.name || !currentAutomation.instruction) {
+    if (!currentAutomation.name || !currentAutomation.instruction || !currentAutomation.agentId) {
       toast({
         title: "Missing Fields",
-        description: "Automation name and AI instruction are required",
+        description: "Automation name, AI instruction, and agent are required",
         variant: "destructive"
       });
       return;
     }
 
-    setAutomations([...automations, currentAutomation]);
+    const selectedAgent = agents.find(a => a.id === currentAutomation.agentId);
+    setAutomations([...automations, { 
+      ...currentAutomation,
+      agentName: selectedAgent?.name || ""
+    }]);
     setCurrentAutomation({
       name: "",
       description: "",
       instruction: "",
       trigger: "manual",
-      expectedOutput: ""
+      expectedOutput: "",
+      agentId: "",
+      agentName: ""
     });
     setShowAutomationForm(false);
     
@@ -119,6 +159,7 @@ export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTa
           task_id: task.id,
           workspace_id: user?.id!,
           created_by: user?.id!,
+          agent_id: auto.agentId,
           status: "active"
         }));
 
@@ -313,6 +354,12 @@ export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTa
                       />
                     </div>
 
+                    <AgentSelector
+                      agents={agents}
+                      selectedAgentId={currentAutomation.agentId}
+                      onSelect={(agentId) => setCurrentAutomation({ ...currentAutomation, agentId })}
+                    />
+
                     <div className="flex gap-2">
                       <Button type="button" onClick={handleAddAutomation} size="sm">
                         Add Automation
@@ -346,9 +393,14 @@ export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTa
                     {auto.description && (
                       <p className="text-sm text-muted-foreground mb-2">{auto.description}</p>
                     )}
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mb-2">
                       Instruction: {auto.instruction}
                     </p>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Badge variant="secondary" className="text-xs">
+                        🤖 {auto.agentName}
+                      </Badge>
+                    </div>
                   </div>
                   <Button
                     type="button"
