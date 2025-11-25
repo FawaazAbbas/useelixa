@@ -9,6 +9,14 @@ interface Message {
   agent_id: string | null;
   created_at: string;
   error_message?: string | null;
+  metadata?: {
+    files?: Array<{
+      name: string;
+      url: string;
+      type: string;
+      size: number;
+    }>;
+  };
 }
 
 interface Chat {
@@ -17,6 +25,8 @@ interface Chat {
   type: string;
   agent_id: string | null;
   last_activity: string;
+  agent_installation_id?: string;
+  custom_name?: string;
   agent?: {
     id: string;
     name: string;
@@ -45,6 +55,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
       .from('agent_installations')
       .select(`
         id,
+        custom_name,
         agent:agents(id, name, image_url)
       `)
       .eq('user_id', userId);
@@ -59,7 +70,12 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
         .single();
 
       if (existingChat) {
-        return { ...existingChat, agent: inst.agent };
+        return { 
+          ...existingChat, 
+          agent: inst.agent,
+          agent_installation_id: inst.id,
+          custom_name: inst.custom_name
+        };
       }
 
       // Create new direct chat
@@ -81,7 +97,12 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           user_id: userId,
         });
 
-        return { ...newChat, agent: inst.agent };
+        return { 
+          ...newChat, 
+          agent: inst.agent,
+          agent_installation_id: inst.id,
+          custom_name: inst.custom_name
+        };
       }
       return null;
     });
@@ -113,15 +134,18 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Fetch messages for a chat
   const fetchMessages = useCallback(async (chatId: string) => {
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('chat_id', chatId)
-      .order('created_at', { ascending: true });
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
 
-    if (data) {
-      setMessages(data);
-    }
+      if (data) {
+        setMessages(data.map(msg => ({
+          ...msg,
+          metadata: msg.metadata as Message['metadata']
+        })));
+      }
   }, []);
 
   // Send message (handles both direct and group chats)
@@ -145,7 +169,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
       if (userMsgError) throw userMsgError;
 
       // Add to messages immediately
-      setMessages(prev => [...prev, userMessage]);
+      setMessages((prev: Message[]) => [...prev, userMessage as Message]);
 
       // Call agent via edge function
       const { data, error } = await supabase.functions.invoke('route-to-agent', {
@@ -168,10 +192,18 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
         });
       } else if (data?.messages) {
         // Multiple agent responses for group chat
-        setMessages(prev => [...prev, ...data.messages]);
+        const typedMessages: Message[] = data.messages.map((msg: any) => ({
+          ...msg,
+          metadata: msg.metadata as Message['metadata']
+        }));
+        setMessages((prev: Message[]) => [...prev, ...typedMessages]);
       } else if (data?.message) {
         // Single agent response
-        setMessages(prev => [...prev, data.message]);
+        const typedMessage: Message = {
+          ...data.message,
+          metadata: data.message.metadata as Message['metadata']
+        };
+        setMessages((prev: Message[]) => [...prev, typedMessage]);
       }
     } catch (error) {
       console.error('Send message error:', error);
@@ -201,11 +233,15 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           table: 'messages',
         },
         (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages((prev) => {
+          const newMessage = payload.new as any;
+          setMessages((prev: Message[]) => {
             // Avoid duplicates
             if (prev.some(m => m.id === newMessage.id)) return prev;
-            return [...prev, newMessage];
+            const typedMessage: Message = {
+              ...newMessage,
+              metadata: newMessage.metadata as Message['metadata']
+            };
+            return [...prev, typedMessage];
           });
         }
       )

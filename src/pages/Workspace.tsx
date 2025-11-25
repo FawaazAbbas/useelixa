@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,8 @@ import { ChatSettingsDialog } from "@/components/ChatSettingsDialog";
 import { AgentFilesPanel } from "@/components/AgentFilesPanel";
 import { ChatLogsPanel } from "@/components/ChatLogsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FileMessageCard } from "@/components/chat/FileMessageCard";
+import { useToast } from "@/hooks/use-toast";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -140,6 +142,9 @@ const Workspace = () => {
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [rightSidebarTab, setRightSidebarTab] = useState("automations");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -165,17 +170,88 @@ const Workspace = () => {
   }, [selectedChat, fetchMessages]);
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedChat?.id || sending) return;
+    if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
 
-    const messageText = message;
-    setMessage("");
-    
-    if (selectedChat.type === 'group') {
-      const agentIds = selectedChat.agents?.map((a: any) => a.id) || [];
-      await sendMessage(selectedChat.id, agentIds, messageText, 'group');
-    } else {
-      await sendMessage(selectedChat.id, selectedChat.agent_id, messageText, 'direct');
+    setUploading(true);
+    let fileAttachments: any[] = [];
+
+    try {
+      // Upload files if any
+      if (selectedFiles.length > 0) {
+        const uploadPromises = selectedFiles.map(async (file) => {
+          const fileExt = file.name.split('.').pop();
+          const filePath = `${user?.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          
+          const { data, error } = await supabase.storage
+            .from('chat-files')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (error) throw error;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('chat-files')
+            .getPublicUrl(filePath);
+
+          return {
+            name: file.name,
+            url: publicUrl,
+            type: file.type,
+            size: file.size
+          };
+        });
+
+        fileAttachments = await Promise.all(uploadPromises);
+      }
+
+      const messageContent = message.trim() || (selectedFiles.length > 0 ? `Sent ${selectedFiles.length} file(s)` : '');
+      
+      const { data: userMessage, error: userMsgError } = await supabase
+        .from('messages')
+        .insert({
+          chat_id: selectedChat.id,
+          user_id: user?.id,
+          content: messageContent,
+          metadata: fileAttachments.length > 0 ? { files: fileAttachments } : null
+        })
+        .select()
+        .single();
+
+      if (userMsgError) throw userMsgError;
+
+      setMessage("");
+      setSelectedFiles([]);
+
+      // Only call agent if there's a text message
+      if (message.trim()) {
+        if (selectedChat.type === 'group') {
+          const agentIds = selectedChat.agents?.map((a: any) => a.id) || [];
+          await sendMessage(selectedChat.id, agentIds, message, 'group');
+        } else {
+          await sendMessage(selectedChat.id, selectedChat.agent_id, message, 'direct');
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to send message with files'
+      });
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const fetchAutomations = async () => {
@@ -499,20 +575,27 @@ const Workspace = () => {
                           {new Date(msg.created_at).toLocaleTimeString()}
                         </span>
                       </div>
-                      <div
-                        className={`inline-block px-4 py-2 rounded-lg max-w-[85%] ${
-                          isUserMessage
-                            ? "bg-primary text-primary-foreground"
-                            : msg.error_message
-                            ? "bg-destructive/10 border border-destructive"
-                            : "bg-muted"
-                        }`}
-                      >
-                        <div className={`text-sm prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'break-words' : ''}`}>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {msg.content}
-                          </ReactMarkdown>
+                      <div className="space-y-2">
+                        <div
+                          className={`inline-block px-4 py-2 rounded-lg max-w-[85%] ${
+                            isUserMessage
+                              ? "bg-primary text-primary-foreground"
+                              : msg.error_message
+                              ? "bg-destructive/10 border border-destructive"
+                              : "bg-muted"
+                          }`}
+                        >
+                          <div className={`text-sm prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'break-words' : ''}`}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
                         </div>
+                        {msg.metadata?.files && (
+                          <div className="max-w-[85%]">
+                            <FileMessageCard files={msg.metadata.files} />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -538,32 +621,75 @@ const Workspace = () => {
 
         {/* Message Input */}
         <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
-          <div className="flex gap-2 max-w-4xl mx-auto">
-            <Input
-              placeholder={selectedChat 
-                ? selectedChat.type === 'group' 
-                  ? `Message ${selectedChat.name}...` 
-                  : `Message ${selectedChat.agent?.name}...`
-                : "Select a chat..."}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              disabled={!selectedChat || sending}
-              className={isMobile ? 'text-base' : ''}
-            />
-            <Button 
-              size="icon" 
-              onClick={handleSendMessage} 
-              disabled={!selectedChat || sending || !message.trim()}
-              className={isMobile ? 'h-10 w-10' : ''}
-            >
-              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
+          <div className="space-y-2 max-w-4xl mx-auto">
+            {/* File Preview */}
+            {selectedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedFiles.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg text-sm"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    <span className="max-w-[150px] truncate">{file.name}</span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5"
+                      onClick={() => removeFile(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Input Area */}
+            <div className="flex gap-2">
+              <input
+                type="file"
+                id="file-upload"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+                disabled={!selectedChat || uploading}
+              />
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={() => document.getElementById('file-upload')?.click()}
+                disabled={!selectedChat || uploading}
+                className={isMobile ? 'h-10 w-10' : ''}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Input
+                placeholder={selectedChat 
+                  ? selectedChat.type === 'group' 
+                    ? `Message ${selectedChat.name}...` 
+                    : `Message ${selectedChat.agent?.name}...`
+                  : "Select a chat..."}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                disabled={!selectedChat || sending || uploading}
+                className={isMobile ? 'text-base' : ''}
+              />
+              <Button 
+                size="icon" 
+                onClick={handleSendMessage} 
+                disabled={!selectedChat || sending || uploading || (!message.trim() && selectedFiles.length === 0)}
+                className={isMobile ? 'h-10 w-10' : ''}
+              >
+                {(sending || uploading) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
