@@ -914,6 +914,7 @@ const Workspace = () => {
           </div>
         </SheetContent>
       </Sheet>
+      )}
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
       {!showBrian && selectedChat && (
@@ -1006,10 +1007,11 @@ const Workspace = () => {
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Open Chat Settings
-            </Tabs>
-          </div>
-        </SheetContent>
-      </Sheet>
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
       )}
 
       {/* Voice Call Dialog */}
