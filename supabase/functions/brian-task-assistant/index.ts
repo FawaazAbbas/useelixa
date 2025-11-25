@@ -81,7 +81,6 @@ Be conversational, friendly, and helpful. Ask one question at a time. Keep respo
           { role: 'system', content: systemPrompt },
           ...messages
         ],
-        temperature: 0.7,
       }),
     });
 
