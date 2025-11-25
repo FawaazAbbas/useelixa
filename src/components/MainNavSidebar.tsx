@@ -14,7 +14,7 @@ export const MainNavSidebar = () => {
   return (
     <div className="h-screen w-20 bg-background border-r border-border flex flex-col items-center py-6 gap-6">
       {/* Logo */}
-      <div className="w-10 h-10 flex-shrink-0">
+      <div className="w-10 h-10 flex-shrink-0 transition-transform hover:scale-110 duration-200">
         <img src="/logo.png" alt="ELIXA" className="w-full h-full object-contain" />
       </div>
 
@@ -24,11 +24,11 @@ export const MainNavSidebar = () => {
           <NavLink
             key={item.path}
             to={item.path}
-            className="group relative p-3 rounded-lg hover:bg-accent/50 transition-colors"
+            className="group relative p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105"
             activeClassName="bg-accent"
           >
-            <item.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="absolute left-full ml-4 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
+            <item.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors duration-200 [.active_&]:text-white" />
+            <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-200 ease-out whitespace-nowrap z-[100]">
               {item.label}
             </span>
           </NavLink>
@@ -40,11 +40,11 @@ export const MainNavSidebar = () => {
         <div className="h-px bg-border mb-4" />
         <NavLink
           to="/marketplace"
-          className="group relative flex items-center justify-center p-3 rounded-lg hover:bg-accent/50 transition-colors w-full"
+          className="group relative flex items-center justify-center p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 w-full"
           activeClassName="bg-accent"
         >
-          <Store className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
-          <span className="absolute left-full ml-4 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100]">
+          <Store className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors duration-200 [.active_&]:text-white" />
+          <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-200 ease-out whitespace-nowrap z-[100]">
             Marketplace
           </span>
         </NavLink>
