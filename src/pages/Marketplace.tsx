@@ -88,10 +88,7 @@ const Marketplace = () => {
       <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <img src="/elixa-logo.png" alt="ELIXA" className="h-8 w-8 object-contain" />
-              <span className="text-2xl font-bold">ELIXA</span>
-            </div>
+            <img src="/elixa-logo.png" alt="ELIXA" className="h-10 w-10 object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
             <div className="hidden md:flex gap-6">
               <button className="text-sm font-medium hover:text-primary transition-colors">
                 Discover
