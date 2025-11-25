@@ -24,5 +24,8 @@ verify_jwt = false
 [functions.run-scheduled-automations]
 verify_jwt = false
 
+[functions.brian-universal]
+verify_jwt = true
+
 [functions.realtime-token]
 verify_jwt = true

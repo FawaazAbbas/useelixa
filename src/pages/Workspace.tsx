@@ -29,6 +29,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { BrianChat } from "@/components/BrianChat";
+import { Sparkles } from "lucide-react";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -149,6 +151,7 @@ const Workspace = () => {
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [processingAgent, setProcessingAgent] = useState<string | null>(null);
   const [delegationStatus, setDelegationStatus] = useState<string | null>(null);
+  const [showBrian, setShowBrian] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -344,6 +347,7 @@ const Workspace = () => {
 
   const handleSelectChat = (chat: any) => {
     setSelectedChat(chat);
+    setShowBrian(false);
     if (chat?.id) {
       fetchMessages(chat.id);
     }
@@ -451,6 +455,35 @@ const Workspace = () => {
           </div>
         </div>
 
+        {/* Brian Section */}
+        <div className="px-3 py-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Brian
+          </h3>
+          <button
+            onClick={() => {
+              setShowBrian(true);
+              setSelectedChat(null);
+            }}
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors ${
+              showBrian 
+                ? "bg-primary/20 text-primary" 
+                : "hover:bg-muted/50"
+            }`}
+          >
+            <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500">
+              <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-white">Brian</div>
+              <div className="text-xs text-muted-foreground">Your AI COO</div>
+            </div>
+          </button>
+        </div>
+
+        <Separator className="my-2" />
+
         {/* Direct Messages */}
         <div className="flex-1 overflow-auto">
           <div className="px-3 py-2">
@@ -475,13 +508,13 @@ const Workspace = () => {
                 </div>
               ) : (
                 chats.filter(c => c.type === 'direct').map((chat) => (
-                  <button
-                    key={chat.id}
-                    onClick={() => handleSelectChat(chat)}
-                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                      selectedChat?.id === chat.id ? "bg-muted/50" : ""
-                    }`}
-                  >
+                   <button
+                     key={chat.id}
+                     onClick={() => handleSelectChat(chat)}
+                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
+                       selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
+                     }`}
+                   >
                     <div className="relative">
                       <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-xs">
@@ -513,7 +546,7 @@ const Workspace = () => {
                   key={chat.id}
                   onClick={() => handleSelectChat(chat)}
                   className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                    selectedChat?.id === chat.id ? "bg-muted/50" : ""
+                    selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
                   }`}
                 >
                   <Users className="h-4 w-4 text-muted-foreground" />
@@ -544,11 +577,33 @@ const Workspace = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
-        {/* Chat Header */}
-        <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
-          <div className="flex items-center gap-3">
-            {selectedChat ? (
-              <>
+        {showBrian ? (
+          <>
+            {/* Brian Chat Header */}
+            <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500">
+                  <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-semibold">Brian</div>
+                  <div className="text-xs text-muted-foreground">Your AI COO</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Brian Chat Content */}
+            {user && workspaceId && (
+              <BrianChat userId={user.id} workspaceId={workspaceId} />
+            )}
+          </>
+        ) : (
+          <>
+            {/* Chat Header */}
+            <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
+              <div className="flex items-center gap-3">
+                {selectedChat ? (
+                  <>
                 {selectedChat.type === 'group' ? (
                   <>
                     <Avatar>
@@ -781,6 +836,8 @@ const Workspace = () => {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
 
       {/* Chat Settings Dialog */}
@@ -801,7 +858,8 @@ const Workspace = () => {
       )}
 
       {/* Panels Drawer for Mobile/Tablet */}
-      <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
+      {!showBrian && selectedChat && (
+        <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
         <SheetContent side="right" className="w-full sm:w-96 p-0">
           <div className="h-full flex flex-col">
             <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="flex-1 flex flex-col">
@@ -858,8 +916,9 @@ const Workspace = () => {
       </Sheet>
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
-      <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
-        <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
+      {!showBrian && selectedChat && (
+        <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
+          <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="automations" className="text-xs">
@@ -947,11 +1006,11 @@ const Workspace = () => {
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Open Chat Settings
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+            </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
+      )}
 
       {/* Voice Call Dialog */}
       {selectedChat?.type === 'direct' && (

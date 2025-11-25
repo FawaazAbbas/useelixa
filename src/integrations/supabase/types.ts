@@ -257,6 +257,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_chat_compatible: boolean | null
+          is_system: boolean | null
           is_workflow_based: boolean | null
           long_description: string | null
           name: string
@@ -288,6 +289,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_chat_compatible?: boolean | null
+          is_system?: boolean | null
           is_workflow_based?: boolean | null
           long_description?: string | null
           name: string
@@ -319,6 +321,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_chat_compatible?: boolean | null
+          is_system?: boolean | null
           is_workflow_based?: boolean | null
           long_description?: string | null
           name?: string
@@ -510,6 +513,44 @@ export type Database = {
           },
           {
             foreignKeyName: "automations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      brian_conversations: {
+        Row: {
+          context: Json | null
+          created_at: string | null
+          id: string
+          messages: Json | null
+          updated_at: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          updated_at?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brian_conversations_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
