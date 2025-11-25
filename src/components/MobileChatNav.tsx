@@ -52,7 +52,7 @@ export const MobileChatNav = ({ agents, groupChats, selectedChat, onSelectChat }
         </Button>
         
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="ELIXA" className="h-8 w-8" />
+          <img src="/elixa-logo.png" alt="ELIXA" className="h-8 w-8" />
           <span className="font-semibold">ELIXA</span>
         </div>
 
@@ -72,7 +72,7 @@ export const MobileChatNav = ({ agents, groupChats, selectedChat, onSelectChat }
           <SheetHeader className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="ELIXA" className="h-8 w-8" />
+                <img src="/elixa-logo.png" alt="ELIXA" className="h-8 w-8" />
                 <SheetTitle>Workspace</SheetTitle>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setOpen(false)}>

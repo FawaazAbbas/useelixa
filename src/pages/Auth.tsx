@@ -95,7 +95,10 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md border-2">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-4">
+          <div className="flex justify-center">
+            <img src="/elixa-logo.png" alt="ELIXA" className="h-16 w-16 object-contain" />
+          </div>
           <CardTitle className="text-3xl font-bold text-center">ELIXA</CardTitle>
           <CardDescription className="text-center">
             Sign in or create an account to get started
