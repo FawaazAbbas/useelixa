@@ -1,51 +1,99 @@
+import { useState, useEffect } from "react";
 import { Activity, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 
-const mockLogs = [
-  {
-    id: "1",
-    agent: "customer-support-pro",
-    action: "Resolved ticket #234",
-    timestamp: "2 minutes ago",
-    status: "success",
-  },
-  {
-    id: "2",
-    agent: "content-creator-ai",
-    action: "Published blog post 'AI Trends 2024'",
-    timestamp: "15 minutes ago",
-    status: "success",
-  },
-  {
-    id: "3",
-    agent: "data-analyst",
-    action: "Failed to fetch analytics data",
-    timestamp: "1 hour ago",
-    status: "error",
-  },
-  {
-    id: "4",
-    agent: "social-media-bot",
-    action: "Scheduled 5 posts for next week",
-    timestamp: "2 hours ago",
-    status: "success",
-  },
-  {
-    id: "5",
-    agent: "content-creator-ai",
-    action: "Waiting for approval on draft",
-    timestamp: "3 hours ago",
-    status: "pending",
-  },
-];
+interface ActivityLog {
+  id: string;
+  action: string;
+  entity_type: string;
+  status: string;
+  created_at: string;
+  metadata: {
+    tool_name: string;
+    execution_time_ms: number;
+    description: string;
+    error_message?: string;
+  };
+  agent?: {
+    name: string;
+    image_url: string;
+  };
+}
 
 const Logs = () => {
+  const { toast } = useToast();
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const fetchLogs = async () => {
+    try {
+      let query = supabase
+        .from("activity_logs")
+        .select(`
+          *,
+          agent:agents(name, image_url)
+        `)
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Error fetching logs:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load activity logs",
+          variant: "destructive",
+        });
+      } else {
+        setLogs((data as any) || []);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+
+    // Real-time updates
+    const channel = supabase
+      .channel("activity-logs")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "activity_logs" },
+        () => {
+          fetchLogs();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [statusFilter]);
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "success":
         return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "error":
+      case "failed":
         return <XCircle className="h-4 w-4 text-destructive" />;
       case "pending":
         return <AlertCircle className="h-4 w-4 text-yellow-500" />;
@@ -53,6 +101,32 @@ const Logs = () => {
         return <Activity className="h-4 w-4" />;
     }
   };
+
+  const filteredLogs = logs.filter((log) => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        log.action.toLowerCase().includes(query) ||
+        log.metadata?.description?.toLowerCase().includes(query) ||
+        log.agent?.name?.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold mb-2">Activity Logs</h1>
+          <p className="text-muted-foreground">
+            Monitor all AI agent activities and actions
+          </p>
+        </div>
+        <LoadingSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -63,41 +137,102 @@ const Logs = () => {
         </p>
       </div>
 
-      <div className="space-y-3">
-        {mockLogs.map((log) => (
-          <Card key={log.id}>
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                {getStatusIcon(log.status)}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium">{log.action}</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {log.agent}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        log.status === "success"
-                          ? "default"
-                          : log.status === "error"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {log.status}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {log.timestamp}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="flex gap-4 mb-6">
+        <Input
+          placeholder="Search logs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-xs"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="success">Success</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {filteredLogs.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-lg font-medium mb-2">No activity logs yet</p>
+            <p className="text-sm text-muted-foreground">
+              {searchQuery
+                ? "No logs match your search"
+                : "Agent activities will appear here once they start working"}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <ScrollArea className="h-[calc(100vh-280px)]">
+          <div className="space-y-3">
+            {filteredLogs.map((log) => (
+              <Card key={log.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    {getStatusIcon(log.status)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {log.metadata?.description || log.action}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {log.agent && (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {log.agent.name}
+                              </p>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              •
+                            </span>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(log.created_at), {
+                                addSuffix: true,
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              log.status === "success"
+                                ? "default"
+                                : log.status === "failed"
+                                ? "destructive"
+                                : "secondary"
+                            }
+                          >
+                            {log.status}
+                          </Badge>
+                          {log.metadata?.execution_time_ms && (
+                            <Badge variant="outline" className="text-xs">
+                              {log.metadata.execution_time_ms}ms
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      {log.metadata?.error_message && (
+                        <div className="mt-2 p-2 rounded bg-destructive/10 border border-destructive/20">
+                          <p className="text-xs text-destructive">
+                            {log.metadata.error_message}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
     </div>
   );
 };
