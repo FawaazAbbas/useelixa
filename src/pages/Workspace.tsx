@@ -597,7 +597,7 @@ const Workspace = () => {
                               : "bg-muted"
                           }`}
                         >
-                          <div className={`text-sm prose prose-sm dark:prose-invert max-w-none ${isMobile ? 'break-words' : ''}`}>
+                          <div className={`text-sm prose prose-sm max-w-none ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
                               {msg.content}
                             </ReactMarkdown>
