@@ -23,11 +23,13 @@ export const MainNavSidebar = () => {
           <NavLink
             key={item.path}
             to={item.path}
-            className="flex flex-col items-center gap-1 p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-            activeClassName="bg-sidebar-accent text-sidebar-primary"
+            className="group relative flex flex-col items-center gap-1 p-3 transition-all"
+            activeClassName="text-primary"
           >
-            <item.icon className="h-6 w-6" />
-            <span className="text-xs font-medium">{item.label}</span>
+            <item.icon className="h-6 w-6 text-sidebar-foreground group-hover:text-primary transition-colors" />
+            <span className="absolute left-full ml-3 px-2 py-1 bg-sidebar-background border border-sidebar-border rounded text-xs font-medium text-sidebar-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              {item.label}
+            </span>
           </NavLink>
         ))}
       </div>
@@ -38,11 +40,13 @@ export const MainNavSidebar = () => {
       {/* Connections Button */}
       <NavLink
         to="/connections"
-        className="flex flex-col items-center gap-1 p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-        activeClassName="bg-sidebar-accent text-sidebar-primary"
+        className="group relative flex flex-col items-center gap-1 p-3 transition-all"
+        activeClassName="text-primary"
       >
-        <Plug className="h-6 w-6" />
-        <span className="text-xs font-medium">Connections</span>
+        <Plug className="h-6 w-6 text-sidebar-foreground group-hover:text-primary transition-colors" />
+        <span className="absolute left-full ml-3 px-2 py-1 bg-sidebar-background border border-sidebar-border rounded text-xs font-medium text-sidebar-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          Connections
+        </span>
       </NavLink>
 
       {/* Visual Separator */}
@@ -51,11 +55,13 @@ export const MainNavSidebar = () => {
       {/* Marketplace Button at Bottom */}
       <NavLink
         to="/marketplace"
-        className="flex flex-col items-center gap-1 p-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-        activeClassName="bg-sidebar-accent text-sidebar-primary"
+        className="group relative flex flex-col items-center gap-1 p-3 transition-all"
+        activeClassName="text-primary"
       >
-        <Store className="h-6 w-6" />
-        <span className="text-xs font-medium">Marketplace</span>
+        <Store className="h-6 w-6 text-sidebar-foreground group-hover:text-primary transition-colors" />
+        <span className="absolute left-full ml-3 px-2 py-1 bg-sidebar-background border border-sidebar-border rounded text-xs font-medium text-sidebar-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          Marketplace
+        </span>
       </NavLink>
     </div>
   );
