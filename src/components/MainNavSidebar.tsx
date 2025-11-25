@@ -45,6 +45,9 @@ export const MainNavSidebar = () => {
         <span className="text-xs font-medium">Connections</span>
       </NavLink>
 
+      {/* Visual Separator */}
+      <div className="w-12 h-px bg-sidebar-border my-2" />
+
       {/* Marketplace Button at Bottom */}
       <NavLink
         to="/marketplace"
