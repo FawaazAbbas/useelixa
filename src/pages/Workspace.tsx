@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { ChatAutomationsPanel } from "@/components/ChatAutomationsPanel";
 import { ChatSettingsDialog } from "@/components/ChatSettingsDialog";
 import { AgentFilesPanel } from "@/components/AgentFilesPanel";
 import { ChatLogsPanel } from "@/components/ChatLogsPanel";
+import { VoiceCallDialog } from "@/components/VoiceCallDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { useToast } from "@/hooks/use-toast";
@@ -144,6 +145,7 @@ const Workspace = () => {
   const [rightSidebarTab, setRightSidebarTab] = useState("automations");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -518,6 +520,16 @@ const Workspace = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {selectedChat?.type === 'direct' && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setShowVoiceCall(true)}
+                title="Start voice call"
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -847,6 +859,17 @@ const Workspace = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Voice Call Dialog */}
+      {selectedChat?.type === 'direct' && (
+        <VoiceCallDialog
+          open={showVoiceCall}
+          onClose={() => setShowVoiceCall(false)}
+          agentName={selectedChat.custom_name || selectedChat.agent?.name || 'Agent'}
+          agentInstructions={selectedChat.agent?.ai_instructions}
+          voice="alloy"
+        />
+      )}
     </div>
   );
 };
