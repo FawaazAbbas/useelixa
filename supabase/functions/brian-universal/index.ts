@@ -26,6 +26,11 @@ You are a decisive, action-oriented COO who:
 - User: "Create a task" → Create it immediately with reasonable defaults
 - User: "Send email" → Ask which agent if multiple email agents exist, otherwise execute
 
+⚠️ DELEGATION TOOL USAGE - MANDATORY:
+When delegating work to other agents, you MUST ALWAYS use the delegate_to_agent tool.
+NEVER just say "I told the agent" or "I've asked the agent" without calling the tool.
+The tool call is what actually executes the delegation. Without it, nothing happens.
+
 ═══════════════════════════════════════════════════
 WHAT YOU DO DIRECTLY
 ═══════════════════════════════════════════════════
@@ -262,45 +267,6 @@ serve(async (req) => {
           toolResult = `Remembered: ${toolArgs.key}`;
         } else if (toolName === "recall") {
           toolResult = context[toolArgs.key] || "Not found in memory";
-        } else if (toolName === "delegate_to_agent") {
-          // Find or create chat with the target agent
-          const { data: existingChat } = await supabase
-            .from("chats")
-            .select("id")
-            .eq("workspace_id", workspace_id)
-            .eq("agent_id", toolArgs.agent_id)
-            .eq("type", "direct")
-            .single();
-
-          let targetChatId = existingChat?.id;
-
-          if (!targetChatId) {
-            // Create new chat with the agent
-            const { data: newChat } = await supabase
-              .from("chats")
-              .insert({
-                workspace_id,
-                agent_id: toolArgs.agent_id,
-                type: "direct",
-                created_by: user_id,
-              })
-              .select()
-              .single();
-            targetChatId = newChat?.id;
-          }
-
-          if (!targetChatId) {
-            toolResult = "Error: Could not create chat with agent";
-          } else {
-            toolResult = await delegateToAgent(
-              toolArgs.agent_id,
-              toolArgs.task_description,
-              user_id,
-              workspace_id,
-              targetChatId,
-              supabase
-            );
-          }
         } else {
           toolResult = "Tool not implemented";
         }
@@ -335,7 +301,7 @@ serve(async (req) => {
       finalContent = finalResult.choices[0].message.content;
     }
 
-    // Update conversation history
+    // Update conversation history - properly append without overwriting
     const updatedMessages = [
       ...conversationHistory,
       { role: "user", content: message },
@@ -349,6 +315,8 @@ serve(async (req) => {
         workspace_id,
         messages: updatedMessages.slice(-20), // Keep last 20 messages
         context,
+      }, {
+        onConflict: 'user_id,workspace_id'
       });
 
     return new Response(

@@ -52,8 +52,8 @@ export async function delegateToAgent(
         },
         body: JSON.stringify({
           message: revisionCount === 0 
-            ? taskDescription 
-            : `REVISION REQUEST:\n${reviewResult.feedback}\n\nImprovements needed:\n${reviewResult.improvements_needed.join("\n")}\n\nOriginal request: ${taskDescription}`,
+            ? `[DELEGATED_BY_BRIAN]\n\n${taskDescription}` 
+            : `[DELEGATED_BY_BRIAN] - REVISION REQUEST:\n${reviewResult.feedback}\n\nImprovements needed:\n${reviewResult.improvements_needed.join("\n")}\n\nOriginal request: ${taskDescription}`,
           agent_id: agentId,
           chat_id: chatId,
           user_id: userId,

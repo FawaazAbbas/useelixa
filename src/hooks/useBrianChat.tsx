@@ -36,13 +36,16 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
         .select("messages")
         .eq("user_id", userId)
         .eq("workspace_id", workspaceId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
         throw error;
       }
 
-      setMessages(Array.isArray(data?.messages) ? (data.messages as unknown as Message[]) : []);
+      // Only set messages if we have data, otherwise keep empty array
+      if (data?.messages) {
+        setMessages(Array.isArray(data.messages) ? (data.messages as unknown as Message[]) : []);
+      }
     } catch (error) {
       console.error("Error loading Brian conversation:", error);
     } finally {

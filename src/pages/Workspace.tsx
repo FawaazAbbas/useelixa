@@ -29,7 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashboard";
 import { useToast } from "@/hooks/use-toast";
-import { BrianChat } from "@/components/BrianChat";
+import { useBrianChat } from "@/hooks/useBrianChat";
 import { Sparkles } from "lucide-react";
 
 const agents = [
@@ -154,6 +154,15 @@ const Workspace = () => {
   const [showBrian, setShowBrian] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  
+  // Brian chat hook
+  const { 
+    messages: brianMessages, 
+    loading: brianLoading, 
+    sending: brianSending, 
+    sendMessage: sendBrianMessage 
+  } = useBrianChat(user?.id, workspaceId);
+  const [brianInput, setBrianInput] = useState("");
 
   useEffect(() => {
     if (workspaceId) {
@@ -597,12 +606,229 @@ const Workspace = () => {
                   <div className="text-xs text-muted-foreground">Your AI COO</div>
                 </div>
               </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setShowVoiceCall(true)}
+                  title="Start voice call with Brian"
+                >
+                  <Phone className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             
-            {/* Brian Chat Content */}
-            {user && workspaceId && (
-              <BrianChat userId={user.id} workspaceId={workspaceId} />
-            )}
+            {/* Brian Messages */}
+            <ScrollArea className={`flex-1 p-4 ${isMobile ? 'pb-20' : ''}`}>
+              <div className="space-y-4 max-w-4xl mx-auto">
+                {brianLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : brianMessages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-3">
+                    <p className="text-muted-foreground">Start a conversation with Brian, your AI COO</p>
+                  </div>
+                ) : (
+                  brianMessages.map((msg, idx) => {
+                    const isUserMessage = msg.role === "user";
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""}`}
+                      >
+                        <Avatar className={isUserMessage ? "" : "bg-gradient-to-br from-purple-600 to-blue-500"}>
+                          <AvatarFallback className={isUserMessage ? "" : "text-white text-sm font-bold"}>
+                            {isUserMessage ? "U" : "B"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={`flex-1 ${isUserMessage ? "text-right" : ""}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-semibold">
+                              {isUserMessage ? "You" : "Brian"}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            <div
+                              className={`inline-block px-4 py-2 rounded-lg max-w-[85%] ${
+                                isUserMessage
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted"
+                              }`}
+                            >
+                              <div className={`text-sm prose prose-sm max-w-none ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {msg.content}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
+                            {msg.metadata?.files && (
+                              <div className="max-w-[85%]">
+                                <FileMessageCard files={msg.metadata.files} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+                {brianSending && (
+                  <div className="flex gap-3">
+                    <Avatar className="bg-gradient-to-br from-purple-600 to-blue-500">
+                      <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="inline-block px-4 py-2 rounded-lg bg-muted">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Brian is thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Brian Input */}
+            <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+              <div className="space-y-2 max-w-4xl mx-auto">
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    id="brian-file-upload"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    disabled={brianSending || uploading}
+                  />
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => document.getElementById('brian-file-upload')?.click()}
+                    disabled={brianSending || uploading}
+                    className={isMobile ? 'h-10 w-10' : ''}
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    placeholder="Message Brian..."
+                    value={brianInput}
+                    onChange={(e) => setBrianInput(e.target.value)}
+                    onKeyPress={async (e) => {
+                      if (e.key === "Enter" && !e.shiftKey && brianInput.trim()) {
+                        e.preventDefault();
+                        const messageContent = brianInput;
+                        setBrianInput("");
+                        
+                        // Handle file uploads if any
+                        let fileMetadata = undefined;
+                        if (selectedFiles.length > 0) {
+                          setUploading(true);
+                          try {
+                            const uploadPromises = selectedFiles.map(async (file) => {
+                              const fileExt = file.name.split('.').pop();
+                              const filePath = `${user?.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                              
+                              const { data, error } = await supabase.storage
+                                .from('chat-files')
+                                .upload(filePath, file);
+
+                              if (error) throw error;
+
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('chat-files')
+                                .getPublicUrl(filePath);
+
+                              return {
+                                name: file.name,
+                                url: publicUrl,
+                                type: file.type,
+                                size: file.size
+                              };
+                            });
+
+                            const fileAttachments = await Promise.all(uploadPromises);
+                            fileMetadata = { files: fileAttachments };
+                            setSelectedFiles([]);
+                          } catch (error) {
+                            console.error('Error uploading files:', error);
+                            toast({
+                              variant: 'destructive',
+                              title: 'Error',
+                              description: 'Failed to upload files'
+                            });
+                          } finally {
+                            setUploading(false);
+                          }
+                        }
+                        
+                        await sendBrianMessage(messageContent, fileMetadata);
+                      }
+                    }}
+                    disabled={brianSending || uploading}
+                    className={isMobile ? 'text-base' : ''}
+                  />
+                  <Button 
+                    size="icon" 
+                    onClick={async () => {
+                      if (!brianInput.trim()) return;
+                      const messageContent = brianInput;
+                      setBrianInput("");
+                      
+                      // Handle file uploads if any
+                      let fileMetadata = undefined;
+                      if (selectedFiles.length > 0) {
+                        setUploading(true);
+                        try {
+                          const uploadPromises = selectedFiles.map(async (file) => {
+                            const fileExt = file.name.split('.').pop();
+                            const filePath = `${user?.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                            
+                            const { data, error } = await supabase.storage
+                              .from('chat-files')
+                              .upload(filePath, file);
+
+                            if (error) throw error;
+
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('chat-files')
+                              .getPublicUrl(filePath);
+
+                            return {
+                              name: file.name,
+                              url: publicUrl,
+                              type: file.type,
+                              size: file.size
+                            };
+                          });
+
+                          const fileAttachments = await Promise.all(uploadPromises);
+                          fileMetadata = { files: fileAttachments };
+                          setSelectedFiles([]);
+                        } catch (error) {
+                          console.error('Error uploading files:', error);
+                          toast({
+                            variant: 'destructive',
+                            title: 'Error',
+                            description: 'Failed to upload files'
+                          });
+                        } finally {
+                          setUploading(false);
+                        }
+                      }
+                      
+                      await sendBrianMessage(messageContent, fileMetadata);
+                    }}
+                    disabled={brianSending || uploading || !brianInput.trim()}
+                    className={isMobile ? 'h-10 w-10' : ''}
+                  >
+                    {(brianSending || uploading) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
           </>
         ) : (
           <>
@@ -1022,7 +1248,15 @@ const Workspace = () => {
       )}
 
       {/* Voice Call Dialog */}
-      {selectedChat?.type === 'direct' && (
+      {showBrian ? (
+        <VoiceCallDialog
+          open={showVoiceCall}
+          onClose={() => setShowVoiceCall(false)}
+          agentName="Brian"
+          agentInstructions="You are Brian, ELIXA's Chief Operating Officer AI. You are a decisive, action-oriented COO who helps users manage their workspace efficiently."
+          voice="alloy"
+        />
+      ) : selectedChat?.type === 'direct' && (
         <VoiceCallDialog
           open={showVoiceCall}
           onClose={() => setShowVoiceCall(false)}
