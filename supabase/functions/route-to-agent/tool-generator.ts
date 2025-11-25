@@ -166,7 +166,8 @@ export function buildSystemPrompt(
   aiPersonality: string | null,
   aiInstructions: string | null,
   guardRails: any | null,
-  tools: LovableAITool[]
+  tools: LovableAITool[],
+  speechStyle?: string
 ): string {
   // Build guard rails section
   const guardRailsSection = guardRails ? `
@@ -176,6 +177,19 @@ ${guardRails.blocked_topics?.length > 0 ? `- BLOCKED TOPICS: Never discuss ${gua
 ${guardRails.tone ? `- Response tone MUST be: ${guardRails.tone}` : ''}
 ${guardRails.max_tokens ? `- Keep responses under ${guardRails.max_tokens} tokens` : ''}
 ${guardRails.refuse_harmful_requests ? '- REFUSE any harmful, unethical, or dangerous requests' : ''}
+` : '';
+
+  // Build speech style section
+  const speechStyleGuidance = speechStyle ? {
+    'professional': 'Maintain a professional, business-like tone. Be clear, concise, and focused on efficiency. Use formal language and avoid casual expressions.',
+    'casual': 'Use a friendly, conversational tone. Feel free to use casual language, contractions, and be personable. Make interactions feel natural and relaxed.',
+    'formal': 'Maintain a formal, authoritative tone. Use proper grammar, avoid contractions, and maintain professional distance. Be thorough and precise.',
+    'friendly': 'Be warm, approachable, and enthusiastic. Show empathy and use encouraging language. Make users feel welcomed and supported.'
+  }[speechStyle] || '' : '';
+
+  const speechStyleSection = speechStyle ? `
+🗣️ SPEAKING STYLE: ${speechStyle.toUpperCase()}
+${speechStyleGuidance}
 ` : '';
 
   // Build personality section
@@ -259,6 +273,7 @@ When using AI tools:
   
   return `You are ${agentName}, an AI agent with specialized capabilities. ${agentDescription}
 
+${speechStyleSection}
 ${personalitySection}
 ${guardRailsSection}
 ${credentialSection}

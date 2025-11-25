@@ -134,7 +134,8 @@ Examples of delegation:
           effectiveWorkspaceId || '', 
           currentMessage + groupChatContext, 
           conversationHistory, 
-          supabase
+          supabase,
+          undefined // group chats don't have single installation ID
         );
         
         if (!agentResponse) break;
@@ -221,6 +222,17 @@ Examples of delegation:
       throw new Error("Agent not found");
     }
 
+    // Fetch agent installation for configuration
+    const { data: installation } = await supabase
+      .from("agent_installations")
+      .select("id")
+      .eq("agent_id", agent_id)
+      .eq("user_id", user_id)
+      .eq("workspace_id", effectiveWorkspaceId)
+      .maybeSingle();
+
+    const agentInstallationId = installation?.id;
+
     // Fetch previous messages for context
     const { data: previousMessages } = await supabase
       .from("messages")
@@ -242,188 +254,20 @@ Examples of delegation:
       console.log("Processing workflow-based agent:", agent.name);
 
       try {
-        // 1. Parse the workflow
-        const parsedWorkflow = parseN8nWorkflow(agent.workflow_json);
-        console.log("Parsed workflow:", {
-          nodeCount: parsedWorkflow.nodes.length,
-          requiredCredentials: parsedWorkflow.requiredCredentials
-        });
-
-        // 2. Fetch user credentials from user_credentials table
-        const userCredentials = await fetchUserCredentials(user_id, supabase);
-
-        // 3. Pre-flight validation using new validator system
-        const validator = new WorkflowValidator(nodeRegistry, credentialResolver);
-        const validation = await validator.validateWorkflow(parsedWorkflow, userCredentials);
-        
-        // Log validation report
-        console.log(validator.generateReport(validation));
-        
-        if (!validation.isValid) {
-          const errorMsg = validation.errors.map((e: any) => e.message).join('; ');
-          const missingCreds = validation.missingCredentials.length > 0
-            ? `Missing services: ${validation.missingCredentials.join(', ')}`
-            : '';
-          
-          agentResponse = `I need you to connect the following services before I can help you: ${validation.missingCredentials.join(', ')}. Please visit the Connections page to set up these integrations.`;
-          
-          await supabase.from("messages").insert({
-            chat_id,
-            agent_id,
-            content: agentResponse,
-            error_message: `Validation failed: ${errorMsg}. ${missingCreds}`,
-            processing_time_ms: Date.now() - startTime
-          });
-
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              response: agentResponse,
-              requiresCredentials: true,
-              missingCredentials: validation.missingCredentials,
-              validationErrors: validation.errors
-            }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-
-        // 4. Generate tool definitions with injected credentials
-        const tools = generateToolDefinitions(parsedWorkflow, userCredentials);
-        console.log(`Generated ${tools.length} tools from workflow`);
-        console.log('🔧 Tools with credentials:', tools.map(t => ({ 
-          name: t.function.name, 
-          hasCredentials: !!(t.function as any).credentials 
-        })));
-
-        // 5. Build system prompt with personality and guard rails
-        const systemPrompt = buildSystemPrompt(
-          agent.name, 
-          agent.description || "",
-          agent.ai_personality || null,
-          agent.ai_instructions || null,
-          agent.guard_rails || null,
-          tools
+        const result = await processAgentWorkflow(
+          agent,
+          user_id,
+          effectiveWorkspaceId || '',
+          message,
+          conversationHistory,
+          supabase,
+          agentInstallationId
         );
-        console.log('📋 System Prompt Preview:', systemPrompt.substring(0, 500) + '...');
 
-        // 6. Call Lovable AI with tools
-        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-        if (!LOVABLE_API_KEY) {
-          throw new Error("LOVABLE_API_KEY not configured");
-        }
-
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-5-mini",
-            messages: [
-              { role: "system", content: systemPrompt },
-              ...conversationHistory,
-              { role: "user", content: message },
-            ],
-            tools: tools,
-            tool_choice: "auto",
-          }),
-        });
-
-        if (!aiResponse.ok) {
-          const errorText = await aiResponse.text();
-          throw new Error(`Lovable AI error: ${aiResponse.status} ${errorText}`);
-        }
-
-        const result = await aiResponse.json();
-        console.log("🤖 Raw AI response:", result.choices[0].message);
-
-        // Detect if AI is refusing to use tools
-        const responseContent = result.choices[0].message.content || "";
-        const refusalPatterns = [
-          'not connected',
-          'connect the following',
-          'set up these connections',
-          'configuration page',
-          'missing credentials',
-          'need to be set up',
-          'authorize',
-          'unavailable',
-          'cannot send',
-          'can\'t send',
-          'unable to send',
-          'cannot directly',
-          'can\'t directly',
-          'unable to directly',
-          'limited to generating',
-          'you would need to',
-          'copy and paste',
-          'my capabilities are limited'
-        ];
-
-        const isRefusing = refusalPatterns.some(pattern => 
-          responseContent.toLowerCase().includes(pattern)
-        );
-        
-        // Check if tools were called
-        const toolsCalled = result.choices[0].message.tool_calls || [];
-        console.log(`🔧 Tools called by AI: ${toolsCalled.length > 0 ? JSON.stringify(toolsCalled.map((tc: any) => tc.function.name)) : 'NONE'}`);
-
-        if (isRefusing) {
-          console.warn('🚫 Blocked AI tool refusal. Original response:', responseContent);
-          result.choices[0].message.content = `I apologize for the confusion. I have all the tools and credentials needed to help you. Let me try that action now. Please send your request again and I'll execute it properly.`;
-        }
-
-        // 7. Handle tool calls if present
-        if (result.choices[0].message.tool_calls) {
-          console.log(`Executing ${result.choices[0].message.tool_calls.length} tool calls`);
-
-          const toolResults = await Promise.all(
-            result.choices[0].message.tool_calls.map(async (toolCall: any) => {
-              try {
-                const toolResult = await executeToolCall(toolCall, tools);
-                console.log(`Tool ${toolCall.function.name} executed successfully`);
-                return {
-                  role: "tool",
-                  tool_call_id: toolCall.id,
-                  content: JSON.stringify(toolResult),
-                };
-              } catch (error: any) {
-                console.error(`Tool execution error:`, error);
-                return {
-                  role: "tool",
-                  tool_call_id: toolCall.id,
-                  content: JSON.stringify({ 
-                    error: error instanceof Error ? error.message : "Unknown error" 
-                  }),
-                };
-              }
-            })
-          );
-
-          // 8. Send tool results back to AI for final response
-          const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${LOVABLE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "google/gemini-2.5-flash",
-              messages: [
-                { role: "system", content: systemPrompt },
-                ...conversationHistory,
-                { role: "user", content: message },
-                result.choices[0].message,
-                ...toolResults,
-              ],
-            }),
-          });
-
-          const finalResult = await finalResponse.json();
-          agentResponse = finalResult.choices[0].message.content;
+        if (result) {
+          agentResponse = result.content;
         } else {
-          agentResponse = result.choices[0].message.content;
+          agentResponse = "I encountered an error processing your request.";
         }
       } catch (workflowError: any) {
         console.error("Workflow execution error:", workflowError);
@@ -431,7 +275,7 @@ Examples of delegation:
           workflowError instanceof Error ? workflowError.message : "Unknown error"
         }. Please try again or contact support if the issue persists.`;
       }
-    } 
+    }
     // WEBHOOK-BASED AGENT EXECUTION
     else if (agent.webhook_url) {
       console.log("Processing webhook-based agent:", agent.name);
