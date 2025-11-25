@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface AgentResponse {
+  message?: {
+    content?: string;
+  };
+  [key: string]: any;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -40,7 +47,7 @@ serve(async (req) => {
       
       try {
         // Call route-to-agent for each automation
-        const { data: agentResponse, error: agentError } = await supabase.functions.invoke('route-to-agent', {
+        const response: { data: AgentResponse | null; error: any } = await supabase.functions.invoke('route-to-agent', {
           body: {
             message: automation.action + (previousOutput ? `\n\nPrevious step output: ${JSON.stringify(previousOutput)}` : ''),
             chat_id,
@@ -53,7 +60,9 @@ serve(async (req) => {
 
         const executionTime = Date.now() - startTime;
 
-        if (agentError) throw agentError;
+        if (response.error) throw response.error;
+
+        const responseData: AgentResponse | null = response.data;
 
         // Log success
         await supabase.from('automation_logs').insert({
@@ -61,10 +70,10 @@ serve(async (req) => {
           status: 'success',
           executed_at: new Date().toISOString(),
           execution_time_ms: executionTime,
-          output_data: agentResponse,
+          output_data: responseData,
         });
 
-        previousOutput = agentResponse?.message?.content || agentResponse;
+        previousOutput = responseData?.message?.content || responseData;
         results.push({
           automation_id: automation.id,
           name: automation.name,
