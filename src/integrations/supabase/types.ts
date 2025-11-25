@@ -114,9 +114,46 @@ export type Database = {
           },
         ]
       }
+      agent_documents: {
+        Row: {
+          agent_installation_id: string | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+        }
+        Insert: {
+          agent_installation_id?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+        }
+        Update: {
+          agent_installation_id?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_documents_agent_installation_id_fkey"
+            columns: ["agent_installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_installations: {
         Row: {
           agent_id: string
+          custom_name: string | null
           id: string
           install_state: Json | null
           installed_at: string
@@ -125,6 +162,7 @@ export type Database = {
         }
         Insert: {
           agent_id: string
+          custom_name?: string | null
           id?: string
           install_state?: Json | null
           installed_at?: string
@@ -133,6 +171,7 @@ export type Database = {
         }
         Update: {
           agent_id?: string
+          custom_name?: string | null
           id?: string
           install_state?: Json | null
           installed_at?: string
@@ -702,9 +741,11 @@ export type Database = {
           created_at: string
           error_message: string | null
           id: string
+          is_agent_to_agent: boolean | null
           metadata: Json | null
           processing_time_ms: number | null
           response_metadata: Json | null
+          target_agent_id: string | null
           user_id: string | null
         }
         Insert: {
@@ -714,9 +755,11 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          is_agent_to_agent?: boolean | null
           metadata?: Json | null
           processing_time_ms?: number | null
           response_metadata?: Json | null
+          target_agent_id?: string | null
           user_id?: string | null
         }
         Update: {
@@ -726,9 +769,11 @@ export type Database = {
           created_at?: string
           error_message?: string | null
           id?: string
+          is_agent_to_agent?: boolean | null
           metadata?: Json | null
           processing_time_ms?: number | null
           response_metadata?: Json | null
+          target_agent_id?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -744,6 +789,13 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_target_agent_id_fkey"
+            columns: ["target_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
             referencedColumns: ["id"]
           },
         ]
