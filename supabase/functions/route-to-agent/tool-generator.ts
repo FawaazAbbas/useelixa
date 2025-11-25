@@ -157,6 +157,116 @@ export function generateToolDefinitions(
   
   tools.push(taskCreationTool);
 
+  // Add list automations tool
+  const listAutomationsTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "list_automations",
+      description: "List all automations in the workspace. Use this to see existing automations, check their status, and understand what's already configured.",
+      parameters: {
+        type: "object",
+        properties: {
+          task_id: {
+            type: "string",
+            description: "Optional: Filter automations by task ID"
+          },
+          status: {
+            type: "string",
+            enum: ["active", "completed", "paused"],
+            description: "Optional: Filter by automation status"
+          }
+        },
+        required: []
+      }
+    }
+  };
+  
+  (listAutomationsTool.function as any).nodeType = "list_automations";
+  (listAutomationsTool.function as any).nodeParameters = {};
+  (listAutomationsTool.function as any).credentials = {};
+  
+  tools.push(listAutomationsTool);
+
+  // Add execute automation tool
+  const executeAutomationTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "execute_automation",
+      description: "Execute a specific automation immediately. Use this when the user wants to run an automation on demand or test it.",
+      parameters: {
+        type: "object",
+        properties: {
+          automation_id: {
+            type: "string",
+            description: "The ID of the automation to execute"
+          }
+        },
+        required: ["automation_id"]
+      }
+    }
+  };
+  
+  (executeAutomationTool.function as any).nodeType = "execute_automation";
+  (executeAutomationTool.function as any).nodeParameters = {};
+  (executeAutomationTool.function as any).credentials = {};
+  
+  tools.push(executeAutomationTool);
+
+  // Add create automation tool
+  const createAutomationTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "create_automation",
+      description: "Create a new automation for a task. Use this when the user wants to set up a new automated action or workflow.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Clear name for the automation"
+          },
+          action: {
+            type: "string",
+            description: "Detailed description of what this automation does"
+          },
+          trigger: {
+            type: "string",
+            description: "When this automation should run (e.g., 'manual', 'scheduled', 'daily')"
+          },
+          task_id: {
+            type: "string",
+            description: "Optional: Task ID to associate with this automation"
+          },
+          schedule_type: {
+            type: "string",
+            enum: ["manual", "interval", "daily", "weekly"],
+            description: "Schedule type for the automation"
+          },
+          schedule_time: {
+            type: "string",
+            description: "Time of day to run (HH:MM format, for daily/weekly)"
+          },
+          schedule_days: {
+            type: "array",
+            items: { type: "number" },
+            description: "Days of week (0=Sunday, 1=Monday, etc.) for weekly schedules"
+          },
+          schedule_interval_minutes: {
+            type: "number",
+            description: "Interval in minutes for interval-based schedules"
+          }
+        },
+        required: ["name", "action", "trigger"]
+      }
+    }
+  };
+  
+  (createAutomationTool.function as any).nodeType = "create_automation";
+  (createAutomationTool.function as any).nodeParameters = {};
+  (createAutomationTool.function as any).credentials = {};
+  
+  tools.push(createAutomationTool);
+
   return tools;
 }
 

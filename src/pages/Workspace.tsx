@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import { ChatLogsPanel } from "@/components/ChatLogsPanel";
 import { VoiceCallDialog } from "@/components/VoiceCallDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
+import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashboard";
 import { useToast } from "@/hooks/use-toast";
 
 const agents = [
@@ -146,6 +147,8 @@ const Workspace = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [processingAgent, setProcessingAgent] = useState<string | null>(null);
+  const [delegationStatus, setDelegationStatus] = useState<string | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -168,6 +171,53 @@ const Workspace = () => {
   useEffect(() => {
     if (selectedChat?.id) {
       fetchMessages(selectedChat.id);
+      
+      // Subscribe to new messages for real-time delegation tracking
+      const messageSubscription = supabase
+        .channel(`messages:${selectedChat.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'messages',
+            filter: `chat_id=eq.${selectedChat.id}`
+          },
+          (payload) => {
+            const newMessage = payload.new as any;
+            
+            // Track agent processing and delegation
+            if (newMessage.agent_id && selectedChat.type === 'group') {
+              const agent = selectedChat.agents?.find((a: any) => a.id === newMessage.agent_id);
+              if (agent) {
+                setProcessingAgent(agent.name);
+                
+                // Check for delegation
+                if (newMessage.is_agent_to_agent && newMessage.target_agent_id) {
+                  const targetAgent = selectedChat.agents?.find((a: any) => a.id === newMessage.target_agent_id);
+                  if (targetAgent) {
+                    setDelegationStatus(`${agent.name} → ${targetAgent.name}`);
+                    setTimeout(() => {
+                      setProcessingAgent(targetAgent.name);
+                      setDelegationStatus(null);
+                    }, 1500);
+                  }
+                } else {
+                  // No delegation, clear processing state after message appears
+                  setTimeout(() => {
+                    setProcessingAgent(null);
+                    setDelegationStatus(null);
+                  }, 500);
+                }
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        messageSubscription.unsubscribe();
+      };
     }
   }, [selectedChat, fetchMessages]);
 
@@ -228,12 +278,24 @@ const Workspace = () => {
 
       // Only call agent if there's a text message
       if (message.trim()) {
+        // Set initial processing state
         if (selectedChat.type === 'group') {
+          const firstAgent = selectedChat.agents?.[0];
+          if (firstAgent) {
+            setProcessingAgent(firstAgent.name);
+          }
           const agentIds = selectedChat.agents?.map((a: any) => a.id) || [];
           await sendMessage(selectedChat.id, agentIds, message, 'group');
         } else {
+          setProcessingAgent(selectedChat.agent?.name || 'Agent');
           await sendMessage(selectedChat.id, selectedChat.agent_id, message, 'direct');
         }
+        
+        // Clear processing state after response
+        setTimeout(() => {
+          setProcessingAgent(null);
+          setDelegationStatus(null);
+        }, 1000);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -622,8 +684,23 @@ const Workspace = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <div className="inline-block px-4 py-2 rounded-lg bg-muted">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                  <div className="space-y-2">
+                    {processingAgent && (
+                      <div className="text-xs text-muted-foreground font-medium">
+                        {processingAgent} is thinking...
+                      </div>
+                    )}
+                    <div className="inline-block px-4 py-2 rounded-lg bg-muted">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Processing...</span>
+                      </div>
+                    </div>
+                    {delegationStatus && (
+                      <div className="text-xs text-primary font-medium animate-pulse">
+                        🔀 {delegationStatus}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -784,7 +861,7 @@ const Workspace = () => {
       <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
         <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="automations" className="text-xs">
                 <PlayCircle className="h-4 w-4" />
               </TabsTrigger>
@@ -793,6 +870,9 @@ const Workspace = () => {
               </TabsTrigger>
               <TabsTrigger value="logs" className="text-xs">
                 <LayoutList className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="history" className="text-xs">
+                <Activity className="h-4 w-4" />
               </TabsTrigger>
               <TabsTrigger value="settings" className="text-xs">
                 <Settings className="h-4 w-4" />
@@ -833,7 +913,20 @@ const Workspace = () => {
 
           <TabsContent value="logs" className="flex-1 m-0 overflow-hidden">
             {selectedChat ? (
-              <ChatLogsPanel chatId={selectedChat.id} />
+              <div className="h-full overflow-auto">
+                <div className="p-4">
+                  <h3 className="font-semibold mb-4">Chat Logs</h3>
+                  <ChatLogsPanel chatId={selectedChat.id} />
+                </div>
+                <Separator className="my-4" />
+                <div className="p-4">
+                  <h3 className="font-semibold mb-4">Automation History</h3>
+                  <AutomationHistoryDashboard 
+                    workspaceId={workspaceId || ''} 
+                    chatId={selectedChat.id}
+                  />
+                </div>
+              </div>
             ) : (
               <div className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">Select a chat to view logs</p>

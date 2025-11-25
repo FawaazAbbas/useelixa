@@ -254,6 +254,278 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     toolGenerator: () => null
   },
 
+  // Google Calendar
+  googleCalendar: {
+    nodeTypes: [
+      'n8n-nodes-base.googleCalendar',
+      'n8n-nodes-base.googleCalendarTool',
+    ],
+    category: 'automation',
+    credentialPatterns: ['googleCalendar*', 'googleOAuth2*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      const operation = args.operation || nodeParameters.operation || 'list';
+      const calendarId = args.calendar_id || nodeParameters.calendarId || 'primary';
+      
+      const headers = {
+        'Authorization': `Bearer ${credentials.googleCalendarOAuth2?.access_token || credentials.googleOAuth2Api?.access_token}`,
+        'Content-Type': 'application/json'
+      };
+
+      if (operation === 'list') {
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?maxResults=${args.max_results || 10}`;
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error(`Google Calendar API error: ${response.statusText}`);
+        return await response.json();
+      } else if (operation === 'create') {
+        const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            summary: args.summary,
+            description: args.description,
+            start: { dateTime: args.start_time },
+            end: { dateTime: args.end_time },
+            attendees: args.attendees?.map((email: string) => ({ email }))
+          })
+        });
+        if (!response.ok) throw new Error(`Google Calendar API error: ${response.statusText}`);
+        return await response.json();
+      }
+      
+      throw new Error(`Unsupported operation: ${operation}`);
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `google_calendar_${node.id}`,
+        description: node.parameters.description || `Interact with Google Calendar`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { type: 'string', enum: ['list', 'create', 'update', 'delete'], description: 'Calendar operation' },
+            calendar_id: { type: 'string', description: 'Calendar ID (default: primary)' },
+            summary: { type: 'string', description: 'Event title (for create)' },
+            description: { type: 'string', description: 'Event description' },
+            start_time: { type: 'string', description: 'Start time (ISO format)' },
+            end_time: { type: 'string', description: 'End time (ISO format)' },
+            attendees: { type: 'array', items: { type: 'string' }, description: 'Attendee email addresses' }
+          },
+          required: ['operation']
+        }
+      }
+    })
+  },
+
+  // Google Drive
+  googleDrive: {
+    nodeTypes: [
+      'n8n-nodes-base.googleDrive',
+      'n8n-nodes-base.googleDriveTool',
+    ],
+    category: 'storage',
+    credentialPatterns: ['googleDrive*', 'googleOAuth2*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      const operation = args.operation || nodeParameters.operation || 'list';
+      
+      const headers = {
+        'Authorization': `Bearer ${credentials.googleDriveOAuth2?.access_token || credentials.googleOAuth2Api?.access_token}`,
+        'Content-Type': 'application/json'
+      };
+
+      if (operation === 'list') {
+        const query = args.query || '';
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&pageSize=${args.max_results || 10}`;
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error(`Google Drive API error: ${response.statusText}`);
+        return await response.json();
+      } else if (operation === 'get') {
+        const url = `https://www.googleapis.com/drive/v3/files/${args.file_id}?alt=media`;
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error(`Google Drive API error: ${response.statusText}`);
+        return { content: await response.text() };
+      }
+      
+      throw new Error(`Unsupported operation: ${operation}`);
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `google_drive_${node.id}`,
+        description: node.parameters.description || `Access Google Drive files`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { type: 'string', enum: ['list', 'get', 'upload', 'delete'], description: 'Drive operation' },
+            query: { type: 'string', description: 'Search query (for list)' },
+            file_id: { type: 'string', description: 'File ID (for get/delete)' },
+            max_results: { type: 'number', description: 'Max results (default: 10)' }
+          },
+          required: ['operation']
+        }
+      }
+    })
+  },
+
+  // Airtable
+  airtable: {
+    nodeTypes: [
+      'n8n-nodes-base.airtable',
+      'n8n-nodes-base.airtableTool',
+    ],
+    category: 'database',
+    credentialPatterns: ['airtable*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      const operation = args.operation || nodeParameters.operation || 'list';
+      const baseId = args.base_id || nodeParameters.application;
+      const tableName = args.table || nodeParameters.table;
+      
+      const headers = {
+        'Authorization': `Bearer ${credentials.airtableTokenApi?.apiKey || credentials.airtableApi?.apiKey}`,
+        'Content-Type': 'application/json'
+      };
+
+      if (operation === 'list') {
+        const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}`;
+        const response = await fetch(url, { headers });
+        if (!response.ok) throw new Error(`Airtable API error: ${response.statusText}`);
+        return await response.json();
+      } else if (operation === 'create') {
+        const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ fields: args.fields })
+        });
+        if (!response.ok) throw new Error(`Airtable API error: ${response.statusText}`);
+        return await response.json();
+      }
+      
+      throw new Error(`Unsupported operation: ${operation}`);
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `airtable_${node.id}`,
+        description: node.parameters.description || `Interact with Airtable`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { type: 'string', enum: ['list', 'create', 'update', 'delete'], description: 'Airtable operation' },
+            base_id: { type: 'string', description: 'Airtable base ID' },
+            table: { type: 'string', description: 'Table name' },
+            fields: { type: 'object', description: 'Record fields (for create/update)' }
+          },
+          required: ['operation', 'base_id', 'table']
+        }
+      }
+    })
+  },
+
+  // Discord
+  discord: {
+    nodeTypes: [
+      'n8n-nodes-base.discord',
+      'n8n-nodes-base.discordTool',
+    ],
+    category: 'communication',
+    credentialPatterns: ['discord*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      const operation = args.operation || nodeParameters.operation || 'sendMessage';
+      
+      const headers = {
+        'Authorization': `Bot ${credentials.discordBotToken?.token || credentials.discordApi?.token}`,
+        'Content-Type': 'application/json'
+      };
+
+      if (operation === 'sendMessage') {
+        const url = `https://discord.com/api/v10/channels/${args.channel_id}/messages`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            content: args.message,
+            embeds: args.embeds
+          })
+        });
+        if (!response.ok) throw new Error(`Discord API error: ${response.statusText}`);
+        return await response.json();
+      }
+      
+      throw new Error(`Unsupported operation: ${operation}`);
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `discord_${node.id}`,
+        description: node.parameters.description || `Send Discord messages`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { type: 'string', enum: ['sendMessage'], description: 'Discord operation' },
+            channel_id: { type: 'string', description: 'Discord channel ID' },
+            message: { type: 'string', description: 'Message content' },
+            embeds: { type: 'array', description: 'Message embeds (optional)' }
+          },
+          required: ['channel_id', 'message']
+        }
+      }
+    })
+  },
+
+  // Telegram
+  telegram: {
+    nodeTypes: [
+      'n8n-nodes-base.telegram',
+      'n8n-nodes-base.telegramTool',
+    ],
+    category: 'communication',
+    credentialPatterns: ['telegram*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      const operation = args.operation || nodeParameters.operation || 'sendMessage';
+      const botToken = credentials.telegramApi?.accessToken;
+      
+      if (operation === 'sendMessage') {
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: args.chat_id,
+            text: args.text,
+            parse_mode: args.parse_mode || 'HTML'
+          })
+        });
+        if (!response.ok) throw new Error(`Telegram API error: ${response.statusText}`);
+        return await response.json();
+      }
+      
+      throw new Error(`Unsupported operation: ${operation}`);
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `telegram_${node.id}`,
+        description: node.parameters.description || `Send Telegram messages`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { type: 'string', enum: ['sendMessage'], description: 'Telegram operation' },
+            chat_id: { type: 'string', description: 'Telegram chat ID' },
+            text: { type: 'string', description: 'Message text' },
+            parse_mode: { type: 'string', enum: ['HTML', 'Markdown'], description: 'Parse mode (default: HTML)' }
+          },
+          required: ['chat_id', 'text']
+        }
+      }
+    })
+  },
+
   // Non-executable orchestration nodes (Langchain, triggers, etc.)
   langchainOrchestration: {
     nodeTypes: [

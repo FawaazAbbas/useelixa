@@ -1,4 +1,5 @@
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 import { LovableAITool } from './node-mappings.ts';
 
 export async function executeToolCall(
@@ -37,6 +38,12 @@ export async function executeToolCall(
     return await executeWorkspaceDocumentRead(args);
   } else if (nodeType === 'task_creation') {
     return await executeTaskCreation(args);
+  } else if (nodeType === 'list_automations') {
+    return await executeListAutomations(args);
+  } else if (nodeType === 'execute_automation') {
+    return await executeAutomationExecution(args);
+  } else if (nodeType === 'create_automation') {
+    return await executeCreateAutomation(args);
   }
   
   throw new Error(`Unsupported node type: ${nodeType}`);
@@ -706,5 +713,170 @@ async function executeTaskCreation(args: any): Promise<any> {
     task_url: `/tasks?taskId=${task.id}`,
     automations_created: createdAutomations.length,
     message: `Task "${title}" created successfully${createdAutomations.length > 0 ? ` with ${createdAutomations.length} automation(s)` : ''}`
+  };
+}
+
+// Execute list automations tool
+async function executeListAutomations(args: any): Promise<any> {
+  const { task_id, status, user_id, workspace_id } = args;
+  
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  let query = supabase
+    .from('automations')
+    .select(`
+      id,
+      name,
+      action,
+      trigger,
+      status,
+      last_executed_at,
+      last_execution_status,
+      next_run_at,
+      schedule_type,
+      is_enabled,
+      task_id,
+      created_at
+    `)
+    .eq('workspace_id', workspace_id)
+    .order('created_at', { ascending: false });
+
+  if (task_id) {
+    query = query.eq('task_id', task_id);
+  }
+  
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data: automations, error } = await query.limit(50);
+
+  if (error) {
+    throw new Error(`Failed to list automations: ${error.message}`);
+  }
+
+  return {
+    success: true,
+    count: automations?.length || 0,
+    automations: automations || []
+  };
+}
+
+// Execute automation execution tool
+async function executeAutomationExecution(args: any): Promise<any> {
+  const { automation_id, user_id, workspace_id } = args;
+  
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  // Fetch automation details
+  const { data: automation, error: fetchError } = await supabase
+    .from('automations')
+    .select('*')
+    .eq('id', automation_id)
+    .eq('workspace_id', workspace_id)
+    .single();
+
+  if (fetchError || !automation) {
+    throw new Error(`Automation not found: ${automation_id}`);
+  }
+
+  try {
+    // Invoke execute-automation-chain edge function
+    const { data, error } = await supabase.functions.invoke('execute-automation-chain', {
+      body: {
+        automations: [automation],
+        user_id,
+        workspace_id,
+        manual_trigger: true
+      }
+    });
+
+    if (error) {
+      throw new Error(`Execution failed: ${error.message}`);
+    }
+
+    return {
+      success: true,
+      automation_id,
+      automation_name: automation.name,
+      execution_result: data
+    };
+  } catch (error: any) {
+    console.error('Automation execution error:', error);
+    return {
+      success: false,
+      automation_id,
+      error: error.message
+    };
+  }
+}
+
+// Execute create automation tool
+async function executeCreateAutomation(args: any): Promise<any> {
+  const { 
+    name, 
+    action, 
+    trigger, 
+    task_id, 
+    schedule_type, 
+    schedule_time,
+    schedule_days,
+    schedule_interval_minutes,
+    user_id, 
+    workspace_id 
+  } = args;
+  
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const insertData: any = {
+    name: name.trim(),
+    action: action.trim(),
+    trigger: trigger || 'manual',
+    workspace_id,
+    created_by: user_id,
+    status: 'active',
+    schedule_type: schedule_type || 'manual'
+  };
+
+  if (task_id) {
+    insertData.task_id = task_id;
+  }
+
+  if (schedule_time) {
+    insertData.schedule_time = schedule_time;
+  }
+
+  if (schedule_days && Array.isArray(schedule_days)) {
+    insertData.schedule_days = schedule_days;
+  }
+
+  if (schedule_interval_minutes) {
+    insertData.schedule_interval_minutes = schedule_interval_minutes;
+  }
+
+  const { data: automation, error } = await supabase
+    .from('automations')
+    .insert(insertData)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create automation: ${error.message}`);
+  }
+
+  return {
+    success: true,
+    automation_id: automation.id,
+    automation_name: automation.name,
+    next_run_at: automation.next_run_at
   };
 }
