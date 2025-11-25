@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Gill Sans MT"', '"Gill Sans"', 'Calibri', '"Trebuchet MS"', 'sans-serif'],
+        sans: ['Calibri', '"Trebuchet MS"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
