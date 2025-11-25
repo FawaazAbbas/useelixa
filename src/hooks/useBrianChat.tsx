@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,6 +25,29 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
   useEffect(() => {
     if (userId && workspaceId) {
       loadConversation();
+
+      // Subscribe to real-time updates
+      const channel = supabase
+        .channel(`brian_conversation_${userId}_${workspaceId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'brian_conversations',
+            filter: `user_id=eq.${userId},workspace_id=eq.${workspaceId}`
+          },
+          (payload: RealtimePostgresChangesPayload<any>) => {
+            if (payload.new?.messages) {
+              setMessages(payload.new.messages as Message[]);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userId, workspaceId]);
 

@@ -70,6 +70,60 @@ export async function delegateToAgent(
     const agentResult = await routeResponse.json();
     agentOutput = agentResult.response || agentResult.content || "No response from agent";
 
+    // Find or create direct chat between user and target agent
+    const { data: existingChat } = await supabase
+      .from('chats')
+      .select('id')
+      .eq('workspace_id', workspaceId)
+      .eq('agent_id', agentId)
+      .eq('type', 'direct')
+      .maybeSingle();
+
+    let directChatId = existingChat?.id;
+
+    // Create chat if it doesn't exist
+    if (!directChatId) {
+      const { data: newChat, error: chatError } = await supabase
+        .from('chats')
+        .insert({
+          workspace_id: workspaceId,
+          agent_id: agentId,
+          type: 'direct',
+          created_by: userId
+        })
+        .select('id')
+        .single();
+
+      if (chatError) {
+        console.error('Error creating direct chat:', chatError);
+      } else {
+        directChatId = newChat.id;
+
+        // Add user as participant
+        await supabase.from('chat_participants').insert({
+          chat_id: directChatId,
+          user_id: userId
+        });
+      }
+    }
+
+    // Save delegation request and agent response to the direct chat
+    if (directChatId) {
+      // Save user's delegation request
+      await supabase.from('messages').insert({
+        chat_id: directChatId,
+        content: `[Delegated by Brian]: ${taskDescription}`,
+        user_id: userId
+      });
+
+      // Save agent's response
+      await supabase.from('messages').insert({
+        chat_id: directChatId,
+        agent_id: agentId,
+        content: agentOutput
+      });
+    }
+
     // Brian reviews the output
     reviewResult = await reviewAgentOutput(
       agent.name,

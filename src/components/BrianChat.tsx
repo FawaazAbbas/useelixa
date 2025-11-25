@@ -151,7 +151,21 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                     }`}
                   >
                     {msg.role === "assistant" ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none [&_*]:!text-foreground">
+                      <div className="prose prose-sm dark:prose-invert max-w-none 
+                        [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-3 [&>h1]:mt-4
+                        [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:mb-2 [&>h2]:mt-3
+                        [&>h3]:text-base [&>h3]:font-medium [&>h3]:mb-2 [&>h3]:mt-2
+                        [&>p]:mb-2 [&>p]:leading-relaxed
+                        [&>ul]:my-2 [&>ul]:pl-4 [&>ul]:list-disc
+                        [&>ol]:my-2 [&>ol]:pl-4 [&>ol]:list-decimal
+                        [&>li]:mb-1
+                        [&>code]:bg-muted [&>code]:px-1 [&>code]:py-0.5 [&>code]:rounded [&>code]:text-sm
+                        [&>pre]:bg-muted [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:my-2
+                        [&>blockquote]:border-l-2 [&>blockquote]:border-primary [&>blockquote]:pl-4 [&>blockquote]:italic
+                        [&>a]:text-primary [&>a]:underline [&>a]:hover:no-underline
+                        [&>table]:w-full [&>table]:border-collapse [&>table]:my-2
+                        [&>th]:border [&>th]:border-border [&>th]:p-2 [&>th]:bg-muted
+                        [&>td]:border [&>td]:border-border [&>td]:p-2">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {msg.content}
                         </ReactMarkdown>
