@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, FileText } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ChatSettingsDialogProps {
   chatId: string;
@@ -41,6 +42,7 @@ export const ChatSettingsDialog = ({
 }: ChatSettingsDialogProps) => {
   const [customName, setCustomName] = useState(currentName);
   const [documents, setDocuments] = useState<AgentDocument[]>([]);
+  const [speechStyle, setSpeechStyle] = useState<string>('professional');
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
@@ -48,8 +50,26 @@ export const ChatSettingsDialog = ({
   useEffect(() => {
     if (agentInstallationId) {
       fetchAgentDocuments();
+      fetchAgentConfiguration();
     }
   }, [agentInstallationId]);
+
+  const fetchAgentConfiguration = async () => {
+    if (!agentInstallationId) return;
+
+    const { data, error } = await supabase
+      .from('agent_configurations')
+      .select('configuration')
+      .eq('agent_installation_id', agentInstallationId)
+      .maybeSingle();
+
+    if (!error && data) {
+      const config = data.configuration as any;
+      if (config?.speech_style) {
+        setSpeechStyle(config.speech_style);
+      }
+    }
+  };
 
   const fetchAgentDocuments = async () => {
     if (!agentInstallationId) return;
@@ -89,6 +109,60 @@ export const ChatSettingsDialog = ({
       toast({
         title: 'Error',
         description: 'Failed to update agent name',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveSpeechStyle = async (newStyle: string) => {
+    if (!agentInstallationId) return;
+
+    setSaving(true);
+    try {
+      // Check if configuration exists
+      const { data: existingConfig } = await supabase
+        .from('agent_configurations')
+        .select('id, configuration')
+        .eq('agent_installation_id', agentInstallationId)
+        .maybeSingle();
+
+      const updatedConfiguration = {
+        ...(existingConfig?.configuration as any || {}),
+        speech_style: newStyle
+      };
+
+      if (existingConfig) {
+        // Update existing configuration
+        const { error } = await supabase
+          .from('agent_configurations')
+          .update({ configuration: updatedConfiguration })
+          .eq('id', existingConfig.id);
+
+        if (error) throw error;
+      } else {
+        // Create new configuration
+        const { error } = await supabase
+          .from('agent_configurations')
+          .insert({
+            agent_installation_id: agentInstallationId,
+            configuration: updatedConfiguration
+          });
+
+        if (error) throw error;
+      }
+
+      setSpeechStyle(newStyle);
+      toast({
+        title: 'Updated',
+        description: 'Speech style updated successfully',
+      });
+    } catch (error) {
+      console.error('Update speech style error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update speech style',
         variant: 'destructive',
       });
     } finally {
@@ -179,6 +253,29 @@ export const ChatSettingsDialog = ({
                   </Button>
                 </div>
               </div>
+            )}
+
+            {chatType === 'direct' && agentInstallationId && (
+              <>
+                <Separator />
+                <div>
+                  <Label>Speech Style</Label>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Choose how this agent communicates with you
+                  </p>
+                  <Select value={speechStyle} onValueChange={handleSaveSpeechStyle} disabled={saving}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select style" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="professional">Professional - Business-like and efficient</SelectItem>
+                      <SelectItem value="casual">Casual - Friendly and conversational</SelectItem>
+                      <SelectItem value="formal">Formal - Authoritative and precise</SelectItem>
+                      <SelectItem value="friendly">Friendly - Warm and enthusiastic</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
             )}
 
             {agentInstallationId && (

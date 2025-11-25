@@ -12,6 +12,7 @@ export interface RelevantKnowledge {
     description: string | null;
     file_type: string;
     extracted_content: string | null;
+    isAgentSpecific?: boolean;
   }>;
 }
 
@@ -24,7 +25,8 @@ export async function retrieveRelevantKnowledge(
   workspaceId: string,
   userMessage: string,
   maxArticles: number = 5,
-  maxDocuments: number = 5
+  maxDocuments: number = 5,
+  agentInstallationId?: string
 ): Promise<RelevantKnowledge> {
   const result: RelevantKnowledge = {
     articles: [],
@@ -62,24 +64,60 @@ export async function retrieveRelevantKnowledge(
       result.articles = articles;
     }
 
-    // Search documents by name and content
-    const { data: documents, error: docsError } = await supabase
-      .from("workspace_documents")
-      .select("name, description, file_type, extracted_content")
-      .eq("workspace_id", workspaceId)
-      .limit(maxDocuments);
+    // Search agent-specific documents first if agentInstallationId provided
+    if (agentInstallationId) {
+      const { data: agentDocs, error: agentDocsError } = await supabase
+        .from("agent_documents")
+        .select(`
+          document:workspace_documents(
+            name,
+            description,
+            file_type,
+            extracted_content
+          )
+        `)
+        .eq("agent_installation_id", agentInstallationId)
+        .limit(maxDocuments);
 
-    if (docsError) {
-      console.error("Error fetching documents:", docsError);
-    } else if (documents) {
-      // Filter documents that match any search term
-      result.documents = documents.filter(doc =>
-        searchTerms.some(term =>
-          doc.name.toLowerCase().includes(term) ||
-          (doc.description && doc.description.toLowerCase().includes(term)) ||
-          (doc.extracted_content && doc.extracted_content.toLowerCase().includes(term))
-        )
-      );
+      if (!agentDocsError && agentDocs) {
+        const agentDocuments = agentDocs
+          .map((ad: any) => ad.document)
+          .filter((doc: any) => doc && searchTerms.some(term =>
+            doc.name.toLowerCase().includes(term) ||
+            (doc.description && doc.description.toLowerCase().includes(term)) ||
+            (doc.extracted_content && doc.extracted_content.toLowerCase().includes(term))
+          ))
+          .map((doc: any) => ({ ...doc, isAgentSpecific: true }));
+        
+        result.documents.push(...agentDocuments);
+      }
+    }
+
+    // Search workspace-wide documents
+    const remainingSlots = maxDocuments - result.documents.length;
+    if (remainingSlots > 0) {
+      const { data: documents, error: docsError } = await supabase
+        .from("workspace_documents")
+        .select("name, description, file_type, extracted_content")
+        .eq("workspace_id", workspaceId)
+        .limit(remainingSlots);
+
+      if (docsError) {
+        console.error("Error fetching documents:", docsError);
+      } else if (documents) {
+        // Filter documents that match any search term
+        const workspaceDocs = documents
+          .filter((doc: any) =>
+            searchTerms.some(term =>
+              doc.name.toLowerCase().includes(term) ||
+              (doc.description && doc.description.toLowerCase().includes(term)) ||
+              (doc.extracted_content && doc.extracted_content.toLowerCase().includes(term))
+            )
+          )
+          .map((doc: any) => ({ ...doc, isAgentSpecific: false }));
+        
+        result.documents.push(...workspaceDocs);
+      }
     }
   } catch (error) {
     console.error("Error retrieving knowledge:", error);
@@ -115,23 +153,46 @@ export function formatKnowledgeContext(knowledge: RelevantKnowledge): string {
   }
 
   if (knowledge.documents.length > 0) {
-    context += "### Available Documents:\n\n";
-    context += "**Important**: For detailed document content, use the `read_workspace_document` tool with the exact document name.\n\n";
-    knowledge.documents.forEach((doc, idx) => {
-      context += `${idx + 1}. **${doc.name}** (${doc.file_type})`;
-      if (doc.description) {
-        context += ` - ${doc.description}`;
-      }
-      context += "\n";
-      
-      // Include extracted content preview if available
-      if (doc.extracted_content) {
-        const preview = doc.extracted_content.substring(0, 300);
-        context += `   Content preview: ${preview}${doc.extracted_content.length > 300 ? '...' : ''}\n`;
-        context += `   *Use read_workspace_document("${doc.name}") for full content*\n`;
-      }
-      context += "\n";
-    });
+    const agentSpecificDocs = knowledge.documents.filter((doc: any) => doc.isAgentSpecific);
+    const workspaceDocs = knowledge.documents.filter((doc: any) => !doc.isAgentSpecific);
+    
+    if (agentSpecificDocs.length > 0) {
+      context += "### Agent-Specific Documents (Priority Access):\n\n";
+      context += "**These documents are specifically assigned to you:**\n\n";
+      agentSpecificDocs.forEach((doc: any, idx) => {
+        context += `${idx + 1}. **${doc.name}** (${doc.file_type})`;
+        if (doc.description) {
+          context += ` - ${doc.description}`;
+        }
+        context += "\n";
+        
+        if (doc.extracted_content) {
+          const preview = doc.extracted_content.substring(0, 300);
+          context += `   Content preview: ${preview}${doc.extracted_content.length > 300 ? '...' : ''}\n`;
+          context += `   *Use read_workspace_document("${doc.name}") for full content*\n`;
+        }
+        context += "\n";
+      });
+    }
+    
+    if (workspaceDocs.length > 0) {
+      context += "### Workspace Documents:\n\n";
+      context += "**Important**: For detailed document content, use the `read_workspace_document` tool with the exact document name.\n\n";
+      workspaceDocs.forEach((doc: any, idx) => {
+        context += `${idx + 1}. **${doc.name}** (${doc.file_type})`;
+        if (doc.description) {
+          context += ` - ${doc.description}`;
+        }
+        context += "\n";
+        
+        if (doc.extracted_content) {
+          const preview = doc.extracted_content.substring(0, 300);
+          context += `   Content preview: ${preview}${doc.extracted_content.length > 300 ? '...' : ''}\n`;
+          context += `   *Use read_workspace_document("${doc.name}") for full content*\n`;
+        }
+        context += "\n";
+      });
+    }
   }
 
   return context;

@@ -16,7 +16,8 @@ export async function processAgentWorkflow(
   workspaceId: string,
   message: string,
   conversationHistory: any[],
-  supabase: any
+  supabase: any,
+  agentInstallationId?: string
 ): Promise<{ content: string; processingTime: number } | null> {
   const startTime = Date.now();
   
@@ -36,11 +37,28 @@ export async function processAgentWorkflow(
       const parsedWorkflow = parseN8nWorkflow(agent.workflow_json);
       const userCredentials = await fetchUserCredentials(userId, supabase);
 
-      // Retrieve relevant knowledge from workspace
+      // Fetch speech style configuration if available
+      let speechStyle: string | undefined;
+      if (agentInstallationId) {
+        const { data: configData } = await supabase
+          .from('agent_configurations')
+          .select('configuration')
+          .eq('agent_installation_id', agentInstallationId)
+          .maybeSingle();
+        
+        if (configData?.configuration) {
+          speechStyle = (configData.configuration as any).speech_style;
+        }
+      }
+
+      // Retrieve relevant knowledge from workspace (agent-specific + workspace-wide)
       const relevantKnowledge = await retrieveRelevantKnowledge(
         supabase,
         workspaceId,
-        message
+        message,
+        5,
+        5,
+        agentInstallationId
       );
       const knowledgeContext = formatKnowledgeContext(relevantKnowledge);
 
@@ -64,7 +82,8 @@ export async function processAgentWorkflow(
         agent.ai_personality,
         agent.ai_instructions,
         agent.guard_rails,
-        toolDefinitions
+        toolDefinitions,
+        speechStyle
       ) + knowledgeContext;
 
       const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
