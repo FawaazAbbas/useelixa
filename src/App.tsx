@@ -47,31 +47,41 @@ const App = () => (
           } />
           <Route path="/tasks" element={
             <div className="flex h-screen overflow-hidden">
-              <MainNavSidebar />
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
               <Tasks />
             </div>
           } />
           <Route path="/calendar" element={
             <div className="flex h-screen overflow-hidden">
-              <MainNavSidebar />
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
               <Calendar />
             </div>
           } />
           <Route path="/logs" element={
             <div className="flex h-screen overflow-hidden">
-              <MainNavSidebar />
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
               <Logs />
             </div>
           } />
           <Route path="/connections" element={
             <div className="flex h-screen overflow-hidden">
-              <MainNavSidebar />
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
               <Connections />
             </div>
           } />
           <Route path="/knowledge-base" element={
             <div className="flex h-screen overflow-hidden">
-              <MainNavSidebar />
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
               <KnowledgeBase />
             </div>
           } />
