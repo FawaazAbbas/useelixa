@@ -352,6 +352,7 @@ export type Database = {
       automations: {
         Row: {
           action: string
+          agent_id: string | null
           chat_id: string | null
           created_at: string
           created_by: string | null
@@ -368,6 +369,7 @@ export type Database = {
         }
         Insert: {
           action: string
+          agent_id?: string | null
           chat_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -384,6 +386,7 @@ export type Database = {
         }
         Update: {
           action?: string
+          agent_id?: string | null
           chat_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -399,6 +402,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "automations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "automations_chat_id_fkey"
             columns: ["chat_id"]

@@ -16,16 +16,24 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, phase } = await req.json();
+    const { messages, phase, agents } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    // Build agent context string
+    const agentContext = agents && agents.length > 0 
+      ? `\n\nAVAILABLE AGENTS:
+${agents.map((a: any) => `- ${a.name}: ${a.description || 'No description'}
+  Capabilities: [${(a.capabilities || []).join(', ')}]`).join('\n')}`
+      : '';
+
     const systemPrompt = `You are Brian, a friendly and helpful AI task assistant. Your goal is to help users create tasks with appropriate automations.
 
 PHASE: ${phase}
+${agentContext}
 
 If phase is "chat":
 - Ask clarifying questions one at a time to understand:
@@ -35,6 +43,8 @@ If phase is "chat":
   4. Deadlines or urgency
   5. If they need it ASAP
 - Based on their answers, suggest relevant automations
+- When suggesting automations, you MUST intelligently assign the best-suited agent for each automation
+- Analyze the automation requirements and match them against agent capabilities
 - When you have enough information, respond with a JSON object containing the task summary
 
 If phase is "summary":
@@ -55,11 +65,20 @@ When you have gathered sufficient information, respond with this EXACT JSON stru
         "name": "Automation name",
         "description": "What it does",
         "instruction": "Specific AI instruction",
-        "trigger": "manual|daily|weekly|on_completion"
+        "trigger": "manual|daily|weekly|on_completion",
+        "agentId": "agent-uuid",
+        "agentName": "Agent Name",
+        "assignmentReason": "Brief explanation why this agent is best suited (e.g., 'Specializes in RSS feed extraction and news aggregation')"
       }
     ]
   }
 }
+
+Agent Assignment Guidelines:
+- Match automation requirements to agent capabilities
+- Consider the task type (data extraction, email, analysis, etc.)
+- Provide clear, brief reasoning for each agent assignment
+- If no agent perfectly matches, choose the closest fit and explain
 
 Guidelines for suggesting automations:
 - Data retrieval: web scraping, API calls, document parsing

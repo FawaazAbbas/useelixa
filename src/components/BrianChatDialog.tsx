@@ -5,14 +5,32 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Send, Loader2, CheckCircle, XCircle, Zap } from "lucide-react";
+import { Bot, Send, Loader2, CheckCircle, XCircle, Zap, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { AgentSelector } from "./AgentSelector";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+}
+
+interface Agent {
+  id: string;
+  name: string;
+  description: string | null;
+  capabilities: string[] | null;
 }
 
 interface SuggestedAutomation {
@@ -20,6 +38,9 @@ interface SuggestedAutomation {
   description: string;
   instruction: string;
   trigger: string;
+  agentId: string;
+  agentName: string;
+  assignmentReason: string;
 }
 
 interface TaskSummary {
@@ -40,22 +61,42 @@ interface BrianChatDialogProps {
 export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChatDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState<"chat" | "summary">("chat");
   const [taskSummary, setTaskSummary] = useState<TaskSummary | null>(null);
   const [creating, setCreating] = useState(false);
+  const [changingAgentIndex, setChangingAgentIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open && messages.length === 0) {
-      setMessages([{
-        role: "assistant",
-        content: "Hi! I'm Brian, your AI task assistant. Let's create a task together. What would you like to accomplish?"
-      }]);
+    if (open) {
+      if (messages.length === 0) {
+        setMessages([{
+          role: "assistant",
+          content: "Hi! I'm Brian, your AI task assistant. Let's create a task together. What would you like to accomplish?"
+        }]);
+      }
+      fetchAgents();
     }
   }, [open]);
+
+  const fetchAgents = async () => {
+    const { data, error } = await supabase
+      .from("agents")
+      .select("id, name, description, capabilities")
+      .eq("status", "active")
+      .order("name");
+
+    if (error) {
+      console.error("Error fetching agents:", error);
+      return;
+    }
+
+    setAgents(data || []);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -75,7 +116,13 @@ export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChat
       const { data, error } = await supabase.functions.invoke("brian-task-assistant", {
         body: {
           messages: [...messages, { role: "user", content: userMessage }],
-          phase
+          phase,
+          agents: agents.map(a => ({
+            id: a.id,
+            name: a.name,
+            description: a.description,
+            capabilities: a.capabilities
+          }))
         }
       });
 
@@ -132,6 +179,7 @@ export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChat
           task_id: task.id,
           workspace_id: user.id,
           created_by: user.id,
+          agent_id: auto.agentId,
           status: "active"
         }));
 
@@ -231,20 +279,43 @@ export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChat
                       {taskSummary.automations.map((auto, idx) => (
                         <div
                           key={idx}
-                          className="flex items-start justify-between gap-2 p-3 rounded-lg bg-accent/50"
+                          className="space-y-2 p-3 rounded-lg bg-accent/50"
                         >
-                          <div className="flex-1">
-                            <p className="font-medium text-sm">{auto.name}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{auto.description}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Trigger: {auto.trigger}</p>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{auto.name}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{auto.description}</p>
+                              <p className="text-xs text-muted-foreground mt-1">Trigger: {auto.trigger}</p>
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => toggleAutomation(idx)}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => toggleAutomation(idx)}
-                          >
-                            <XCircle className="h-4 w-4" />
-                          </Button>
+                          
+                          <div className="flex items-center justify-between gap-2 pt-2 border-t">
+                            <div className="flex items-center gap-2">
+                              <Bot className="h-4 w-4 text-primary" />
+                              <span className="text-xs font-medium">{auto.agentName}</span>
+                              {auto.assignmentReason && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Info className="h-3 w-3" />
+                                  <span className="italic">{auto.assignmentReason}</span>
+                                </div>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setChangingAgentIndex(idx)}
+                              className="text-xs h-7"
+                            >
+                              Change
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -311,6 +382,48 @@ export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChat
             </Button>
           </div>
         )}
+
+        <AlertDialog open={changingAgentIndex !== null} onOpenChange={() => setChangingAgentIndex(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Change Agent Assignment</AlertDialogTitle>
+              <AlertDialogDescription>
+                Select a different agent to handle this automation
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            
+            {changingAgentIndex !== null && taskSummary && (
+              <AgentSelector
+                agents={agents}
+                selectedAgentId={taskSummary.automations[changingAgentIndex].agentId}
+                onSelect={(agentId) => {
+                  const selectedAgent = agents.find(a => a.id === agentId);
+                  if (selectedAgent) {
+                    const updatedAutomations = [...taskSummary.automations];
+                    updatedAutomations[changingAgentIndex] = {
+                      ...updatedAutomations[changingAgentIndex],
+                      agentId: selectedAgent.id,
+                      agentName: selectedAgent.name,
+                      assignmentReason: "Manually selected by user"
+                    };
+                    setTaskSummary({
+                      ...taskSummary,
+                      automations: updatedAutomations
+                    });
+                  }
+                }}
+                label="Select New Agent"
+              />
+            )}
+            
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => setChangingAgentIndex(null)}>
+                Confirm
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
