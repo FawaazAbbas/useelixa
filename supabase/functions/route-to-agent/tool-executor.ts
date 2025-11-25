@@ -1,11 +1,14 @@
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 import { LovableAITool } from './node-mappings.ts';
+import { logActivity } from './activity-logger.ts';
 
 export async function executeToolCall(
   toolCall: any,
-  toolDefinitions: LovableAITool[]
+  toolDefinitions: LovableAITool[],
+  context?: { user_id: string; agent_id: string; chat_id?: string }
 ): Promise<any> {
+  const startTime = Date.now();
   const tool = toolDefinitions.find(t => t.function.name === toolCall.function.name);
   
   if (!tool) {
@@ -19,34 +22,67 @@ export async function executeToolCall(
   
   console.log(`Executing tool: ${toolCall.function.name}`, { nodeType, args });
   
-  // Route to appropriate executor based on node type
-  if (nodeType === 'n8n-nodes-base.httpRequest') {
-    return await executeHttpRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.notion') {
-    return await executeNotionRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.slack') {
-    return await executeSlackRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.gmail' || nodeType === 'n8n-nodes-base.gmailTool') {
-    return await executeGmailRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.googleSheets' || nodeType === 'n8n-nodes-base.googleSheetsTool') {
-    return await executeSheetsRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.openAi') {
-    return await executeOpenAIRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
-    return await executeRSSRequest(args, credentials, nodeParameters);
-  } else if (nodeType === 'workspace_document') {
-    return await executeWorkspaceDocumentRead(args);
-  } else if (nodeType === 'task_creation') {
-    return await executeTaskCreation(args);
-  } else if (nodeType === 'list_automations') {
-    return await executeListAutomations(args);
-  } else if (nodeType === 'execute_automation') {
-    return await executeAutomationExecution(args);
-  } else if (nodeType === 'create_automation') {
-    return await executeCreateAutomation(args);
+  let result: any;
+  let success = true;
+  let error: string | undefined;
+
+  try {
+    // Route to appropriate executor based on node type
+    if (nodeType === 'n8n-nodes-base.httpRequest') {
+      result = await executeHttpRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'n8n-nodes-base.notion') {
+      result = await executeNotionRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'n8n-nodes-base.slack') {
+      result = await executeSlackRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'n8n-nodes-base.gmail' || nodeType === 'n8n-nodes-base.gmailTool') {
+      result = await executeGmailRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'n8n-nodes-base.googleSheets' || nodeType === 'n8n-nodes-base.googleSheetsTool') {
+      result = await executeSheetsRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'n8n-nodes-base.openAi') {
+      result = await executeOpenAIRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
+      result = await executeRSSRequest(args, credentials, nodeParameters);
+    } else if (nodeType === 'workspace_document') {
+      result = await executeWorkspaceDocumentRead(args);
+    } else if (nodeType === 'task_creation') {
+      result = await executeTaskCreation(args);
+    } else if (nodeType === 'list_automations') {
+      result = await executeListAutomations(args);
+    } else if (nodeType === 'execute_automation') {
+      result = await executeAutomationExecution(args);
+    } else if (nodeType === 'create_automation') {
+      result = await executeCreateAutomation(args);
+    } else {
+      throw new Error(`Unsupported node type: ${nodeType}`);
+    }
+  } catch (err) {
+    success = false;
+    error = err instanceof Error ? err.message : 'Unknown error';
+    throw err;
+  } finally {
+    // Log activity if context is provided
+    if (context) {
+      const executionTime = Date.now() - startTime;
+      await logActivity(
+        {
+          user_id: context.user_id,
+          agent_id: context.agent_id,
+          chat_id: context.chat_id,
+          tool_name: toolCall.function.name,
+          nodeType,
+        },
+        {
+          success,
+          execution_time_ms: executionTime,
+          input: args,
+          output: result,
+          error,
+        }
+      );
+    }
   }
-  
-  throw new Error(`Unsupported node type: ${nodeType}`);
+
+  return result;
 }
 
 async function executeHttpRequest(

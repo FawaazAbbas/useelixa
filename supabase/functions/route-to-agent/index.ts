@@ -210,7 +210,8 @@ ${otherAgents}
           messageForAgent, 
           conversationHistory, 
           supabase,
-          undefined // group chats don't have single installation ID
+          undefined, // group chats don't have single installation ID
+          chat_id
         );
         
         if (!agentResponse) {
@@ -396,7 +397,8 @@ ${otherAgents}
           message,
           conversationHistory,
           supabase,
-          agentInstallationId
+          agentInstallationId,
+          chat_id
         );
 
         if (result) {

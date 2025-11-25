@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           action: string
           agent_id: string | null
+          chat_id: string | null
           created_at: string
           entity_id: string | null
           entity_type: string | null
@@ -29,6 +30,7 @@ export type Database = {
         Insert: {
           action: string
           agent_id?: string | null
+          chat_id?: string | null
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
@@ -40,6 +42,7 @@ export type Database = {
         Update: {
           action?: string
           agent_id?: string | null
+          chat_id?: string | null
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
@@ -54,6 +57,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_logs_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
             referencedColumns: ["id"]
           },
         ]

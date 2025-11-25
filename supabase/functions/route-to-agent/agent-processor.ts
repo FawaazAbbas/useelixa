@@ -17,7 +17,8 @@ export async function processAgentWorkflow(
   message: string,
   conversationHistory: any[],
   supabase: any,
-  agentInstallationId?: string
+  agentInstallationId?: string,
+  chatId?: string
 ): Promise<{ content: string; processingTime: number } | null> {
   const startTime = Date.now();
   
@@ -128,7 +129,11 @@ export async function processAgentWorkflow(
             toolCall.function.arguments = JSON.stringify(args);
           }
           
-          const result = await executeToolCall(toolCall, toolDefinitions);
+          const result = await executeToolCall(
+            toolCall, 
+            toolDefinitions,
+            { user_id: userId, agent_id: agent.id, chat_id: chatId }
+          );
           toolResults.push(result);
         }
 
