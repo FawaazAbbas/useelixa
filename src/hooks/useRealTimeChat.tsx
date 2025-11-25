@@ -27,6 +27,7 @@ interface Chat {
   last_activity: string;
   agent_installation_id?: string;
   custom_name?: string;
+  unread_count?: number;
   agent?: {
     id: string;
     name: string;
@@ -45,6 +46,36 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
+
+  // Fetch unread counts for all chats
+  const fetchUnreadCounts = useCallback(async () => {
+    if (!userId || !workspaceId) return;
+
+    const { data: chatList } = await supabase
+      .from('chats')
+      .select('id')
+      .eq('workspace_id', workspaceId);
+
+    if (!chatList) return;
+
+    const unreadCounts: Record<string, number> = {};
+    
+    for (const chat of chatList) {
+      const { count } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('chat_id', chat.id)
+        .eq('read', false)
+        .is('user_id', null); // Only agent messages
+
+      unreadCounts[chat.id] = count || 0;
+    }
+
+    setChats(prev => prev.map(chat => ({
+      ...chat,
+      unread_count: unreadCounts[chat.id] || 0
+    })));
+  }, [userId, workspaceId]);
 
   // Fetch user's chats (both direct and group)
   const fetchChats = useCallback(async () => {
@@ -145,8 +176,17 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           ...msg,
           metadata: msg.metadata as Message['metadata']
         })));
+        
+        // Mark agent messages as read
+        await supabase.rpc('mark_messages_read', {
+          p_chat_id: chatId,
+          p_user_id: userId
+        });
+        
+        // Update unread count for this chat
+        await fetchUnreadCounts();
       }
-  }, []);
+  }, [userId]);
 
   // Send message (handles both direct and group chats)
   const sendMessage = useCallback(async (chatId: string, agentIdOrIds: string | string[], content: string, chatType: 'direct' | 'group' = 'direct') => {
@@ -155,13 +195,14 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     setSending(true);
 
     try {
-      // Save user message
+      // Save user message (mark as read by default)
       const { data: userMessage, error: userMsgError } = await supabase
         .from('messages')
         .insert({
           chat_id: chatId,
           user_id: userId,
           content: content.trim(),
+          read: true, // User's own messages are always read
         })
         .select()
         .single();
@@ -222,6 +263,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     if (!userId) return;
 
     fetchChats();
+    fetchUnreadCounts();
 
     const channel = supabase
       .channel('workspace-updates')
@@ -243,6 +285,11 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
             };
             return [...prev, typedMessage];
           });
+          
+          // Refresh unread counts when new message arrives
+          if (!newMessage.user_id) { // Only for agent messages
+            fetchUnreadCounts();
+          }
         }
       )
       .on(
@@ -262,7 +309,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, fetchChats]);
+  }, [userId, fetchChats, fetchUnreadCounts]);
 
   return {
     chats,
