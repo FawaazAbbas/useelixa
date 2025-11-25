@@ -262,6 +262,45 @@ serve(async (req) => {
           toolResult = `Remembered: ${toolArgs.key}`;
         } else if (toolName === "recall") {
           toolResult = context[toolArgs.key] || "Not found in memory";
+        } else if (toolName === "delegate_to_agent") {
+          // Find or create chat with the target agent
+          const { data: existingChat } = await supabase
+            .from("chats")
+            .select("id")
+            .eq("workspace_id", workspace_id)
+            .eq("agent_id", toolArgs.agent_id)
+            .eq("type", "direct")
+            .single();
+
+          let targetChatId = existingChat?.id;
+
+          if (!targetChatId) {
+            // Create new chat with the agent
+            const { data: newChat } = await supabase
+              .from("chats")
+              .insert({
+                workspace_id,
+                agent_id: toolArgs.agent_id,
+                type: "direct",
+                created_by: user_id,
+              })
+              .select()
+              .single();
+            targetChatId = newChat?.id;
+          }
+
+          if (!targetChatId) {
+            toolResult = "Error: Could not create chat with agent";
+          } else {
+            toolResult = await delegateToAgent(
+              toolArgs.agent_id,
+              toolArgs.task_description,
+              user_id,
+              workspace_id,
+              targetChatId,
+              supabase
+            );
+          }
         } else {
           toolResult = "Tool not implemented";
         }
