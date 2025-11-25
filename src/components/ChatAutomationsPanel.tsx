@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Play, Plus, Edit, Trash2 } from 'lucide-react';
+import { Play, Plus, Edit, Trash2, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChatAutomationDialog } from './ChatAutomationDialog';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Automation {
   id: string;
@@ -17,6 +18,8 @@ interface Automation {
   chain_order: number | null;
   agent_id: string | null;
   last_executed_at: string | null;
+  next_run_at: string | null;
+  schedule_type: string | null;
   agent?: {
     id: string;
     name: string;
@@ -178,10 +181,18 @@ export const ChatAutomationsPanel = ({ chatId, userId, workspaceId }: ChatAutoma
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between">
-                    <div className="text-xs text-muted-foreground">
-                      <p>Trigger: {automation.trigger}</p>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>Schedule: {automation.schedule_type || 'manual'}</p>
                       {automation.agent && (
-                        <p className="mt-1">Agent: {automation.agent.name}</p>
+                        <p>Agent: {automation.agent.name}</p>
+                      )}
+                      {automation.next_run_at && (
+                        <div className="flex items-center gap-1 text-primary">
+                          <Clock className="w-3 h-3" />
+                          <span>
+                            Next run: {formatDistanceToNow(new Date(automation.next_run_at), { addSuffix: true })}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-2">

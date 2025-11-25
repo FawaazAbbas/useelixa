@@ -3,7 +3,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Edit, Trash2, Bot, ArrowDown } from "lucide-react";
+import { GripVertical, Edit, Trash2, Bot, ArrowDown, Clock } from "lucide-react";
+import { formatDistanceToNow } from 'date-fns';
 
 interface Agent {
   id: string;
@@ -23,6 +24,8 @@ interface Automation {
   task_id: string | null;
   chain_order: number;
   agent_id: string | null;
+  next_run_at: string | null;
+  schedule_type: string | null;
   agent?: Agent;
 }
 
@@ -85,14 +88,24 @@ export const SortableAutomationCard = ({
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {automation.action}
                   </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Bot className="h-3 w-3 text-primary" />
-                    <span className="text-xs text-muted-foreground">
-                      {automation.agent?.name || "No agent assigned"}
-                    </span>
-                    <Badge variant="outline" className="text-xs">
-                      {automation.trigger}
-                    </Badge>
+                  <div className="flex flex-col gap-1 mt-2">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-3 w-3 text-primary" />
+                      <span className="text-xs text-muted-foreground">
+                        {automation.agent?.name || "No agent assigned"}
+                      </span>
+                      <Badge variant="outline" className="text-xs">
+                        {automation.schedule_type || 'manual'}
+                      </Badge>
+                    </div>
+                    {automation.next_run_at && (
+                      <div className="flex items-center gap-1 text-primary">
+                        <Clock className="h-3 w-3" />
+                        <span className="text-xs">
+                          Next: {formatDistanceToNow(new Date(automation.next_run_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

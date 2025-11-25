@@ -39,6 +39,8 @@ interface Automation {
   task_id: string | null;
   chain_order: number;
   agent_id: string | null;
+  next_run_at: string | null;
+  schedule_type: string | null;
   agent?: Agent;
 }
 

@@ -41,6 +41,10 @@ export const ChatAutomationDialog = ({
   const [action, setAction] = useState(automation?.action || '');
   const [trigger, setTrigger] = useState(automation?.trigger || 'manual');
   const [agentId, setAgentId] = useState(automation?.agent_id || '');
+  const [scheduleType, setScheduleType] = useState('manual');
+  const [scheduleTime, setScheduleTime] = useState('09:00');
+  const [scheduleDays, setScheduleDays] = useState<number[]>([]);
+  const [intervalMinutes, setIntervalMinutes] = useState(30);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -59,6 +63,12 @@ export const ChatAutomationDialog = ({
     fetchAgents();
   }, [workspaceId]);
 
+  const toggleDay = (day: number) => {
+    setScheduleDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
+  };
+
   const handleSave = async () => {
     if (!name.trim() || !action.trim() || !agentId) {
       toast({
@@ -71,15 +81,28 @@ export const ChatAutomationDialog = ({
 
     setSaving(true);
     try {
+      const updateData: any = {
+        name: name.trim(),
+        action: action.trim(),
+        trigger,
+        agent_id: agentId,
+        schedule_type: scheduleType,
+      };
+
+      if (scheduleType !== 'manual') {
+        updateData.schedule_time = scheduleTime;
+        if (scheduleType === 'weekly') {
+          updateData.schedule_days = scheduleDays;
+        }
+        if (scheduleType === 'interval') {
+          updateData.schedule_interval_minutes = intervalMinutes;
+        }
+      }
+
       if (automation) {
         const { error } = await supabase
           .from('automations')
-          .update({
-            name: name.trim(),
-            action: action.trim(),
-            trigger,
-            agent_id: agentId,
-          })
+          .update(updateData)
           .eq('id', automation.id);
 
         if (error) throw error;
@@ -95,10 +118,7 @@ export const ChatAutomationDialog = ({
         const nextOrder = (maxOrder?.chain_order || 0) + 1;
 
         const { error } = await supabase.from('automations').insert({
-          name: name.trim(),
-          action: action.trim(),
-          trigger,
-          agent_id: agentId,
+          ...updateData,
           chat_id: chatId,
           workspace_id: workspaceId,
           chain_order: nextOrder,
@@ -155,18 +175,65 @@ export const ChatAutomationDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="trigger">Trigger</Label>
-            <Select value={trigger} onValueChange={setTrigger}>
-              <SelectTrigger id="trigger">
+            <Label htmlFor="scheduleType">Schedule Type</Label>
+            <Select value={scheduleType} onValueChange={setScheduleType}>
+              <SelectTrigger id="scheduleType">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="on_message">On Message</SelectItem>
+                <SelectItem value="manual">Manual (Run on demand)</SelectItem>
+                <SelectItem value="interval">Interval (Every X minutes)</SelectItem>
+                <SelectItem value="daily">Daily (At specific time)</SelectItem>
+                <SelectItem value="weekly">Weekly (Specific days & time)</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {scheduleType !== 'manual' && (
+            <>
+              <div>
+                <Label htmlFor="scheduleTime">Time of Day</Label>
+                <Input
+                  id="scheduleTime"
+                  type="time"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                />
+              </div>
+
+              {scheduleType === 'weekly' && (
+                <div>
+                  <Label>Days of Week</Label>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                      <Button
+                        key={day}
+                        type="button"
+                        size="sm"
+                        variant={scheduleDays.includes(i) ? 'default' : 'outline'}
+                        onClick={() => toggleDay(i)}
+                      >
+                        {day}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {scheduleType === 'interval' && (
+                <div>
+                  <Label htmlFor="intervalMinutes">Run Every (minutes)</Label>
+                  <Input
+                    id="intervalMinutes"
+                    type="number"
+                    min={5}
+                    value={intervalMinutes}
+                    onChange={(e) => setIntervalMinutes(parseInt(e.target.value) || 5)}
+                  />
+                </div>
+              )}
+            </>
+          )}
 
           <div>
             <Label htmlFor="agent">Assigned Agent</Label>
