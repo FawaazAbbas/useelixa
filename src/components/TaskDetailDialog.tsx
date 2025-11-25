@@ -9,12 +9,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Calendar, Flag, Plus } from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+import { Calendar } from "lucide-react";
+import { format } from "date-fns";
 import { AutomationLogsSection } from "./AutomationLogsSection";
+import { AutomationChainBuilder } from "./AutomationChainBuilder";
+import { AutomationEditDialog } from "./AutomationEditDialog";
+import { AddAutomationDialog } from "./AddAutomationDialog";
 
 interface Task {
   id: string;
@@ -28,14 +29,25 @@ interface Task {
   created_at: string;
 }
 
+interface Agent {
+  id: string;
+  name: string;
+  description: string | null;
+  capabilities: string[] | null;
+}
+
 interface Automation {
   id: string;
   name: string;
+  action: string;
   status: string;
   trigger: string;
   progress: number;
   last_run: string | null;
   task_id: string | null;
+  chain_order: number;
+  agent_id: string | null;
+  agent?: Agent;
 }
 
 interface TaskDetailDialogProps {
@@ -48,6 +60,8 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
   const { toast } = useToast();
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
+  const [showAddAutomation, setShowAddAutomation] = useState(false);
 
   useEffect(() => {
     if (task && open) {
@@ -61,8 +75,12 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
     setLoading(true);
     const { data, error } = await supabase
       .from("automations")
-      .select("*")
-      .eq("task_id", task.id);
+      .select(`
+        *,
+        agent:agents(id, name, description, capabilities)
+      `)
+      .eq("task_id", task.id)
+      .order("chain_order");
 
     if (error) {
       console.error("Error fetching automations:", error);
@@ -75,6 +93,27 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
       setAutomations(data || []);
     }
     setLoading(false);
+  };
+
+  const handleDeleteAutomation = async (automationId: string) => {
+    const { error } = await supabase
+      .from("automations")
+      .delete()
+      .eq("id", automationId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete automation",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Automation deleted successfully"
+      });
+      fetchAutomations();
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -156,74 +195,35 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
             )}
           </div>
 
-          {/* Automations Section */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Automations</h3>
-              <Button size="sm" variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Automation
-              </Button>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : automations.length === 0 ? (
-              <Card>
-                <CardContent className="py-8">
-                  <p className="text-center text-sm text-muted-foreground">
-                    No automations linked to this task yet
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-2">
-                {automations.map((automation) => (
-                  <Card key={automation.id}>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{automation.name}</h4>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Trigger: {automation.trigger}
-                            </p>
-                          </div>
-                          <Badge variant={getStatusColor(automation.status)}>
-                            {automation.status}
-                          </Badge>
-                        </div>
-
-                        {automation.progress > 0 && (
-                          <div className="space-y-1">
-                            <Progress value={automation.progress} className="h-1.5" />
-                            <p className="text-xs text-muted-foreground">
-                              {automation.progress}% complete
-                            </p>
-                          </div>
-                        )}
-
-                        <p className="text-xs text-muted-foreground">
-                          Last run:{" "}
-                          {automation.last_run
-                            ? formatDistanceToNow(new Date(automation.last_run), {
-                                addSuffix: true,
-                              })
-                            : "Never"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Automation Chain Builder */}
+          <AutomationChainBuilder
+            taskId={task.id}
+            automations={automations}
+            onReorder={fetchAutomations}
+            onEdit={(automation) => setEditingAutomation(automation)}
+            onDelete={handleDeleteAutomation}
+            onAddNew={() => setShowAddAutomation(true)}
+          />
 
           {/* Automation Logs Section */}
           <AutomationLogsSection taskId={task.id} />
         </div>
+
+        {/* Edit Automation Dialog */}
+        <AutomationEditDialog
+          open={!!editingAutomation}
+          onOpenChange={(open) => !open && setEditingAutomation(null)}
+          automation={editingAutomation}
+          onSaved={fetchAutomations}
+        />
+
+        {/* Add Automation Dialog */}
+        <AddAutomationDialog
+          open={showAddAutomation}
+          onOpenChange={setShowAddAutomation}
+          taskId={task.id}
+          onAdded={fetchAutomations}
+        />
       </DialogContent>
     </Dialog>
   );

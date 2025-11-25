@@ -353,10 +353,14 @@ export type Database = {
         Row: {
           action: string
           agent_id: string | null
+          chain_order: number | null
           chat_id: string | null
           created_at: string
           created_by: string | null
+          execution_output: Json | null
           id: string
+          last_executed_at: string | null
+          last_execution_status: string | null
           last_run: string | null
           name: string
           progress: number | null
@@ -370,10 +374,14 @@ export type Database = {
         Insert: {
           action: string
           agent_id?: string | null
+          chain_order?: number | null
           chat_id?: string | null
           created_at?: string
           created_by?: string | null
+          execution_output?: Json | null
           id?: string
+          last_executed_at?: string | null
+          last_execution_status?: string | null
           last_run?: string | null
           name: string
           progress?: number | null
@@ -387,10 +395,14 @@ export type Database = {
         Update: {
           action?: string
           agent_id?: string | null
+          chain_order?: number | null
           chat_id?: string | null
           created_at?: string
           created_by?: string | null
+          execution_output?: Json | null
           id?: string
+          last_executed_at?: string | null
+          last_execution_status?: string | null
           last_run?: string | null
           name?: string
           progress?: number | null
