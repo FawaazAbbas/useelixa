@@ -5,6 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  metadata?: {
+    files?: Array<{
+      name: string;
+      url: string;
+      type: string;
+      size: number;
+    }>;
+  };
 }
 
 export const useBrianChat = (userId: string | undefined, workspaceId: string | undefined) => {
@@ -42,11 +50,11 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
     }
   };
 
-  const sendMessage = async (content: string) => {
-    if (!userId || !workspaceId || !content.trim()) return;
+  const sendMessage = async (content: string, metadata?: Message['metadata']) => {
+    if (!userId || !workspaceId || (!content.trim() && !metadata?.files?.length)) return;
 
     setSending(true);
-    const userMessage: Message = { role: "user", content };
+    const userMessage: Message = { role: "user", content, metadata };
     setMessages((prev) => [...prev, userMessage]);
 
     try {
@@ -56,6 +64,7 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
           user_id: userId,
           workspace_id: workspaceId,
           chat_type: "direct",
+          metadata,
         },
       });
 
