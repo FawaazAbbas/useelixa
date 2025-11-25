@@ -38,8 +38,8 @@ export const MainNavSidebar = () => {
   return (
     <div className="h-screen w-20 bg-background border-r border-border flex flex-col items-center py-6 gap-6">
       {/* Logo */}
-      <div className="w-10 h-10 flex-shrink-0 transition-transform hover:scale-110 duration-200">
-        <img src="/elixa-logo.png" alt="ELIXA" className="w-full h-full object-contain" />
+      <div className="w-10 h-10 flex-shrink-0 transition-all duration-300 hover:scale-110 hover:rotate-6 cursor-pointer">
+        <img src="/elixa-logo.png" alt="ELIXA" className="w-full h-full object-contain drop-shadow-lg hover:drop-shadow-2xl transition-all duration-300" />
       </div>
 
       {/* Navigation Items */}
