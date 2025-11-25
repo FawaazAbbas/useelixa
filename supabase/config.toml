@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.brian-task-assistant]
 verify_jwt = true
+
+[functions.execute-automation-chain]
+verify_jwt = false
