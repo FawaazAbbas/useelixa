@@ -12,6 +12,7 @@ import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { TaskCreationModeDialog } from "@/components/TaskCreationModeDialog";
 import { BrianChatDialog } from "@/components/BrianChatDialog";
 import { ManualTaskDialog } from "@/components/ManualTaskDialog";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Task {
   id: string;
@@ -97,6 +98,11 @@ const Tasks = () => {
 
     if (error) {
       console.error("Error fetching tasks:", error);
+      toast({
+        variant: "destructive",
+        title: "Error loading tasks",
+        description: error.message,
+      });
     } else {
       setTasks(data || []);
     }
@@ -184,11 +190,15 @@ const Tasks = () => {
 
         <div className="grid gap-4">
           {tasks.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">No tasks yet. Create one to get started!</p>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon="📋"
+              title="No tasks yet"
+              description="Create your first task to start organizing your work with AI-powered automations"
+              action={{
+                label: "Create Task",
+                onClick: () => setModeDialogOpen(true),
+              }}
+            />
           ) : (
             tasks.map((task) => (
               <Card

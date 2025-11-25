@@ -24,6 +24,8 @@ const Marketplace = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,8 +71,17 @@ const Marketplace = () => {
     fetchData();
   }, []);
 
-  const featuredAgents = agents.slice(0, 4);
-  const topAgents = agents.slice(4, 8);
+  // Filter agents based on search and category
+  const filteredAgents = agents.filter(agent => {
+    const matchesSearch = searchQuery === "" || 
+      agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      agent.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || agent.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const featuredAgents = filteredAgents.slice(0, 4);
+  const topAgents = filteredAgents.slice(4, 8);
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,7 +89,7 @@ const Marketplace = () => {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              AgentStore
+              ELIXA
             </h1>
             <div className="hidden md:flex gap-6">
               <button className="text-sm font-medium hover:text-primary transition-colors">
@@ -126,6 +137,8 @@ const Marketplace = () => {
               <Input 
                 placeholder="Search for agents..." 
                 className="pl-12 py-6 text-lg border-2"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -135,8 +148,20 @@ const Marketplace = () => {
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12 overflow-x-auto">
           <div className="flex gap-3 pb-4">
+            <Button 
+              variant={selectedCategory === null ? "default" : "outline"} 
+              className="whitespace-nowrap"
+              onClick={() => setSelectedCategory(null)}
+            >
+              All
+            </Button>
             {categories.map((category) => (
-              <Button key={category} variant="outline" className="whitespace-nowrap">
+              <Button 
+                key={category} 
+                variant={selectedCategory === category ? "default" : "outline"} 
+                className="whitespace-nowrap"
+                onClick={() => setSelectedCategory(category)}
+              >
                 {category}
               </Button>
             ))}
@@ -144,7 +169,21 @@ const Marketplace = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Loading agents...</div>
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading agents...</p>
+          </div>
+        ) : filteredAgents.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🤖</div>
+            <h3 className="text-2xl font-bold mb-2">No agents found</h3>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery ? `No agents match "${searchQuery}"` : "No agents available in this category"}
+            </p>
+            <Button onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}>
+              Clear filters
+            </Button>
+          </div>
         ) : (
           <>
             <section className="mb-16">
@@ -152,20 +191,28 @@ const Marketplace = () => {
                 <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
                 Featured Agents
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {featuredAgents.map((agent) => (
-                  <AgentCard key={agent.id} agent={agent} />
-                ))}
-              </div>
+              {featuredAgents.length === 0 ? (
+                <p className="text-muted-foreground">No featured agents available</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {featuredAgents.map((agent) => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                </div>
+              )}
             </section>
 
             <section>
               <h2 className="text-2xl font-bold mb-6">Top Charts</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {topAgents.map((agent) => (
-                  <AgentCard key={agent.id} agent={agent} />
-                ))}
-              </div>
+              {topAgents.length === 0 ? (
+                <p className="text-muted-foreground">No top agents available</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {topAgents.map((agent) => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                </div>
+              )}
             </section>
           </>
         )}

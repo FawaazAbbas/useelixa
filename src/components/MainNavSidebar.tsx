@@ -1,5 +1,16 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug, BookOpen } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug, BookOpen, User, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
   { icon: MessageSquare, label: "Messenger", path: "/workspace" },
@@ -11,6 +22,19 @@ const navItems = [
 ];
 
 export const MainNavSidebar = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const getUserInitials = () => {
+    if (!user?.email) return "U";
+    return user.email.charAt(0).toUpperCase();
+  };
+
   return (
     <div className="h-screen w-20 bg-background border-r border-border flex flex-col items-center py-6 gap-6">
       {/* Logo */}
@@ -57,6 +81,41 @@ export const MainNavSidebar = () => {
           </span>
         </NavLink>
       </div>
+
+      {/* User Profile */}
+      {user && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-2 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56" style={{ zIndex: 999999 }}>
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">My Account</p>
+                <p className="text-xs leading-none text-muted-foreground truncate">
+                  {user.email}
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <SettingsIcon className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 };
