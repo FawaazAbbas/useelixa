@@ -12,7 +12,7 @@ const navItems = [
 export const MainNavSidebar = () => {
   return (
     <>
-      <div className="w-20 bg-sidebar-background border-r border-sidebar-border flex flex-col items-center py-4">
+      <div className="w-20 h-screen bg-sidebar-background border-r border-sidebar-border flex flex-col items-center py-4">
         {/* Logo */}
         <div className="mb-4 px-2">
           <img src="/logo.png" alt="ELIXA" className="w-12 h-12" />
@@ -28,7 +28,7 @@ export const MainNavSidebar = () => {
               activeClassName="text-primary"
             >
               <item.icon className="h-6 w-6 text-sidebar-foreground group-hover:text-primary transition-colors" />
-              <span className="absolute left-full ml-3 px-2 py-1 bg-sidebar-background border border-sidebar-border rounded text-xs font-medium text-sidebar-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <span className="absolute left-full ml-3 px-2 py-1 bg-white border border-sidebar-border rounded text-xs font-medium text-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] shadow-lg">
                 {item.label}
               </span>
             </NavLink>
@@ -45,7 +45,7 @@ export const MainNavSidebar = () => {
           activeClassName="text-primary"
         >
           <Plug className="h-6 w-6 text-sidebar-foreground group-hover:text-primary transition-colors" />
-          <span className="absolute left-full ml-3 px-2 py-1 bg-sidebar-background border border-sidebar-border rounded text-xs font-medium text-sidebar-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <span className="absolute left-full ml-3 px-2 py-1 bg-white border border-sidebar-border rounded text-xs font-medium text-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] shadow-lg">
             Connections
           </span>
         </NavLink>
@@ -58,7 +58,7 @@ export const MainNavSidebar = () => {
         activeClassName="border-primary"
       >
         <Store className="h-6 w-6 text-sidebar-foreground group-hover:text-primary transition-colors" />
-        <span className="absolute left-full ml-3 px-2 py-1 bg-sidebar-background border border-sidebar-border rounded text-xs font-medium text-sidebar-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+        <span className="absolute left-full ml-3 px-2 py-1 bg-white border border-sidebar-border rounded text-xs font-medium text-foreground whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100] shadow-lg">
           Marketplace
         </span>
       </NavLink>
