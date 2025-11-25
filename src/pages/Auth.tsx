@@ -96,7 +96,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md border-2">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center">Agent Marketplace</CardTitle>
+          <CardTitle className="text-3xl font-bold text-center">ELIXA</CardTitle>
           <CardDescription className="text-center">
             Sign in or create an account to get started
           </CardDescription>

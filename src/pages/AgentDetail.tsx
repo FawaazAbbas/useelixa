@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { AgentOAuthSetup } from "@/components/AgentOAuthSetup";
+import { AgentReviewSection } from "@/components/AgentReviewSection";
 
 const AgentDetail = () => {
   const { id } = useParams();
@@ -300,6 +301,16 @@ const AgentDetail = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Reviews Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Reviews & Ratings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AgentReviewSection agentId={agent.id} />
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-6">

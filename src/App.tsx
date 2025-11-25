@@ -16,6 +16,7 @@ import Connections from "./pages/Connections";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 
@@ -85,6 +86,7 @@ const App = () => (
               <KnowledgeBase />
             </div>
           } />
+          <Route path="/settings" element={<Settings />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
