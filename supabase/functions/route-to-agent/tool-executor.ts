@@ -35,6 +35,8 @@ export async function executeToolCall(
     return await executeRSSRequest(args, credentials, nodeParameters);
   } else if (nodeType === 'workspace_document') {
     return await executeWorkspaceDocumentRead(args);
+  } else if (nodeType === 'task_creation') {
+    return await executeTaskCreation(args);
   }
   
   throw new Error(`Unsupported node type: ${nodeType}`);
@@ -613,5 +615,96 @@ async function executeWorkspaceDocumentRead(args: any): Promise<any> {
     content: content,
     tags: document.tags,
     folder: document.folder
+  };
+}
+
+/**
+ * Execute task creation request (Phase 3)
+ */
+async function executeTaskCreation(args: any): Promise<any> {
+  const { title, description, priority, due_date, is_asap, automations } = args;
+
+  if (!title) {
+    throw new Error("Task title is required");
+  }
+
+  console.log(`Creating task: ${title}`);
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error("Supabase configuration missing");
+  }
+
+  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.81.1");
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Get user_id and workspace_id from context (should be passed via metadata)
+  // For now, we'll need to pass these in the tool call arguments
+  const user_id = args.user_id || args.userId;
+  const workspace_id = args.workspace_id || args.workspaceId;
+
+  if (!user_id) {
+    throw new Error("User ID required for task creation");
+  }
+
+  // Create the task
+  const { data: task, error: taskError } = await supabase
+    .from('tasks')
+    .insert({
+      title: title.trim(),
+      description: description?.trim() || null,
+      priority: priority || 'medium',
+      due_date: due_date || null,
+      is_asap: is_asap || false,
+      user_id,
+      workspace_id,
+      status: 'pending'
+    })
+    .select()
+    .single();
+
+  if (taskError) {
+    throw new Error(`Failed to create task: ${taskError.message}`);
+  }
+
+  console.log(`✓ Task created: ${task.id}`);
+
+  // Create automations if provided
+  const createdAutomations = [];
+  if (automations && Array.isArray(automations) && automations.length > 0) {
+    for (let i = 0; i < automations.length; i++) {
+      const auto = automations[i];
+      
+      const { data: automation, error: autoError } = await supabase
+        .from('automations')
+        .insert({
+          name: auto.name.trim(),
+          action: auto.action.trim(),
+          trigger: auto.trigger || 'manual',
+          task_id: task.id,
+          workspace_id,
+          created_by: user_id,
+          chain_order: i,
+          status: 'active'
+        })
+        .select()
+        .single();
+
+      if (!autoError && automation) {
+        createdAutomations.push(automation);
+        console.log(`  ✓ Automation created: ${automation.name}`);
+      }
+    }
+  }
+
+  return {
+    success: true,
+    task_id: task.id,
+    task_title: task.title,
+    task_url: `/tasks?taskId=${task.id}`,
+    automations_created: createdAutomations.length,
+    message: `Task "${title}" created successfully${createdAutomations.length > 0 ? ` with ${createdAutomations.length} automation(s)` : ''}`
   };
 }

@@ -31,7 +31,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Handle group chat with multiple agents
+    // Handle group chat with multiple agents (Phase 4: Multi-Agent Collaboration)
     if (chat_type === 'group' && agent_ids && Array.isArray(agent_ids)) {
       console.log("Processing group chat with agents:", agent_ids);
       
@@ -46,60 +46,139 @@ serve(async (req) => {
         effectiveWorkspaceId = chatData?.workspace_id;
       }
       
-      const agentResponses = [];
+      // Fetch all agent details for context sharing
+      const { data: allAgents } = await supabase
+        .from("agents")
+        .select("id, name, description, capabilities")
+        .in("id", agent_ids);
       
-      for (const agentId of agent_ids) {
-        // Fetch agent details
-        const { data: agent, error: agentError } = await supabase
-          .from("agents")
-          .select("*")
-          .eq("id", agentId)
-          .single();
-
-        if (agentError || !agent) {
-          console.error(`Agent ${agentId} not found`);
-          continue;
-        }
-
-        // Fetch previous messages for context
+      const agentMap = new Map(allAgents?.map(a => [a.id, a]) || []);
+      
+      const agentResponses = [];
+      let currentMessage = message;
+      let conversationRounds = 0;
+      const maxRounds = 5; // Prevent infinite loops
+      
+      // Autonomous conversation loop
+      while (conversationRounds < maxRounds) {
+        conversationRounds++;
+        console.log(`\n🔄 Conversation round ${conversationRounds}`);
+        
+        // Fetch fresh conversation history
         const { data: previousMessages } = await supabase
           .from("messages")
-          .select("content, user_id, agent_id")
+          .select("content, user_id, agent_id, is_agent_to_agent, target_agent_id")
           .eq("chat_id", chat_id)
           .order("created_at", { ascending: true })
-          .limit(10);
+          .limit(20);
 
         const conversationHistory = (previousMessages || []).map((msg: any) => ({
           role: msg.user_id ? "user" : "assistant",
           content: msg.content,
         }));
+        
+        // Determine which agent should respond
+        let targetAgentId: string | null = null;
+        
+        // Check if message mentions an agent (e.g., "@AgentName")
+        for (const agent of allAgents || []) {
+          if (currentMessage.includes(`@${agent.name}`) || currentMessage.includes(agent.name)) {
+            targetAgentId = agent.id;
+            console.log(`📍 Message targets agent: ${agent.name}`);
+            break;
+          }
+        }
+        
+        // If no specific agent mentioned, let the first agent decide
+        if (!targetAgentId && conversationRounds === 1) {
+          targetAgentId = agent_ids[0];
+        }
+        
+        // If we've exhausted the conversation, break
+        if (!targetAgentId && conversationRounds > 1) {
+          console.log("✓ Conversation complete - no more agents to call");
+          break;
+        }
+        
+        const agent = agentMap.get(targetAgentId!);
+        if (!agent) break;
+        
+        // Build enhanced system prompt with group chat context
+        const otherAgents = Array.from(agentMap.values())
+          .filter(a => a.id !== agent.id)
+          .map(a => `- ${a.name}: ${a.description || 'AI assistant'}${a.capabilities ? ` (can: ${a.capabilities.slice(0, 3).join(', ')})` : ''}`)
+          .join('\n');
+        
+        const groupChatContext = otherAgents ? `
 
-        // Process each agent's workflow and get response
+🤝 GROUP CHAT MODE - You're in a multi-agent conversation:
+Other agents in this chat:
+${otherAgents}
+
+COLLABORATION RULES:
+1. If you need help from another agent, mention them by name (e.g., "@AgentName, can you...")
+2. If another agent is better suited for the task, delegate to them
+3. Work together to complete the user's request
+4. Keep your responses focused - don't try to do everything yourself
+5. Mention another agent if you need their expertise
+
+Examples of delegation:
+- "I'll handle the data analysis. @DataAgent, can you visualize the results?"
+- "This requires image generation. @ImageAgent, could you create that?"
+` : '';
+        
+        // Process agent's workflow with enhanced context
         const agentResponse = await processAgentWorkflow(
           agent, 
           user_id, 
           effectiveWorkspaceId || '', 
-          message, 
+          currentMessage + groupChatContext, 
           conversationHistory, 
           supabase
         );
         
-        if (agentResponse) {
-          // Save agent response
-          const { data: savedMessage } = await supabase
-            .from("messages")
-            .insert({
-              chat_id,
-              agent_id: agentId,
-              content: agentResponse.content,
-              processing_time_ms: agentResponse.processingTime
-            })
-            .select()
-            .single();
-
-          if (savedMessage) {
-            agentResponses.push(savedMessage);
+        if (!agentResponse) break;
+        
+        // Check if agent is delegating to another agent
+        let isDelegating = false;
+        let nextAgentId: string | null = null;
+        
+        for (const otherAgent of allAgents || []) {
+          if (otherAgent.id !== agent.id && 
+              (agentResponse.content.includes(`@${otherAgent.name}`) || 
+               agentResponse.content.toLowerCase().includes(`to ${otherAgent.name.toLowerCase()}`))) {
+            isDelegating = true;
+            nextAgentId = otherAgent.id;
+            console.log(`🔀 Agent ${agent.name} delegating to ${otherAgent.name}`);
+            break;
           }
+        }
+        
+        // Save agent response
+        const { data: savedMessage } = await supabase
+          .from("messages")
+          .insert({
+            chat_id,
+            agent_id: agent.id,
+            content: agentResponse.content,
+            processing_time_ms: agentResponse.processingTime,
+            is_agent_to_agent: isDelegating,
+            target_agent_id: nextAgentId
+          })
+          .select()
+          .single();
+
+        if (savedMessage) {
+          agentResponses.push(savedMessage);
+        }
+        
+        // If delegating, continue the loop with the delegated message
+        if (isDelegating && nextAgentId) {
+          currentMessage = agentResponse.content;
+          targetAgentId = nextAgentId;
+        } else {
+          // No delegation, conversation complete
+          break;
         }
       }
 

@@ -93,6 +93,70 @@ export function generateToolDefinitions(
   
   tools.push(documentTool);
 
+  // Add task creation tool (Phase 3)
+  const taskCreationTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "create_task_for_user",
+      description: "Create a task for the user with optional automations. Use this when the user asks you to remember something, set up a recurring action, or create a workflow.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description: "Clear, actionable title for the task"
+          },
+          description: {
+            type: "string",
+            description: "Detailed description of what needs to be done"
+          },
+          priority: {
+            type: "string",
+            enum: ["low", "medium", "high"],
+            description: "Task priority level"
+          },
+          due_date: {
+            type: "string",
+            description: "Due date in ISO format (YYYY-MM-DD)"
+          },
+          is_asap: {
+            type: "boolean",
+            description: "Whether this task should be executed immediately"
+          },
+          automations: {
+            type: "array",
+            description: "Optional automations to attach to this task",
+            items: {
+              type: "object",
+              properties: {
+                name: {
+                  type: "string",
+                  description: "Name of the automation"
+                },
+                action: {
+                  type: "string",
+                  description: "Detailed instruction for what the automation should do"
+                },
+                trigger: {
+                  type: "string",
+                  description: "When this automation should run (e.g., 'manual', 'scheduled', 'daily')"
+                }
+              },
+              required: ["name", "action", "trigger"]
+            }
+          }
+        },
+        required: ["title"]
+      }
+    }
+  };
+  
+  (taskCreationTool.function as any).nodeType = "task_creation";
+  (taskCreationTool.function as any).nodeParameters = {};
+  (taskCreationTool.function as any).credentials = {};
+  
+  tools.push(taskCreationTool);
+
   return tools;
 }
 

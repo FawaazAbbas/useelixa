@@ -101,6 +101,14 @@ export async function processAgentWorkflow(
         const toolResults = [];
         
         for (const toolCall of choice.message.tool_calls) {
+          // Inject user_id and workspace_id into tool arguments for task creation
+          if (toolCall.function.name === 'create_task_for_user') {
+            const args = JSON.parse(toolCall.function.arguments);
+            args.user_id = userId;
+            args.workspace_id = workspaceId;
+            toolCall.function.arguments = JSON.stringify(args);
+          }
+          
           const result = await executeToolCall(toolCall, toolDefinitions);
           toolResults.push(result);
         }
