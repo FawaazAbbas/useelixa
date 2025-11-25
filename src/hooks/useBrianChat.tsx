@@ -1,0 +1,91 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export const useBrianChat = (userId: string | undefined, workspaceId: string | undefined) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (userId && workspaceId) {
+      loadConversation();
+    }
+  }, [userId, workspaceId]);
+
+  const loadConversation = async () => {
+    if (!userId || !workspaceId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("brian_conversations")
+        .select("messages")
+        .eq("user_id", userId)
+        .eq("workspace_id", workspaceId)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
+
+      setMessages(Array.isArray(data?.messages) ? (data.messages as unknown as Message[]) : []);
+    } catch (error) {
+      console.error("Error loading Brian conversation:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMessage = async (content: string) => {
+    if (!userId || !workspaceId || !content.trim()) return;
+
+    setSending(true);
+    const userMessage: Message = { role: "user", content };
+    setMessages((prev) => [...prev, userMessage]);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("brian-universal", {
+        body: {
+          message: content,
+          user_id: userId,
+          workspace_id: workspaceId,
+          chat_type: "direct",
+        },
+      });
+
+      if (error) throw error;
+
+      const brianMessage: Message = {
+        role: "assistant",
+        content: data.content,
+      };
+
+      setMessages((prev) => [...prev, brianMessage]);
+    } catch (error) {
+      console.error("Error sending message to Brian:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send message to Brian",
+      });
+      
+      // Remove the user message on error
+      setMessages((prev) => prev.slice(0, -1));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return {
+    messages,
+    loading,
+    sending,
+    sendMessage,
+  };
+};
