@@ -298,6 +298,57 @@ export type Database = {
           },
         ]
       }
+      automation_logs: {
+        Row: {
+          automation_id: string
+          created_at: string | null
+          error_message: string | null
+          executed_at: string | null
+          execution_time_ms: number | null
+          id: string
+          output_data: Json | null
+          status: string
+          task_id: string | null
+        }
+        Insert: {
+          automation_id: string
+          created_at?: string | null
+          error_message?: string | null
+          executed_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          output_data?: Json | null
+          status: string
+          task_id?: string | null
+        }
+        Update: {
+          automation_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          executed_at?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          output_data?: Json | null
+          status?: string
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automations: {
         Row: {
           action: string
@@ -712,6 +763,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          is_asap: boolean | null
           priority: string | null
           status: string | null
           title: string
@@ -728,6 +780,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_asap?: boolean | null
           priority?: string | null
           status?: string | null
           title: string
@@ -744,6 +797,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_asap?: boolean | null
           priority?: string | null
           status?: string | null
           title?: string
