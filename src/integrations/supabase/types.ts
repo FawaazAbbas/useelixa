@@ -819,6 +819,7 @@ export type Database = {
           is_agent_to_agent: boolean | null
           metadata: Json | null
           processing_time_ms: number | null
+          read: boolean | null
           response_metadata: Json | null
           target_agent_id: string | null
           user_id: string | null
@@ -833,6 +834,7 @@ export type Database = {
           is_agent_to_agent?: boolean | null
           metadata?: Json | null
           processing_time_ms?: number | null
+          read?: boolean | null
           response_metadata?: Json | null
           target_agent_id?: string | null
           user_id?: string | null
@@ -847,6 +849,7 @@ export type Database = {
           is_agent_to_agent?: boolean | null
           metadata?: Json | null
           processing_time_ms?: number | null
+          read?: boolean | null
           response_metadata?: Json | null
           target_agent_id?: string | null
           user_id?: string | null
@@ -1215,6 +1218,10 @@ export type Database = {
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
+      }
+      mark_messages_read: {
+        Args: { p_chat_id: string; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

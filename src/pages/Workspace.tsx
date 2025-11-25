@@ -549,7 +549,14 @@ const Workspace = () => {
                     selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
                   }`}
                 >
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <div className="relative">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    {(chat.unread_count || 0) > 0 && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center">
+                        {chat.unread_count}
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 text-left">
                     <div className="text-sm truncate text-white">{chat.name}</div>
                     <div className="text-xs text-muted-foreground">{chat.agents?.length || 0} agents</div>
