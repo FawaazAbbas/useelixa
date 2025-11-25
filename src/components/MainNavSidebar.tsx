@@ -25,10 +25,10 @@ export const MainNavSidebar = () => {
             key={item.path}
             to={item.path}
             className="group relative p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105"
-            activeClassName="bg-accent"
+            activeClassName="bg-accent active"
           >
-            <item.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors duration-200 [.active_&]:text-white" />
-            <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-200 ease-out whitespace-nowrap z-[100]">
+            <item.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
+            <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-200 ease-out whitespace-nowrap z-[9999]">
               {item.label}
             </span>
           </NavLink>
@@ -41,10 +41,10 @@ export const MainNavSidebar = () => {
         <NavLink
           to="/marketplace"
           className="group relative flex items-center justify-center p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 w-full"
-          activeClassName="bg-accent"
+          activeClassName="bg-accent active"
         >
-          <Store className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors duration-200 [.active_&]:text-white" />
-          <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-200 ease-out whitespace-nowrap z-[100]">
+          <Store className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
+          <span className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-md border border-border opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 -translate-x-2 transition-all duration-200 ease-out whitespace-nowrap z-[9999]">
             Marketplace
           </span>
         </NavLink>
