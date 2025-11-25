@@ -38,7 +38,11 @@ export const AddAutomationDialog = ({
     name: "",
     action: "",
     trigger: "manual",
-    agent_id: ""
+    agent_id: "",
+    schedule_type: "manual",
+    schedule_time: "09:00",
+    schedule_days: [] as number[],
+    schedule_interval_minutes: 30
   });
   const [saving, setSaving] = useState(false);
 
@@ -77,6 +81,15 @@ export const AddAutomationDialog = ({
     // This will be set when we save
   };
 
+  const toggleDay = (day: number) => {
+    setFormData(prev => ({
+      ...prev,
+      schedule_days: prev.schedule_days.includes(day)
+        ? prev.schedule_days.filter(d => d !== day)
+        : [...prev.schedule_days, day]
+    }));
+  };
+
   const handleSave = async () => {
     if (!formData.name || !formData.action || !formData.agent_id) {
       toast({
@@ -100,19 +113,32 @@ export const AddAutomationDialog = ({
 
       const nextChainOrder = maxData ? maxData.chain_order + 1 : 0;
 
+      const insertData: any = {
+        name: formData.name,
+        action: formData.action,
+        trigger: formData.trigger,
+        agent_id: formData.agent_id,
+        task_id: taskId,
+        workspace_id: user?.id!,
+        created_by: user?.id!,
+        chain_order: nextChainOrder,
+        status: "active",
+        schedule_type: formData.schedule_type,
+      };
+
+      if (formData.schedule_type !== 'manual') {
+        insertData.schedule_time = formData.schedule_time;
+        if (formData.schedule_type === 'weekly') {
+          insertData.schedule_days = formData.schedule_days;
+        }
+        if (formData.schedule_type === 'interval') {
+          insertData.schedule_interval_minutes = formData.schedule_interval_minutes;
+        }
+      }
+
       const { error } = await supabase
         .from("automations")
-        .insert({
-          name: formData.name,
-          action: formData.action,
-          trigger: formData.trigger,
-          agent_id: formData.agent_id,
-          task_id: taskId,
-          workspace_id: user?.id!,
-          created_by: user?.id!,
-          chain_order: nextChainOrder,
-          status: "active"
-        });
+        .insert(insertData);
 
       if (error) throw error;
 
@@ -121,7 +147,16 @@ export const AddAutomationDialog = ({
         description: "Automation added successfully"
       });
 
-      setFormData({ name: "", action: "", trigger: "manual", agent_id: "" });
+      setFormData({ 
+        name: "", 
+        action: "", 
+        trigger: "manual", 
+        agent_id: "",
+        schedule_type: "manual",
+        schedule_time: "09:00",
+        schedule_days: [],
+        schedule_interval_minutes: 30
+      });
       onAdded();
       onOpenChange(false);
     } catch (error) {
@@ -166,22 +201,71 @@ export const AddAutomationDialog = ({
           </div>
 
           <div>
-            <Label htmlFor="trigger">Trigger</Label>
+            <Label htmlFor="scheduleType">Schedule Type</Label>
             <Select
-              value={formData.trigger}
-              onValueChange={(value) => setFormData({ ...formData, trigger: value })}
+              value={formData.schedule_type}
+              onValueChange={(value) => setFormData({ ...formData, schedule_type: value })}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="on_completion">On Task Completion</SelectItem>
+                <SelectItem value="manual">Manual (Run on demand)</SelectItem>
+                <SelectItem value="interval">Interval (Every X minutes)</SelectItem>
+                <SelectItem value="daily">Daily (At specific time)</SelectItem>
+                <SelectItem value="weekly">Weekly (Specific days & time)</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {formData.schedule_type !== 'manual' && (
+            <>
+              <div>
+                <Label htmlFor="scheduleTime">Time of Day</Label>
+                <Input
+                  id="scheduleTime"
+                  type="time"
+                  value={formData.schedule_time}
+                  onChange={(e) => setFormData({ ...formData, schedule_time: e.target.value })}
+                />
+              </div>
+
+              {formData.schedule_type === 'weekly' && (
+                <div>
+                  <Label>Days of Week</Label>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                      <Button
+                        key={day}
+                        type="button"
+                        size="sm"
+                        variant={formData.schedule_days.includes(i) ? 'default' : 'outline'}
+                        onClick={() => toggleDay(i)}
+                      >
+                        {day}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {formData.schedule_type === 'interval' && (
+                <div>
+                  <Label htmlFor="intervalMinutes">Run Every (minutes)</Label>
+                  <Input
+                    id="intervalMinutes"
+                    type="number"
+                    min={5}
+                    value={formData.schedule_interval_minutes}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      schedule_interval_minutes: parseInt(e.target.value) || 5 
+                    })}
+                  />
+                </div>
+              )}
+            </>
+          )}
 
           <AgentSelector
             agents={agents}

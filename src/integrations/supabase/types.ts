@@ -398,14 +398,22 @@ export type Database = {
           created_by: string | null
           execution_output: Json | null
           id: string
+          is_enabled: boolean | null
           last_executed_at: string | null
           last_execution_status: string | null
           last_run: string | null
           name: string
+          next_run_at: string | null
           progress: number | null
           result_data: Json | null
+          schedule_cron: string | null
+          schedule_days: number[] | null
+          schedule_interval_minutes: number | null
+          schedule_time: string | null
+          schedule_type: string | null
           status: string | null
           task_id: string | null
+          timezone: string | null
           trigger: string
           updated_at: string
           workspace_id: string
@@ -419,14 +427,22 @@ export type Database = {
           created_by?: string | null
           execution_output?: Json | null
           id?: string
+          is_enabled?: boolean | null
           last_executed_at?: string | null
           last_execution_status?: string | null
           last_run?: string | null
           name: string
+          next_run_at?: string | null
           progress?: number | null
           result_data?: Json | null
+          schedule_cron?: string | null
+          schedule_days?: number[] | null
+          schedule_interval_minutes?: number | null
+          schedule_time?: string | null
+          schedule_type?: string | null
           status?: string | null
           task_id?: string | null
+          timezone?: string | null
           trigger: string
           updated_at?: string
           workspace_id: string
@@ -440,14 +456,22 @@ export type Database = {
           created_by?: string | null
           execution_output?: Json | null
           id?: string
+          is_enabled?: boolean | null
           last_executed_at?: string | null
           last_execution_status?: string | null
           last_run?: string | null
           name?: string
+          next_run_at?: string | null
           progress?: number | null
           result_data?: Json | null
+          schedule_cron?: string | null
+          schedule_days?: number[] | null
+          schedule_interval_minutes?: number | null
+          schedule_time?: string | null
+          schedule_type?: string | null
           status?: string | null
           task_id?: string | null
+          timezone?: string | null
           trigger?: string
           updated_at?: string
           workspace_id?: string
@@ -1120,6 +1144,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_next_weekly_run: {
+        Args: { days: number[]; run_time: string }
+        Returns: string
+      }
       get_user_workspace_ids: {
         Args: { _user_id: string }
         Returns: {
