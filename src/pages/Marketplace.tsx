@@ -86,10 +86,10 @@ const Marketplace = () => {
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <img src="/elixa-logo.png" alt="ELIXA" className="h-10 w-auto object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
-            <div className="hidden md:flex gap-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4 md:gap-8">
+            <img src="/elixa-logo.png" alt="ELIXA" className="h-8 md:h-10 w-auto object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
+            <div className="hidden lg:flex gap-6">
               <button className="text-sm font-medium hover:text-primary transition-colors">
                 Discover
               </button>
@@ -101,18 +101,18 @@ const Marketplace = () => {
               </button>
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             {user ? (
               <>
-                <Button onClick={() => navigate("/workspace")} variant="outline">
+                <Button onClick={() => navigate("/workspace")} variant="outline" size="sm" className="text-xs md:text-sm hidden sm:inline-flex">
                   My Agents
                 </Button>
-                <Button onClick={() => navigate("/publish")} variant="default">
-                  Publish Agent
+                <Button onClick={() => navigate("/publish")} variant="default" size="sm" className="text-xs md:text-sm">
+                  Publish
                 </Button>
               </>
             ) : (
-              <Button onClick={() => navigate("/auth")} variant="default">
+              <Button onClick={() => navigate("/auth")} variant="default" size="sm" className="text-xs md:text-sm">
                 Sign In
               </Button>
             )}
@@ -121,20 +121,19 @@ const Marketplace = () => {
       </nav>
 
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
-        <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-20">
           <div className="max-w-3xl">
-            <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Discover AI Agents
             </h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Browse thousands of AI agents built by creators worldwide. 
-              Deploy them instantly into your workflow.
+            <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8">
+              Browse AI agents built by creators. Deploy instantly.
             </p>
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
               <Input 
                 placeholder="Search for agents..." 
-                className="pl-12 py-6 text-lg border-2"
+                className="pl-10 md:pl-12 py-3 md:py-6 text-base md:text-lg border-2"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -143,12 +142,13 @@ const Marketplace = () => {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-12 overflow-x-auto">
-          <div className="flex gap-3 pb-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 pb-20 md:pb-12">
+        <div className="mb-8 md:mb-12 overflow-x-auto">
+          <div className="flex gap-2 md:gap-3 pb-3 md:pb-4">
             <Button 
               variant={selectedCategory === null ? "default" : "outline"} 
-              className="whitespace-nowrap"
+              className="whitespace-nowrap text-xs md:text-sm"
+              size="sm"
               onClick={() => setSelectedCategory(null)}
             >
               All
@@ -157,7 +157,8 @@ const Marketplace = () => {
               <Button 
                 key={category} 
                 variant={selectedCategory === category ? "default" : "outline"} 
-                className="whitespace-nowrap"
+                className="whitespace-nowrap text-xs md:text-sm"
+                size="sm"
                 onClick={() => setSelectedCategory(category)}
               >
                 {category}
@@ -184,15 +185,15 @@ const Marketplace = () => {
           </div>
         ) : (
           <>
-            <section className="mb-16">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+            <section className="mb-12 md:mb-16">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
+                <Star className="h-5 w-5 md:h-6 md:w-6 fill-yellow-400 text-yellow-400" />
                 Featured Agents
               </h2>
               {featuredAgents.length === 0 ? (
-                <p className="text-muted-foreground">No featured agents available</p>
+                <p className="text-muted-foreground text-sm md:text-base">No featured agents available</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   {featuredAgents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}
@@ -201,11 +202,11 @@ const Marketplace = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-6">Top Charts</h2>
+              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Top Charts</h2>
               {topAgents.length === 0 ? (
-                <p className="text-muted-foreground">No top agents available</p>
+                <p className="text-muted-foreground text-sm md:text-base">No top agents available</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                   {topAgents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}

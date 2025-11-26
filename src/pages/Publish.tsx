@@ -291,32 +291,33 @@ const Publish = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <nav className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/")}
-            className="gap-2"
+            className="gap-2 text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Store
+            <span className="hidden sm:inline">Back to Store</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Sparkles className="h-8 w-8 text-primary" />
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-12">
+        <div className="text-center mb-8 md:mb-12">
+          <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 mb-3 md:mb-4">
+            <Sparkles className="h-6 w-6 md:h-8 md:w-8 text-primary" />
           </div>
-          <h1 className="text-4xl font-bold mb-4">Publish Your AI Agent</h1>
-          <p className="text-xl text-muted-foreground">
-            Share your creation with thousands of users worldwide
+          <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-4">Publish Your Agent</h1>
+          <p className="text-base md:text-xl text-muted-foreground">
+            Share your creation worldwide
           </p>
         </div>
 
-        <Card className="p-8">
+        <Card className="p-4 md:p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-6">
               <div>

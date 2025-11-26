@@ -293,17 +293,17 @@ export default function Connections() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl overflow-y-auto h-full">
+    <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl overflow-y-auto h-full pb-20 md:pb-8">
       {/* Hero Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="mb-6 md:mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-              <Plug className="h-10 w-10" />
-              Plugin Connections
+            <h1 className="text-2xl md:text-4xl font-bold mb-2 flex items-center gap-2 md:gap-3">
+              <Plug className="h-6 w-6 md:h-10 md:w-10" />
+              Connections
             </h1>
-            <p className="text-muted-foreground text-lg">
-              Connect once, use across all agents. {connections.filter(c => c.connected).length} of {connections.length} connected
+            <p className="text-muted-foreground text-sm md:text-lg">
+              {connections.filter(c => c.connected).length} of {connections.length} connected
             </p>
           </div>
           
@@ -326,7 +326,7 @@ export default function Connections() {
       </div>
 
       {/* Search & Filters Section */}
-      <div className="mb-6 space-y-4">
+      <div className="mb-4 md:mb-6 space-y-3 md:space-y-4">
         {/* Search Input */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -334,15 +334,15 @@ export default function Connections() {
             placeholder="Search connections..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 max-w-md"
+            className="pl-10 w-full"
           />
         </div>
         
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2">
+        {/* Category Filters - Horizontal scroll on mobile */}
+        <div className="flex gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
           <Badge 
             variant={selectedCategory === "all" ? "default" : "outline"}
-            className="cursor-pointer"
+            className="cursor-pointer whitespace-nowrap"
             onClick={() => setSelectedCategory("all")}
           >
             All
@@ -351,7 +351,7 @@ export default function Connections() {
             <Badge 
               key={cat}
               variant={selectedCategory === cat ? "default" : "outline"}
-              className="cursor-pointer"
+              className="cursor-pointer whitespace-nowrap"
               onClick={() => setSelectedCategory(cat)}
             >
               {cat}
@@ -362,12 +362,12 @@ export default function Connections() {
 
       {/* Popular Connections Section */}
       {selectedCategory === "all" && searchQuery === "" && popularConnections.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500" />
-            Popular Connections
+        <div className="mb-6 md:mb-8">
+          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
+            <Star className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
+            Popular
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {popularConnections.map((connection) => {
               const info = CREDENTIAL_INFO[connection.type as keyof typeof CREDENTIAL_INFO];
               return (

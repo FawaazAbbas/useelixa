@@ -175,14 +175,14 @@ const Tasks = () => {
   }
 
   return (
-    <div className="flex-1 p-8 overflow-auto">
+    <div className="flex-1 p-4 md:p-8 overflow-auto pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
           <div className="flex items-center gap-3">
-            <CheckSquare className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Tasks</h1>
+            <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
           </div>
-          <Button onClick={() => setModeDialogOpen(true)}>
+          <Button onClick={() => setModeDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -209,53 +209,53 @@ const Tasks = () => {
                   setTaskDetailOpen(true);
                 }}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <Checkbox
-                        checked={task.status === "completed"}
-                        onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <div className="flex-1">
-                        <h3 className={`font-medium mb-1 ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+                <CardContent className="p-4 md:p-6">
+                  <div className="flex items-start gap-3 md:gap-4">
+                    <Checkbox
+                      checked={task.status === "completed"}
+                      onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
                           {task.title}
                         </h3>
-                        {task.description && (
-                          <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
-                        )}
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          {task.is_asap && (
-                            <Badge variant="destructive" className="gap-1">
-                              <Zap className="h-3 w-3" />
-                              ASAP
-                            </Badge>
-                          )}
-                          {task.due_date && (
-                            <span className="text-muted-foreground">Due: {new Date(task.due_date).toLocaleDateString()}</span>
-                          )}
-                          {task.automation_count > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {task.completed_automation_count}/{task.automation_count} automations
-                            </Badge>
-                          )}
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive h-8 w-8"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTask(task.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
-                      <span className="text-xs text-muted-foreground capitalize">{task.priority}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTask(task.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
+                      )}
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {task.is_asap && (
+                          <Badge variant="destructive" className="gap-1">
+                            <Zap className="h-3 w-3" />
+                            ASAP
+                          </Badge>
+                        )}
+                        {task.due_date && (
+                          <span className="text-muted-foreground">Due: {new Date(task.due_date).toLocaleDateString()}</span>
+                        )}
+                        {task.automation_count > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {task.completed_automation_count}/{task.automation_count}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

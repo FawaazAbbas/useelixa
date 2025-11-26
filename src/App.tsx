@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
+import { MobileBottomNav } from "./components/MobileBottomNav";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
                 <MainNavSidebar />
               </div>
               <Workspace />
+              <MobileBottomNav />
             </div>
           } />
           <Route path="/tasks" element={
@@ -52,6 +54,7 @@ const App = () => (
                 <MainNavSidebar />
               </div>
               <Tasks />
+              <MobileBottomNav />
             </div>
           } />
           <Route path="/calendar" element={
@@ -60,6 +63,7 @@ const App = () => (
                 <MainNavSidebar />
               </div>
               <Calendar />
+              <MobileBottomNav />
             </div>
           } />
           <Route path="/logs" element={
@@ -68,6 +72,7 @@ const App = () => (
                 <MainNavSidebar />
               </div>
               <Logs />
+              <MobileBottomNav />
             </div>
           } />
           <Route path="/connections" element={
@@ -76,6 +81,7 @@ const App = () => (
                 <MainNavSidebar />
               </div>
               <Connections />
+              <MobileBottomNav />
             </div>
           } />
           <Route path="/knowledge-base" element={
@@ -84,6 +90,7 @@ const App = () => (
                 <MainNavSidebar />
               </div>
               <KnowledgeBase />
+              <MobileBottomNav />
             </div>
           } />
           <Route path="/settings" element={<Settings />} />
