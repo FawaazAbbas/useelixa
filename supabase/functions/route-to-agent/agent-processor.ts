@@ -132,7 +132,13 @@ export async function processAgentWorkflow(
           const result = await executeToolCall(
             toolCall, 
             toolDefinitions,
-            { user_id: userId, agent_id: agent.id, chat_id: chatId }
+            { 
+              user_id: userId, 
+              agent_id: agent.id, 
+              chat_id: chatId,
+              workspace_id: workspaceId,
+              agent_installation_id: agentInstallationId
+            }
           );
           toolResults.push(result);
         }

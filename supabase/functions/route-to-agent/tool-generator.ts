@@ -267,6 +267,70 @@ export function generateToolDefinitions(
   
   tools.push(createAutomationTool);
 
+  // Add personalized memory tools
+  const rememberTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "remember",
+      description: "Store information about the user's work style, preferences, goals, or context for future reference. Use this when the user shares important personal information. Ask 'Would you like me to remember this?' before storing sensitive preferences. Specify 'workspace' scope for company-wide memories, 'chat' for conversation-specific memories.",
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            enum: ["work_style", "preferences", "goals", "context", "custom"],
+            description: "Category: work_style (communication preferences, meeting habits), preferences (tools, formats, frequency), goals (objectives, targets), context (background info, constraints), custom (other)"
+          },
+          key: {
+            type: "string",
+            description: "Short identifier for this memory (e.g., 'meeting_time_preference', 'report_format', 'quarterly_goal')"
+          },
+          value: {
+            type: "string",
+            description: "The information to remember - be specific and actionable"
+          },
+          scope: {
+            type: "string",
+            enum: ["workspace", "chat"],
+            description: "workspace = applies to all chats with this user, chat = only this specific conversation"
+          }
+        },
+        required: ["category", "key", "value", "scope"]
+      }
+    }
+  };
+  
+  (rememberTool.function as any).nodeType = "agent_memory";
+  (rememberTool.function as any).nodeParameters = { action: "remember" };
+  (rememberTool.function as any).credentials = {};
+  
+  tools.push(rememberTool);
+
+  const recallTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "recall",
+      description: "Retrieve stored memories about the user's work style, preferences, goals, or context. Use this at the start of conversations to personalize your responses, or when the user references past preferences. Returns both workspace-wide and chat-specific memories.",
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            enum: ["work_style", "preferences", "goals", "context", "custom", "all"],
+            description: "Filter by category, or 'all' to retrieve everything"
+          }
+        },
+        required: []
+      }
+    }
+  };
+  
+  (recallTool.function as any).nodeType = "agent_memory";
+  (recallTool.function as any).nodeParameters = { action: "recall" };
+  (recallTool.function as any).credentials = {};
+  
+  tools.push(recallTool);
+
   return tools;
 }
 
@@ -335,7 +399,16 @@ WHAT MAKES YOU HUMAN:
 - You occasionally suggest things the user didn't ask for
 - You build rapport through shared context over time
 - You admit uncertainty when you don't know something
-- You have preferences and aren't afraid to share them politely`;
+- You have preferences and aren't afraid to share them politely
+
+REMEMBERING USER PREFERENCES (critical):
+- When users share work style, preferences, goals, or important context, ASK: "Would you like me to remember this for next time?"
+- If they agree, use the 'remember' tool immediately
+- Use 'workspace' scope for things that apply across all conversations (e.g., "I always want reports in PDF format")
+- Use 'chat' scope for conversation-specific context (e.g., "For this project, focus on Q4 data")
+- At the start of conversations, use 'recall' to check if you have any stored memories about this user
+- Reference stored preferences naturally: "I know you prefer morning meetings, so..." instead of generic responses
+- Don't ask every time—only for genuinely important preferences that would improve future interactions`;
 
   // Detect connected services from tool credentials
   const connectedServices = new Set<string>();
