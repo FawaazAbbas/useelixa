@@ -206,6 +206,82 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     })
   },
 
+  // PHASE 5: Web Scraping
+  webScraper: {
+    nodeTypes: ['n8n-nodes-base.htmlExtract'],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+    executor: null, // Handled in tool-executor as executeWebScraping
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `scrape_${node.id}`,
+        description: 'Fetch and parse HTML content from a webpage',
+        parameters: {
+          type: 'object',
+          properties: {
+            url: { type: 'string', description: 'URL to scrape' },
+            selector: { type: 'string', description: 'Optional CSS selector to extract specific elements' }
+          },
+          required: ['url']
+        }
+      }
+    })
+  },
+
+  // PHASE 5: File Export (CSV)
+  csvExport: {
+    nodeTypes: ['n8n-nodes-base.spreadsheetFile'],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+    executor: null, // Handled in tool-executor as executeCSVExport
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `export_csv_${node.id}`,
+        description: 'Export data to CSV format',
+        parameters: {
+          type: 'object',
+          properties: {
+            data: { 
+              type: 'array', 
+              description: 'Array of objects to export',
+              items: { type: 'object' }
+            },
+            filename: { type: 'string', description: 'Filename for the export' }
+          },
+          required: ['data']
+        }
+      }
+    })
+  },
+
+  // PHASE 5: JSON Export
+  jsonExport: {
+    nodeTypes: ['n8n-nodes-base.writeFile'],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+    executor: null, // Handled in tool-executor as executeJSONExport
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `export_json_${node.id}`,
+        description: 'Export data to JSON format',
+        parameters: {
+          type: 'object',
+          properties: {
+            data: { type: 'object', description: 'Data to export as JSON' },
+            filename: { type: 'string', description: 'Filename for the export' }
+          },
+          required: ['data']
+        }
+      }
+    })
+  },
+
   rssFeedReader: {
     nodeTypes: [
       'n8n-nodes-base.rssFeedRead',

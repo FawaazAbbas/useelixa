@@ -267,6 +267,86 @@ export function generateToolDefinitions(
   
   tools.push(createAutomationTool);
 
+  // PHASE 8: Add schedule reminder tool
+  const scheduleReminderTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "schedule_reminder",
+      description: "Schedule a reminder for the user at a specific time. Use when user wants to be reminded about something later.",
+      parameters: {
+        type: "object",
+        properties: {
+          reminder_text: {
+            type: "string",
+            description: "What to remind the user about"
+          },
+          when: {
+            type: "string",
+            description: "When to send reminder (time in HH:MM format or relative like 'tomorrow at 9am')"
+          },
+          recurring: {
+            type: "boolean",
+            description: "Whether this reminder repeats daily"
+          }
+        },
+        required: ["reminder_text", "when"]
+      }
+    }
+  };
+  
+  (scheduleReminderTool.function as any).nodeType = "schedule_reminder";
+  (scheduleReminderTool.function as any).nodeParameters = {};
+  (scheduleReminderTool.function as any).credentials = {};
+  
+  tools.push(scheduleReminderTool);
+
+  // PHASE 8: Add schedule task tool
+  const scheduleTaskTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "schedule_task",
+      description: "Schedule a recurring task to run automatically. Use when user wants automation that runs on a schedule.",
+      parameters: {
+        type: "object",
+        properties: {
+          task_name: {
+            type: "string",
+            description: "Name of the scheduled task"
+          },
+          task_instruction: {
+            type: "string",
+            description: "What the task should do when it runs"
+          },
+          schedule_type: {
+            type: "string",
+            enum: ["daily", "weekly", "interval"],
+            description: "How often to run: daily (every day), weekly (specific days), interval (every X minutes)"
+          },
+          schedule_time: {
+            type: "string",
+            description: "Time of day to run (HH:MM format) for daily/weekly schedules"
+          },
+          schedule_days: {
+            type: "array",
+            items: { type: "number" },
+            description: "Days of week (0=Sunday through 6=Saturday) for weekly schedules"
+          },
+          schedule_interval_minutes: {
+            type: "number",
+            description: "Minutes between runs for interval schedules"
+          }
+        },
+        required: ["task_name", "task_instruction", "schedule_type"]
+      }
+    }
+  };
+  
+  (scheduleTaskTool.function as any).nodeType = "schedule_task";
+  (scheduleTaskTool.function as any).nodeParameters = {};
+  (scheduleTaskTool.function as any).credentials = {};
+  
+  tools.push(scheduleTaskTool);
+
   // Add personalized memory tools
   const rememberTool: LovableAITool = {
     type: "function",
