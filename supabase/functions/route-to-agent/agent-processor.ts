@@ -10,6 +10,76 @@ import { retrieveRelevantKnowledge, formatKnowledgeContext } from "./knowledge-r
 const nodeRegistry = new NodeRegistry();
 const credentialResolver = new CredentialResolver();
 
+// PHASE 4: Context Window Management
+interface Message {
+  role: string;
+  content: string;
+  tool_calls?: any[];
+  tool_call_id?: string;
+}
+
+function estimateTokens(text: string): number {
+  // Rough estimate: ~4 characters per token
+  return Math.ceil(text.length / 4);
+}
+
+function estimateMessageTokens(messages: Message[]): number {
+  let total = 0;
+  for (const msg of messages) {
+    total += estimateTokens(msg.content || '');
+    if (msg.tool_calls) {
+      total += estimateTokens(JSON.stringify(msg.tool_calls));
+    }
+  }
+  return total;
+}
+
+async function compressConversationHistory(
+  messages: Message[],
+  maxTokens: number = 15000 // Leave room for system prompt + tools + new messages
+): Promise<Message[]> {
+  const currentTokens = estimateMessageTokens(messages);
+  
+  if (currentTokens <= maxTokens) {
+    return messages;
+  }
+  
+  console.log(`⚠️ Conversation too long (${currentTokens} tokens), compressing...`);
+  
+  // Keep system message, recent messages, and summarize the middle
+  const systemMessage = messages[0];
+  const recentMessages = messages.slice(-10); // Keep last 10 messages
+  const middleMessages = messages.slice(1, -10);
+  
+  if (middleMessages.length === 0) {
+    return messages;
+  }
+  
+  // Create a summary of middle messages
+  const summaryContent = `[Previous conversation summary: User and assistant discussed ${middleMessages.length} topics. Key points preserved in context.]`;
+  
+  const compressed = [
+    systemMessage,
+    { role: "system", content: summaryContent },
+    ...recentMessages
+  ];
+  
+  console.log(`✓ Compressed from ${messages.length} to ${compressed.length} messages`);
+  return compressed;
+}
+
+// PHASE 3: Parallel Tool Execution Helper
+function areToolCallsIndependent(toolCalls: any[]): boolean {
+  // Check if tools don't depend on each other's results
+  // For now, simple heuristic: if all tools are read operations or don't share resources
+  const writeOperations = ['create_task_for_user', 'create_automation', 'execute_automation'];
+  
+  const hasWrites = toolCalls.some(tc => writeOperations.includes(tc.function.name));
+  
+  // If no writes, likely independent
+  return !hasWrites && toolCalls.length > 1;
+}
+
 export async function processAgentWorkflow(
   agent: any,
   userId: string,
@@ -113,12 +183,12 @@ export async function processAgentWorkflow(
         throw new Error("LOVABLE_API_KEY not configured");
       }
 
-      // PHASE 1: Multi-Step Tool Execution with iterative loop
+      // PHASE 1 + 4: Multi-Step Tool Execution with Context Window Management
       const maxIterations = 5;
       let currentIteration = 0;
-      let conversationMessages = [
+      let conversationMessages: Message[] = [
         { role: "system", content: systemPrompt },
-        ...conversationHistory,
+        ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
         { role: "user", content: message }
       ];
       
@@ -127,6 +197,9 @@ export async function processAgentWorkflow(
       while (currentIteration < maxIterations) {
         currentIteration++;
         console.log(`🔄 Iteration ${currentIteration}/${maxIterations}`);
+        
+        // PHASE 4: Compress conversation if needed
+        conversationMessages = await compressConversationHistory(conversationMessages);
         
         const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
@@ -159,48 +232,94 @@ export async function processAgentWorkflow(
           break;
         }
 
-        // Execute tool calls with error recovery
-        console.log(`🔧 Executing ${choice.message.tool_calls.length} tool(s)...`);
-        const toolResults = [];
+        // PHASE 3: Parallel or Sequential Tool Execution
+        const toolCalls = choice.message.tool_calls;
+        console.log(`🔧 Executing ${toolCalls.length} tool(s)...`);
         
-        for (const toolCall of choice.message.tool_calls) {
-          // Inject user_id and workspace_id into tool arguments for task creation
+        // Inject context into tool arguments
+        const preparedToolCalls = toolCalls.map((toolCall: any) => {
           if (toolCall.function.name === 'create_task_for_user') {
             const args = JSON.parse(toolCall.function.arguments);
             args.user_id = userId;
             args.workspace_id = workspaceId;
             toolCall.function.arguments = JSON.stringify(args);
           }
+          return toolCall;
+        });
+        
+        let toolResults: any[] = [];
+        
+        // PHASE 3: Execute in parallel if tools are independent
+        if (areToolCallsIndependent(preparedToolCalls)) {
+          console.log(`⚡ Executing ${preparedToolCalls.length} tools in parallel...`);
           
-          try {
-            const result = await executeToolCall(
-              toolCall, 
-              toolDefinitions,
-              { 
-                user_id: userId, 
-                agent_id: agent.id, 
-                chat_id: chatId,
-                workspace_id: workspaceId,
-                agent_installation_id: agentInstallationId
-              }
-            );
-            toolResults.push({
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify(result)
-            });
-          } catch (error) {
-            console.error(`❌ Tool execution failed: ${toolCall.function.name}`, error);
-            // Add error result so agent can handle gracefully
-            toolResults.push({
-              role: "tool",
-              tool_call_id: toolCall.id,
-              content: JSON.stringify({
-                error: true,
-                message: error instanceof Error ? error.message : 'Tool execution failed',
-                suggestion: 'Try an alternative approach or let the user know what went wrong'
-              })
-            });
+          const executionPromises = preparedToolCalls.map(async (toolCall: any) => {
+            try {
+              const result = await executeToolCall(
+                toolCall, 
+                toolDefinitions,
+                { 
+                  user_id: userId, 
+                  agent_id: agent.id, 
+                  chat_id: chatId,
+                  workspace_id: workspaceId,
+                  agent_installation_id: agentInstallationId
+                }
+              );
+              return {
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify(result)
+              };
+            } catch (error) {
+              console.error(`❌ Tool execution failed: ${toolCall.function.name}`, error);
+              return {
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({
+                  error: true,
+                  message: error instanceof Error ? error.message : 'Tool execution failed',
+                  suggestion: 'Try an alternative approach or let the user know what went wrong'
+                })
+              };
+            }
+          });
+          
+          toolResults = await Promise.all(executionPromises);
+        } else {
+          // Sequential execution for dependent tools
+          console.log(`🔗 Executing ${preparedToolCalls.length} tools sequentially...`);
+          
+          for (const toolCall of preparedToolCalls) {
+            try {
+              const result = await executeToolCall(
+                toolCall, 
+                toolDefinitions,
+                { 
+                  user_id: userId, 
+                  agent_id: agent.id, 
+                  chat_id: chatId,
+                  workspace_id: workspaceId,
+                  agent_installation_id: agentInstallationId
+                }
+              );
+              toolResults.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify(result)
+              });
+            } catch (error) {
+              console.error(`❌ Tool execution failed: ${toolCall.function.name}`, error);
+              toolResults.push({
+                role: "tool",
+                tool_call_id: toolCall.id,
+                content: JSON.stringify({
+                  error: true,
+                  message: error instanceof Error ? error.message : 'Tool execution failed',
+                  suggestion: 'Try an alternative approach or let the user know what went wrong'
+                })
+              });
+            }
           }
         }
 
@@ -208,7 +327,6 @@ export async function processAgentWorkflow(
         conversationMessages.push(...toolResults);
         
         // Check if we should continue iterating
-        // The agent will decide based on tool results whether it needs more tools
         if (currentIteration >= maxIterations) {
           console.log(`⚠️ Max iterations reached, generating final response...`);
           

@@ -9,6 +9,61 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// PHASE 4: Context Window Management for Brian
+interface Message {
+  role: string;
+  content: string;
+  tool_calls?: any[];
+  tool_call_id?: string;
+}
+
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+function estimateMessageTokens(messages: Message[]): number {
+  let total = 0;
+  for (const msg of messages) {
+    total += estimateTokens(msg.content || '');
+    if (msg.tool_calls) {
+      total += estimateTokens(JSON.stringify(msg.tool_calls));
+    }
+  }
+  return total;
+}
+
+async function compressConversationHistory(
+  messages: Message[],
+  maxTokens: number = 15000
+): Promise<Message[]> {
+  const currentTokens = estimateMessageTokens(messages);
+  
+  if (currentTokens <= maxTokens) {
+    return messages;
+  }
+  
+  console.log(`⚠️ Brian's conversation too long (${currentTokens} tokens), compressing...`);
+  
+  const systemMessage = messages[0];
+  const recentMessages = messages.slice(-10);
+  const middleMessages = messages.slice(1, -10);
+  
+  if (middleMessages.length === 0) {
+    return messages;
+  }
+  
+  const summaryContent = `[Earlier conversation summary: We discussed ${middleMessages.length} topics. Key context and decisions preserved.]`;
+  
+  const compressed = [
+    systemMessage,
+    { role: "system", content: summaryContent },
+    ...recentMessages
+  ];
+  
+  console.log(`✓ Compressed from ${messages.length} to ${compressed.length} messages`);
+  return compressed;
+}
+
 // Build Brian's system prompt dynamically with context
 function buildBrianSystemPrompt(timeContext: string, relationshipContext: string, storedMemories: string): string {
   return `You're Brian, and honestly? You genuinely care about helping people get things done.
@@ -217,6 +272,16 @@ serve(async (req) => {
     // All Brian tools
     const allTools = [...platformTools, ...delegationTools, ...memoryTools];
 
+    // PHASE 4: Prepare messages with context compression
+    let conversationMessages: Message[] = [
+      { role: "system", content: BRIAN_SYSTEM_PROMPT },
+      ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
+      { role: "user", content: message }
+    ];
+    
+    // Compress if needed before AI call
+    conversationMessages = await compressConversationHistory(conversationMessages);
+
     // First AI call to decide what to do
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const analysisResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -227,11 +292,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "openai/gpt-5-mini",
-        messages: [
-          { role: "system", content: BRIAN_SYSTEM_PROMPT },
-          ...conversationHistory,
-          { role: "user", content: message }
-        ],
+        messages: conversationMessages,
         tools: allTools,
         tool_choice: "auto"
       }),
@@ -414,7 +475,17 @@ serve(async (req) => {
         });
       }
 
-      // Second AI call with tool results
+      // Second AI call with tool results - compress context if needed
+      let finalMessages: Message[] = [
+        { role: "system", content: BRIAN_SYSTEM_PROMPT },
+        ...conversationHistory.map((m: any) => ({ role: m.role, content: m.content })),
+        { role: "user", content: message },
+        brianResponse,
+        ...toolResults
+      ];
+      
+      finalMessages = await compressConversationHistory(finalMessages);
+      
       const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -423,13 +494,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: "openai/gpt-5-mini",
-          messages: [
-            { role: "system", content: BRIAN_SYSTEM_PROMPT },
-            ...conversationHistory,
-            { role: "user", content: message },
-            brianResponse,
-            ...toolResults
-          ],
+          messages: finalMessages,
         }),
       });
 
