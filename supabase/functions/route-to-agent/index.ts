@@ -524,24 +524,36 @@ You're working with colleagues, not executing a protocol. Just talk like a human
       processing_time_ms: Date.now() - startTime,
     });
 
-    // Update or create user-agent relationship to build rapport
-    const { data: existingRelationship } = await supabase
-      .from("user_agent_relationships")
-      .select("*")
-      .eq("user_id", user_id)
-      .eq("agent_id", agent_id)
+    // Update or create user-agent relationship to track rapport and shared context
+    const { data: relationshipData } = await supabase
+      .from('user_agent_relationships')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('agent_id', agent_id)
       .maybeSingle();
+    
+    // Build shared context from recent messages
+    const recentMessages = conversationHistory.slice(-10);
+    const sharedContext = relationshipData?.shared_context || {
+      past_wins: [],
+      preferences: {},
+      inside_jokes: [],
+      communication_style: 'neutral'
+    };
 
-    if (existingRelationship) {
-      // Update existing relationship
+    if (relationshipData) {
+      // Update existing relationship with incremental rapport and context
+      const newRapportLevel = Math.min((relationshipData.rapport_level || 0) + 1, 100);
+      
       await supabase
         .from("user_agent_relationships")
         .update({
-          interaction_count: existingRelationship.interaction_count + 1,
-          rapport_level: Math.min(10, existingRelationship.rapport_level + 1), // Cap at 10
-          last_interaction: new Date().toISOString()
+          interaction_count: relationshipData.interaction_count + 1,
+          rapport_level: newRapportLevel,
+          last_interaction: new Date().toISOString(),
+          shared_context: sharedContext
         })
-        .eq("id", existingRelationship.id);
+        .eq("id", relationshipData.id);
     } else {
       // Create new relationship
       await supabase.from("user_agent_relationships").insert({
@@ -549,7 +561,8 @@ You're working with colleagues, not executing a protocol. Just talk like a human
         agent_id,
         rapport_level: 1,
         interaction_count: 1,
-        last_interaction: new Date().toISOString()
+        last_interaction: new Date().toISOString(),
+        shared_context: sharedContext
       });
     }
 

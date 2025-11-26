@@ -287,13 +287,41 @@ export default function Connections() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <p className="text-muted-foreground">Loading your connections...</p>
+        <p className="text-muted-foreground">Checking your connections...</p>
       </div>
     );
   }
 
+  const hasConnections = connections.some(c => c.connected);
+
   return (
     <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl overflow-y-auto h-full pb-20 md:pb-8">
+      {/* Empty State for No Connections */}
+      {!hasConnections && searchQuery === "" && selectedCategory === "all" && (
+        <Card className="mb-6 border-2 border-dashed">
+          <CardContent className="py-12 text-center">
+            <div className="text-6xl mb-4">🔗</div>
+            <h3 className="text-2xl font-semibold mb-2">Connect Your Tools</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Link your accounts once, and every agent can use them instantly. No repeated setups, no friction.
+            </p>
+            <div className="flex flex-wrap gap-2 justify-center mb-6">
+              {connections.slice(0, 6).map(conn => (
+                <Badge key={conn.type} variant="outline" className="text-sm">
+                  {CREDENTIAL_INFO[conn.type as keyof typeof CREDENTIAL_INFO].shortName}
+                </Badge>
+              ))}
+            </div>
+            <Button size="lg" onClick={() => {
+              const firstConnection = connections[0];
+              if (firstConnection) handleConnect(firstConnection.type);
+            }}>
+              Connect Your First Tool
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Hero Section */}
       <div className="mb-6 md:mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

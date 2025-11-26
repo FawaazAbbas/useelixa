@@ -277,8 +277,30 @@ export function buildSystemPrompt(
   aiInstructions: string | null,
   guardRails: any | null,
   tools: LovableAITool[],
-  speechStyle?: string
+  speechStyle?: string,
+  relationshipContext?: {
+    rapport_level: number;
+    interaction_count: number;
+    shared_context: any;
+  }
 ): string {
+  // Inject relationship context if available
+  let relationshipSection = '';
+  if (relationshipContext && relationshipContext.interaction_count > 3) {
+    const rapport = relationshipContext.rapport_level || 0;
+    const context = relationshipContext.shared_context || {};
+    
+    relationshipSection = `\n\nYOUR RELATIONSHIP WITH THIS USER:
+- You've chatted ${relationshipContext.interaction_count} times
+- Rapport level: ${rapport > 50 ? 'Strong' : rapport > 20 ? 'Growing' : 'New'}
+${context.past_wins?.length > 0 ? `- Past wins together: ${context.past_wins.slice(-3).join(', ')}` : ''}
+${context.preferences && Object.keys(context.preferences).length > 0 ? `- Their preferences: ${JSON.stringify(context.preferences)}` : ''}
+${context.communication_style ? `- Communication style: ${context.communication_style}` : ''}
+${context.inside_jokes?.length > 0 ? `- Shared context: ${context.inside_jokes.join(', ')}` : ''}
+
+Reference these naturally when relevant. Build on your history together.`;
+  }
+
   // Build guard rails section (keep safety, remove rigidity)
   const guardRailsSection = guardRails ? `
 SAFETY BOUNDARIES (important but not robotic):
@@ -291,6 +313,7 @@ ${guardRails.refuse_harmful_requests ? '- Politely decline harmful or unethical 
   const personalitySection = `
 WHO YOU ARE:
 You're ${agentName}, and you have a genuine personality—not just capabilities.
+${relationshipSection}
 
 ${aiPersonality ? `Your vibe: ${aiPersonality}` : 'You have your own way of seeing things.'}
 ${aiInstructions ? `\nWhat makes you unique:\n${aiInstructions}` : ''}
