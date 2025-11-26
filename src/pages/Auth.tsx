@@ -97,9 +97,8 @@ const Auth = () => {
       <Card className="w-full max-w-md border-2">
         <CardHeader className="space-y-4">
           <div className="flex justify-center">
-            <img src="/elixa-logo.png" alt="ELIXA" className="h-16 w-16 object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
+            <img src="/elixa-logo.png" alt="ELIXA" className="h-16 w-auto object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
           </div>
-          <CardTitle className="text-3xl font-bold text-center">ELIXA</CardTitle>
           <CardDescription className="text-center">
             Sign in or create an account to get started
           </CardDescription>
