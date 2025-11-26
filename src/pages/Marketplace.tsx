@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Star, Search } from "lucide-react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ const Marketplace = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [displayedCount, setDisplayedCount] = useState(12);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,8 +83,22 @@ const Marketplace = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const featuredAgents = filteredAgents.slice(0, 4);
-  const topAgents = filteredAgents.slice(4, 8);
+  const displayedAgents = filteredAgents.slice(0, displayedCount);
+
+  const loadMore = useCallback(() => {
+    if (displayedCount >= filteredAgents.length) {
+      setHasMore(false);
+      return;
+    }
+    setTimeout(() => {
+      setDisplayedCount(prev => prev + 12);
+    }, 500);
+  }, [displayedCount, filteredAgents.length]);
+
+  useEffect(() => {
+    setDisplayedCount(12);
+    setHasMore(filteredAgents.length > 12);
+  }, [searchQuery, selectedCategory, filteredAgents.length]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,36 +201,28 @@ const Marketplace = () => {
             </Button>
           </div>
         ) : (
-          <>
-            <section className="mb-12 md:mb-16">
-              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
-                <Star className="h-5 w-5 md:h-6 md:w-6 fill-yellow-400 text-yellow-400" />
-                Featured Agents
-              </h2>
-              {featuredAgents.length === 0 ? (
-                <p className="text-muted-foreground text-sm md:text-base">No featured agents available</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                  {featuredAgents.map((agent) => (
-                    <AgentCard key={agent.id} agent={agent} />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section>
-              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Top Charts</h2>
-              {topAgents.length === 0 ? (
-                <p className="text-muted-foreground text-sm md:text-base">No top agents available</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                  {topAgents.map((agent) => (
-                    <AgentCard key={agent.id} agent={agent} />
-                  ))}
-                </div>
-              )}
-            </section>
-          </>
+          <InfiniteScroll
+            dataLength={displayedAgents.length}
+            next={loadMore}
+            hasMore={hasMore}
+            loader={
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Loading more agents...</p>
+              </div>
+            }
+            endMessage={
+              <p className="text-center py-8 text-muted-foreground">
+                You've seen all {filteredAgents.length} agents
+              </p>
+            }
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              {displayedAgents.map((agent) => (
+                <AgentCard key={agent.id} agent={agent} />
+              ))}
+            </div>
+          </InfiniteScroll>
         )}
       </div>
     </div>
