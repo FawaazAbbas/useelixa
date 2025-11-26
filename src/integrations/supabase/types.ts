@@ -665,6 +665,57 @@ export type Database = {
           },
         ]
       }
+      chat_agent_memories: {
+        Row: {
+          agent_installation_id: string | null
+          category: string
+          chat_id: string
+          created_at: string
+          created_by: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          agent_installation_id?: string | null
+          category: string
+          chat_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          agent_installation_id?: string | null
+          category?: string
+          chat_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_agent_memories_agent_installation_id_fkey"
+            columns: ["agent_installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_agent_memories_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_agents: {
         Row: {
           added_at: string
@@ -1128,6 +1179,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      workspace_agent_memories: {
+        Row: {
+          agent_installation_id: string | null
+          category: string
+          created_at: string
+          created_by: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_installation_id?: string | null
+          category: string
+          created_at?: string
+          created_by: string
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+          workspace_id: string
+        }
+        Update: {
+          agent_installation_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_agent_memories_agent_installation_id_fkey"
+            columns: ["agent_installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workspace_agent_memories_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_documents: {
         Row: {

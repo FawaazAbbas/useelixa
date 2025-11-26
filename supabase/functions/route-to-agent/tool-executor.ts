@@ -6,7 +6,7 @@ import { logActivity } from './activity-logger.ts';
 export async function executeToolCall(
   toolCall: any,
   toolDefinitions: LovableAITool[],
-  context?: { user_id: string; agent_id: string; chat_id?: string }
+  context?: { user_id: string; agent_id: string; chat_id?: string; workspace_id?: string; agent_installation_id?: string }
 ): Promise<any> {
   const startTime = Date.now();
   const tool = toolDefinitions.find(t => t.function.name === toolCall.function.name);
@@ -52,6 +52,8 @@ export async function executeToolCall(
       result = await executeAutomationExecution(args);
     } else if (nodeType === 'create_automation') {
       result = await executeCreateAutomation(args);
+    } else if (nodeType === 'agent_memory') {
+      result = await executeAgentMemory(args, nodeParameters, context);
     } else {
       throw new Error(`Unsupported node type: ${nodeType}`);
     }
@@ -702,7 +704,7 @@ async function executeTaskCreation(args: any): Promise<any> {
       due_date: due_date || null,
       is_asap: is_asap || false,
       user_id,
-      workspace_id,
+      workspace_id: workspace_id || null,
       status: 'pending'
     })
     .select()
@@ -714,31 +716,28 @@ async function executeTaskCreation(args: any): Promise<any> {
 
   console.log(`✓ Task created: ${task.id}`);
 
-  // Create automations if provided
-  const createdAutomations = [];
+  // Create associated automations if provided
   if (automations && Array.isArray(automations) && automations.length > 0) {
-    for (let i = 0; i < automations.length; i++) {
-      const auto = automations[i];
-      
-      const { data: automation, error: autoError } = await supabase
-        .from('automations')
-        .insert({
-          name: auto.name.trim(),
-          action: auto.action.trim(),
-          trigger: auto.trigger || 'manual',
-          task_id: task.id,
-          workspace_id,
-          created_by: user_id,
-          chain_order: i,
-          status: 'active'
-        })
-        .select()
-        .single();
+    const automationInserts = automations.map((auto: any, index: number) => ({
+      name: auto.name,
+      action: auto.action,
+      trigger: auto.trigger || 'manual',
+      task_id: task.id,
+      workspace_id: workspace_id || null,
+      created_by: user_id,
+      chain_order: index,
+      status: 'active'
+    }));
 
-      if (!autoError && automation) {
-        createdAutomations.push(automation);
-        console.log(`  ✓ Automation created: ${automation.name}`);
-      }
+    const { error: autoError } = await supabase
+      .from('automations')
+      .insert(automationInserts);
+
+    if (autoError) {
+      console.error('Failed to create automations:', autoError);
+      // Don't fail the whole task creation, just log the error
+    } else {
+      console.log(`✓ Created ${automations.length} automations for task`);
     }
   }
 
@@ -746,15 +745,13 @@ async function executeTaskCreation(args: any): Promise<any> {
     success: true,
     task_id: task.id,
     task_title: task.title,
-    task_url: `/tasks?taskId=${task.id}`,
-    automations_created: createdAutomations.length,
-    message: `Task "${title}" created successfully${createdAutomations.length > 0 ? ` with ${createdAutomations.length} automation(s)` : ''}`
+    automation_count: automations?.length || 0
   };
 }
 
 // Execute list automations tool
 async function executeListAutomations(args: any): Promise<any> {
-  const { task_id, status, user_id, workspace_id } = args;
+  const { task_id, status } = args;
   
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -763,32 +760,17 @@ async function executeListAutomations(args: any): Promise<any> {
 
   let query = supabase
     .from('automations')
-    .select(`
-      id,
-      name,
-      action,
-      trigger,
-      status,
-      last_executed_at,
-      last_execution_status,
-      next_run_at,
-      schedule_type,
-      is_enabled,
-      task_id,
-      created_at
-    `)
-    .eq('workspace_id', workspace_id)
-    .order('created_at', { ascending: false });
+    .select('id, name, action, trigger, status, last_executed_at, next_run_at, created_at');
 
   if (task_id) {
     query = query.eq('task_id', task_id);
   }
-  
+
   if (status) {
     query = query.eq('status', status);
   }
 
-  const { data: automations, error } = await query.limit(50);
+  const { data: automations, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
     throw new Error(`Failed to list automations: ${error.message}`);
@@ -796,59 +778,55 @@ async function executeListAutomations(args: any): Promise<any> {
 
   return {
     success: true,
-    count: automations?.length || 0,
-    automations: automations || []
+    automations: automations || [],
+    count: automations?.length || 0
   };
 }
 
 // Execute automation execution tool
 async function executeAutomationExecution(args: any): Promise<any> {
-  const { automation_id, user_id, workspace_id } = args;
+  const { automation_id } = args;
   
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  );
-
-  // Fetch automation details
-  const { data: automation, error: fetchError } = await supabase
-    .from('automations')
-    .select('*')
-    .eq('id', automation_id)
-    .eq('workspace_id', workspace_id)
-    .single();
-
-  if (fetchError || !automation) {
-    throw new Error(`Automation not found: ${automation_id}`);
+  if (!automation_id) {
+    throw new Error("automation_id is required");
   }
-
+  
+  console.log(`Executing automation: ${automation_id}`);
+  
   try {
-    // Invoke execute-automation-chain edge function
-    const { data, error } = await supabase.functions.invoke('execute-automation-chain', {
-      body: {
-        automations: [automation],
-        user_id,
-        workspace_id,
-        manual_trigger: true
+    // Call the execute-automation-chain edge function
+    const response = await fetch(
+      `${Deno.env.get("SUPABASE_URL")}/functions/v1/execute-automation-chain`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          automation_ids: [automation_id]
+        })
       }
-    });
-
-    if (error) {
-      throw new Error(`Execution failed: ${error.message}`);
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Automation execution failed: ${errorText}`);
     }
-
+    
+    const result = await response.json();
+    
     return {
       success: true,
       automation_id,
-      automation_name: automation.name,
-      execution_result: data
+      result: result
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Automation execution error:', error);
     return {
       success: false,
       automation_id,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
@@ -915,4 +893,157 @@ async function executeCreateAutomation(args: any): Promise<any> {
     automation_name: automation.name,
     next_run_at: automation.next_run_at
   };
+}
+
+/**
+ * Execute agent memory operations (remember/recall)
+ */
+async function executeAgentMemory(
+  args: any,
+  nodeParameters: any,
+  context?: { user_id: string; agent_id: string; chat_id?: string; workspace_id?: string; agent_installation_id?: string }
+): Promise<any> {
+  const action = nodeParameters.action; // 'remember' or 'recall'
+  
+  if (!context) {
+    throw new Error("Context required for memory operations");
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  if (action === 'remember') {
+    const { category, key, value, scope } = args;
+    
+    if (!category || !key || !value || !scope) {
+      throw new Error("Category, key, value, and scope are required for remember operation");
+    }
+
+    console.log(`Storing memory: ${scope}/${category}/${key}`);
+
+    const memoryData = {
+      category,
+      key,
+      value,
+      created_by: context.user_id,
+      agent_installation_id: context.agent_installation_id || null
+    };
+
+    if (scope === 'workspace') {
+      if (!context.workspace_id) {
+        throw new Error("Workspace ID required for workspace-scoped memories");
+      }
+
+      const { data, error } = await supabase
+        .from('workspace_agent_memories')
+        .upsert({
+          ...memoryData,
+          workspace_id: context.workspace_id
+        }, {
+          onConflict: 'workspace_id,agent_installation_id,category,key'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to store workspace memory: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        scope: 'workspace',
+        category,
+        key,
+        message: `Stored workspace memory: ${key}`
+      };
+    } else if (scope === 'chat') {
+      if (!context.chat_id) {
+        throw new Error("Chat ID required for chat-scoped memories");
+      }
+
+      const { data, error } = await supabase
+        .from('chat_agent_memories')
+        .upsert({
+          ...memoryData,
+          chat_id: context.chat_id
+        }, {
+          onConflict: 'chat_id,agent_installation_id,category,key'
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to store chat memory: ${error.message}`);
+      }
+
+      return {
+        success: true,
+        scope: 'chat',
+        category,
+        key,
+        message: `Stored chat memory: ${key}`
+      };
+    }
+
+    throw new Error(`Invalid scope: ${scope}`);
+  } else if (action === 'recall') {
+    const { category } = args;
+    
+    console.log(`Recalling memories: category=${category || 'all'}`);
+
+    const memories: any[] = [];
+
+    // Fetch workspace memories
+    if (context.workspace_id) {
+      let workspaceQuery = supabase
+        .from('workspace_agent_memories')
+        .select('*')
+        .eq('workspace_id', context.workspace_id);
+
+      if (context.agent_installation_id) {
+        workspaceQuery = workspaceQuery.or(`agent_installation_id.eq.${context.agent_installation_id},agent_installation_id.is.null`);
+      }
+
+      if (category && category !== 'all') {
+        workspaceQuery = workspaceQuery.eq('category', category);
+      }
+
+      const { data: workspaceMemories } = await workspaceQuery;
+      if (workspaceMemories) {
+        memories.push(...workspaceMemories.map((m: any) => ({ ...m, scope: 'workspace' })));
+      }
+    }
+
+    // Fetch chat memories
+    if (context.chat_id) {
+      let chatQuery = supabase
+        .from('chat_agent_memories')
+        .select('*')
+        .eq('chat_id', context.chat_id);
+
+      if (context.agent_installation_id) {
+        chatQuery = chatQuery.or(`agent_installation_id.eq.${context.agent_installation_id},agent_installation_id.is.null`);
+      }
+
+      if (category && category !== 'all') {
+        chatQuery = chatQuery.eq('category', category);
+      }
+
+      const { data: chatMemories } = await chatQuery;
+      if (chatMemories) {
+        memories.push(...chatMemories.map((m: any) => ({ ...m, scope: 'chat' })));
+      }
+    }
+
+    return {
+      success: true,
+      memories: memories,
+      count: memories.length,
+      message: `Retrieved ${memories.length} ${category !== 'all' ? category : ''} memories`
+    };
+  }
+
+  throw new Error(`Invalid action: ${action}`);
 }
