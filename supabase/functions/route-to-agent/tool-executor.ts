@@ -3,6 +3,44 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 import { LovableAITool } from './node-mappings.ts';
 import { logActivity } from './activity-logger.ts';
 
+// PHASE 2: Retry wrapper with exponential backoff
+async function executeWithRetry<T>(
+  fn: () => Promise<T>,
+  toolName: string,
+  maxRetries = 3
+): Promise<T> {
+  const delays = [1000, 2000, 4000]; // 1s, 2s, 4s exponential backoff
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isLastAttempt = attempt === maxRetries;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Check if error is retryable (network, rate limits, timeouts)
+      const isRetryable = 
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('rate limit') ||
+        errorMessage.toLowerCase().includes('429') ||
+        errorMessage.toLowerCase().includes('503') ||
+        errorMessage.toLowerCase().includes('504');
+      
+      if (!isRetryable || isLastAttempt) {
+        console.error(`❌ Tool ${toolName} failed after ${attempt + 1} attempt(s):`, errorMessage);
+        throw error;
+      }
+      
+      const delay = delays[attempt];
+      console.log(`⚠️ Tool ${toolName} failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw new Error('Max retries exceeded');
+}
+
 export async function executeToolCall(
   toolCall: any,
   toolDefinitions: LovableAITool[],
@@ -20,47 +58,61 @@ export async function executeToolCall(
   const nodeType = (tool.function as any).nodeType;
   const nodeParameters = (tool.function as any).nodeParameters;
   
-  console.log(`Executing tool: ${toolCall.function.name}`, { nodeType, args });
+  console.log(`🔧 Executing tool: ${toolCall.function.name}`, { nodeType, args });
   
   let result: any;
   let success = true;
   let error: string | undefined;
 
   try {
-    // Route to appropriate executor based on node type
-    if (nodeType === 'n8n-nodes-base.httpRequest') {
-      result = await executeHttpRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'n8n-nodes-base.notion') {
-      result = await executeNotionRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'n8n-nodes-base.slack') {
-      result = await executeSlackRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'n8n-nodes-base.gmail' || nodeType === 'n8n-nodes-base.gmailTool') {
-      result = await executeGmailRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'n8n-nodes-base.googleSheets' || nodeType === 'n8n-nodes-base.googleSheetsTool') {
-      result = await executeSheetsRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'n8n-nodes-base.openAi') {
-      result = await executeOpenAIRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
-      result = await executeRSSRequest(args, credentials, nodeParameters);
-    } else if (nodeType === 'workspace_document') {
-      result = await executeWorkspaceDocumentRead(args);
-    } else if (nodeType === 'task_creation') {
-      result = await executeTaskCreation(args);
-    } else if (nodeType === 'list_automations') {
-      result = await executeListAutomations(args);
-    } else if (nodeType === 'execute_automation') {
-      result = await executeAutomationExecution(args);
-    } else if (nodeType === 'create_automation') {
-      result = await executeCreateAutomation(args);
-    } else if (nodeType === 'agent_memory') {
-      result = await executeAgentMemory(args, nodeParameters, context);
-    } else {
-      throw new Error(`Unsupported node type: ${nodeType}`);
-    }
+    // Wrap execution in retry logic
+    result = await executeWithRetry(async () => {
+      // Route to appropriate executor based on node type
+      if (nodeType === 'n8n-nodes-base.httpRequest') {
+        return await executeHttpRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.notion') {
+        return await executeNotionRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.slack') {
+        return await executeSlackRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.gmail' || nodeType === 'n8n-nodes-base.gmailTool') {
+        return await executeGmailRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.googleSheets' || nodeType === 'n8n-nodes-base.googleSheetsTool') {
+        return await executeSheetsRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.openAi') {
+        return await executeOpenAIRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
+        return await executeRSSRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'workspace_document') {
+        return await executeWorkspaceDocumentRead(args);
+      } else if (nodeType === 'task_creation') {
+        return await executeTaskCreation(args);
+      } else if (nodeType === 'list_automations') {
+        return await executeListAutomations(args);
+      } else if (nodeType === 'execute_automation') {
+        return await executeAutomationExecution(args);
+      } else if (nodeType === 'create_automation') {
+        return await executeCreateAutomation(args);
+      } else if (nodeType === 'agent_memory') {
+        return await executeAgentMemory(args, nodeParameters, context);
+      } else {
+        throw new Error(`Unsupported node type: ${nodeType}`);
+      }
+    }, toolCall.function.name);
+    
+    console.log(`✅ Tool ${toolCall.function.name} executed successfully`);
   } catch (err) {
     success = false;
     error = err instanceof Error ? err.message : 'Unknown error';
-    throw err;
+    
+    // Graceful degradation: provide helpful error context
+    const errorContext = {
+      tool: toolCall.function.name,
+      error: error,
+      suggestion: getSuggestionForError(error, nodeType)
+    };
+    
+    console.error('Tool execution failed:', errorContext);
+    throw new Error(JSON.stringify(errorContext));
   } finally {
     // Log activity if context is provided
     if (context) {
@@ -85,6 +137,33 @@ export async function executeToolCall(
   }
 
   return result;
+}
+
+// Helper function to provide actionable suggestions for common errors
+function getSuggestionForError(error: string, nodeType: string): string {
+  const errorLower = error.toLowerCase();
+  
+  if (errorLower.includes('credentials') || errorLower.includes('authentication') || errorLower.includes('401')) {
+    return 'Please reconnect your account in the Connections page';
+  }
+  
+  if (errorLower.includes('rate limit') || errorLower.includes('429')) {
+    return 'Service rate limit reached. Please try again in a few minutes';
+  }
+  
+  if (errorLower.includes('not found') || errorLower.includes('404')) {
+    return 'The requested resource was not found. Please verify the ID or URL';
+  }
+  
+  if (errorLower.includes('permission') || errorLower.includes('forbidden') || errorLower.includes('403')) {
+    return 'Permission denied. Please check your account has access to this resource';
+  }
+  
+  if (errorLower.includes('network') || errorLower.includes('timeout')) {
+    return 'Network connection issue. Please check your internet connection and try again';
+  }
+  
+  return 'Please try again or contact support if the issue persists';
 }
 
 async function executeHttpRequest(

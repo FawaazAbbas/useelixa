@@ -113,32 +113,54 @@ export async function processAgentWorkflow(
         throw new Error("LOVABLE_API_KEY not configured");
       }
 
-      const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${lovableApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-5-mini",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...conversationHistory,
-            { role: "user", content: message }
-          ],
-          tools: toolDefinitions.length > 0 ? toolDefinitions : undefined,
-          tool_choice: toolDefinitions.length > 0 ? "auto" : undefined,
-        }),
-      });
+      // PHASE 1: Multi-Step Tool Execution with iterative loop
+      const maxIterations = 5;
+      let currentIteration = 0;
+      let conversationMessages = [
+        { role: "system", content: systemPrompt },
+        ...conversationHistory,
+        { role: "user", content: message }
+      ];
+      
+      let finalContent = "";
+      
+      while (currentIteration < maxIterations) {
+        currentIteration++;
+        console.log(`🔄 Iteration ${currentIteration}/${maxIterations}`);
+        
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${lovableApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-5-mini",
+            messages: conversationMessages,
+            tools: toolDefinitions.length > 0 ? toolDefinitions : undefined,
+            tool_choice: toolDefinitions.length > 0 ? "auto" : undefined,
+          }),
+        });
 
-      if (!aiResponse.ok) {
-        throw new Error(`AI API error: ${aiResponse.statusText}`);
-      }
+        if (!aiResponse.ok) {
+          throw new Error(`AI API error: ${aiResponse.statusText}`);
+        }
 
-      const aiData = await aiResponse.json();
-      const choice = aiData.choices[0];
+        const aiData = await aiResponse.json();
+        const choice = aiData.choices[0];
+        
+        // Add assistant message to conversation
+        conversationMessages.push(choice.message);
 
-      if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
+        // If no tool calls, we're done
+        if (!choice.message.tool_calls || choice.message.tool_calls.length === 0) {
+          finalContent = choice.message.content;
+          console.log(`✅ Task complete after ${currentIteration} iteration(s)`);
+          break;
+        }
+
+        // Execute tool calls with error recovery
+        console.log(`🔧 Executing ${choice.message.tool_calls.length} tool(s)...`);
         const toolResults = [];
         
         for (const toolCall of choice.message.tool_calls) {
@@ -150,52 +172,67 @@ export async function processAgentWorkflow(
             toolCall.function.arguments = JSON.stringify(args);
           }
           
-          const result = await executeToolCall(
-            toolCall, 
-            toolDefinitions,
-            { 
-              user_id: userId, 
-              agent_id: agent.id, 
-              chat_id: chatId,
-              workspace_id: workspaceId,
-              agent_installation_id: agentInstallationId
-            }
-          );
-          toolResults.push(result);
+          try {
+            const result = await executeToolCall(
+              toolCall, 
+              toolDefinitions,
+              { 
+                user_id: userId, 
+                agent_id: agent.id, 
+                chat_id: chatId,
+                workspace_id: workspaceId,
+                agent_installation_id: agentInstallationId
+              }
+            );
+            toolResults.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify(result)
+            });
+          } catch (error) {
+            console.error(`❌ Tool execution failed: ${toolCall.function.name}`, error);
+            // Add error result so agent can handle gracefully
+            toolResults.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: JSON.stringify({
+                error: true,
+                message: error instanceof Error ? error.message : 'Tool execution failed',
+                suggestion: 'Try an alternative approach or let the user know what went wrong'
+              })
+            });
+          }
         }
 
-        // Second AI call with tool results
-        const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${lovableApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-5-mini",
-            messages: [
-              { role: "system", content: systemPrompt },
-              ...conversationHistory,
-              { role: "user", content: message },
-              choice.message,
-              ...toolResults.map((result: any, idx: number) => ({
-                role: "tool",
-                tool_call_id: choice.message.tool_calls[idx].id,
-                content: JSON.stringify(result)
-              }))
-            ],
-          }),
-        });
-
-        const finalData = await finalResponse.json();
-        return {
-          content: finalData.choices[0].message.content,
-          processingTime: Date.now() - startTime
-        };
+        // Add tool results to conversation
+        conversationMessages.push(...toolResults);
+        
+        // Check if we should continue iterating
+        // The agent will decide based on tool results whether it needs more tools
+        if (currentIteration >= maxIterations) {
+          console.log(`⚠️ Max iterations reached, generating final response...`);
+          
+          // Final call to generate response
+          const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${lovableApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "openai/gpt-5-mini",
+              messages: conversationMessages,
+            }),
+          });
+          
+          const finalData = await finalResponse.json();
+          finalContent = finalData.choices[0].message.content;
+          break;
+        }
       }
 
       return {
-        content: choice.message.content,
+        content: finalContent,
         processingTime: Date.now() - startTime
       };
     }
