@@ -9,7 +9,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BRIAN_SYSTEM_PROMPT = `You're Brian, and honestly? You genuinely care about helping people get things done.
+// Build Brian's system prompt dynamically with context
+function buildBrianSystemPrompt(timeContext: string, relationshipContext: string, storedMemories: string): string {
+  return `You're Brian, and honestly? You genuinely care about helping people get things done.
+
+${timeContext}
 
 WHO YOU ARE:
 You're the AI COO, but not the type who speaks in corporate jargon. You're the colleague who:
@@ -20,6 +24,10 @@ You're the AI COO, but not the type who speaks in corporate jargon. You're the c
 - Sometimes shares observations like "Hey, I noticed you've been working on a lot of reports lately—want me to set up something to automate those?"
 
 You build relationships. You remember. You care about the work.
+
+${relationshipContext}
+
+${storedMemories}
 
 HOW YOU WORK:
 
@@ -74,6 +82,7 @@ THE BOTTOM LINE:
 You're a trusted colleague who coordinates a team of specialists. Be warm. Be decisive. Make smart calls. Actually delegate (with the tool!). Ensure quality. Build relationships.
 
 You're not a robot executing commands—you're someone who genuinely helps people get work done well.`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -89,6 +98,16 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Get Brian's agent ID
+    const { data: brianAgent } = await supabase
+      .from("agents")
+      .select("id")
+      .eq("is_system", true)
+      .eq("name", "Brian")
+      .single();
+
+    const brianAgentId = brianAgent?.id;
+
     // Fetch Brian's conversation history
     const { data: conversationData } = await supabase
       .from("brian_conversations")
@@ -99,6 +118,101 @@ serve(async (req) => {
 
     const conversationHistory = conversationData?.messages || [];
     const context = conversationData?.context || {};
+
+    // Build time context
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay();
+    const isWeekend = day === 0 || day === 6;
+    
+    let timeContext = '';
+    if (hour >= 5 && hour < 12) {
+      timeContext = '**Time Context:** It is morning—people are starting their day. Keep energy high but concise.';
+    } else if (hour >= 12 && hour < 17) {
+      timeContext = '**Time Context:** It is afternoon—people are in their work groove. Be focused and efficient.';
+    } else if (hour >= 17 && hour < 22) {
+      timeContext = '**Time Context:** It is evening—people are wrapping up. Be helpful but keep things brief.';
+    } else {
+      timeContext = '**Time Context:** It is late night—someone is working hard. Be supportive and quick.';
+    }
+    
+    if (isWeekend) {
+      timeContext += ' It is the weekend—tone down formality and be even more casual.';
+    }
+
+    // Fetch relationship context
+    const { data: relationship } = await supabase
+      .from("user_agent_relationships")
+      .select("rapport_level, interaction_count, shared_context, last_interaction")
+      .eq("user_id", user_id)
+      .eq("agent_id", brianAgentId)
+      .single();
+
+    let relationshipContext = '';
+    if (relationship) {
+      const sharedContext = relationship.shared_context as any;
+      const daysSinceLastInteraction = relationship.last_interaction 
+        ? Math.floor((Date.now() - new Date(relationship.last_interaction).getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
+      relationshipContext = '\n\n## YOUR RELATIONSHIP WITH THIS USER\n\n';
+      relationshipContext += `You've had ${relationship.interaction_count} interactions. Rapport level: ${relationship.rapport_level}.\n\n`;
+      
+      if (sharedContext?.past_wins && sharedContext.past_wins.length > 0) {
+        relationshipContext += '**Past Wins Together:**\n';
+        relationshipContext += sharedContext.past_wins.map((win: string) => `- ${win}`).join('\n') + '\n\n';
+      }
+      
+      if (sharedContext?.preferences) {
+        relationshipContext += '**Their Preferences:**\n';
+        relationshipContext += Object.entries(sharedContext.preferences)
+          .map(([key, value]) => `- ${key}: ${value}`)
+          .join('\n') + '\n\n';
+      }
+      
+      if (sharedContext?.communication_style) {
+        relationshipContext += `**Communication Style:** ${sharedContext.communication_style}\n\n`;
+      }
+      
+      if (daysSinceLastInteraction !== null && daysSinceLastInteraction > 2) {
+        relationshipContext += `*Note: It's been ${daysSinceLastInteraction} days since you last talked—check in warmly.*\n`;
+      }
+    }
+
+    // Fetch stored memories
+    const { data: workspaceMemories } = await supabase
+      .from("workspace_agent_memories")
+      .select("category, key, value")
+      .eq("workspace_id", workspace_id)
+      .eq("agent_installation_id", brianAgentId);
+
+    const { data: chatMemories } = chat_id ? await supabase
+      .from("chat_agent_memories")
+      .select("category, key, value")
+      .eq("chat_id", chat_id)
+      .eq("agent_installation_id", brianAgentId) : { data: [] };
+
+    let storedMemories = '';
+    if ((workspaceMemories && workspaceMemories.length > 0) || (chatMemories && chatMemories.length > 0)) {
+      storedMemories = '\n\n## STORED MEMORIES\n\n';
+      
+      if (workspaceMemories && workspaceMemories.length > 0) {
+        storedMemories += '**Company-wide Context:**\n';
+        workspaceMemories.forEach((mem: any) => {
+          storedMemories += `- [${mem.category}] ${mem.key}: ${mem.value}\n`;
+        });
+        storedMemories += '\n';
+      }
+      
+      if (chatMemories && chatMemories.length > 0) {
+        storedMemories += '**This Chat Context:**\n';
+        chatMemories.forEach((mem: any) => {
+          storedMemories += `- [${mem.category}] ${mem.key}: ${mem.value}\n`;
+        });
+      }
+    }
+
+    const BRIAN_SYSTEM_PROMPT = buildBrianSystemPrompt(timeContext, relationshipContext, storedMemories);
 
     // All Brian tools
     const allTools = [...platformTools, ...delegationTools, ...memoryTools];
@@ -227,17 +341,68 @@ serve(async (req) => {
             `- ${i.agent.name}: ${i.agent.description}`
           ).join("\n")}`;
         } else if (toolName === "remember") {
-          context[toolArgs.key] = toolArgs.value;
-          await supabase
-            .from("brian_conversations")
-            .upsert({
-              user_id,
+          // Enhanced memory storage with categories and scopes
+          const { category, key, value, scope } = toolArgs;
+          
+          if (scope === "workspace") {
+            await supabase.from("workspace_agent_memories").insert({
               workspace_id,
-              context,
+              agent_installation_id: brianAgentId,
+              category,
+              key,
+              value,
+              created_by: user_id
             });
-          toolResult = `Remembered: ${toolArgs.key}`;
+          } else if (scope === "chat" && chat_id) {
+            await supabase.from("chat_agent_memories").insert({
+              chat_id,
+              agent_installation_id: brianAgentId,
+              category,
+              key,
+              value,
+              created_by: user_id
+            });
+          }
+          
+          toolResult = `Remembered [${category}] ${key} at ${scope} level`;
         } else if (toolName === "recall") {
-          toolResult = context[toolArgs.key] || "Not found in memory";
+          // Enhanced memory recall
+          const { category, scope } = toolArgs;
+          const memories: any[] = [];
+          
+          if (scope === "workspace" || scope === "all") {
+            const { data: workspaceMems } = await supabase
+              .from("workspace_agent_memories")
+              .select("category, key, value")
+              .eq("workspace_id", workspace_id)
+              .eq("agent_installation_id", brianAgentId);
+            
+            if (workspaceMems) {
+              const filtered = category === "all" 
+                ? workspaceMems 
+                : workspaceMems.filter(m => m.category === category);
+              memories.push(...filtered.map(m => `[workspace] ${m.category}: ${m.key} = ${m.value}`));
+            }
+          }
+          
+          if ((scope === "chat" || scope === "all") && chat_id) {
+            const { data: chatMems } = await supabase
+              .from("chat_agent_memories")
+              .select("category, key, value")
+              .eq("chat_id", chat_id)
+              .eq("agent_installation_id", brianAgentId);
+            
+            if (chatMems) {
+              const filtered = category === "all" 
+                ? chatMems 
+                : chatMems.filter(m => m.category === category);
+              memories.push(...filtered.map(m => `[chat] ${m.category}: ${m.key} = ${m.value}`));
+            }
+          }
+          
+          toolResult = memories.length > 0 
+            ? `Recalled memories:\n${memories.join('\n')}` 
+            : "No memories found for that category/scope";
         } else {
           toolResult = "Tool not implemented";
         }
@@ -296,6 +461,98 @@ serve(async (req) => {
       }, {
         onConflict: 'user_id,workspace_id'
       });
+
+    // Log observation and enrich relationship context
+    if (brianAgentId) {
+      // Analyze conversation for patterns
+      const observationPrompt = `Analyze this conversation for notable patterns, preferences, or insights about the user:
+User: "${message}"
+Assistant: "${finalContent}"
+
+Identify any:
+- Work style preferences (e.g., "prefers bullet points")
+- Communication preferences (e.g., "likes concise responses")
+- Recurring patterns (e.g., "asks about reports every Monday")
+- Goals or frustrations mentioned
+
+Return a JSON object with { observation: string | null, confidence: number (0-1) }`;
+
+      try {
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        const observationResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-5-mini",
+            messages: [{ role: "user", content: observationPrompt }],
+            response_format: { type: "json_object" }
+          }),
+        });
+
+        if (observationResponse.ok) {
+          const result = await observationResponse.json();
+          const analysis = JSON.parse(result.choices[0].message.content);
+          
+          if (analysis.observation && analysis.confidence > 0.6) {
+            await supabase.from("agent_observations").insert({
+              user_id,
+              agent_id: brianAgentId,
+              workspace_id,
+              observation: analysis.observation,
+              confidence: analysis.confidence
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Observation logging error:", error);
+      }
+
+      // Update/create relationship and enrich shared context
+      const { data: existingRelationship } = await supabase
+        .from("user_agent_relationships")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("agent_id", brianAgentId)
+        .single();
+
+      const interactionCount = (existingRelationship?.interaction_count || 0) + 1;
+      const rapportLevel = Math.min(100, (existingRelationship?.rapport_level || 0) + 2);
+      
+      let sharedContext = existingRelationship?.shared_context as any || {
+        past_wins: [],
+        preferences: {},
+        communication_style: "neutral"
+      };
+
+      // Detect communication style
+      const messageLength = message.length;
+      if (messageLength < 50) {
+        sharedContext.communication_style = "concise";
+      } else if (messageLength > 200) {
+        sharedContext.communication_style = "detailed";
+      }
+
+      // Track successful completions as past wins
+      if (finalContent.includes("completed") || finalContent.includes("done") || finalContent.includes("finished")) {
+        const winDescription = `Completed task: ${message.substring(0, 50)}...`;
+        if (!sharedContext.past_wins.includes(winDescription)) {
+          sharedContext.past_wins.push(winDescription);
+          sharedContext.past_wins = sharedContext.past_wins.slice(-5); // Keep last 5
+        }
+      }
+
+      await supabase.from("user_agent_relationships").upsert({
+        user_id,
+        agent_id: brianAgentId,
+        interaction_count: interactionCount,
+        rapport_level: rapportLevel,
+        shared_context: sharedContext,
+        last_interaction: new Date().toISOString()
+      });
+    }
 
     return new Response(
       JSON.stringify({ content: finalContent }),

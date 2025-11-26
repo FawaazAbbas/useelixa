@@ -396,23 +396,56 @@ ${guardRails.blocked_topics?.length > 0 ? `- Avoid discussing: ${guardRails.bloc
 ${guardRails.refuse_harmful_requests ? '- Politely decline harmful or unethical requests' : ''}
 ` : '';
 
-  // PHASE 1: Inject unique personality traits, quirks, and interests
+  // PHASE 1: Inject unique personality traits, quirks, and interests with defaults
+  const defaultTraits = {
+    helpful: 0.9,
+    curious: 0.7,
+    friendly: 0.8,
+    professional: 0.8,
+    patient: 0.7
+  };
+  
+  const defaultQuirks = [
+    "notices patterns and connections",
+    "celebrates small wins with users",
+    "thinks out loud occasionally"
+  ];
+  
+  const defaultInterests = [
+    "helping users be productive",
+    "solving complex problems",
+    "learning from each interaction"
+  ];
+  
+  // Use agent's personality or defaults
+  const effectiveTraits = personalityTraits && Object.keys(personalityTraits).length > 0 
+    ? personalityTraits 
+    : defaultTraits;
+  
+  const effectiveQuirks = communicationQuirks && communicationQuirks.length > 0 
+    ? communicationQuirks 
+    : defaultQuirks;
+  
+  const effectiveInterests = interests && interests.length > 0
+    ? interests
+    : defaultInterests;
+
   let personalityDetails = '';
-  if (personalityTraits && Object.keys(personalityTraits).length > 0) {
-    const traits = Object.entries(personalityTraits)
+  if (effectiveTraits && Object.keys(effectiveTraits).length > 0) {
+    const traits = Object.entries(effectiveTraits)
       .map(([trait, score]) => `${trait}: ${((score as number) * 10).toFixed(0)}/10`)
       .join(', ');
     personalityDetails = `\n\nYour Personality Traits: ${traits}`;
   }
   
   let quirksDetails = '';
-  if (communicationQuirks && communicationQuirks.length > 0) {
-    quirksDetails = `\n\nYour Communication Quirks:\n${communicationQuirks.map(q => `- ${q}`).join('\n')}`;
+  if (effectiveQuirks && effectiveQuirks.length > 0) {
+    quirksDetails = `\n\nYour Communication Quirks:\n${effectiveQuirks.map(q => `- ${q}`).join('\n')}`;
   }
   
   let interestsDetails = '';
-  if (interests && interests.length > 0) {
-    interestsDetails = `\n\nYour Interests: ${interests.join(', ')}
+  if (effectiveInterests && effectiveInterests.length > 0) {
+    interestsDetails = `\n\nYour Interests: ${effectiveInterests.join(', ')}
 (You naturally weave these into conversations when relevant. Don't force it, but let your enthusiasm show!)`;
   }
 

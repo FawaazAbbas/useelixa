@@ -232,20 +232,30 @@ export const memoryTools = [
     type: "function",
     function: {
       name: "remember",
-      description: "Store user preferences or important context for future reference",
+      description: "Store user preferences, work style, goals, or important context with categories and scopes. Use workspace scope for company-wide information, chat scope for conversation-specific details.",
       parameters: {
         type: "object",
         properties: {
+          category: {
+            type: "string",
+            enum: ["work_style", "preferences", "goals", "context", "custom"],
+            description: "Category of memory (work_style: how they work, preferences: what they like, goals: what they want to achieve, context: background info, custom: other)"
+          },
           key: {
             type: "string",
-            description: "Memory key (e.g., 'preferred_report_format')"
+            description: "Short descriptive key (e.g., 'report_format', 'meeting_preference')"
           },
           value: {
             type: "string",
-            description: "Value to remember"
+            description: "The information to remember"
+          },
+          scope: {
+            type: "string",
+            enum: ["workspace", "chat"],
+            description: "workspace: available across all chats, chat: only in this conversation"
           }
         },
-        required: ["key", "value"]
+        required: ["category", "key", "value", "scope"]
       }
     }
   },
@@ -253,16 +263,22 @@ export const memoryTools = [
     type: "function",
     function: {
       name: "recall",
-      description: "Retrieve stored information or preferences",
+      description: "Retrieve stored memories by category and scope",
       parameters: {
         type: "object",
         properties: {
-          key: {
+          category: {
             type: "string",
-            description: "Memory key to retrieve"
+            enum: ["work_style", "preferences", "goals", "context", "custom", "all"],
+            description: "Category to recall from (use 'all' to retrieve everything)"
+          },
+          scope: {
+            type: "string",
+            enum: ["workspace", "chat", "all"],
+            description: "Scope to recall from"
           }
         },
-        required: ["key"]
+        required: ["category", "scope"]
       }
     }
   }
