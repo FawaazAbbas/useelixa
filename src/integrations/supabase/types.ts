@@ -205,6 +205,51 @@ export type Database = {
           },
         ]
       }
+      agent_observations: {
+        Row: {
+          agent_id: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          observation: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          observation: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          observation?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_observations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_observations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_reviews: {
         Row: {
           agent_id: string
@@ -250,17 +295,21 @@ export type Database = {
           api_authentication_type: string | null
           capabilities: string[] | null
           category_id: string | null
+          communication_quirks: string[] | null
           configuration_schema: Json | null
           created_at: string
           description: string | null
           guard_rails: Json | null
           id: string
           image_url: string | null
+          interests: string[] | null
           is_chat_compatible: boolean | null
           is_system: boolean | null
           is_workflow_based: boolean | null
           long_description: string | null
           name: string
+          opinion_tendencies: string | null
+          personality_traits: Json | null
           price: number | null
           publisher_id: string | null
           rating: number | null
@@ -282,17 +331,21 @@ export type Database = {
           api_authentication_type?: string | null
           capabilities?: string[] | null
           category_id?: string | null
+          communication_quirks?: string[] | null
           configuration_schema?: Json | null
           created_at?: string
           description?: string | null
           guard_rails?: Json | null
           id?: string
           image_url?: string | null
+          interests?: string[] | null
           is_chat_compatible?: boolean | null
           is_system?: boolean | null
           is_workflow_based?: boolean | null
           long_description?: string | null
           name: string
+          opinion_tendencies?: string | null
+          personality_traits?: Json | null
           price?: number | null
           publisher_id?: string | null
           rating?: number | null
@@ -314,17 +367,21 @@ export type Database = {
           api_authentication_type?: string | null
           capabilities?: string[] | null
           category_id?: string | null
+          communication_quirks?: string[] | null
           configuration_schema?: Json | null
           created_at?: string
           description?: string | null
           guard_rails?: Json | null
           id?: string
           image_url?: string | null
+          interests?: string[] | null
           is_chat_compatible?: boolean | null
           is_system?: boolean | null
           is_workflow_based?: boolean | null
           long_description?: string | null
           name?: string
+          opinion_tendencies?: string | null
+          personality_traits?: Json | null
           price?: number | null
           publisher_id?: string | null
           rating?: number | null
@@ -970,6 +1027,47 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_agent_relationships: {
+        Row: {
+          agent_id: string | null
+          created_at: string | null
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          rapport_level: number | null
+          shared_context: Json | null
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          rapport_level?: number | null
+          shared_context?: Json | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string | null
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          rapport_level?: number | null
+          shared_context?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_agent_relationships_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
             referencedColumns: ["id"]
           },
         ]
