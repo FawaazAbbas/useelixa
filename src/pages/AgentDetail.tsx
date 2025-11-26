@@ -175,26 +175,27 @@ const AgentDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <div className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
           <Button 
             variant="ghost" 
-            className="gap-2"
+            className="gap-2 text-sm"
             onClick={() => navigate("/")}
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Marketplace
+            <span className="hidden sm:inline">Back to Marketplace</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="space-y-6">
-              <div className="flex items-start justify-between">
-                <div className="flex gap-2">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="lg:col-span-2 space-y-6 md:space-y-8">
+            <div className="space-y-4 md:space-y-6">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-sm">
                     {agent.agent_categories?.name || "Uncategorized"}
                   </Badge>
@@ -206,27 +207,27 @@ const AgentDetail = () => {
                   )}
                 </div>
               </div>
-              <div className="space-y-4">
-                <h1 className="text-4xl font-bold">{agent.name}</h1>
-                <p className="text-xl text-muted-foreground">
+              <div className="space-y-3 md:space-y-4">
+                <h1 className="text-2xl md:text-4xl font-bold">{agent.name}</h1>
+                <p className="text-base md:text-xl text-muted-foreground">
                   {agent.description}
                 </p>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-4 w-4 md:h-5 md:w-5 fill-yellow-400 text-yellow-400" />
                     <span className="font-semibold">{agent.rating || 0}</span>
-                    <span className="text-muted-foreground">({agent.total_reviews || 0} reviews)</span>
+                    <span className="text-muted-foreground">({agent.total_reviews || 0})</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Download className="h-5 w-5" />
+                    <Download className="h-4 w-4 md:h-5 md:w-5" />
                     <span className="text-muted-foreground">{agent.total_installs || 0} installs</span>
                   </div>
                 </div>
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-2 md:pt-4">
                   {isInstalled ? (
                     <Button 
                       size="lg" 
-                      className="px-8"
+                      className="w-full sm:w-auto px-6 md:px-8"
                       onClick={() => navigate("/workspace")}
                     >
                       Open in Workspace
@@ -234,7 +235,7 @@ const AgentDetail = () => {
                   ) : (
                     <Button 
                       size="lg" 
-                      className="px-8"
+                      className="w-full sm:w-auto px-6 md:px-8"
                       onClick={handleInstall}
                       disabled={installing}
                     >
@@ -313,16 +314,16 @@ const AgentDetail = () => {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
+                <CardTitle className="text-lg md:text-xl">Pricing</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="text-3xl font-bold">${agent.price || 0}/mo</div>
-                  <p className="text-sm text-muted-foreground">
-                    Free to install with flexible pricing options
+                <div className="space-y-3 md:space-y-4">
+                  <div className="text-2xl md:text-3xl font-bold">${agent.price || 0}/mo</div>
+                  <p className="text-xs md:text-sm text-muted-foreground">
+                    Free to install with flexible pricing
                   </p>
                 </div>
               </CardContent>

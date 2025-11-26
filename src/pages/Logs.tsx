@@ -129,20 +129,20 @@ const Logs = () => {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Activity Logs</h1>
-        <p className="text-muted-foreground">
-          Monitor all AI agent activities and actions
+    <div className="p-4 md:p-6 max-w-6xl mx-auto pb-20 md:pb-6">
+      <div className="mb-4 md:mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">Activity Logs</h1>
+        <p className="text-muted-foreground text-sm md:text-base">
+          Monitor agent activities
         </p>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-4 md:mb-6">
         <Input
           placeholder="Search logs..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-xs"
+          className="w-full sm:max-w-xs"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
@@ -170,36 +170,34 @@ const Logs = () => {
           </CardContent>
         </Card>
       ) : (
-        <ScrollArea className="h-[calc(100vh-280px)]">
-          <div className="space-y-3">
+        <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-280px)]">
+          <div className="space-y-2 md:space-y-3">
             {filteredLogs.map((log) => (
               <Card key={log.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
+                <CardContent className="p-3 md:p-4">
+                  <div className="flex items-start gap-2 md:gap-3">
                     {getStatusIcon(log.status)}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
+                          <p className="font-medium text-sm md:text-base line-clamp-2">
                             {log.metadata?.description || log.action}
                           </p>
-                          <div className="flex items-center gap-2 mt-1">
+                          <div className="flex flex-wrap items-center gap-1 md:gap-2 mt-1">
                             {log.agent && (
-                              <p className="text-sm text-muted-foreground truncate">
+                              <p className="text-xs md:text-sm text-muted-foreground truncate">
                                 {log.agent.name}
                               </p>
                             )}
-                            <span className="text-xs text-muted-foreground">
-                              •
-                            </span>
-                            <p className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <p className="text-xs text-muted-foreground whitespace-nowrap">
                               {formatDistanceToNow(new Date(log.created_at), {
                                 addSuffix: true,
                               })}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           <Badge
                             variant={
                               log.status === "success"
@@ -208,11 +206,12 @@ const Logs = () => {
                                 ? "destructive"
                                 : "secondary"
                             }
+                            className="text-xs"
                           >
                             {log.status}
                           </Badge>
                           {log.metadata?.execution_time_ms && (
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs hidden sm:inline-flex">
                               {log.metadata.execution_time_ms}ms
                             </Badge>
                           )}
@@ -220,7 +219,7 @@ const Logs = () => {
                       </div>
                       {log.metadata?.error_message && (
                         <div className="mt-2 p-2 rounded bg-destructive/10 border border-destructive/20">
-                          <p className="text-xs text-destructive">
+                          <p className="text-xs text-destructive line-clamp-3">
                             {log.metadata.error_message}
                           </p>
                         </div>

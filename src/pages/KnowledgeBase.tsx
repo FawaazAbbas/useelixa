@@ -233,16 +233,16 @@ export default function KnowledgeBase() {
   const folders = ["all", ...Array.from(new Set(documents.map(d => d.folder)))];
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl overflow-y-auto h-full">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Knowledge Base</h1>
-        <p className="text-muted-foreground">
-          Centralized information and documents accessible to all workspace agents
+    <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl overflow-y-auto h-full pb-20 md:pb-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">Knowledge Base</h1>
+        <p className="text-muted-foreground text-sm md:text-base">
+          Information accessible to all agents
         </p>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
+      <div className="mb-4 md:mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
@@ -255,7 +255,7 @@ export default function KnowledgeBase() {
       </div>
 
       <Tabs defaultValue="articles" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-2 h-auto">
           <TabsTrigger value="articles">Knowledge Articles</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>

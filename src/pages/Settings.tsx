@@ -152,24 +152,24 @@ const Settings = () => {
     <div className="flex h-screen bg-background">
       <MainNavSidebar />
       
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-8">
+      <div className="flex-1 overflow-auto pb-20 md:pb-0">
+        <div className="max-w-4xl mx-auto p-4 md:p-8">
           <Button 
             variant="ghost" 
-            className="gap-2 mb-6"
+            className="gap-2 mb-4 md:mb-6"
             onClick={() => navigate("/workspace")}
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Workspace
+            Back
           </Button>
 
-          <h1 className="text-3xl font-bold mb-8">Settings</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Settings</h1>
 
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-              <TabsTrigger value="account">Account</TabsTrigger>
+          <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
+            <TabsList className="w-full grid grid-cols-3 h-auto">
+              <TabsTrigger value="profile" className="text-xs md:text-sm">Profile</TabsTrigger>
+              <TabsTrigger value="security" className="text-xs md:text-sm">Security</TabsTrigger>
+              <TabsTrigger value="account" className="text-xs md:text-sm">Account</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">

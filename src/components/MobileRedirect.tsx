@@ -7,15 +7,9 @@ export const MobileRedirect = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
 
+  // Mobile redirect removed - all pages are now mobile-friendly
   useEffect(() => {
-    // Allow auth and workspace pages on mobile
-    const allowedMobilePaths = ['/workspace', '/auth', '/oauth/callback'];
-    const isAllowedPath = allowedMobilePaths.some(path => location.pathname.startsWith(path));
-    
-    // Redirect mobile users from other pages to workspace
-    if (isMobile && !isAllowedPath) {
-      navigate('/workspace', { replace: true });
-    }
+    // No redirects - allow access to all pages on mobile
   }, [isMobile, location.pathname, navigate]);
 
   return null;
