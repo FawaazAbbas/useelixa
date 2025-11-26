@@ -232,14 +232,41 @@ export default function KnowledgeBase() {
 
   const folders = ["all", ...Array.from(new Set(documents.map(d => d.folder)))];
 
+  const hasContent = articles.length > 0 || documents.length > 0;
+
   return (
     <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl overflow-y-auto h-full pb-20 md:pb-8">
       <div className="mb-6 md:mb-8">
         <h1 className="text-2xl md:text-4xl font-bold mb-2">Knowledge Base</h1>
         <p className="text-muted-foreground text-sm md:text-base">
-          Information accessible to all agents
+          Share context all agents can reference
         </p>
       </div>
+
+      {/* Empty State */}
+      {!hasContent && !loading && (
+        <Card className="mb-6 border-2 border-dashed">
+          <CardContent className="py-12 text-center">
+            <div className="text-6xl mb-4">📚</div>
+            <h3 className="text-2xl font-semibold mb-2">Build Your Knowledge Library</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Add company info, processes, or guidelines. Every agent will have instant access to stay aligned.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={() => setIsArticleDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Article
+              </Button>
+              <Button variant="outline" onClick={() => {
+                document.getElementById('file-upload')?.click();
+              }}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Document
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search */}
       <div className="mb-4 md:mb-6">
@@ -332,7 +359,9 @@ export default function KnowledgeBase() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No articles found</p>
+                  <p className="text-muted-foreground">
+                    {searchQuery ? "No articles match your search" : "No articles yet. Create one to start building your knowledge base!"}
+                  </p>
                 </CardContent>
               </Card>
             ) : (
@@ -423,7 +452,9 @@ export default function KnowledgeBase() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No documents found</p>
+                  <p className="text-muted-foreground">
+                    {searchQuery ? "No documents match your search" : "No documents yet. Upload files agents can reference!"}
+                  </p>
                 </CardContent>
               </Card>
             ) : (

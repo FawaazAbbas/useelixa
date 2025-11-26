@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -442,7 +442,23 @@ const Workspace = () => {
 
       {/* Desktop Sidebar */}
       <div className={`${isMobile ? 'hidden' : 'w-64'} bg-chat-sidebar border-r border-chat-border flex flex-col`}>
-        {/* Workspace Header */}
+        {chats.length === 0 && !chatLoading ? (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center">
+              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="font-semibold mb-2">No Chats Yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Head to the Marketplace to add your first agent
+              </p>
+              <Button size="sm" onClick={() => navigate('/marketplace')}>
+                <Store className="h-4 w-4 mr-2" />
+                Browse Agents
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Workspace Header */}
         <div className="p-4 border-b border-chat-border">
           <button className="flex items-center justify-between w-full hover:bg-muted/50 rounded px-3 py-2 transition-colors">
             <div>
@@ -589,6 +605,8 @@ const Workspace = () => {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
+          </>
+        )}
       </div>
 
       {/* Main Chat Area */}

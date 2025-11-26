@@ -343,9 +343,19 @@ const Calendar = () => {
 
           <div className="space-y-3">
             {events.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No events this week. Create one to get started!</p>
-              </div>
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <div className="text-6xl mb-4">📅</div>
+                  <h3 className="text-xl font-semibold mb-2">Your Week is Clear</h3>
+                  <p className="text-muted-foreground mb-4">
+                    No events scheduled. Want to plan something?
+                  </p>
+                  <Button onClick={() => setDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Event
+                  </Button>
+                </CardContent>
+              </Card>
             ) : (
               events.map((event) => (
                 <Card key={event.id} className="p-4">
