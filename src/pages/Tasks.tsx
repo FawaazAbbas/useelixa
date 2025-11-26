@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { CheckSquare, Plus, Trash2, Loader2, Zap } from "lucide-react";
+import { useSwipeable } from "react-swipeable";
+import PullToRefresh from "react-pull-to-refresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,6 +42,7 @@ const Tasks = () => {
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -109,6 +112,10 @@ const Tasks = () => {
     setLoading(false);
   };
 
+  const handleRefresh = useCallback(async () => {
+    await fetchTasks();
+  }, [user]);
+
   const handleModeSelect = (mode: "brian" | "manual") => {
     if (mode === "brian") {
       setBrianDialogOpen(true);
@@ -174,8 +181,97 @@ const Tasks = () => {
     );
   }
 
+  const TaskCard = ({ task }: { task: Task }) => {
+    const handlers = useSwipeable({
+      onSwipedLeft: () => setSwipedTaskId(task.id),
+      onSwipedRight: () => setSwipedTaskId(null),
+      trackMouse: false,
+    });
+
+    return (
+      <div className="relative overflow-hidden" {...handlers}>
+        <Card
+          className={`cursor-pointer hover:bg-accent/50 transition-all ${
+            swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0"
+          }`}
+          onClick={() => {
+            setSelectedTask(task);
+            setTaskDetailOpen(true);
+          }}
+        >
+          <CardContent className="p-4 md:p-6">
+            <div className="flex items-start gap-3 md:gap-4">
+              <Checkbox
+                checked={task.status === "completed"}
+                onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
+                onClick={(e) => e.stopPropagation()}
+                className="mt-1"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+                    {task.title}
+                  </h3>
+                  <div className="flex items-center gap-1 flex-shrink-0 md:block hidden">
+                    <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteTask(task.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className={`w-2 h-2 rounded-full md:hidden ${getPriorityColor(task.priority)}`} />
+                </div>
+                {task.description && (
+                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
+                )}
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {task.is_asap && (
+                    <Badge variant="destructive" className="gap-1">
+                      <Zap className="h-3 w-3" />
+                      ASAP
+                    </Badge>
+                  )}
+                  {task.due_date && (
+                    <span className="text-muted-foreground">Due: {new Date(task.due_date).toLocaleDateString()}</span>
+                  )}
+                  {task.automation_count > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {task.completed_automation_count}/{task.automation_count}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        {swipedTaskId === task.id && (
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteTask(task.id);
+              setSwipedTaskId(null);
+            }}
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="flex-1 p-4 md:p-8 overflow-auto pb-20 md:pb-8">
+    <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+      <div className="flex-1 p-4 md:p-8 overflow-auto pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
           <div className="flex items-center gap-3">
@@ -200,67 +296,7 @@ const Tasks = () => {
               }}
             />
           ) : (
-            tasks.map((task) => (
-              <Card
-                key={task.id}
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
-                onClick={() => {
-                  setSelectedTask(task);
-                  setTaskDetailOpen(true);
-                }}
-              >
-                <CardContent className="p-4 md:p-6">
-                  <div className="flex items-start gap-3 md:gap-4">
-                    <Checkbox
-                      checked={task.status === "completed"}
-                      onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
-                      onClick={(e) => e.stopPropagation()}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-                          {task.title}
-                        </h3>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive h-8 w-8"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteTask(task.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      {task.description && (
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
-                      )}
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        {task.is_asap && (
-                          <Badge variant="destructive" className="gap-1">
-                            <Zap className="h-3 w-3" />
-                            ASAP
-                          </Badge>
-                        )}
-                        {task.due_date && (
-                          <span className="text-muted-foreground">Due: {new Date(task.due_date).toLocaleDateString()}</span>
-                        )}
-                        {task.automation_count > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            {task.completed_automation_count}/{task.automation_count}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+            tasks.map((task) => <TaskCard key={task.id} task={task} />)
           )}
         </div>
       </div>
@@ -288,7 +324,8 @@ const Tasks = () => {
         open={taskDetailOpen}
         onOpenChange={setTaskDetailOpen}
       />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

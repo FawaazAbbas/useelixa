@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Loader2 } from "lucide-react";
+import { useSwipeable } from "react-swipeable";
+import PullToRefresh from "react-pull-to-refresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,15 +87,20 @@ const Calendar = () => {
   const fetchEvents = async () => {
     if (!user) return;
 
-    const weekEnd = addDays(weekStart, 7);
+    const startDate = new Date(weekStart);
+    startDate.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(weekStart);
+    endDate.setDate(startDate.getDate() + 6);
+    endDate.setHours(23, 59, 59, 999);
 
     const { data, error } = await supabase
       .from("calendar_events")
       .select("*")
       .eq("user_id", user.id)
-      .gte("start_time", weekStart.toISOString())
-      .lte("start_time", weekEnd.toISOString())
-      .order("start_time", { ascending: true });
+      .gte("start_time", startDate.toISOString())
+      .lte("start_time", endDate.toISOString())
+      .order("start_time");
 
     if (error) {
       console.error("Error fetching events:", error);
@@ -102,6 +109,10 @@ const Calendar = () => {
     }
     setLoading(false);
   };
+
+  const handleRefresh = useCallback(async () => {
+    await fetchEvents();
+  }, [currentWeek, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +175,12 @@ const Calendar = () => {
     }
   };
 
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => setCurrentWeek(addWeeks(currentWeek, 1)),
+    onSwipedRight: () => setCurrentWeek(subWeeks(currentWeek, 1)),
+    trackMouse: false,
+  });
+
   if (authLoading || loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -173,7 +190,8 @@ const Calendar = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background pb-16 md:pb-0">
+    <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-background pb-16 md:pb-0">
       <div className="border-b border-border px-4 md:px-6 py-3 md:py-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
@@ -262,8 +280,8 @@ const Calendar = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4 md:p-6">
-        {/* Mobile: Simplified day list view */}
+      <div className="flex-1 overflow-auto p-4 md:p-6" {...swipeHandlers}>
+        {/* Mobile: Simplified day list view with swipe navigation */}
         <div className="md:hidden space-y-3">
           {weekDays.map((day, idx) => {
             const dayEvents = events.filter(event => 
@@ -354,7 +372,8 @@ const Calendar = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

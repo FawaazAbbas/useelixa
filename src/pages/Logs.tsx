@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Activity, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import PullToRefresh from "react-pull-to-refresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -69,6 +70,10 @@ const Logs = () => {
     }
   };
 
+  const handleRefresh = useCallback(async () => {
+    await fetchLogs();
+  }, [statusFilter]);
+
   useEffect(() => {
     fetchLogs();
 
@@ -129,7 +134,8 @@ const Logs = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto pb-20 md:pb-6">
+    <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+      <div className="p-4 md:p-6 max-w-6xl mx-auto pb-20 md:pb-6">
       <div className="mb-4 md:mb-6">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Activity Logs</h1>
         <p className="text-muted-foreground text-sm md:text-base">
@@ -232,7 +238,8 @@ const Logs = () => {
           </div>
         </ScrollArea>
       )}
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 
