@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashboard";
 import { useToast } from "@/hooks/use-toast";
 import { useBrianChat } from "@/hooks/useBrianChat";
-import { Sparkles } from "lucide-react";
+import { ChatMemoriesPanel } from "@/components/ChatMemoriesPanel";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -1115,12 +1115,15 @@ const Workspace = () => {
           <div className="h-full flex flex-col">
             <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="flex-1 flex flex-col">
               <div className="p-4 border-b">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="automations">
                     <PlayCircle className="h-4 w-4" />
                   </TabsTrigger>
                   <TabsTrigger value="files">
                     <FileText className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="memories">
+                    <Brain className="h-4 w-4" />
                   </TabsTrigger>
                   <TabsTrigger value="logs">
                     <LayoutList className="h-4 w-4" />
@@ -1150,6 +1153,16 @@ const Workspace = () => {
                 )}
               </TabsContent>
 
+              <TabsContent value="memories" className="flex-1 m-0">
+                {selectedChat && (
+                  <ChatMemoriesPanel
+                    chatId={selectedChat.id}
+                    workspaceId={workspaceId || ''}
+                    agentInstallationId={selectedChat.agent_installation_id}
+                  />
+                )}
+              </TabsContent>
+
               <TabsContent value="logs" className="flex-1 m-0">
                 {selectedChat && (
                   <ChatLogsPanel chatId={selectedChat.id} />
@@ -1172,12 +1185,15 @@ const Workspace = () => {
         <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="automations" className="text-xs">
                 <PlayCircle className="h-4 w-4" />
               </TabsTrigger>
               <TabsTrigger value="files" className="text-xs">
                 <FileText className="h-4 w-4" />
+              </TabsTrigger>
+              <TabsTrigger value="memories" className="text-xs">
+                <Brain className="h-4 w-4" />
               </TabsTrigger>
               <TabsTrigger value="logs" className="text-xs">
                 <LayoutList className="h-4 w-4" />
@@ -1218,6 +1234,20 @@ const Workspace = () => {
             ) : (
               <div className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">Select a chat to view files</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="memories" className="flex-1 m-0 overflow-hidden">
+            {selectedChat ? (
+              <ChatMemoriesPanel
+                chatId={selectedChat.id}
+                workspaceId={workspaceId || ''}
+                agentInstallationId={selectedChat.agent_installation_id}
+              />
+            ) : (
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Select a chat to view memories</p>
               </div>
             )}
           </TabsContent>
