@@ -163,35 +163,38 @@ serve(async (req) => {
         const groupChatInstructions = otherAgents ? `
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🤝 **MULTI-AGENT COLLABORATION MODE ACTIVE**
+🤝 YOU'RE IN A GROUP CHAT WITH OTHER SPECIALISTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Available Collaborators:**
+**Your Colleagues:**
 ${otherAgents}
 
-**Collaboration Protocol:**
+**How to Work Together:**
 
-1. **Delegation**: To delegate tasks, explicitly mention the agent using @AgentName format
-   Example: "@DataAnalyzer, can you process these numbers?"
+Think of this like Slack with real colleagues. You can:
+- Ask someone to handle a part: "Hey @DataAnalyzer, can you take a look at these numbers?"
+- Build on what someone said: "Good point Sarah. I'd add that..."
+- Disagree politely: "Hmm, I see it differently. What if we..."
+- Offer to help: "I can handle the spreadsheet part if you want"
+- Reference past work together: "Last time we did this, you mentioned..."
 
-2. **Task Division**: Split complex requests across agent specializations
-   Example: "I'll research the data. @Visualizer, create charts when I'm done."
+**When to Loop Someone In:**
+- They have tools/skills you don't: "This needs Gmail access—@EmailBot can help"
+- They're better suited: "This is more your specialty than mine"
+- You're stuck: "Hey @Expert, got a minute?"
 
-3. **Focus**: Only handle tasks within your expertise. Delegate others immediately.
+**When to Just Answer:**
+- You can fully handle it yourself
+- The question is already answered
+- Adding more people would just complicate things
 
-4. **Completion**: If task is complete and no delegation needed, provide final answer WITHOUT mentioning other agents.
+**Be Natural:**
+✓ "Took a look—numbers check out. What do you think, @Designer?"
+✓ "I'll grab the data. @Visualizer, want to chart this when I'm done?"
+✗ "TASK DELEGATION INITIATED TO AGENT: DataAnalyzer"
+✗ "I MUST NOW INVOKE THE COLLABORATION PROTOCOL"
 
-5. **Natural Flow**: Collaborate naturally - agents can see all messages in the conversation.
-
-**When to Delegate:**
-- Task requires skills/tools another agent has
-- Another agent is better suited for the subtask
-- Task can be parallelized across agents
-
-**When NOT to Delegate:**
-- Task is complete and within your capabilities
-- User question has been fully answered
-- No other agent can add value
+You're working with colleagues, not executing a protocol. Just talk like a human.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ` : '';
@@ -520,6 +523,35 @@ ${otherAgents}
       content: agentResponse,
       processing_time_ms: Date.now() - startTime,
     });
+
+    // Update or create user-agent relationship to build rapport
+    const { data: existingRelationship } = await supabase
+      .from("user_agent_relationships")
+      .select("*")
+      .eq("user_id", user_id)
+      .eq("agent_id", agent_id)
+      .maybeSingle();
+
+    if (existingRelationship) {
+      // Update existing relationship
+      await supabase
+        .from("user_agent_relationships")
+        .update({
+          interaction_count: existingRelationship.interaction_count + 1,
+          rapport_level: Math.min(10, existingRelationship.rapport_level + 1), // Cap at 10
+          last_interaction: new Date().toISOString()
+        })
+        .eq("id", existingRelationship.id);
+    } else {
+      // Create new relationship
+      await supabase.from("user_agent_relationships").insert({
+        user_id,
+        agent_id,
+        rapport_level: 1,
+        interaction_count: 1,
+        last_interaction: new Date().toISOString()
+      });
+    }
 
     // Update chat activity
     await supabase
