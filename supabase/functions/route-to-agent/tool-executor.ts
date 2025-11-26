@@ -70,6 +70,8 @@ export async function executeToolCall(
       // Route to appropriate executor based on node type
       if (nodeType === 'n8n-nodes-base.httpRequest') {
         return await executeHttpRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.htmlExtract') {
+        return await executeWebScraping(args, credentials, nodeParameters);
       } else if (nodeType === 'n8n-nodes-base.notion') {
         return await executeNotionRequest(args, credentials, nodeParameters);
       } else if (nodeType === 'n8n-nodes-base.slack') {
@@ -82,6 +84,12 @@ export async function executeToolCall(
         return await executeOpenAIRequest(args, credentials, nodeParameters);
       } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
         return await executeRSSRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'web_scraper') {
+        return await executeWebScraping(args, credentials, nodeParameters);
+      } else if (nodeType === 'csv_export') {
+        return await executeCSVExport(args, credentials, nodeParameters);
+      } else if (nodeType === 'json_export') {
+        return await executeJSONExport(args, credentials, nodeParameters);
       } else if (nodeType === 'workspace_document') {
         return await executeWorkspaceDocumentRead(args);
       } else if (nodeType === 'task_creation') {
@@ -94,6 +102,10 @@ export async function executeToolCall(
         return await executeCreateAutomation(args);
       } else if (nodeType === 'agent_memory') {
         return await executeAgentMemory(args, nodeParameters, context);
+      } else if (nodeType === 'schedule_reminder') {
+        return await executeScheduleReminder(args, context);
+      } else if (nodeType === 'schedule_task') {
+        return await executeScheduleTask(args, context);
       } else {
         throw new Error(`Unsupported node type: ${nodeType}`);
       }
@@ -598,55 +610,173 @@ export async function executeRSSRequest(
     const doc = parser.parseFromString(xmlText, 'text/html');
     
     if (!doc) {
-      throw new Error('Failed to parse RSS feed XML');
+      throw new Error('Failed to parse RSS feed');
     }
     
-    // Check for RSS or Atom feed
-    const items = doc.querySelectorAll('item');
-    const entries = doc.querySelectorAll('entry'); // Atom feeds
+    // Extract items from RSS feed
+    const items: any[] = [];
+    const itemElements = doc.querySelectorAll('item');
     
-    const feedItems = items.length > 0 ? items : entries;
-    const isAtom = entries.length > 0;
-    
-    const parsedItems = [];
-    const limit = Math.min(feedItems.length, maxItems);
-    
-    for (let i = 0; i < limit; i++) {
-      const item = feedItems[i] as any;
-      
-      if (isAtom) {
-        // Atom feed format
-        parsedItems.push({
-          title: item.querySelector('title')?.textContent || '',
-          link: item.querySelector('link')?.getAttribute('href') || '',
-          description: item.querySelector('summary')?.textContent || item.querySelector('content')?.textContent || '',
-          pubDate: item.querySelector('published')?.textContent || item.querySelector('updated')?.textContent || '',
-          author: item.querySelector('author name')?.textContent || '',
-        });
-      } else {
-        // RSS feed format
-        parsedItems.push({
-          title: item.querySelector('title')?.textContent || '',
-          link: item.querySelector('link')?.textContent || '',
-          description: item.querySelector('description')?.textContent || '',
-          pubDate: item.querySelector('pubDate')?.textContent || '',
-          author: item.querySelector('author')?.textContent || item.querySelector('dc\\:creator')?.textContent || '',
-          guid: item.querySelector('guid')?.textContent || '',
-        });
-      }
+    for (let i = 0; i < Math.min(itemElements.length, maxItems); i++) {
+      const item = itemElements[i] as any;
+      items.push({
+        title: item.querySelector('title')?.textContent?.trim() || '',
+        description: item.querySelector('description')?.textContent?.trim() || '',
+        link: item.querySelector('link')?.textContent?.trim() || '',
+        pubDate: item.querySelector('pubDate')?.textContent?.trim() || ''
+      });
     }
-    
-    console.log(`✓ Parsed ${parsedItems.length} items from RSS feed`);
     
     return {
       success: true,
-      feed_url: feedUrl,
-      items: parsedItems,
-      total_fetched: parsedItems.length
+      items,
+      total_items: items.length
     };
   } catch (error) {
-    console.error('RSS feed error:', error);
-    throw new Error(`Failed to fetch/parse RSS feed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('RSS fetch error:', error);
+    throw error;
+  }
+}
+
+// PHASE 5: Web Scraping
+export async function executeWebScraping(
+  args: any,
+  credentials: any,
+  nodeParameters: any
+): Promise<any> {
+  const url = args.url || nodeParameters.url;
+  const selector = args.selector || nodeParameters.selector;
+  
+  if (!url) {
+    throw new Error('URL is required for web scraping');
+  }
+  
+  console.log(`Scraping webpage: ${url}`, selector ? `with selector: ${selector}` : '');
+  
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; ELIXABot/1.0)'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch webpage: ${response.status}`);
+    }
+    
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    if (!doc) {
+      throw new Error('Failed to parse HTML');
+    }
+    
+    if (selector) {
+      // Extract specific elements
+      const elements = doc.querySelectorAll(selector);
+      const results = Array.from(elements).map((el: any) => ({
+        text: el.textContent?.trim() || '',
+        html: el.innerHTML
+      }));
+      
+      return {
+        success: true,
+        url,
+        selector,
+        results,
+        count: results.length
+      };
+    } else {
+      // Return full page text
+      const bodyText = doc.querySelector('body')?.textContent?.trim() || '';
+      return {
+        success: true,
+        url,
+        text: bodyText.substring(0, 5000), // Limit to 5000 chars
+        full_length: bodyText.length
+      };
+    }
+  } catch (error) {
+    console.error('Web scraping error:', error);
+    throw error;
+  }
+}
+
+// PHASE 5: CSV Export
+export async function executeCSVExport(
+  args: any,
+  credentials: any,
+  nodeParameters: any
+): Promise<any> {
+  const data = args.data || nodeParameters.data;
+  const filename = args.filename || 'export.csv';
+  
+  if (!data || !Array.isArray(data)) {
+    throw new Error('Data array is required for CSV export');
+  }
+  
+  console.log(`Exporting ${data.length} rows to CSV: ${filename}`);
+  
+  try {
+    // Get headers from first object
+    const headers = Object.keys(data[0] || {});
+    
+    // Build CSV content
+    const csvRows = [
+      headers.join(','), // Header row
+      ...data.map(row => 
+        headers.map(header => {
+          const value = row[header] || '';
+          // Escape commas and quotes
+          const escaped = String(value).replace(/"/g, '""');
+          return `"${escaped}"`;
+        }).join(',')
+      )
+    ];
+    
+    const csvContent = csvRows.join('\n');
+    
+    return {
+      success: true,
+      filename,
+      content: csvContent,
+      rows: data.length,
+      size_bytes: csvContent.length
+    };
+  } catch (error) {
+    console.error('CSV export error:', error);
+    throw error;
+  }
+}
+
+// PHASE 5: JSON Export
+export async function executeJSONExport(
+  args: any,
+  credentials: any,
+  nodeParameters: any
+): Promise<any> {
+  const data = args.data || nodeParameters.data;
+  const filename = args.filename || 'export.json';
+  
+  if (!data) {
+    throw new Error('Data is required for JSON export');
+  }
+  
+  console.log(`Exporting data to JSON: ${filename}`);
+  
+  try {
+    const jsonContent = JSON.stringify(data, null, 2);
+    
+    return {
+      success: true,
+      filename,
+      content: jsonContent,
+      size_bytes: jsonContent.length
+    };
+  } catch (error) {
+    console.error('JSON export error:', error);
+    throw error;
   }
 }
 
@@ -1125,4 +1255,119 @@ async function executeAgentMemory(
   }
 
   throw new Error(`Invalid action: ${action}`);
+}
+
+// PHASE 8: Schedule Reminder
+async function executeScheduleReminder(
+  args: any,
+  context?: { user_id: string; agent_id: string; chat_id?: string; workspace_id?: string; agent_installation_id?: string }
+): Promise<any> {
+  const { reminder_text, when, recurring } = args;
+  
+  if (!context) {
+    throw new Error("Context required for scheduling");
+  }
+  
+  console.log(`Scheduling reminder: ${reminder_text} for ${when}`);
+  
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+  
+  // Create automation as reminder
+  const { data: automation, error } = await supabase
+    .from('automations')
+    .insert({
+      name: `Reminder: ${reminder_text}`,
+      action: `Send reminder: ${reminder_text}`,
+      trigger: 'scheduled',
+      schedule_type: recurring ? 'daily' : 'once',
+      schedule_time: when,
+      workspace_id: context.workspace_id,
+      created_by: context.user_id,
+      agent_id: context.agent_id,
+      chat_id: context.chat_id,
+      status: 'active'
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    throw new Error(`Failed to create reminder: ${error.message}`);
+  }
+  
+  return {
+    success: true,
+    reminder_id: automation.id,
+    scheduled_for: automation.next_run_at,
+    message: `Reminder set for ${when}`
+  };
+}
+
+// PHASE 8: Schedule Task
+async function executeScheduleTask(
+  args: any,
+  context?: { user_id: string; agent_id: string; chat_id?: string; workspace_id?: string; agent_installation_id?: string }
+): Promise<any> {
+  const { task_name, task_instruction, schedule_type, schedule_time, schedule_days, schedule_interval_minutes } = args;
+  
+  if (!context) {
+    throw new Error("Context required for scheduling");
+  }
+  
+  console.log(`Scheduling task: ${task_name} (${schedule_type})`);
+  
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+  
+  // Create automation with schedule
+  const insertData: any = {
+    name: task_name,
+    action: task_instruction,
+    trigger: 'scheduled',
+    schedule_type: schedule_type || 'daily',
+    workspace_id: context.workspace_id,
+    created_by: context.user_id,
+    agent_id: context.agent_id,
+    chat_id: context.chat_id,
+    status: 'active'
+  };
+  
+  if (schedule_time) {
+    insertData.schedule_time = schedule_time;
+  }
+  
+  if (schedule_days && Array.isArray(schedule_days)) {
+    insertData.schedule_days = schedule_days;
+  }
+  
+  if (schedule_interval_minutes) {
+    insertData.schedule_interval_minutes = schedule_interval_minutes;
+  }
+  
+  const { data: automation, error } = await supabase
+    .from('automations')
+    .insert(insertData)
+    .select()
+    .single();
+  
+  if (error) {
+    throw new Error(`Failed to schedule task: ${error.message}`);
+  }
+  
+  return {
+    success: true,
+    automation_id: automation.id,
+    task_name: automation.name,
+    next_run_at: automation.next_run_at,
+    schedule: {
+      type: schedule_type,
+      time: schedule_time,
+      days: schedule_days,
+      interval_minutes: schedule_interval_minutes
+    }
+  };
 }
