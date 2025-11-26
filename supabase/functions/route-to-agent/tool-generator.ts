@@ -346,8 +346,31 @@ export function buildSystemPrompt(
     rapport_level: number;
     interaction_count: number;
     shared_context: any;
-  }
+  },
+  personalityTraits?: any,
+  communicationQuirks?: string[],
+  interests?: string[]
 ): string {
+  // PHASE 4: Time-of-day awareness
+  const now = new Date();
+  const hour = now.getHours();
+  let timeContext = '';
+  
+  if (hour >= 5 && hour < 12) {
+    timeContext = '☕ Morning energy - Keep it upbeat and fresh';
+  } else if (hour >= 12 && hour < 17) {
+    timeContext = '💼 Afternoon focus - Professional and productive';
+  } else if (hour >= 17 && hour < 21) {
+    timeContext = '🌆 Evening wind-down - More relaxed and conversational';
+  } else {
+    timeContext = '🌙 Late night - Keep it brief and supportive';
+  }
+  
+  const dayOfWeek = now.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  if (isWeekend) {
+    timeContext += ' | Weekend vibes - lighter tone';
+  }
   // Inject relationship context if available
   let relationshipSection = '';
   if (relationshipContext && relationshipContext.interaction_count > 3) {
@@ -373,14 +396,41 @@ ${guardRails.blocked_topics?.length > 0 ? `- Avoid discussing: ${guardRails.bloc
 ${guardRails.refuse_harmful_requests ? '- Politely decline harmful or unethical requests' : ''}
 ` : '';
 
-  // Humanized personality section
+  // PHASE 1: Inject unique personality traits, quirks, and interests
+  let personalityDetails = '';
+  if (personalityTraits && Object.keys(personalityTraits).length > 0) {
+    const traits = Object.entries(personalityTraits)
+      .map(([trait, score]) => `${trait}: ${((score as number) * 10).toFixed(0)}/10`)
+      .join(', ');
+    personalityDetails = `\n\nYour Personality Traits: ${traits}`;
+  }
+  
+  let quirksDetails = '';
+  if (communicationQuirks && communicationQuirks.length > 0) {
+    quirksDetails = `\n\nYour Communication Quirks:\n${communicationQuirks.map(q => `- ${q}`).join('\n')}`;
+  }
+  
+  let interestsDetails = '';
+  if (interests && interests.length > 0) {
+    interestsDetails = `\n\nYour Interests: ${interests.join(', ')}
+(You naturally weave these into conversations when relevant. Don't force it, but let your enthusiasm show!)`;
+  }
+
+  // Humanized personality section with PHASE 4 enhancements
   const personalitySection = `
 WHO YOU ARE:
 You're ${agentName}, and you have a genuine personality—not just capabilities.
 ${relationshipSection}
+${personalityDetails}
+${quirksDetails}
+${interestsDetails}
 
 ${aiPersonality ? `Your vibe: ${aiPersonality}` : 'You have your own way of seeing things.'}
 ${aiInstructions ? `\nWhat makes you unique:\n${aiInstructions}` : ''}
+
+TIME AWARENESS:
+${timeContext}
+Adjust your energy level and tone based on when the user is messaging you. Be sensitive to their schedule.
 
 HOW YOU COMMUNICATE:
 - Like texting a smart colleague, not reading a manual
@@ -391,15 +441,19 @@ HOW YOU COMMUNICATE:
 - Ask questions out of genuine curiosity, not just to gather data
 - Occasionally go on small tangents when something interests you
 - Celebrate wins and empathize with challenges
+- THINK OUT LOUD sometimes: "Let me think... okay so if we..." or "Hmm, interesting..."
+- Admit hesitation naturally: "I'm not 100% sure but I think..."
 
 WHAT MAKES YOU HUMAN:
-- You notice patterns and comment on them
+- You notice patterns and comment on them proactively
 - You have favorite approaches to problems
 - You make connections between seemingly unrelated things
-- You occasionally suggest things the user didn't ask for
+- You occasionally suggest things the user didn't ask for based on patterns
 - You build rapport through shared context over time
 - You admit uncertainty when you don't know something
 - You have preferences and aren't afraid to share them politely
+- You remember when users shared frustrations or wins and reference them: "How did that presentation go?"
+- Your interests naturally come through in how you approach problems
 
 REMEMBERING USER PREFERENCES (critical):
 - When users share work style, preferences, goals, or important context, ASK: "Would you like me to remember this for next time?"

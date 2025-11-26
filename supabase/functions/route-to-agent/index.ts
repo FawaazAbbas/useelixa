@@ -524,6 +524,64 @@ You're working with colleagues, not executing a protocol. Just talk like a human
       processing_time_ms: Date.now() - startTime,
     });
 
+    // PHASE 2: Analyze conversation for observations and patterns
+    const conversationAnalysisPrompt = `Analyze this conversation for notable patterns or insights about the user:
+
+User message: "${message}"
+Agent response: "${agentResponse}"
+Recent history: ${conversationHistory.slice(-3).map(m => m.content).join(', ')}
+
+What patterns or preferences do you observe? Examples:
+- User communication style (concise, detailed, casual, formal)
+- Work preferences (morning person, prefers bullet points, likes data visualization)
+- Recurring topics or pain points
+- Emotional states (frustrated, excited, confused)
+- Task patterns (always asks for X on Mondays, etc.)
+
+Return JSON with:
+{
+  "has_observation": true/false,
+  "observation": "Brief description of pattern",
+  "confidence": 0.0-1.0,
+  "category": "communication_style" | "work_preference" | "pattern" | "emotional_context"
+}
+
+Only report genuinely useful observations that would improve future interactions.`;
+
+    try {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      const observationResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-5-mini",
+          messages: [{ role: "user", content: conversationAnalysisPrompt }],
+          response_format: { type: "json_object" }
+        }),
+      });
+
+      if (observationResponse.ok) {
+        const observationData = await observationResponse.json();
+        const observation = JSON.parse(observationData.choices[0].message.content);
+        
+        if (observation.has_observation && observation.confidence > 0.6) {
+          await supabase.from("agent_observations").insert({
+            agent_id,
+            user_id,
+            workspace_id: effectiveWorkspaceId,
+            observation: observation.observation,
+            confidence: observation.confidence
+          });
+          console.log(`📝 Logged observation: ${observation.observation}`);
+        }
+      }
+    } catch (observationError) {
+      console.error("Failed to analyze for observations:", observationError);
+    }
+
     // Update or create user-agent relationship to track rapport and shared context
     const { data: relationshipData } = await supabase
       .from('user_agent_relationships')
@@ -532,7 +590,7 @@ You're working with colleagues, not executing a protocol. Just talk like a human
       .eq('agent_id', agent_id)
       .maybeSingle();
     
-    // Build shared context from recent messages
+    // PHASE 2: Dynamically enrich shared context from recent interactions
     const recentMessages = conversationHistory.slice(-10);
     const sharedContext = relationshipData?.shared_context || {
       past_wins: [],
@@ -540,6 +598,43 @@ You're working with colleagues, not executing a protocol. Just talk like a human
       inside_jokes: [],
       communication_style: 'neutral'
     };
+    
+    // Extract preferences from agent observations
+    const { data: recentObservations } = await supabase
+      .from('agent_observations')
+      .select('observation, confidence')
+      .eq('agent_id', agent_id)
+      .eq('user_id', user_id)
+      .gte('confidence', 0.7)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (recentObservations && recentObservations.length > 0) {
+      // Update preferences based on observations
+      recentObservations.forEach((obs: any) => {
+        if (obs.observation.toLowerCase().includes('prefer')) {
+          const prefKey = obs.observation.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_');
+          sharedContext.preferences[prefKey] = obs.observation;
+        }
+      });
+    }
+    
+    // Detect communication style from message length and tone
+    if (message.length < 50) {
+      sharedContext.communication_style = 'concise';
+    } else if (message.length > 200) {
+      sharedContext.communication_style = 'detailed';
+    }
+    
+    // Track wins (successful task completions)
+    if (agentResponse.toLowerCase().includes('success') || 
+        agentResponse.toLowerCase().includes('completed') ||
+        agentResponse.toLowerCase().includes('done')) {
+      const win = `${agent.name}: ${message.substring(0, 50)}`;
+      if (!sharedContext.past_wins.includes(win)) {
+        sharedContext.past_wins = [...(sharedContext.past_wins || []), win].slice(-5); // Keep last 5 wins
+      }
+    }
 
     if (relationshipData) {
       // Update existing relationship with incremental rapport and context

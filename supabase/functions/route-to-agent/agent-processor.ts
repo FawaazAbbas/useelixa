@@ -63,6 +63,21 @@ export async function processAgentWorkflow(
       );
       const knowledgeContext = formatKnowledgeContext(relevantKnowledge);
 
+      // PHASE 2: Fetch relationship context for personalization
+      let relationshipContext;
+      if (chatId) {
+        const { data: relationship } = await supabase
+          .from('user_agent_relationships')
+          .select('rapport_level, interaction_count, shared_context')
+          .eq('user_id', userId)
+          .eq('agent_id', agent.id)
+          .maybeSingle();
+        
+        if (relationship) {
+          relationshipContext = relationship;
+        }
+      }
+
       // Validation
       const validator = new WorkflowValidator(nodeRegistry, credentialResolver);
       const validation = await validator.validateWorkflow(parsedWorkflow, userCredentials);
@@ -77,6 +92,8 @@ export async function processAgentWorkflow(
 
       // Generate tools and call AI
       const toolDefinitions = generateToolDefinitions(parsedWorkflow, userCredentials);
+      
+      // PHASE 1: Build system prompt with personality, quirks, interests, and relationship context
       const systemPrompt = buildSystemPrompt(
         agent.name,
         agent.description || agent.short_description || 'A helpful AI agent',
@@ -84,7 +101,11 @@ export async function processAgentWorkflow(
         agent.ai_instructions,
         agent.guard_rails,
         toolDefinitions,
-        speechStyle
+        speechStyle,
+        relationshipContext,
+        agent.personality_traits,
+        agent.communication_quirks,
+        agent.interests
       ) + knowledgeContext;
 
       const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");

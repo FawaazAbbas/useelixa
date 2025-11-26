@@ -68,6 +68,57 @@ export type Database = {
           },
         ]
       }
+      agent_agent_relationships: {
+        Row: {
+          agent_a_id: string
+          agent_b_id: string
+          collaboration_count: number | null
+          created_at: string | null
+          id: string
+          last_collaboration: string | null
+          rapport_score: number | null
+          shared_context: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_a_id: string
+          agent_b_id: string
+          collaboration_count?: number | null
+          created_at?: string | null
+          id?: string
+          last_collaboration?: string | null
+          rapport_score?: number | null
+          shared_context?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_a_id?: string
+          agent_b_id?: string
+          collaboration_count?: number | null
+          created_at?: string | null
+          id?: string
+          last_collaboration?: string | null
+          rapport_score?: number | null
+          shared_context?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_agent_relationships_agent_a_id_fkey"
+            columns: ["agent_a_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_agent_relationships_agent_b_id_fkey"
+            columns: ["agent_b_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_categories: {
         Row: {
           created_at: string
