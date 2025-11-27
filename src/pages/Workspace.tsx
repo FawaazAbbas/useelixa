@@ -745,13 +745,13 @@ const Workspace = () => {
                             </Button>
                           </div>
                         )}
-                        <Avatar className={isUserMessage ? "" : "bg-gradient-to-br from-purple-600 to-blue-500"}>
-                          <AvatarFallback className={isUserMessage ? "" : "text-white text-sm font-bold"}>
-                            {isUserMessage ? "U" : "B"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
+                        {!isUserMessage && (
+                          <Avatar className="bg-gradient-to-br from-purple-600 to-blue-500">
+                            <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                          </Avatar>
+                        )}
+                        <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
+                          <div className={`flex items-center gap-2 mb-1 ${isUserMessage ? "flex-row-reverse" : ""}`}>
                             <span className="text-sm font-semibold">
                               {isUserMessage ? "You" : "Brian"}
                             </span>
@@ -777,6 +777,11 @@ const Workspace = () => {
                             )}
                           </div>
                         </div>
+                        {isUserMessage && (
+                          <Avatar>
+                            <AvatarFallback>U</AvatarFallback>
+                          </Avatar>
+                        )}
                         {!isSelectionMode && (
                           <MessageContextMenu
                             messageId={idx.toString()}
@@ -1066,13 +1071,15 @@ const Workspace = () => {
                         </Button>
                       </div>
                     )}
-                    <Avatar>
-                      <AvatarFallback>
-                        {isUserMessage ? "U" : agentInfo?.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                    {!isUserMessage && (
+                      <Avatar>
+                        <AvatarFallback>
+                          {agentInfo?.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
+                      <div className={`flex items-center gap-2 mb-1 ${isUserMessage ? "flex-row-reverse" : ""}`}>
                         <span className="text-sm font-semibold">
                           {isUserMessage ? "You" : agentInfo?.name}
                         </span>
