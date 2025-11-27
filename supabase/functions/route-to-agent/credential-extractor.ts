@@ -46,17 +46,72 @@ export async function fetchUserCredentials(
   
   // Transform array of credentials into object keyed by credential_type
   const credentials: Record<string, any> = {};
-  data?.forEach((cred: any) => {
-    const credData = {
-      access_token: cred.access_token,
-      refresh_token: cred.refresh_token,
-      token_type: cred.token_type,
-      expires_at: cred.expires_at,
-    };
+  
+  for (const cred of (data || [])) {
+    // Check if token is expired or will expire within 5 minutes
+    const needsRefresh = cred.expires_at && 
+      new Date(cred.expires_at).getTime() < Date.now() + (5 * 60 * 1000);
     
-    // Store under actual type
-    credentials[cred.credential_type] = credData;
-  });
+    if (needsRefresh && cred.refresh_token) {
+      console.log(`🔄 Token for ${cred.credential_type} expired or expiring soon, refreshing...`);
+      
+      try {
+        // Call refresh token edge function
+        const refreshResponse = await fetch(
+          `${Deno.env.get('SUPABASE_URL')}/functions/v1/refresh-oauth-token`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
+            },
+            body: JSON.stringify({
+              userId,
+              credentialType: cred.credential_type,
+            }),
+          }
+        );
+
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          console.log(`✅ Token refreshed for ${cred.credential_type}`);
+          
+          // Use refreshed token
+          credentials[cred.credential_type] = {
+            access_token: refreshData.access_token,
+            refresh_token: cred.refresh_token,
+            token_type: cred.token_type,
+            expires_at: cred.expires_at,
+          };
+        } else {
+          console.warn(`⚠️ Failed to refresh token for ${cred.credential_type}, using existing token`);
+          credentials[cred.credential_type] = {
+            access_token: cred.access_token,
+            refresh_token: cred.refresh_token,
+            token_type: cred.token_type,
+            expires_at: cred.expires_at,
+          };
+        }
+      } catch (refreshError) {
+        console.error(`Error refreshing token for ${cred.credential_type}:`, refreshError);
+        // Fallback to existing token
+        credentials[cred.credential_type] = {
+          access_token: cred.access_token,
+          refresh_token: cred.refresh_token,
+          token_type: cred.token_type,
+          expires_at: cred.expires_at,
+        };
+      }
+    } else {
+      // Token is still valid
+      credentials[cred.credential_type] = {
+        access_token: cred.access_token,
+        refresh_token: cred.refresh_token,
+        token_type: cred.token_type,
+        expires_at: cred.expires_at,
+      };
+    }
+  }
   
   console.log('Available credentials:', Object.keys(credentials));
   return credentials;
