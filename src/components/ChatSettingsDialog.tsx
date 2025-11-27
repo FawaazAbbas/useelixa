@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface ChatSettingsDialogProps {
   chatId: string;
-  chatType: 'direct' | 'group';
+  chatType: 'direct' | 'group' | 'brian';
   agentId?: string | null;
   agentInstallationId?: string;
   currentName: string;
@@ -235,6 +235,16 @@ export const ChatSettingsDialog = ({
           </DialogHeader>
 
           <div className="space-y-6">
+            {chatType === 'brian' && (
+              <div>
+                <Label>About Brian</Label>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Brian is your AI Chief Operating Officer, always available to help you manage your workspace efficiently. 
+                  Brian is a permanent part of your workspace and cannot be removed.
+                </p>
+              </div>
+            )}
+
             {chatType === 'direct' && agentInstallationId && (
               <div>
                 <Label htmlFor="custom-name">Custom Agent Name</Label>
@@ -344,20 +354,22 @@ export const ChatSettingsDialog = ({
               </>
             )}
 
-            <div>
-              <Label className="text-destructive">Danger Zone</Label>
-              <p className="text-sm text-muted-foreground mb-3">
-                Remove this agent from the chat
-              </p>
-              <Button
-                variant="destructive"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="w-full"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Agent
-              </Button>
-            </div>
+            {chatType !== 'brian' && (
+              <div>
+                <Label className="text-destructive">Danger Zone</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Remove this agent from the chat
+                </p>
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Agent
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

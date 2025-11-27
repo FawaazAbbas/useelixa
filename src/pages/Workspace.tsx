@@ -614,6 +614,22 @@ const Workspace = () => {
                 >
                   <Phone className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="lg:hidden"
+                  onClick={() => setShowAutomations(!showAutomations)}
+                >
+                  <LayoutList className="h-4 w-4" />
+                  <span className="ml-2">Panels</span>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setShowSettings(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
               </div>
             </div>
             
@@ -1087,6 +1103,19 @@ const Workspace = () => {
       </div>
 
       {/* Chat Settings Dialog */}
+      {showBrian && showSettings && (
+        <ChatSettingsDialog
+          chatId="brian"
+          chatType="brian"
+          currentName="Brian"
+          onClose={() => setShowSettings(false)}
+          onDeleted={() => {
+            // Brian cannot be deleted
+            setShowSettings(false);
+          }}
+        />
+      )}
+      
       {selectedChat && selectedChat.type === 'direct' && showSettings && (
         <ChatSettingsDialog
           chatId={selectedChat.id}
@@ -1144,16 +1173,18 @@ const Workspace = () => {
       )}
 
       {/* Panels Drawer for Mobile/Tablet */}
-      {!showBrian && selectedChat && (
+      {(selectedChat || showBrian) && (
         <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
         <SheetContent side="right" className="w-full sm:w-96 p-0">
           <div className="h-full flex flex-col">
             <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="flex-1 flex flex-col">
               <div className="p-4 border-b">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="automations">
-                    <PlayCircle className="h-4 w-4" />
-                  </TabsTrigger>
+                <TabsList className={`grid w-full ${showBrian ? 'grid-cols-4' : 'grid-cols-5'}`}>
+                  {!showBrian && (
+                    <TabsTrigger value="automations">
+                      <PlayCircle className="h-4 w-4" />
+                    </TabsTrigger>
+                  )}
                   <TabsTrigger value="files">
                     <FileText className="h-4 w-4" />
                   </TabsTrigger>
@@ -1169,45 +1200,90 @@ const Workspace = () => {
                 </TabsList>
               </div>
 
-              <TabsContent value="automations" className="flex-1 m-0">
-                {selectedChat && (
-                  <ChatAutomationsPanel
-                    chatId={selectedChat.id}
-                    userId={user?.id || ''}
-                    workspaceId={workspaceId || ''}
-                  />
-                )}
-              </TabsContent>
+              {!showBrian && (
+                <TabsContent value="automations" className="flex-1 m-0">
+                  {selectedChat && (
+                    <ChatAutomationsPanel
+                      chatId={selectedChat.id}
+                      userId={user?.id || ''}
+                      workspaceId={workspaceId || ''}
+                    />
+                  )}
+                </TabsContent>
+              )}
 
               <TabsContent value="files" className="flex-1 m-0">
-                {selectedChat && selectedChat.type === 'direct' && (
+                {showBrian ? (
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-4">Brian's Files</h3>
+                    <p className="text-sm text-muted-foreground">Workspace-level files accessible to Brian</p>
+                  </div>
+                ) : selectedChat && selectedChat.type === 'direct' ? (
                   <AgentFilesPanel
                     agentInstallationId={selectedChat.agent_installation_id}
                     workspaceId={workspaceId || ''}
                   />
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-sm text-muted-foreground">Select a direct chat to view files</p>
+                  </div>
                 )}
               </TabsContent>
 
               <TabsContent value="memories" className="flex-1 m-0">
-                {selectedChat && (
+                {showBrian ? (
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-4">Brian's Memories</h3>
+                    <p className="text-sm text-muted-foreground">Workspace-level memories and preferences</p>
+                  </div>
+                ) : selectedChat ? (
                   <ChatMemoriesPanel
                     chatId={selectedChat.id}
                     workspaceId={workspaceId || ''}
                     agentInstallationId={selectedChat.agent_installation_id}
                   />
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-sm text-muted-foreground">Select a chat to view memories</p>
+                  </div>
                 )}
               </TabsContent>
 
               <TabsContent value="logs" className="flex-1 m-0">
-                {selectedChat && (
+                {showBrian ? (
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-4">Brian's Activity Log</h3>
+                    <p className="text-sm text-muted-foreground">Conversation history and activity</p>
+                  </div>
+                ) : selectedChat ? (
                   <ChatLogsPanel chatId={selectedChat.id} />
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-sm text-muted-foreground">Select a chat to view logs</p>
+                  </div>
                 )}
               </TabsContent>
 
               <TabsContent value="settings" className="flex-1 m-0 p-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  Click the settings icon in the header to manage chat settings
-                </p>
+                {showBrian ? (
+                  <div>
+                    <h3 className="font-semibold mb-4">Brian Settings</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Configure Brian's behavior and preferences</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowSettings(true)}
+                      className="w-full"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Open Brian Settings
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Click the settings icon in the header to manage chat settings
+                  </p>
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -1216,14 +1292,16 @@ const Workspace = () => {
       )}
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
-      {!showBrian && selectedChat && (
+      {(selectedChat || showBrian) && (
         <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="automations" className="text-xs">
-                <PlayCircle className="h-4 w-4" />
-              </TabsTrigger>
+            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-5' : 'grid-cols-6'}`}>
+              {!showBrian && (
+                <TabsTrigger value="automations" className="text-xs">
+                  <PlayCircle className="h-4 w-4" />
+                </TabsTrigger>
+              )}
               <TabsTrigger value="files" className="text-xs">
                 <FileText className="h-4 w-4" />
               </TabsTrigger>
@@ -1242,22 +1320,29 @@ const Workspace = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="automations" className="flex-1 m-0 overflow-hidden">
-            {selectedChat ? (
-              <ChatAutomationsPanel
-                chatId={selectedChat.id}
-                userId={user?.id || ''}
-                workspaceId={workspaceId || ''}
+          {!showBrian && (
+            <TabsContent value="automations" className="flex-1 m-0 overflow-hidden">
+              {selectedChat ? (
+                <ChatAutomationsPanel
+                  chatId={selectedChat.id}
+                  userId={user?.id || ''}
+                  workspaceId={workspaceId || ''}
               />
-            ) : (
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">Select a chat to view automations</p>
-              </div>
-            )}
-          </TabsContent>
+              ) : (
+                <div className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground">Select a chat to view automations</p>
+                </div>
+              )}
+            </TabsContent>
+          )}
 
           <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
-            {selectedChat && selectedChat.type === 'direct' ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's Files</h3>
+                <p className="text-sm text-muted-foreground mb-4">Workspace-level files accessible to Brian</p>
+              </div>
+            ) : selectedChat && selectedChat.type === 'direct' ? (
               <AgentFilesPanel
                 agentInstallationId={selectedChat.agent_installation_id}
                 workspaceId={workspaceId || ''}
@@ -1274,7 +1359,12 @@ const Workspace = () => {
           </TabsContent>
 
           <TabsContent value="memories" className="flex-1 m-0 overflow-hidden">
-            {selectedChat ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's Memories</h3>
+                <p className="text-sm text-muted-foreground mb-4">Workspace-level memories and preferences</p>
+              </div>
+            ) : selectedChat ? (
               <ChatMemoriesPanel
                 chatId={selectedChat.id}
                 workspaceId={workspaceId || ''}
@@ -1288,7 +1378,12 @@ const Workspace = () => {
           </TabsContent>
 
           <TabsContent value="logs" className="flex-1 m-0 overflow-hidden">
-            {selectedChat ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's Activity Log</h3>
+                <p className="text-sm text-muted-foreground mb-4">Conversation history and activity</p>
+              </div>
+            ) : selectedChat ? (
               <div className="h-full overflow-auto">
                 <div className="p-4">
                   <h3 className="font-semibold mb-4">Chat Logs</h3>
@@ -1311,20 +1406,57 @@ const Workspace = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="flex-1 m-0 overflow-hidden p-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                Click the settings icon in the header to manage chat settings
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowSettings(true)}
-                disabled={!selectedChat}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Open Chat Settings
-              </Button>
-            </div>
+            {showBrian ? (
+              <div>
+                <h3 className="font-semibold mb-4">Brian Settings</h3>
+                <p className="text-sm text-muted-foreground mb-4">Configure Brian's behavior and preferences</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowSettings(true)}
+                  className="w-full"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Open Brian Settings
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Click the settings icon in the header to manage chat settings
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowSettings(true)}
+                  disabled={!selectedChat}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Open Chat Settings
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="history" className="flex-1 m-0 overflow-hidden">
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's History</h3>
+                <p className="text-sm text-muted-foreground">All workspace-level activity coordinated by Brian</p>
+              </div>
+            ) : selectedChat ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Automation History</h3>
+                <AutomationHistoryDashboard 
+                  workspaceId={workspaceId || ''} 
+                  chatId={selectedChat.id}
+                />
+              </div>
+            ) : (
+              <div className="p-4 text-center">
+                <p className="text-sm text-muted-foreground">Select a chat to view history</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
