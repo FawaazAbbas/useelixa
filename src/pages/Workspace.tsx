@@ -352,6 +352,22 @@ const Workspace = () => {
     }
   };
 
+  const handleSelectAll = () => {
+    if (showBrian) {
+      if (selectedBrianIndices.size === brianMessages.length) {
+        setSelectedBrianIndices(new Set());
+      } else {
+        setSelectedBrianIndices(new Set(brianMessages.map((_, idx) => idx)));
+      }
+    } else {
+      if (selectedMessageIds.size === messages.length) {
+        setSelectedMessageIds(new Set());
+      } else {
+        setSelectedMessageIds(new Set(messages.map(msg => msg.id)));
+      }
+    }
+  };
+
   const handleCancelSelection = () => {
     setIsSelectionMode(false);
     setSelectedMessageIds(new Set());
@@ -709,13 +725,13 @@ const Workspace = () => {
                     return (
                       <div
                         key={idx}
-                        className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""} group ${
+                        className={`flex gap-3 group ${
                           isSelected ? "bg-primary/10 rounded-lg p-2" : ""
                         }`}
                         onClick={() => isSelectionMode && handleToggleMessageSelection(idx, true)}
                       >
                         {isSelectionMode && (
-                          <div className="flex items-center">
+                          <div className="flex items-start pt-1">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -734,7 +750,7 @@ const Workspace = () => {
                             {isUserMessage ? "U" : "B"}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={`flex-1 ${isUserMessage ? "text-right" : ""}`}>
+                        <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-sm font-semibold">
                               {isUserMessage ? "You" : "Brian"}
@@ -1030,13 +1046,13 @@ const Workspace = () => {
                 return (
                   <div
                     key={msg.id}
-                    className={`flex gap-3 group ${isUserMessage ? "flex-row-reverse" : ""} ${
+                    className={`flex gap-3 group ${
                       isSelected ? "bg-primary/10 rounded-lg p-2" : ""
                     }`}
                     onClick={() => isSelectionMode && handleToggleMessageSelection(msg.id, false)}
                   >
                     {isSelectionMode && (
-                      <div className="flex items-center">
+                      <div className="flex items-start pt-1">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1055,7 +1071,7 @@ const Workspace = () => {
                         {isUserMessage ? "U" : agentInfo?.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className={`flex-1 ${isUserMessage ? "text-right" : ""}`}>
+                    <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-semibold">
                           {isUserMessage ? "You" : agentInfo?.name}
@@ -1602,8 +1618,10 @@ const Workspace = () => {
       {isSelectionMode && (
         <MessageSelectionBar
           selectedCount={showBrian ? selectedBrianIndices.size : selectedMessageIds.size}
+          totalCount={showBrian ? brianMessages.length : messages.length}
           onCancel={handleCancelSelection}
           onDelete={handleConfirmDelete}
+          onSelectAll={handleSelectAll}
         />
       )}
 
