@@ -138,17 +138,19 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
       return null;
     });
 
-    // Fetch group chats
+    // Fetch group chats WHERE USER IS A PARTICIPANT
     const { data: groupChats } = await supabase
       .from('chats')
       .select(`
         *,
         chat_agents(
           agent:agents(id, name, image_url)
-        )
+        ),
+        chat_participants!inner(user_id)
       `)
       .eq('workspace_id', workspaceId)
       .eq('type', 'group')
+      .eq('chat_participants.user_id', userId)
       .order('last_activity', { ascending: false });
 
     const resolvedDirectChats = await Promise.all(directChatPromises);
@@ -321,6 +323,21 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
         (payload) => {
           const deletedId = payload.old.id;
           setMessages((prev) => prev.filter((m) => m.id !== deletedId));
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'chat_participants',
+        },
+        (payload) => {
+          // If current user was removed from a chat, remove it from state
+          const deletedParticipant = payload.old as any;
+          if (deletedParticipant.user_id === userId) {
+            setChats((prev) => prev.filter((c) => c.id !== deletedParticipant.chat_id));
+          }
         }
       )
       .subscribe();
