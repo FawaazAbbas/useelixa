@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Trash2, FileText } from 'lucide-react';
+import { Trash2, FileText, CheckSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -19,6 +19,7 @@ interface ChatSettingsDialogProps {
   currentName: string;
   onClose: () => void;
   onDeleted?: () => void;
+  onEnterDeleteMode?: () => void;
 }
 
 interface AgentDocument {
@@ -39,6 +40,7 @@ export const ChatSettingsDialog = ({
   currentName,
   onClose,
   onDeleted,
+  onEnterDeleteMode,
 }: ChatSettingsDialogProps) => {
   const [customName, setCustomName] = useState(currentName);
   const [documents, setDocuments] = useState<AgentDocument[]>([]);
@@ -353,6 +355,26 @@ export const ChatSettingsDialog = ({
                 <Separator />
               </>
             )}
+
+            <div>
+              <Label>Message Management</Label>
+              <p className="text-sm text-muted-foreground mb-3">
+                Select and delete multiple messages from this chat
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onEnterDeleteMode?.();
+                  onClose();
+                }}
+                className="w-full"
+              >
+                <CheckSquare className="w-4 h-4 mr-2" />
+                Delete Messages
+              </Button>
+            </div>
+
+            <Separator />
 
             {chatType !== 'brian' && (
               <div>

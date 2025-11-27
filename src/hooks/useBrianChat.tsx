@@ -148,11 +148,42 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
     }
   };
 
+  const deleteMultipleMessages = async (messageIndices: number[]) => {
+    if (!userId || !workspaceId) return;
+
+    try {
+      const updatedMessages = messages.filter((_, index) => !messageIndices.includes(index));
+      
+      const { error } = await supabase
+        .from("brian_conversations")
+        .update({ messages: updatedMessages as any })
+        .eq("user_id", userId)
+        .eq("workspace_id", workspaceId);
+
+      if (error) throw error;
+
+      setMessages(updatedMessages);
+      
+      toast({
+        title: "Messages deleted",
+        description: `${messageIndices.length} message(s) have been removed`,
+      });
+    } catch (error) {
+      console.error("Error deleting Brian messages:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete messages",
+      });
+    }
+  };
+
   return {
     messages,
     loading,
     sending,
     sendMessage,
     deleteMessage,
+    deleteMultipleMessages,
   };
 };

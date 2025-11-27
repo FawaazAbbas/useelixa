@@ -373,6 +373,32 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     }
   }, [toast]);
 
+  // Delete multiple messages
+  const deleteMultipleMessages = useCallback(async (messageIds: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .in('id', messageIds);
+
+      if (error) throw error;
+
+      setMessages((prev) => prev.filter((m) => !messageIds.includes(m.id)));
+      
+      toast({
+        title: 'Messages deleted',
+        description: `${messageIds.length} message(s) have been removed`,
+      });
+    } catch (error) {
+      console.error('Delete messages error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete messages',
+      });
+    }
+  }, [toast]);
+
   // Leave group chat
   const leaveGroupChat = useCallback(async (chatId: string) => {
     if (!userId) return;
@@ -411,6 +437,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     fetchMessages,
     sendMessage,
     deleteMessage,
+    deleteMultipleMessages,
     leaveGroupChat,
     refreshChats: fetchChats,
   };

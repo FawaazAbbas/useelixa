@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBrianChat } from "@/hooks/useBrianChat";
 import { ChatMemoriesPanel } from "@/components/ChatMemoriesPanel";
 import { MessageContextMenu } from "@/components/MessageContextMenu";
+import { MessageSelectionBar } from "@/components/MessageSelectionBar";
 import { NewChatDialog } from "@/components/NewChatDialog";
 import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 
@@ -140,7 +142,7 @@ const Workspace = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { workspaceId } = useWorkspace();
-  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage, deleteMessage, leaveGroupChat, refreshChats } = useRealTimeChat(user?.id, workspaceId);
+  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage, deleteMessage, deleteMultipleMessages, leaveGroupChat, refreshChats } = useRealTimeChat(user?.id, workspaceId);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [automations, setAutomations] = useState<Automation[]>([]);
@@ -157,6 +159,10 @@ const Workspace = () => {
   const [processingAgent, setProcessingAgent] = useState<string | null>(null);
   const [delegationStatus, setDelegationStatus] = useState<string | null>(null);
   const [showBrian, setShowBrian] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
+  const [selectedBrianIndices, setSelectedBrianIndices] = useState<Set<number>>(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -167,6 +173,7 @@ const Workspace = () => {
     sending: brianSending, 
     sendMessage: sendBrianMessage,
     deleteMessage: deleteBrianMessage,
+    deleteMultipleMessages: deleteBrianMultipleMessages,
   } = useBrianChat(user?.id, workspaceId);
   const [brianInput, setBrianInput] = useState("");
 
@@ -317,6 +324,56 @@ const Workspace = () => {
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleToggleMessageSelection = (id: string | number, isBrian: boolean = false) => {
+    if (isBrian) {
+      const idx = id as number;
+      setSelectedBrianIndices((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(idx)) {
+          newSet.delete(idx);
+        } else {
+          newSet.add(idx);
+        }
+        return newSet;
+      });
+    } else {
+      const msgId = id as string;
+      setSelectedMessageIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(msgId)) {
+          newSet.delete(msgId);
+        } else {
+          newSet.add(msgId);
+        }
+        return newSet;
+      });
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setIsSelectionMode(false);
+    setSelectedMessageIds(new Set());
+    setSelectedBrianIndices(new Set());
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteSelected = async () => {
+    try {
+      if (showBrian && selectedBrianIndices.size > 0) {
+        await deleteBrianMultipleMessages(Array.from(selectedBrianIndices));
+      } else if (selectedChat && selectedMessageIds.size > 0) {
+        await deleteMultipleMessages(Array.from(selectedMessageIds));
+      }
+      handleCancelSelection();
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error('Error deleting messages:', error);
+    }
   };
 
   const fetchAutomations = async () => {
@@ -648,11 +705,30 @@ const Workspace = () => {
                 ) : (
                   brianMessages.map((msg, idx) => {
                     const isUserMessage = msg.role === "user";
+                    const isSelected = selectedBrianIndices.has(idx);
                     return (
                       <div
                         key={idx}
-                        className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""} group`}
+                        className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""} group ${
+                          isSelected ? "bg-primary/10 rounded-lg p-2" : ""
+                        }`}
+                        onClick={() => isSelectionMode && handleToggleMessageSelection(idx, true)}
                       >
+                        {isSelectionMode && (
+                          <div className="flex items-center">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                            >
+                              <CheckSquare
+                                className={`h-5 w-5 ${
+                                  isSelected ? "text-primary fill-primary" : "text-muted-foreground"
+                                }`}
+                              />
+                            </Button>
+                          </div>
+                        )}
                         <Avatar className={isUserMessage ? "" : "bg-gradient-to-br from-purple-600 to-blue-500"}>
                           <AvatarFallback className={isUserMessage ? "" : "text-white text-sm font-bold"}>
                             {isUserMessage ? "U" : "B"}
@@ -685,11 +761,13 @@ const Workspace = () => {
                             )}
                           </div>
                         </div>
-                        <MessageContextMenu
-                          messageId={idx.toString()}
-                          canDelete={true}
-                          onDelete={() => deleteBrianMessage(idx)}
-                        />
+                        {!isSelectionMode && (
+                          <MessageContextMenu
+                            messageId={idx.toString()}
+                            canDelete={true}
+                            onDelete={() => deleteBrianMessage(idx)}
+                          />
+                        )}
                       </div>
                     );
                   })
@@ -944,6 +1022,7 @@ const Workspace = () => {
             ) : (
               messages.map((msg) => {
                 const isUserMessage = !!msg.user_id;
+                const isSelected = selectedMessageIds.has(msg.id);
                 const agentInfo = selectedChat.type === 'group' && msg.agent_id
                   ? selectedChat.agents?.find((a: any) => a.id === msg.agent_id)
                   : selectedChat.agent;
@@ -951,8 +1030,26 @@ const Workspace = () => {
                 return (
                   <div
                     key={msg.id}
-                    className={`flex gap-3 group ${isUserMessage ? "flex-row-reverse" : ""}`}
+                    className={`flex gap-3 group ${isUserMessage ? "flex-row-reverse" : ""} ${
+                      isSelected ? "bg-primary/10 rounded-lg p-2" : ""
+                    }`}
+                    onClick={() => isSelectionMode && handleToggleMessageSelection(msg.id, false)}
                   >
+                    {isSelectionMode && (
+                      <div className="flex items-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                        >
+                          <CheckSquare
+                            className={`h-5 w-5 ${
+                              isSelected ? "text-primary fill-primary" : "text-muted-foreground"
+                            }`}
+                          />
+                        </Button>
+                      </div>
+                    )}
                     <Avatar>
                       <AvatarFallback>
                         {isUserMessage ? "U" : agentInfo?.name.substring(0, 2).toUpperCase()}
@@ -966,11 +1063,13 @@ const Workspace = () => {
                         <span className="text-xs text-muted-foreground">
                           {new Date(msg.created_at).toLocaleTimeString()}
                         </span>
-                        <MessageContextMenu
-                          messageId={msg.id}
-                          canDelete={isUserMessage || !msg.user_id}
-                          onDelete={deleteMessage}
-                        />
+                        {!isSelectionMode && (
+                          <MessageContextMenu
+                            messageId={msg.id}
+                            canDelete={isUserMessage || !msg.user_id}
+                            onDelete={deleteMessage}
+                          />
+                        )}
                       </div>
                       <div className="space-y-2">
                         <div
@@ -1119,6 +1218,10 @@ const Workspace = () => {
             // Brian cannot be deleted
             setShowSettings(false);
           }}
+          onEnterDeleteMode={() => {
+            setIsSelectionMode(true);
+            setSelectedBrianIndices(new Set());
+          }}
         />
       )}
       
@@ -1135,6 +1238,10 @@ const Workspace = () => {
             setShowSettings(false);
             refreshChats();
           }}
+          onEnterDeleteMode={() => {
+            setIsSelectionMode(true);
+            setSelectedMessageIds(new Set());
+          }}
         />
       )}
 
@@ -1150,6 +1257,10 @@ const Workspace = () => {
               setSelectedChat(null);
               setShowSettings(false);
             }
+          }}
+          onEnterDeleteMode={() => {
+            setIsSelectionMode(true);
+            setSelectedMessageIds(new Set());
           }}
         />
       )}
@@ -1486,6 +1597,34 @@ const Workspace = () => {
           voice="alloy"
         />
       )}
+
+      {/* Message Selection Bar */}
+      {isSelectionMode && (
+        <MessageSelectionBar
+          selectedCount={showBrian ? selectedBrianIndices.size : selectedMessageIds.size}
+          onCancel={handleCancelSelection}
+          onDelete={handleConfirmDelete}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Messages</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {showBrian ? selectedBrianIndices.size : selectedMessageIds.size} message(s)? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected} className="bg-destructive hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
