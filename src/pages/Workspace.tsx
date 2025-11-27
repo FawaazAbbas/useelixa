@@ -31,6 +31,9 @@ import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashbo
 import { useToast } from "@/hooks/use-toast";
 import { useBrianChat } from "@/hooks/useBrianChat";
 import { ChatMemoriesPanel } from "@/components/ChatMemoriesPanel";
+import { MessageContextMenu } from "@/components/MessageContextMenu";
+import { NewChatDialog } from "@/components/NewChatDialog";
+import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -137,12 +140,14 @@ const Workspace = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { workspaceId } = useWorkspace();
-  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage, refreshChats } = useRealTimeChat(user?.id, workspaceId);
+  const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage, deleteMessage, leaveGroupChat, refreshChats } = useRealTimeChat(user?.id, workspaceId);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [message, setMessage] = useState("");
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [showAutomations, setShowAutomations] = useState(false);
   const [showGroupDialog, setShowGroupDialog] = useState(false);
+  const [showNewChatDialog, setShowNewChatDialog] = useState(false);
+  const [showParticipantsDialog, setShowParticipantsDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [rightSidebarTab, setRightSidebarTab] = useState("automations");
@@ -272,43 +277,23 @@ const Workspace = () => {
 
       const messageContent = message.trim() || (selectedFiles.length > 0 ? `Sent ${selectedFiles.length} file(s)` : '');
       
-      const { data: userMessage, error: userMsgError } = await supabase
-        .from('messages')
-        .insert({
-          chat_id: selectedChat.id,
-          user_id: user?.id,
-          content: messageContent,
-          metadata: fileAttachments.length > 0 ? { files: fileAttachments } : null
-        })
-        .select()
-        .single();
-
-      if (userMsgError) throw userMsgError;
-
       setMessage("");
       setSelectedFiles([]);
 
-      // Only call agent if there's a text message
-      if (message.trim()) {
-        // Set initial processing state
-        if (selectedChat.type === 'group') {
-          const firstAgent = selectedChat.agents?.[0];
-          if (firstAgent) {
-            setProcessingAgent(firstAgent.name);
-          }
-          const agentIds = selectedChat.agents?.map((a: any) => a.id) || [];
-          await sendMessage(selectedChat.id, agentIds, message, 'group');
-        } else {
-          setProcessingAgent(selectedChat.agent?.name || 'Agent');
-          await sendMessage(selectedChat.id, selectedChat.agent_id, message, 'direct');
+      // Send message with file metadata through hook (which handles DB insert)
+      if (selectedChat.type === 'group') {
+        const firstAgent = selectedChat.agents?.[0];
+        if (firstAgent) {
+          setProcessingAgent(firstAgent.name);
         }
-        
-        // Clear processing state after response
-        setTimeout(() => {
-          setProcessingAgent(null);
-          setDelegationStatus(null);
-        }, 1000);
+        const agentIds = selectedChat.agents?.map((a: any) => a.id) || [];
+        await sendMessage(selectedChat.id, agentIds, messageContent, 'group', { files: fileAttachments });
+      } else if (selectedChat.agent?.id) {
+        setProcessingAgent(selectedChat.agent.name);
+        await sendMessage(selectedChat.id, selectedChat.agent.id, messageContent, 'direct', { files: fileAttachments });
       }
+      
+      setProcessingAgent(null);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -514,9 +499,6 @@ const Workspace = () => {
           <div className="px-3 py-2">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase">Direct Messages</h3>
-              <Button variant="ghost" size="icon" className="h-5 w-5">
-                <Plus className="h-3 w-3" />
-              </Button>
             </div>
             <div className="space-y-1">
               {chatLoading ? (
@@ -561,9 +543,6 @@ const Workspace = () => {
           <div className="px-3 py-2">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-muted-foreground uppercase">Group Chats</h3>
-              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={handleCreateGroup}>
-                <Plus className="h-3 w-3" />
-              </Button>
             </div>
             <div className="space-y-1">
               {chats.filter(c => c.type === 'group').map((chat) => (
@@ -590,6 +569,17 @@ const Workspace = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Create New Button */}
+        <div className="p-3 border-t border-chat-border">
+          <Button 
+            className="w-full" 
+            onClick={() => setShowNewChatDialog(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Conversation
+          </Button>
         </div>
 
         {/* User Profile */}
@@ -888,6 +878,15 @@ const Workspace = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {selectedChat?.type === 'group' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowParticipantsDialog(true)}
+              >
+                <Users className="h-5 w-5" />
+              </Button>
+            )}
             {selectedChat?.type === 'direct' && (
               <Button 
                 variant="ghost" 
@@ -939,7 +938,7 @@ const Workspace = () => {
                 return (
                   <div
                     key={msg.id}
-                    className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""}`}
+                    className={`flex gap-3 group ${isUserMessage ? "flex-row-reverse" : ""}`}
                   >
                     <Avatar>
                       <AvatarFallback>
@@ -954,6 +953,11 @@ const Workspace = () => {
                         <span className="text-xs text-muted-foreground">
                           {new Date(msg.created_at).toLocaleTimeString()}
                         </span>
+                        <MessageContextMenu
+                          messageId={msg.id}
+                          canDelete={isUserMessage || !msg.user_id}
+                          onDelete={deleteMessage}
+                        />
                       </div>
                       <div className="space-y-2">
                         <div
@@ -1105,6 +1109,46 @@ const Workspace = () => {
             setShowSettings(false);
             refreshChats();
           }}
+        />
+      )}
+
+      {selectedChat && selectedChat.type === 'group' && showSettings && (
+        <ChatSettingsDialog
+          chatId={selectedChat.id}
+          chatType="group"
+          currentName={selectedChat.name || ''}
+          onClose={() => setShowSettings(false)}
+          onDeleted={() => {
+            if (selectedChat.id && user?.id) {
+              leaveGroupChat(selectedChat.id);
+              setSelectedChat(null);
+              setShowSettings(false);
+            }
+          }}
+        />
+      )}
+
+      <NewChatDialog
+        open={showNewChatDialog}
+        onOpenChange={setShowNewChatDialog}
+        onCreateDirect={() => {
+          // For now just refresh chats - direct chats are auto-created
+          toast({ title: 'Install an agent from the Marketplace to start a direct chat' });
+        }}
+        onCreateGroup={() => {
+          setShowNewChatDialog(false);
+          handleCreateGroup();
+        }}
+      />
+
+      {selectedChat && selectedChat.type === 'group' && (
+        <GroupParticipantsDialog
+          open={showParticipantsDialog}
+          onOpenChange={setShowParticipantsDialog}
+          chatId={selectedChat.id}
+          workspaceId={workspaceId || ''}
+          userId={user?.id || ''}
+          isOwner={selectedChat.created_by === user?.id}
         />
       )}
 
