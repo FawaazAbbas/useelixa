@@ -189,7 +189,13 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
   }, [userId]);
 
   // Send message (handles both direct and group chats)
-  const sendMessage = useCallback(async (chatId: string, agentIdOrIds: string | string[], content: string, chatType: 'direct' | 'group' = 'direct') => {
+  const sendMessage = useCallback(async (
+    chatId: string, 
+    agentIdOrIds: string | string[], 
+    content: string, 
+    chatType: 'direct' | 'group' = 'direct',
+    metadata?: { files?: Array<{ name: string; url: string; type: string; size: number }> }
+  ) => {
     if (!userId || !content.trim()) return;
 
     setSending(true);
@@ -203,6 +209,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           user_id: userId,
           content: content.trim(),
           read: true, // User's own messages are always read
+          metadata: metadata || null,
         })
         .select()
         .single();
@@ -304,12 +311,80 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           fetchChats();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+        },
+        (payload) => {
+          const deletedId = payload.old.id;
+          setMessages((prev) => prev.filter((m) => m.id !== deletedId));
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [userId, fetchChats, fetchUnreadCounts]);
+
+  // Delete message
+  const deleteMessage = useCallback(async (messageId: string) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      
+      toast({
+        title: 'Message deleted',
+        description: 'Message has been removed',
+      });
+    } catch (error) {
+      console.error('Delete message error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete message',
+      });
+    }
+  }, [toast]);
+
+  // Leave group chat
+  const leaveGroupChat = useCallback(async (chatId: string) => {
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('chat_participants')
+        .delete()
+        .eq('chat_id', chatId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Remove chat from local state
+      setChats((prev) => prev.filter((c) => c.id !== chatId));
+      
+      toast({
+        title: 'Left group',
+        description: 'You have left the group chat',
+      });
+    } catch (error) {
+      console.error('Leave group error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to leave group',
+      });
+    }
+  }, [userId, toast]);
 
   return {
     chats,
@@ -318,6 +393,8 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     sending,
     fetchMessages,
     sendMessage,
+    deleteMessage,
+    leaveGroupChat,
     refreshChats: fetchChats,
   };
 };

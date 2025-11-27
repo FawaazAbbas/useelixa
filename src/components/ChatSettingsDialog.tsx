@@ -320,6 +320,30 @@ export const ChatSettingsDialog = ({
 
             <Separator />
 
+            {chatType === 'group' && (
+              <>
+                <div>
+                  <Label className="text-muted-foreground">Group Actions</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Leave this group chat
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      // Call leave group from parent component
+                      onDeleted?.();
+                      onClose();
+                    }}
+                    className="w-full"
+                  >
+                    Leave Group
+                  </Button>
+                </div>
+
+                <Separator />
+              </>
+            )}
+
             <div>
               <Label className="text-destructive">Danger Zone</Label>
               <p className="text-sm text-muted-foreground mb-3">
