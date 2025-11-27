@@ -45,7 +45,8 @@ const Marketplace = () => {
             image_url,
             agent_categories(name)
           `)
-          .eq("status", "active"),
+          .eq("status", "active")
+          .eq("is_system", false),
         supabase.from("agent_categories").select("name")
       ]);
 
