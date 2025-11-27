@@ -165,7 +165,8 @@ const Workspace = () => {
     messages: brianMessages, 
     loading: brianLoading, 
     sending: brianSending, 
-    sendMessage: sendBrianMessage 
+    sendMessage: sendBrianMessage,
+    deleteMessage: deleteBrianMessage,
   } = useBrianChat(user?.id, workspaceId);
   const [brianInput, setBrianInput] = useState("");
 
@@ -650,7 +651,7 @@ const Workspace = () => {
                     return (
                       <div
                         key={idx}
-                        className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""}`}
+                        className={`flex gap-3 ${isUserMessage ? "flex-row-reverse" : ""} group`}
                       >
                         <Avatar className={isUserMessage ? "" : "bg-gradient-to-br from-purple-600 to-blue-500"}>
                           <AvatarFallback className={isUserMessage ? "" : "text-white text-sm font-bold"}>
@@ -684,6 +685,11 @@ const Workspace = () => {
                             )}
                           </div>
                         </div>
+                        <MessageContextMenu
+                          messageId={idx.toString()}
+                          canDelete={true}
+                          onDelete={() => deleteBrianMessage(idx)}
+                        />
                       </div>
                     );
                   })

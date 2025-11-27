@@ -118,10 +118,41 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
     }
   };
 
+  const deleteMessage = async (messageIndex: number) => {
+    if (!userId || !workspaceId) return;
+
+    try {
+      const updatedMessages = messages.filter((_, index) => index !== messageIndex);
+      
+      const { error } = await supabase
+        .from("brian_conversations")
+        .update({ messages: updatedMessages as any })
+        .eq("user_id", userId)
+        .eq("workspace_id", workspaceId);
+
+      if (error) throw error;
+
+      setMessages(updatedMessages);
+      
+      toast({
+        title: "Message deleted",
+        description: "The message has been removed from the conversation",
+      });
+    } catch (error) {
+      console.error("Error deleting Brian message:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete message",
+      });
+    }
+  };
+
   return {
     messages,
     loading,
     sending,
     sendMessage,
+    deleteMessage,
   };
 };
