@@ -176,14 +176,17 @@ const Workspace = () => {
   }, [workspaceId]);
 
   useEffect(() => {
-    if (chats.length > 0 && !selectedChat) {
+    if (chats.length > 0 && !selectedChat && !showBrian) {
       const firstChat = chats[0];
       setSelectedChat(firstChat);
       if (firstChat?.id) {
         fetchMessages(firstChat.id);
       }
+    } else if (chats.length === 0 && !showBrian) {
+      // Auto-select Brian when there are no chats
+      setShowBrian(true);
     }
-  }, [chats, selectedChat, fetchMessages]);
+  }, [chats, selectedChat, showBrian, fetchMessages]);
 
   useEffect(() => {
     if (selectedChat?.id) {
@@ -427,23 +430,7 @@ const Workspace = () => {
 
       {/* Desktop Sidebar */}
       <div className={`${isMobile ? 'hidden' : 'w-64'} bg-chat-sidebar border-r border-chat-border flex flex-col`}>
-        {chats.length === 0 && !chatLoading ? (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center">
-              <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-semibold mb-2">No Chats Yet</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Head to the Marketplace to add your first agent
-              </p>
-              <Button size="sm" onClick={() => navigate('/marketplace')}>
-                <Store className="h-4 w-4 mr-2" />
-                Browse Agents
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {/* Workspace Header */}
+        {/* Workspace Header */}
         <div className="p-4 border-b border-chat-border">
           <button className="flex items-center justify-between w-full hover:bg-muted/50 rounded px-3 py-2 transition-colors">
             <div>
@@ -465,7 +452,7 @@ const Workspace = () => {
           </div>
         </div>
 
-        {/* Brian Section */}
+        {/* Brian Section - ALWAYS VISIBLE */}
         <div className="px-3 py-2">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
@@ -505,10 +492,10 @@ const Workspace = () => {
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
-              ) : chats.length === 0 ? (
+              ) : chats.filter(c => c.type === 'direct').length === 0 ? (
                 <div className="px-2 py-4 text-center">
                   <p className="text-xs text-muted-foreground mb-2">No agents installed</p>
-                  <Button size="sm" variant="outline" onClick={() => navigate('/')}>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/marketplace')}>
                     <Store className="h-3 w-3 mr-1" />
                     Browse Marketplace
                   </Button>
@@ -545,28 +532,34 @@ const Workspace = () => {
               <h3 className="text-xs font-semibold text-muted-foreground uppercase">Group Chats</h3>
             </div>
             <div className="space-y-1">
-              {chats.filter(c => c.type === 'group').map((chat) => (
-                <button
-                  key={chat.id}
-                  onClick={() => handleSelectChat(chat)}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                    selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
-                  }`}
-                >
-                  <div className="relative">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    {(chat.unread_count || 0) > 0 && (
-                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center">
-                        {chat.unread_count}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <div className="text-sm truncate text-white">{chat.name}</div>
-                    <div className="text-xs text-muted-foreground">{chat.agents?.length || 0} agents</div>
-                  </div>
-                </button>
-              ))}
+              {chats.filter(c => c.type === 'group').length === 0 ? (
+                <div className="px-2 py-3 text-center">
+                  <p className="text-xs text-muted-foreground">No group chats</p>
+                </div>
+              ) : (
+                chats.filter(c => c.type === 'group').map((chat) => (
+                  <button
+                    key={chat.id}
+                    onClick={() => handleSelectChat(chat)}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
+                      selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
+                    }`}
+                  >
+                    <div className="relative">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      {(chat.unread_count || 0) > 0 && (
+                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center">
+                          {chat.unread_count}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="text-sm truncate text-white">{chat.name}</div>
+                      <div className="text-xs text-muted-foreground">{chat.agents?.length || 0} agents</div>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -595,8 +588,6 @@ const Workspace = () => {
             <Settings className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
-          </>
-        )}
       </div>
 
       {/* Main Chat Area */}
