@@ -13,6 +13,8 @@ interface ConnectionStatus {
   type: string;
   connected: boolean;
   lastConnected?: string;
+  expiresAt?: string;
+  isExpired?: boolean;
 }
 
 const CREDENTIAL_INFO = {
@@ -155,17 +157,26 @@ export default function Connections() {
     try {
       const { data, error } = await supabase
         .from("user_credentials")
-        .select("credential_type, updated_at")
+        .select("credential_type, updated_at, expires_at")
         .eq("user_id", user.id);
 
       if (error) throw error;
 
       const connectedTypes = new Set(data?.map(c => c.credential_type) || []);
-      const statusList = Object.keys(CREDENTIAL_INFO).map(type => ({
-        type,
-        connected: connectedTypes.has(type),
-        lastConnected: data?.find(c => c.credential_type === type)?.updated_at,
-      }));
+      const statusList = Object.keys(CREDENTIAL_INFO).map(type => {
+        const credential = data?.find(c => c.credential_type === type);
+        const isExpired = credential?.expires_at 
+          ? new Date(credential.expires_at).getTime() < Date.now()
+          : false;
+
+        return {
+          type,
+          connected: connectedTypes.has(type),
+          lastConnected: credential?.updated_at,
+          expiresAt: credential?.expires_at,
+          isExpired,
+        };
+      });
 
       setConnections(statusList);
     } catch (error) {
@@ -259,6 +270,27 @@ export default function Connections() {
     } catch (error) {
       console.error("Error disconnecting:", error);
       toast.error("Failed to disconnect");
+    }
+  };
+
+  const handleRefresh = async (credentialType: string) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke("refresh-oauth-token", {
+        body: {
+          userId: user.id,
+          credentialType,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(`${CREDENTIAL_INFO[credentialType as keyof typeof CREDENTIAL_INFO].name} token refreshed`);
+      fetchConnections();
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      toast.error("Failed to refresh token. Please reconnect your account.");
     }
   };
 
@@ -428,23 +460,42 @@ export default function Connections() {
                     </CardDescription>
                     
                     {connection.connected && connection.lastConnected && (
-                      <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Connected {new Date(connection.lastConnected).toLocaleDateString()}
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Connected {new Date(connection.lastConnected).toLocaleDateString()}
+                        </p>
+                        {connection.isExpired && (
+                          <Badge variant="destructive" className="text-xs">
+                            Token Expired
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </CardHeader>
                   
                   <CardContent className="pt-0">
                     {connection.connected ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => handleDisconnect(connection.type)}
-                      >
-                        Disconnect
-                      </Button>
+                      <div className="flex gap-2">
+                        {connection.isExpired && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleRefresh(connection.type)}
+                          >
+                            Refresh Token
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={connection.isExpired ? "flex-1" : "w-full"}
+                          onClick={() => handleDisconnect(connection.type)}
+                        >
+                          Disconnect
+                        </Button>
+                      </div>
                     ) : (
                       <Button
                         size="sm"
@@ -515,23 +566,42 @@ export default function Connections() {
                     </CardDescription>
                     
                     {connection.connected && connection.lastConnected && (
-                      <p className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Connected {new Date(connection.lastConnected).toLocaleDateString()}
-                      </p>
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Connected {new Date(connection.lastConnected).toLocaleDateString()}
+                        </p>
+                        {connection.isExpired && (
+                          <Badge variant="destructive" className="text-xs">
+                            Token Expired
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </CardHeader>
                   
                   <CardContent className="pt-0">
                     {connection.connected ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => handleDisconnect(connection.type)}
-                      >
-                        Disconnect
-                      </Button>
+                      <div className="flex gap-2">
+                        {connection.isExpired && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => handleRefresh(connection.type)}
+                          >
+                            Refresh Token
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className={connection.isExpired ? "flex-1" : "w-full"}
+                          onClick={() => handleDisconnect(connection.type)}
+                        >
+                          Disconnect
+                        </Button>
+                      </div>
                     ) : (
                       <Button
                         size="sm"
