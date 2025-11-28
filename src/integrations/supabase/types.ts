@@ -366,6 +366,10 @@ export type Database = {
           rating: number | null
           required_credentials: Json | null
           response_timeout: number | null
+          review_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
           short_description: string | null
           status: string | null
           supported_features: string[] | null
@@ -402,6 +406,10 @@ export type Database = {
           rating?: number | null
           required_credentials?: Json | null
           response_timeout?: number | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
           short_description?: string | null
           status?: string | null
           supported_features?: string[] | null
@@ -438,6 +446,10 @@ export type Database = {
           rating?: number | null
           required_credentials?: Json | null
           response_timeout?: number | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
           short_description?: string | null
           status?: string | null
           supported_features?: string[] | null
