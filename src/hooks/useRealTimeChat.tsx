@@ -269,7 +269,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Subscribe to real-time messages and chats
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !workspaceId) return;
 
     fetchChats();
     fetchUnreadCounts();
@@ -345,7 +345,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, fetchChats, fetchUnreadCounts]);
+  }, [userId, workspaceId, fetchChats, fetchUnreadCounts]);
 
   // Delete message
   const deleteMessage = useCallback(async (messageId: string) => {

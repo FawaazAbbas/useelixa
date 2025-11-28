@@ -2,6 +2,33 @@ export const platformTools = [
   {
     type: "function",
     function: {
+      name: "get_agent_tasks",
+      description: "Get all tasks assigned to a specific agent, or all tasks if no agent_id provided",
+      parameters: {
+        type: "object",
+        properties: {
+          agent_id: {
+            type: "string",
+            description: "The agent ID to get tasks for (optional - omit to get all tasks)"
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_agent_workload",
+      description: "Get task workload summary for all agents showing how many tasks each agent has",
+      parameters: {
+        type: "object",
+        properties: {}
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
       name: "install_agent",
       description: "Install an agent from the marketplace into the user's workspace",
       parameters: {
