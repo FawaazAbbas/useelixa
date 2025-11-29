@@ -116,6 +116,14 @@ export async function executeToolCall(
         return await executeScheduleReminder(args, context);
       } else if (nodeType === 'schedule_task') {
         return await executeScheduleTask(args, context);
+      } else if (nodeType === 'external_notion') {
+        return await executeExternalNotionTool(toolCall.function.name, args, credentials);
+      } else if (nodeType === 'external_gmail') {
+        return await executeExternalGmailTool(toolCall.function.name, args, credentials);
+      } else if (nodeType === 'external_drive') {
+        return await executeExternalDriveTool(toolCall.function.name, args, credentials);
+      } else if (nodeType === 'external_calendly') {
+        return await executeExternalCalendlyTool(toolCall.function.name, args, credentials);
       } else {
         throw new Error(`Unsupported node type: ${nodeType}`);
       }
@@ -1591,4 +1599,245 @@ async function executeScheduleTask(
       interval_minutes: schedule_interval_minutes
     }
   };
+}
+
+// PHASE 5: External service tool executors
+async function executeExternalNotionTool(
+  toolName: string,
+  args: any,
+  credentials: any
+): Promise<any> {
+  const notionCred = credentials.notionApi || 
+    Object.values(credentials).find((c: any) => c.credential_type?.toLowerCase().includes('notion'));
+  
+  if (!notionCred?.access_token) {
+    throw new Error('Notion credentials not available');
+  }
+
+  if (toolName === 'notion_create_page') {
+    const response = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${notionCred.access_token}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        parent: { database_id: args.database_id },
+        properties: {
+          title: {
+            title: [{ text: { content: args.title } }]
+          },
+          ...args.properties
+        },
+        children: args.content ? [{
+          object: 'block',
+          type: 'paragraph',
+          paragraph: {
+            rich_text: [{ type: 'text', text: { content: args.content } }]
+          }
+        }] : []
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Notion API error: ${error}`);
+    }
+
+    return await response.json();
+  } else if (toolName === 'notion_query_database') {
+    const response = await fetch(`https://api.notion.com/v1/databases/${args.database_id}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${notionCred.access_token}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        filter: args.filter || {},
+        page_size: args.page_size || 100
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Notion API error: ${error}`);
+    }
+
+    return await response.json();
+  }
+
+  throw new Error(`Unsupported Notion tool: ${toolName}`);
+}
+
+async function executeExternalGmailTool(
+  toolName: string,
+  args: any,
+  credentials: any
+): Promise<any> {
+  const googleCred = credentials.googleOAuth2Api || 
+    Object.values(credentials).find((c: any) => c.credential_type?.toLowerCase().includes('google'));
+  
+  if (!googleCred?.access_token) {
+    throw new Error('Gmail credentials not available');
+  }
+
+  if (toolName === 'gmail_send_email') {
+    const email = [
+      `To: ${args.to}`,
+      args.cc ? `Cc: ${args.cc}` : '',
+      args.bcc ? `Bcc: ${args.bcc}` : '',
+      `Subject: ${args.subject}`,
+      'Content-Type: text/plain; charset=utf-8',
+      '',
+      args.message
+    ].filter(Boolean).join('\r\n');
+    
+    const encoder = new TextEncoder();
+    const emailBytes = encoder.encode(email);
+    const base64 = btoa(String.fromCharCode(...emailBytes));
+    const encodedEmail = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    
+    const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${googleCred.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ raw: encodedEmail })
+    });
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Gmail API error: ${error}`);
+    }
+    
+    return await response.json();
+  } else if (toolName === 'gmail_search') {
+    const response = await fetch(
+      `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(args.query)}&maxResults=${args.max_results || 10}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${googleCred.access_token}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Gmail API error: ${error}`);
+    }
+    
+    return await response.json();
+  }
+
+  throw new Error(`Unsupported Gmail tool: ${toolName}`);
+}
+
+async function executeExternalDriveTool(
+  toolName: string,
+  args: any,
+  credentials: any
+): Promise<any> {
+  const googleCred = credentials.googleOAuth2Api || 
+    Object.values(credentials).find((c: any) => c.credential_type?.toLowerCase().includes('google'));
+  
+  if (!googleCred?.access_token) {
+    throw new Error('Google Drive credentials not available');
+  }
+
+  if (toolName === 'google_drive_upload') {
+    const metadata = {
+      name: args.file_name,
+      mimeType: args.mime_type || 'text/plain',
+      ...(args.folder_id && { parents: [args.folder_id] })
+    };
+    
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${googleCred.access_token}`,
+        'Content-Type': 'multipart/related'
+      },
+      body: `--boundary\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(metadata)}\r\n--boundary\r\nContent-Type: ${args.mime_type || 'text/plain'}\r\n\r\n${args.content}\r\n--boundary--`
+    });
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Google Drive API error: ${error}`);
+    }
+    
+    return await response.json();
+  } else if (toolName === 'google_drive_list') {
+    let query = args.query || '';
+    if (args.folder_id) {
+      query = `'${args.folder_id}' in parents`;
+    }
+    
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&pageSize=${args.max_results || 20}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${googleCred.access_token}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Google Drive API error: ${error}`);
+    }
+    
+    return await response.json();
+  }
+
+  throw new Error(`Unsupported Drive tool: ${toolName}`);
+}
+
+async function executeExternalCalendlyTool(
+  toolName: string,
+  args: any,
+  credentials: any
+): Promise<any> {
+  const calendlyCred = credentials.calendlyApi || 
+    Object.values(credentials).find((c: any) => c.credential_type?.toLowerCase().includes('calendly'));
+  
+  if (!calendlyCred?.access_token) {
+    throw new Error('Calendly credentials not available');
+  }
+
+  if (toolName === 'calendly_list_events') {
+    let url = 'https://api.calendly.com/scheduled_events?user=' + encodeURIComponent(calendlyCred.access_token);
+    if (args.start_time) url += `&min_start_time=${args.start_time}`;
+    if (args.end_time) url += `&max_start_time=${args.end_time}`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${calendlyCred.access_token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Calendly API error: ${error}`);
+    }
+    
+    return await response.json();
+  } else if (toolName === 'calendly_get_availability') {
+    const response = await fetch('https://api.calendly.com/event_types', {
+      headers: {
+        'Authorization': `Bearer ${calendlyCred.access_token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Calendly API error: ${error}`);
+    }
+    
+    return await response.json();
+  }
+
+  throw new Error(`Unsupported Calendly tool: ${toolName}`);
 }
