@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { OAUTH_CLIENT_IDS } from "@/config/oauth";
 
 interface ConnectionStatus {
   type: string;
@@ -203,10 +204,10 @@ export default function Connections() {
 
     switch (credentialType) {
       case "googleOAuth2Api":
-        authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/tasks')}&access_type=offline&prompt=consent&state=${state}`;
+        authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${OAUTH_CLIENT_IDS.GOOGLE}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/tasks')}&access_type=offline&prompt=consent&state=${state}`;
         break;
       case "notionApi":
-        authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${import.meta.env.VITE_NOTION_CLIENT_ID || 'YOUR_NOTION_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&owner=user&state=${state}`;
+        authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.NOTION}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&owner=user&state=${state}`;
         break;
       case "slackApi":
         authUrl = `https://slack.com/oauth/v2/authorize?client_id=${import.meta.env.VITE_SLACK_CLIENT_ID || 'YOUR_SLACK_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=chat:write,channels:read&state=${state}`;
@@ -215,16 +216,16 @@ export default function Connections() {
         authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${import.meta.env.VITE_QUICKBOOKS_CLIENT_ID || 'YOUR_QUICKBOOKS_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=com.intuit.quickbooks.accounting&state=${state}`;
         break;
       case "microsoftOAuth2Api":
-        authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${import.meta.env.VITE_MICROSOFT_CLIENT_ID || 'YOUR_MICROSOFT_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('User.Read Mail.ReadWrite Calendars.ReadWrite Files.ReadWrite.All')}&state=${state}`;
+        authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${OAUTH_CLIENT_IDS.MICROSOFT}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('User.Read Mail.ReadWrite Calendars.ReadWrite Files.ReadWrite.All')}&state=${state}`;
         break;
       case "calendlyApi":
-        authUrl = `https://auth.calendly.com/oauth/authorize?client_id=${import.meta.env.VITE_CALENDLY_CLIENT_ID || 'YOUR_CALENDLY_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+        authUrl = `https://auth.calendly.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.CALENDLY}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
         break;
       case "hubspotOAuth2Api":
         authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${import.meta.env.VITE_HUBSPOT_CLIENT_ID || 'YOUR_HUBSPOT_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=contacts%20crm.objects.contacts.read&state=${state}`;
         break;
       case "mailchimpOAuth2Api":
-        authUrl = `https://login.mailchimp.com/oauth2/authorize?client_id=${import.meta.env.VITE_MAILCHIMP_CLIENT_ID || 'YOUR_MAILCHIMP_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+        authUrl = `https://login.mailchimp.com/oauth2/authorize?client_id=${OAUTH_CLIENT_IDS.MAILCHIMP}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
         break;
       case "facebookOAuth2Api":
         authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${import.meta.env.VITE_FACEBOOK_CLIENT_ID || 'YOUR_FACEBOOK_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=pages_show_list,pages_read_engagement,instagram_basic&state=${state}`;
@@ -244,7 +245,7 @@ export default function Connections() {
           setConnecting(null);
           return;
         }
-        authUrl = `https://${shopDomain}/admin/oauth/authorize?client_id=${import.meta.env.VITE_SHOPIFY_CLIENT_ID || 'YOUR_SHOPIFY_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read_products,write_products,read_orders&state=${state}`;
+        authUrl = `https://${shopDomain}/admin/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.SHOPIFY}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read_products,write_products,read_orders&state=${state}`;
         break;
     }
 
