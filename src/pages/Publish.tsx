@@ -228,7 +228,8 @@ const Publish = () => {
           capabilities: capabilitiesArray,
           image_url: imageUrl,
           publisher_id: user.id,
-          status: "active",
+          status: "pending",
+          review_status: "pending",
           ai_personality: formData.ai_personality || null,
           ai_instructions: formData.ai_instructions || null,
           guard_rails: guardRails

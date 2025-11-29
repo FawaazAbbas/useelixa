@@ -392,6 +392,61 @@ serve(async (req) => {
 - ${agents.data?.length || 0} agents installed
 - ${tasks.data?.length || 0} recent tasks
 - ${automations.data?.length || 0} active automations`;
+        } else if (toolName === "get_agent_tasks") {
+          // Get tasks assigned to a specific agent or all tasks
+          let query = supabase
+            .from("tasks")
+            .select("id, title, status, priority, due_date, description, automations(id, name, action, trigger)")
+            .eq("workspace_id", workspace_id);
+          
+          if (toolArgs.agent_id) {
+            query = query.eq("assigned_agent_id", toolArgs.agent_id);
+          }
+          
+          const { data: agentTasks, error } = await query;
+          
+          if (error) {
+            toolResult = `Error fetching tasks: ${error.message}`;
+          } else {
+            toolResult = agentTasks && agentTasks.length > 0
+              ? `Found ${agentTasks.length} tasks:\n${agentTasks.map(t => 
+                  `- ${t.title} (${t.status}) - Priority: ${t.priority}${t.due_date ? `, Due: ${t.due_date}` : ''}${t.automations && t.automations.length > 0 ? `, Automations: ${t.automations.length}` : ''}`
+                ).join('\n')}`
+              : "No tasks found";
+          }
+        } else if (toolName === "get_agent_workload") {
+          // Get task summary for all agents
+          const { data: agentWorkloads } = await supabase
+            .from("tasks")
+            .select("assigned_agent_id, status, agents(name)")
+            .eq("workspace_id", workspace_id)
+            .not("assigned_agent_id", "is", null);
+          
+          // Group by agent
+          const workloadMap = new Map();
+          agentWorkloads?.forEach((task: any) => {
+            const agentId = task.assigned_agent_id;
+            if (!workloadMap.has(agentId)) {
+              workloadMap.set(agentId, {
+                name: task.agents?.name || "Unknown",
+                total: 0,
+                pending: 0,
+                in_progress: 0,
+                completed: 0
+              });
+            }
+            const stats = workloadMap.get(agentId);
+            stats.total++;
+            if (task.status === 'pending') stats.pending++;
+            else if (task.status === 'in_progress') stats.in_progress++;
+            else if (task.status === 'completed') stats.completed++;
+          });
+          
+          const workloadSummary = Array.from(workloadMap.entries())
+            .map(([id, stats]: [string, any]) => `${stats.name}: ${stats.total} tasks (${stats.pending} pending, ${stats.in_progress} in progress, ${stats.completed} completed)`)
+            .join('\n');
+          
+          toolResult = workloadSummary || "No tasks assigned to agents yet";
         } else if (toolName === "list_installed_agents") {
           const { data: installations } = await supabase
             .from("agent_installations")

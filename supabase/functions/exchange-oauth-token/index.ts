@@ -15,10 +15,15 @@ serve(async (req) => {
     const { code, credentialType, userId } = await req.json();
 
     if (!code || !credentialType || !userId) {
+      console.error("Missing parameters:", { code: !!code, credentialType, userId: !!userId });
       throw new Error("Missing required parameters");
     }
 
-    console.log(`Exchanging OAuth code for ${credentialType}`);
+    console.log(`🔐 Exchanging OAuth code for ${credentialType}`, { 
+      userId, 
+      redirectUri: getRedirectUri(),
+      siteUrl: Deno.env.get("SITE_URL")
+    });
 
     // Get OAuth configuration based on credential type
     const tokenUrl = getTokenUrl(credentialType);
@@ -26,8 +31,14 @@ serve(async (req) => {
     const clientSecret = Deno.env.get(`${credentialType.toUpperCase()}_CLIENT_SECRET`);
 
     if (!clientId || !clientSecret) {
+      console.error(`Missing OAuth config for ${credentialType}:`, { 
+        hasClientId: !!clientId, 
+        hasClientSecret: !!clientSecret 
+      });
       throw new Error(`OAuth credentials not configured for ${credentialType}`);
     }
+    
+    console.log(`✓ OAuth config found for ${credentialType}`);
 
     // Exchange authorization code for access token
     const isGoogleProvider = credentialType === "googleOAuth2Api";
@@ -70,8 +81,11 @@ serve(async (req) => {
 
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      throw new Error(`Token exchange failed: ${errorText}`);
+      console.error(`❌ Token exchange failed (${tokenResponse.status}):`, errorText);
+      throw new Error(`Token exchange failed: ${tokenResponse.status} ${errorText}`);
     }
+    
+    console.log(`✓ Token exchange successful`);
 
     const tokens = await tokenResponse.json();
 
@@ -97,11 +111,11 @@ serve(async (req) => {
       });
 
     if (upsertError) {
-      console.error("Error storing credentials:", upsertError);
+      console.error("❌ Error storing credentials:", upsertError);
       throw upsertError;
     }
 
-    console.log(`Successfully stored ${credentialType} credentials for user`);
+    console.log(`✅ Successfully stored ${credentialType} credentials for user`);
 
     return new Response(
       JSON.stringify({
