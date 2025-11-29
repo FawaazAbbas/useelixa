@@ -270,7 +270,8 @@ serve(async (req) => {
     const BRIAN_SYSTEM_PROMPT = buildBrianSystemPrompt(timeContext, relationshipContext, storedMemories);
 
     // All Brian tools
-    const allTools = [...platformTools, ...delegationTools, ...memoryTools];
+    const { connectionTools } = await import("./tools.ts");
+    const allTools = [...platformTools, ...delegationTools, ...memoryTools, ...connectionTools];
 
     // PHASE 4: Prepare messages with context compression
     let conversationMessages: Message[] = [
@@ -665,6 +666,48 @@ serve(async (req) => {
           toolResult = memories.length > 0 
             ? `Recalled memories:\n${memories.join('\n')}` 
             : "No memories found for that category/scope";
+        } else if (toolName === "list_connected_services") {
+          // Phase 1: List all user credentials
+          const { data: credentials } = await supabase
+            .from("user_credentials")
+            .select("credential_type, expires_at, created_at")
+            .eq("user_id", user_id);
+          
+          if (!credentials || credentials.length === 0) {
+            toolResult = "No services connected yet. Visit the Connections page to connect Google, Notion, Calendly, and more.";
+          } else {
+            const serviceList = credentials.map(cred => {
+              const isExpired = cred.expires_at && new Date(cred.expires_at) < new Date();
+              const status = isExpired ? "⚠️ Expired" : "✅ Connected";
+              const serviceName = cred.credential_type
+                .replace('OAuth2Api', '')
+                .replace('Api', '')
+                .replace('oauth2', '')
+                .replace(/([A-Z])/g, ' $1')
+                .trim();
+              return `${status} ${serviceName}`;
+            }).join('\n');
+            
+            toolResult = `Connected Services:\n${serviceList}`;
+          }
+        } else if (toolName === "verify_credential") {
+          // Phase 1: Verify a specific credential works
+          const service = toolArgs.service.toLowerCase();
+          
+          const { data: credential } = await supabase
+            .from("user_credentials")
+            .select("*")
+            .eq("user_id", user_id)
+            .ilike("credential_type", `%${service}%`)
+            .single();
+          
+          if (!credential) {
+            toolResult = `❌ ${toolArgs.service} is not connected. Please visit the Connections page to set it up.`;
+          } else if (credential.expires_at && new Date(credential.expires_at) < new Date()) {
+            toolResult = `⚠️ ${toolArgs.service} connection has expired. Please reconnect on the Connections page.`;
+          } else {
+            toolResult = `✅ ${toolArgs.service} is connected and working properly.`;
+          }
         } else {
           toolResult = "Tool not implemented";
         }
