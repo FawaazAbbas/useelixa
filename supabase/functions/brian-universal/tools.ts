@@ -461,3 +461,207 @@ export const connectionTools = [
     }
   }
 ];
+
+export const externalServiceTools = [
+  // Notion Tools
+  {
+    type: "function",
+    function: {
+      name: "notion_create_page",
+      description: "Create a page in a Notion database. Use this to save content directly to the user's Notion workspace.",
+      parameters: {
+        type: "object",
+        properties: {
+          database_id: {
+            type: "string",
+            description: "The Notion database ID to create the page in"
+          },
+          title: {
+            type: "string",
+            description: "Title for the Notion page"
+          },
+          content: {
+            type: "string",
+            description: "Content to add to the page"
+          },
+          properties: {
+            type: "object",
+            description: "Additional properties for the page (status, tags, etc.)"
+          }
+        },
+        required: ["database_id", "title"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "notion_query_database",
+      description: "Search and query a Notion database. Use this to find existing Notion pages or retrieve data.",
+      parameters: {
+        type: "object",
+        properties: {
+          database_id: {
+            type: "string",
+            description: "The Notion database ID to query"
+          },
+          filter: {
+            type: "object",
+            description: "Filter conditions (optional)"
+          },
+          page_size: {
+            type: "number",
+            description: "Number of results to return (default 100)"
+          }
+        },
+        required: ["database_id"]
+      }
+    }
+  },
+  // Gmail Tools
+  {
+    type: "function",
+    function: {
+      name: "gmail_send_email",
+      description: "Send an email via the user's Gmail account. Use this to send emails on behalf of the user.",
+      parameters: {
+        type: "object",
+        properties: {
+          to: {
+            type: "string",
+            description: "Recipient email address"
+          },
+          subject: {
+            type: "string",
+            description: "Email subject line"
+          },
+          message: {
+            type: "string",
+            description: "Email body content"
+          },
+          cc: {
+            type: "string",
+            description: "CC email addresses (comma-separated)"
+          },
+          bcc: {
+            type: "string",
+            description: "BCC email addresses (comma-separated)"
+          }
+        },
+        required: ["to", "subject", "message"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "gmail_search",
+      description: "Search the user's Gmail inbox. Use this to find specific emails or information.",
+      parameters: {
+        type: "object",
+        properties: {
+          query: {
+            type: "string",
+            description: "Gmail search query (e.g., 'from:someone@example.com subject:invoice')"
+          },
+          max_results: {
+            type: "number",
+            description: "Maximum number of results to return (default 10)"
+          }
+        },
+        required: ["query"]
+      }
+    }
+  },
+  // Google Drive Tools
+  {
+    type: "function",
+    function: {
+      name: "google_drive_upload",
+      description: "Upload a file to the user's Google Drive. Use this to save files to their Drive.",
+      parameters: {
+        type: "object",
+        properties: {
+          file_name: {
+            type: "string",
+            description: "Name for the uploaded file"
+          },
+          content: {
+            type: "string",
+            description: "File content"
+          },
+          mime_type: {
+            type: "string",
+            description: "MIME type (e.g., 'text/plain', 'application/json')"
+          },
+          folder_id: {
+            type: "string",
+            description: "Optional: Google Drive folder ID to upload to"
+          }
+        },
+        required: ["file_name", "content"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "google_drive_list",
+      description: "List files in the user's Google Drive. Use this to see what files they have.",
+      parameters: {
+        type: "object",
+        properties: {
+          folder_id: {
+            type: "string",
+            description: "Optional: Folder ID to list files from"
+          },
+          query: {
+            type: "string",
+            description: "Optional: Search query to filter files"
+          },
+          max_results: {
+            type: "number",
+            description: "Maximum number of results (default 20)"
+          }
+        }
+      }
+    }
+  },
+  // Calendly Tools
+  {
+    type: "function",
+    function: {
+      name: "calendly_list_events",
+      description: "Get the user's scheduled Calendly events. Use this to see their upcoming meetings.",
+      parameters: {
+        type: "object",
+        properties: {
+          start_time: {
+            type: "string",
+            description: "Start time filter (ISO format)"
+          },
+          end_time: {
+            type: "string",
+            description: "End time filter (ISO format)"
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "calendly_get_availability",
+      description: "Check the user's Calendly availability. Use this to see when they're free.",
+      parameters: {
+        type: "object",
+        properties: {
+          event_type: {
+            type: "string",
+            description: "Specific event type to check availability for"
+          }
+        }
+      }
+    }
+  }
+];

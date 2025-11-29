@@ -589,6 +589,184 @@ export function generateToolDefinitions(
   
   tools.push(recallTool);
 
+  // PHASE 5: Add external service tools if credentials are available
+  if (userCredentials) {
+    // Notion tools
+    if (userCredentials.notionApi || Object.keys(userCredentials).some(k => k.toLowerCase().includes('notion'))) {
+      const notionCreateTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "notion_create_page",
+          description: "Create a page in a Notion database. Use this to save content directly to user's Notion.",
+          parameters: {
+            type: "object",
+            properties: {
+              database_id: { type: "string", description: "Notion database ID" },
+              title: { type: "string", description: "Page title" },
+              content: { type: "string", description: "Page content" },
+              properties: { type: "object", description: "Additional properties" }
+            },
+            required: ["database_id", "title"]
+          }
+        }
+      };
+      (notionCreateTool.function as any).nodeType = "external_notion";
+      (notionCreateTool.function as any).nodeParameters = {};
+      (notionCreateTool.function as any).credentials = userCredentials;
+      tools.push(notionCreateTool);
+
+      const notionQueryTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "notion_query_database",
+          description: "Query a Notion database",
+          parameters: {
+            type: "object",
+            properties: {
+              database_id: { type: "string", description: "Notion database ID" },
+              filter: { type: "object", description: "Filter conditions" },
+              page_size: { type: "number", description: "Results count" }
+            },
+            required: ["database_id"]
+          }
+        }
+      };
+      (notionQueryTool.function as any).nodeType = "external_notion";
+      (notionQueryTool.function as any).nodeParameters = {};
+      (notionQueryTool.function as any).credentials = userCredentials;
+      tools.push(notionQueryTool);
+    }
+
+    // Gmail tools
+    if (userCredentials.googleOAuth2Api || Object.keys(userCredentials).some(k => k.toLowerCase().includes('google'))) {
+      const gmailSendTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "gmail_send_email",
+          description: "Send email via Gmail on behalf of the user",
+          parameters: {
+            type: "object",
+            properties: {
+              to: { type: "string", description: "Recipient email" },
+              subject: { type: "string", description: "Email subject" },
+              message: { type: "string", description: "Email body" },
+              cc: { type: "string", description: "CC emails (comma-separated)" },
+              bcc: { type: "string", description: "BCC emails (comma-separated)" }
+            },
+            required: ["to", "subject", "message"]
+          }
+        }
+      };
+      (gmailSendTool.function as any).nodeType = "external_gmail";
+      (gmailSendTool.function as any).nodeParameters = {};
+      (gmailSendTool.function as any).credentials = userCredentials;
+      tools.push(gmailSendTool);
+
+      const gmailSearchTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "gmail_search",
+          description: "Search user's Gmail inbox",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Gmail search query" },
+              max_results: { type: "number", description: "Max results" }
+            },
+            required: ["query"]
+          }
+        }
+      };
+      (gmailSearchTool.function as any).nodeType = "external_gmail";
+      (gmailSearchTool.function as any).nodeParameters = {};
+      (gmailSearchTool.function as any).credentials = userCredentials;
+      tools.push(gmailSearchTool);
+
+      // Google Drive tools
+      const driveUploadTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "google_drive_upload",
+          description: "Upload file to user's Google Drive",
+          parameters: {
+            type: "object",
+            properties: {
+              file_name: { type: "string", description: "File name" },
+              content: { type: "string", description: "File content" },
+              mime_type: { type: "string", description: "MIME type" },
+              folder_id: { type: "string", description: "Drive folder ID" }
+            },
+            required: ["file_name", "content"]
+          }
+        }
+      };
+      (driveUploadTool.function as any).nodeType = "external_drive";
+      (driveUploadTool.function as any).nodeParameters = {};
+      (driveUploadTool.function as any).credentials = userCredentials;
+      tools.push(driveUploadTool);
+
+      const driveListTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "google_drive_list",
+          description: "List user's Google Drive files",
+          parameters: {
+            type: "object",
+            properties: {
+              folder_id: { type: "string", description: "Folder ID" },
+              query: { type: "string", description: "Search query" },
+              max_results: { type: "number", description: "Max results" }
+            }
+          }
+        }
+      };
+      (driveListTool.function as any).nodeType = "external_drive";
+      (driveListTool.function as any).nodeParameters = {};
+      (driveListTool.function as any).credentials = userCredentials;
+      tools.push(driveListTool);
+    }
+
+    // Calendly tools
+    if (userCredentials.calendlyApi || Object.keys(userCredentials).some(k => k.toLowerCase().includes('calendly'))) {
+      const calendlyEventsTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "calendly_list_events",
+          description: "List user's Calendly scheduled events",
+          parameters: {
+            type: "object",
+            properties: {
+              start_time: { type: "string", description: "Start time filter (ISO)" },
+              end_time: { type: "string", description: "End time filter (ISO)" }
+            }
+          }
+        }
+      };
+      (calendlyEventsTool.function as any).nodeType = "external_calendly";
+      (calendlyEventsTool.function as any).nodeParameters = {};
+      (calendlyEventsTool.function as any).credentials = userCredentials;
+      tools.push(calendlyEventsTool);
+
+      const calendlyAvailTool: LovableAITool = {
+        type: "function",
+        function: {
+          name: "calendly_get_availability",
+          description: "Get user's Calendly availability",
+          parameters: {
+            type: "object",
+            properties: {
+              event_type: { type: "string", description: "Event type" }
+            }
+          }
+        }
+      };
+      (calendlyAvailTool.function as any).nodeType = "external_calendly";
+      (calendlyAvailTool.function as any).nodeParameters = {};
+      (calendlyAvailTool.function as any).credentials = userCredentials;
+      tools.push(calendlyAvailTool);
+    }
+  }
+
   return tools;
 }
 
