@@ -10,6 +10,27 @@ export type { LovableAITool };
 const nodeRegistry = new NodeRegistry();
 const credentialResolver = new CredentialResolver();
 
+// PHASE 3: Map n8n node types to required credential types
+const NODE_CREDENTIAL_REQUIREMENTS: Record<string, string> = {
+  'n8n-nodes-base.gmail': 'googleOAuth2Api',
+  'n8n-nodes-base.googleDrive': 'googleOAuth2Api',
+  'n8n-nodes-base.googleSheets': 'googleOAuth2Api',
+  'n8n-nodes-base.googleDocs': 'googleOAuth2Api',
+  'n8n-nodes-base.googleCalendar': 'googleOAuth2Api',
+  'n8n-nodes-base.googleContacts': 'googleOAuth2Api',
+  'n8n-nodes-base.googleForms': 'googleOAuth2Api',
+  'n8n-nodes-base.notion': 'notionApi',
+  'n8n-nodes-base.slack': 'slackOAuth2Api',
+  'n8n-nodes-base.calendly': 'calendlyApi',
+  'n8n-nodes-base.microsoft': 'microsoftOAuth2Api',
+  'n8n-nodes-base.outlook': 'microsoftOAuth2Api',
+  'n8n-nodes-base.onedrive': 'microsoftOAuth2Api',
+  'n8n-nodes-base.teams': 'microsoftOAuth2Api',
+  'n8n-nodes-base.mailchimp': 'mailchimpOAuth2Api',
+  'n8n-nodes-base.shopify': 'shopifyApi',
+  'n8n-nodes-base.openai': 'LOVABLE_AI',
+};
+
 export function generateToolDefinitions(
   workflow: ParsedWorkflow,
   userCredentials: Record<string, any>
@@ -39,10 +60,11 @@ export function generateToolDefinitions(
       continue;
     }
 
-    // Resolve and inject credentials using intelligent resolver
+    // PHASE 3: Resolve and inject credentials using intelligent resolver
+    const resolvedCreds: Record<string, any> = {};
+    
+    // First, try credentials declared in workflow
     if (node.credentials) {
-      const resolvedCreds: Record<string, any> = {};
-      
       for (const credKey of Object.keys(node.credentials)) {
         const resolved = credentialResolver.resolveCredential(credKey, userCredentials);
         
@@ -53,9 +75,23 @@ export function generateToolDefinitions(
           console.log(`  ✗ Credential not found: ${credKey}`);
         }
       }
-      
-      tool.function.credentials = resolvedCreds;
     }
+    
+    // PHASE 3: Auto-inject credentials based on node type if not already present
+    const requiredCredType = NODE_CREDENTIAL_REQUIREMENTS[node.type];
+    if (requiredCredType && Object.keys(resolvedCreds).length === 0) {
+      console.log(`  🔍 Auto-detecting credentials for ${node.type}...`);
+      const resolved = credentialResolver.resolveCredential(requiredCredType, userCredentials);
+      
+      if (resolved) {
+        resolvedCreds[requiredCredType] = resolved.credential;
+        console.log(`  ✓ Auto-injected credential: ${requiredCredType} → ${resolved.resolvedAs} (${resolved.method})`);
+      } else {
+        console.log(`  ⚠️ Could not auto-inject credential for ${node.type}`);
+      }
+    }
+    
+    tool.function.credentials = resolvedCreds;
 
     // Store node metadata for execution
     (tool.function as any).nodeType = node.type;
@@ -571,7 +607,8 @@ export function buildSystemPrompt(
   },
   personalityTraits?: any,
   communicationQuirks?: string[],
-  interests?: string[]
+  interests?: string[],
+  userCredentials?: Record<string, any>
 ): string {
   // PHASE 4: Time-of-day awareness
   const now = new Date();
@@ -719,13 +756,24 @@ REMEMBERING USER PREFERENCES (critical):
 - Reference stored preferences naturally: "I know you prefer morning meetings, so..." instead of generic responses
 - Don't ask every time—only for genuinely important preferences that would improve future interactions`;
 
-  // Detect connected services from tool credentials
+  // PHASE 2: Detect connected services from both tools AND userCredentials
   const connectedServices = new Set<string>();
+  
+  // From tools
   tools.forEach(t => {
     if ((t.function as any).credentials) {
       Object.keys((t.function as any).credentials).forEach(credType => {
         if (credType.includes('gmail') || credType.includes('googleOAuth2')) {
           connectedServices.add('Gmail');
+        }
+        if (credType.includes('googleDrive')) {
+          connectedServices.add('Google Drive');
+        }
+        if (credType.includes('googleSheets')) {
+          connectedServices.add('Google Sheets');
+        }
+        if (credType.includes('googleCalendar')) {
+          connectedServices.add('Google Calendar');
         }
         if (credType.includes('notion')) {
           connectedServices.add('Notion');
@@ -733,12 +781,51 @@ REMEMBERING USER PREFERENCES (critical):
         if (credType.includes('slack')) {
           connectedServices.add('Slack');
         }
-        if (credType.includes('googleSheets')) {
-          connectedServices.add('Google Sheets');
+        if (credType.includes('calendly')) {
+          connectedServices.add('Calendly');
+        }
+        if (credType.includes('microsoft') || credType.includes('outlook')) {
+          connectedServices.add('Microsoft 365');
+        }
+        if (credType.includes('mailchimp')) {
+          connectedServices.add('Mailchimp');
+        }
+        if (credType.includes('shopify')) {
+          connectedServices.add('Shopify');
         }
       });
     }
   });
+  
+  // PHASE 2: From user credentials directly
+  if (userCredentials) {
+    Object.keys(userCredentials).forEach(credType => {
+      if (credType.includes('googleOAuth2')) {
+        connectedServices.add('Gmail');
+        connectedServices.add('Google Drive');
+        connectedServices.add('Google Sheets');
+        connectedServices.add('Google Calendar');
+      }
+      if (credType.includes('notion')) {
+        connectedServices.add('Notion');
+      }
+      if (credType.includes('slack')) {
+        connectedServices.add('Slack');
+      }
+      if (credType.includes('calendly')) {
+        connectedServices.add('Calendly');
+      }
+      if (credType.includes('microsoft')) {
+        connectedServices.add('Microsoft 365');
+      }
+      if (credType.includes('mailchimp')) {
+        connectedServices.add('Mailchimp');
+      }
+      if (credType.includes('shopify')) {
+        connectedServices.add('Shopify');
+      }
+    });
+  }
   
   // Detect if agent has AI capabilities
   const hasAICapabilities = tools.some(t => 

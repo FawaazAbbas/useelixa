@@ -430,3 +430,34 @@ export const memoryTools = [
     }
   }
 ];
+
+export const connectionTools = [
+  {
+    type: "function",
+    function: {
+      name: "list_connected_services",
+      description: "Show all services the user has connected (Google, Notion, Calendly, etc.) and their connection status. Use this to check what integrations are available.",
+      parameters: {
+        type: "object",
+        properties: {}
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "verify_credential",
+      description: "Test if a specific service connection is working properly. Useful for debugging why something isn't working.",
+      parameters: {
+        type: "object",
+        properties: {
+          service: {
+            type: "string",
+            description: "Service name (e.g., 'Google', 'Notion', 'Calendly')"
+          }
+        },
+        required: ["service"]
+      }
+    }
+  }
+];

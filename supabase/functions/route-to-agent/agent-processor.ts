@@ -180,7 +180,7 @@ export async function processAgentWorkflow(
       // Generate tools and call AI
       const toolDefinitions = generateToolDefinitions(parsedWorkflow, userCredentials);
       
-      // PHASE 1: Build system prompt with personality, quirks, interests, and relationship context
+      // PHASE 2: Build system prompt with personality, quirks, interests, relationship context, and userCredentials
       const systemPrompt = buildSystemPrompt(
         agent.name,
         agent.description || agent.short_description || 'A helpful AI agent',
@@ -192,7 +192,8 @@ export async function processAgentWorkflow(
         relationshipContext,
         agent.personality_traits,
         agent.communication_quirks,
-        agent.interests
+        agent.interests,
+        userCredentials
       ) + knowledgeContext;
 
       const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
