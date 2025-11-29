@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -1428,11 +1428,16 @@ const Workspace = () => {
         <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
-            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-5' : 'grid-cols-6'}`}>
+            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-5' : 'grid-cols-7'}`}>
               {!showBrian && (
-                <TabsTrigger value="automations" className="text-xs">
-                  <PlayCircle className="h-4 w-4" />
-                </TabsTrigger>
+                <>
+                  <TabsTrigger value="about" className="text-xs">
+                    <Info className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="automations" className="text-xs">
+                    <PlayCircle className="h-4 w-4" />
+                  </TabsTrigger>
+                </>
               )}
               <TabsTrigger value="files" className="text-xs">
                 <FileText className="h-4 w-4" />
@@ -1453,19 +1458,61 @@ const Workspace = () => {
           </div>
 
           {!showBrian && (
-            <TabsContent value="automations" className="flex-1 m-0 overflow-hidden">
-              {selectedChat ? (
-                <ChatAutomationsPanel
-                  chatId={selectedChat.id}
-                  userId={user?.id || ''}
-                  workspaceId={workspaceId || ''}
-              />
-              ) : (
-                <div className="p-4 text-center">
-                  <p className="text-sm text-muted-foreground">Select a chat to view automations</p>
-                </div>
-              )}
-            </TabsContent>
+            <>
+              <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
+                {selectedChat?.agent ? (
+                  <>
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">About {selectedChat.agent.name}</h3>
+                      <p className="text-muted-foreground">
+                        {selectedChat.agent.description || selectedChat.agent.short_description}
+                      </p>
+                    </div>
+                    
+                    {selectedChat.agent.capabilities && selectedChat.agent.capabilities.length > 0 && (
+                      <div>
+                        <h3 className="text-base font-semibold mb-3">Capabilities</h3>
+                        <ul className="space-y-2">
+                          {selectedChat.agent.capabilities.map((capability: string, index: number) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                              <span className="text-sm text-muted-foreground">{capability}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {selectedChat.agent.long_description && (
+                      <div>
+                        <h3 className="text-base font-semibold mb-2">Full Details</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                          {selectedChat.agent.long_description}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">Select an agent chat to view details</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="automations" className="flex-1 m-0 overflow-hidden">
+                {selectedChat ? (
+                  <ChatAutomationsPanel
+                    chatId={selectedChat.id}
+                    userId={user?.id || ''}
+                    workspaceId={workspaceId || ''}
+                />
+                ) : (
+                  <div className="p-4 text-center">
+                    <p className="text-sm text-muted-foreground">Select a chat to view automations</p>
+                  </div>
+                )}
+              </TabsContent>
+            </>
           )}
 
           <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
