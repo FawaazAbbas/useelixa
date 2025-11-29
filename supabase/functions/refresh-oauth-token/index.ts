@@ -39,19 +39,80 @@ serve(async (req) => {
 
     // Get OAuth configuration
     const tokenUrl = getTokenUrl(credentialType);
-    const clientId = Deno.env.get(`${credentialType.toUpperCase()}_CLIENT_ID`);
-    const clientSecret = Deno.env.get(`${credentialType.toUpperCase()}_CLIENT_SECRET`);
+    const secretNames = getSecretNames(credentialType);
+    const clientId = Deno.env.get(secretNames.clientIdKey);
+    const clientSecret = Deno.env.get(secretNames.clientSecretKey);
 
     if (!clientId || !clientSecret) {
       throw new Error(`OAuth credentials not configured for ${credentialType}`);
     }
 
     // Refresh the token
-    const isGoogleProvider = credentialType === "googleOAuth2Api";
-    
     let tokenResponse;
-    if (isGoogleProvider) {
-      // Use form-urlencoded for Google
+    
+    if (credentialType === "googleOAuth2Api") {
+      // Google uses form-urlencoded
+      const params = new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: creds.refresh_token,
+        grant_type: "refresh_token",
+      });
+
+      tokenResponse = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+    } else if (credentialType === "notionApi") {
+      // Notion uses Basic Auth
+      const basicAuth = btoa(`${clientId}:${clientSecret}`);
+      tokenResponse = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Basic ${basicAuth}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          refresh_token: creds.refresh_token,
+          grant_type: "refresh_token",
+        }),
+      });
+    } else if (credentialType === "microsoftOAuth2Api") {
+      // Microsoft uses form-urlencoded
+      const params = new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: creds.refresh_token,
+        grant_type: "refresh_token",
+      });
+
+      tokenResponse = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
+    } else if (credentialType === "mailchimpOAuth2Api") {
+      // Mailchimp uses Basic Auth with form-urlencoded
+      const basicAuth = btoa(`user:${clientSecret}`);
+      tokenResponse = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Basic ${basicAuth}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          refresh_token: creds.refresh_token,
+          grant_type: "refresh_token",
+        }).toString(),
+      });
+    } else if (credentialType === "calendlyApi") {
+      // Calendly uses form-urlencoded
       const params = new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
@@ -67,7 +128,7 @@ serve(async (req) => {
         body: params.toString(),
       });
     } else {
-      // Use JSON for other providers
+      // Default: JSON for other providers
       tokenResponse = await fetch(tokenUrl, {
         method: "POST",
         headers: {
@@ -133,6 +194,22 @@ serve(async (req) => {
     );
   }
 });
+
+function getSecretNames(credentialType: string): { clientIdKey: string; clientSecretKey: string } {
+  const mappings: Record<string, { clientIdKey: string; clientSecretKey: string }> = {
+    googleOAuth2Api: { clientIdKey: 'GOOGLEOAUTH2API_CLIENT_ID', clientSecretKey: 'GOOGLEOAUTH2API_CLIENT_SECRET' },
+    notionApi: { clientIdKey: 'NOTION_OAUTH_CLIENT_ID', clientSecretKey: 'NOTION_OAUTH_CLIENT_SECRET' },
+    microsoftOAuth2Api: { clientIdKey: 'MICROSOFT_OAUTH_APPLICATION_ID', clientSecretKey: 'MICROSOFT_OAUTH_CLIENT_SECRET' },
+    calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },
+    mailchimpOAuth2Api: { clientIdKey: 'MAILCHIMP_OAUTH_CLIENT_ID', clientSecretKey: 'MAILCHIMP_OAUTH_CLIENT_SECRET' },
+    shopifyApi: { clientIdKey: 'SHOPIFY_OAUTH_CLIENT_ID', clientSecretKey: 'SHOPIFY_OAUTH_CLIENT_SECRET' },
+  };
+  
+  return mappings[credentialType] || { 
+    clientIdKey: `${credentialType.toUpperCase()}_CLIENT_ID`,
+    clientSecretKey: `${credentialType.toUpperCase()}_CLIENT_SECRET`
+  };
+}
 
 function getTokenUrl(credentialType: string): string {
   const urls: Record<string, string> = {
