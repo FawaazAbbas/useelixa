@@ -33,6 +33,9 @@ const CREDENTIAL_MAPPINGS: CredentialMapping[] = [
   { pattern: /^microsoft.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
   { pattern: /^outlook.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
   { pattern: /^onedrive.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
+  { pattern: /^excel.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
+  { pattern: /^word.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
+  { pattern: /^teams.*oauth2.*/i, baseType: 'microsoftOAuth2Api', serviceCategory: 'microsoft' },
   
   // Calendly
   { pattern: /^calendly.*/i, baseType: 'calendlyApi', serviceCategory: 'scheduling' },
