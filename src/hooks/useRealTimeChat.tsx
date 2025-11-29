@@ -32,11 +32,19 @@ interface Chat {
     id: string;
     name: string;
     image_url: string | null;
+    description: string | null;
+    short_description: string | null;
+    long_description: string | null;
+    capabilities: string[] | null;
   };
   agents?: Array<{
     id: string;
     name: string;
     image_url: string | null;
+    description: string | null;
+    short_description: string | null;
+    long_description: string | null;
+    capabilities: string[] | null;
   }>;
 }
 
@@ -87,7 +95,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
       .select(`
         id,
         custom_name,
-        agent:agents(id, name, image_url)
+        agent:agents(id, name, image_url, description, short_description, long_description, capabilities)
       `)
       .eq('user_id', userId);
 
@@ -144,7 +152,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
       .select(`
         *,
         chat_agents(
-          agent:agents(id, name, image_url)
+          agent:agents(id, name, image_url, description, short_description, long_description, capabilities)
         ),
         chat_participants!inner(user_id)
       `)
