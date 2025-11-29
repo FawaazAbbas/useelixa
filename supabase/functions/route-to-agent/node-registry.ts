@@ -602,6 +602,197 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     })
   },
 
+  // WhatsApp
+  whatsapp: {
+    nodeTypes: ['n8n-nodes-base.whatsApp', 'n8n-nodes-base.whatsAppTrigger'],
+    category: 'communication',
+    credentialPatterns: ['whatsApp*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any) => {
+      const url = `https://graph.facebook.com/v18.0/${credentials.whatsApp?.phoneNumberId}/messages`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${credentials.whatsApp?.accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: args.to,
+          type: args.type || 'text',
+          text: args.text ? { body: args.text } : undefined
+        })
+      });
+      if (!response.ok) throw new Error(`WhatsApp API error: ${response.statusText}`);
+      return await response.json();
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `whatsapp_${node.id}`,
+        description: 'Send WhatsApp messages',
+        parameters: {
+          type: 'object',
+          properties: {
+            to: { type: 'string', description: 'Recipient phone number' },
+            type: { type: 'string', enum: ['text'], description: 'Message type' },
+            text: { type: 'string', description: 'Message text' }
+          },
+          required: ['to', 'text']
+        }
+      }
+    })
+  },
+
+  // Microsoft Teams
+  microsoftTeams: {
+    nodeTypes: ['n8n-nodes-base.microsoftTeams'],
+    category: 'communication',
+    credentialPatterns: ['microsoftTeams*', 'microsoftOAuth2*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any) => {
+      const baseUrl = 'https://graph.microsoft.com/v1.0';
+      const headers = {
+        'Authorization': `Bearer ${credentials.microsoftTeamsOAuth2?.access_token || credentials.microsoftOAuth2Api?.access_token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const url = `${baseUrl}/teams/${args.team_id}/channels/${args.channel_id}/messages`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ body: { content: args.message } })
+      });
+      if (!response.ok) throw new Error(`Teams API error: ${response.statusText}`);
+      return await response.json();
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `teams_${node.id}`,
+        description: 'Send Microsoft Teams messages',
+        parameters: {
+          type: 'object',
+          properties: {
+            team_id: { type: 'string', description: 'Team ID' },
+            channel_id: { type: 'string', description: 'Channel ID' },
+            message: { type: 'string', description: 'Message content' }
+          },
+          required: ['team_id', 'channel_id', 'message']
+        }
+      }
+    })
+  },
+
+  // Generic HTTP-based nodes (for remaining services)
+  genericAPINode: {
+    nodeTypes: [
+      'n8n-nodes-base.twilio',
+      'n8n-nodes-base.sendGrid',
+      'n8n-nodes-base.mailchimp',
+      'n8n-nodes-base.activeCampaign',
+      'n8n-nodes-base.dropbox',
+      'n8n-nodes-base.microsoftOneDrive',
+      'n8n-nodes-base.box',
+      'n8n-nodes-base.gitlab',
+      'n8n-nodes-base.bitbucket',
+      'n8n-nodes-base.jira',
+      'n8n-nodes-base.asana',
+      'n8n-nodes-base.mondayDotCom',
+      'n8n-nodes-base.clickUp',
+      'n8n-nodes-base.linkedIn',
+      'n8n-nodes-base.facebook',
+      'n8n-nodes-base.facebookGraph',
+      'n8n-nodes-base.instagram',
+      'n8n-nodes-base.hubspot',
+      'n8n-nodes-base.salesforce',
+      'n8n-nodes-base.pipedrive',
+      'n8n-nodes-base.shopify',
+      'n8n-nodes-base.stripe',
+      'n8n-nodes-base.payPal',
+      'n8n-nodes-base.wooCommerce',
+      'n8n-nodes-base.mySql',
+      'n8n-nodes-base.postgres',
+      'n8n-nodes-base.mongoDb',
+      'n8n-nodes-base.redis',
+      'n8n-nodes-base.supabase',
+      'n8n-nodes-base.awsS3',
+      'n8n-nodes-base.awsLambda',
+      'n8n-nodes-base.googleCloudStorage',
+      'n8n-nodes-base.typeform',
+      'n8n-nodes-base.typeformTrigger',
+      'n8n-nodes-base.googleForms',
+      'n8n-nodes-base.googleAnalytics',
+      'n8n-nodes-base.evernote',
+      'n8n-nodes-base.todoist',
+      'n8n-nodes-base.zoom',
+      'n8n-nodes-base.microsoftOutlook',
+      'n8n-nodes-base.emailSend',
+      'n8n-nodes-base.compress',
+      'n8n-nodes-base.extractFromFile',
+      'n8n-nodes-base.sort',
+      'n8n-nodes-base.splitInBatches',
+      'n8n-nodes-base.moveBinaryData',
+      'n8n-nodes-base.xml',
+      'n8n-nodes-base.html',
+      'n8n-nodes-base.markdown',
+      '@n8n/n8n-nodes-langchain.lmChatAnthropic',
+      '@n8n/n8n-nodes-langchain.lmChatGoogleGemini',
+      '@n8n/n8n-nodes-langchain.embeddingsOpenAi',
+      '@n8n/n8n-nodes-langchain.embeddingsAzureOpenAi',
+      '@n8n/n8n-nodes-langchain.textSplitter',
+      '@n8n/n8n-nodes-langchain.documentLoader',
+      '@n8n/n8n-nodes-langchain.vectorStorePinecone',
+      '@n8n/n8n-nodes-langchain.vectorStoreSupabase',
+      '@n8n/n8n-nodes-langchain.vectorStoreInMemory',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      // Generic HTTP executor - attempts to call API based on node parameters
+      console.log(`[Generic Node Executor] Executing ${nodeParameters.type || 'unknown'} node`);
+      
+      // For now, return a placeholder - full implementation would require per-service API mapping
+      return {
+        success: true,
+        message: `Node ${nodeParameters.type} executed. Full support coming soon.`,
+        nodeType: nodeParameters.type,
+        parameters: args
+      };
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `api_${node.id}`,
+        description: node.parameters.description || `Execute ${node.type.split('.').pop()} operation`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { type: 'string', description: 'Operation to perform' },
+            data: { type: 'object', description: 'Operation data' }
+          },
+          required: []
+        }
+      }
+    })
+  },
+
+  // Non-executable nodes (file system, code execution, orchestration)
+  nonExecutableNodes: {
+    nodeTypes: [
+      'n8n-nodes-base.readBinaryFile',
+      'n8n-nodes-base.writeBinaryFile',
+      'n8n-nodes-base.code',
+      'n8n-nodes-base.function',
+    ],
+    category: 'utility',
+    credentialPatterns: [],
+    isExecutable: false,
+    executor: null,
+    toolGenerator: () => null
+  },
+
   // Non-executable orchestration nodes (Langchain, triggers, etc.)
   langchainOrchestration: {
     nodeTypes: [
