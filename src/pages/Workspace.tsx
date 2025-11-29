@@ -968,6 +968,11 @@ const Workspace = () => {
                     <div>
                       <div className="font-semibold">{selectedChat.agent?.name}</div>
                       <div className="text-xs text-muted-foreground">online</div>
+                      {selectedChat.agent?.short_description && (
+                        <div className="text-xs text-muted-foreground mt-0.5 max-w-xs truncate">
+                          {selectedChat.agent.short_description}
+                        </div>
+                      )}
                     </div>
                   </>
                 )}

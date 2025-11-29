@@ -447,6 +447,152 @@ serve(async (req) => {
             .join('\n');
           
           toolResult = workloadSummary || "No tasks assigned to agents yet";
+        } else if (toolName === "read_knowledge_document") {
+          // Read document from knowledge base
+          const { data: doc } = await supabase
+            .from("workspace_documents")
+            .select("*")
+            .eq("workspace_id", workspace_id)
+            .eq("name", toolArgs.document_name)
+            .single();
+          
+          if (!doc) {
+            toolResult = `Document '${toolArgs.document_name}' not found in knowledge base`;
+          } else if (doc.extracted_content) {
+            toolResult = `Document: ${doc.name}\nType: ${doc.file_type}\nContent:\n${doc.extracted_content}`;
+          } else {
+            const { data: fileData } = await supabase
+              .storage
+              .from('workspace-files')
+              .download(doc.file_path);
+            
+            if (fileData) {
+              const text = await fileData.text();
+              toolResult = `Document: ${doc.name}\nType: ${doc.file_type}\nContent:\n${text}`;
+            } else {
+              toolResult = `Could not read file content for ${doc.name}`;
+            }
+          }
+        } else if (toolName === "list_knowledge_documents") {
+          let query = supabase
+            .from("workspace_documents")
+            .select("name, description, file_type, folder, tags, created_at")
+            .eq("workspace_id", workspace_id);
+          
+          if (toolArgs.folder) {
+            query = query.eq("folder", toolArgs.folder);
+          }
+          
+          const { data: docs } = await query.order("created_at", { ascending: false });
+          
+          if (docs && docs.length > 0) {
+            toolResult = `Knowledge Base Documents (${docs.length}):\n` + docs.map(d => 
+              `- ${d.name} (${d.file_type})${d.description ? ` - ${d.description}` : ''}${d.folder ? ` [${d.folder}]` : ''}`
+            ).join('\n');
+          } else {
+            toolResult = "No documents found in knowledge base";
+          }
+        } else if (toolName === "read_chat_file") {
+          // Read file from chat messages
+          const { data: messages } = await supabase
+            .from("messages")
+            .select("metadata")
+            .eq("chat_id", chat_id)
+            .not("metadata", "is", null);
+          
+          let fileFound = false;
+          let fileContent = "";
+          
+          for (const msg of messages || []) {
+            const metadata = msg.metadata as any;
+            if (metadata?.files) {
+              const file = metadata.files.find((f: any) => f.name === toolArgs.file_name);
+              if (file) {
+                const { data: fileData } = await supabase
+                  .storage
+                  .from('chat-files')
+                  .download(file.path);
+                
+                if (fileData) {
+                  fileContent = await fileData.text();
+                  fileFound = true;
+                  break;
+                }
+              }
+            }
+          }
+          
+          toolResult = fileFound 
+            ? `File: ${toolArgs.file_name}\nContent:\n${fileContent}`
+            : `File '${toolArgs.file_name}' not found in chat history`;
+        } else if (toolName === "list_chat_files") {
+          const { data: messages } = await supabase
+            .from("messages")
+            .select("metadata, created_at")
+            .eq("chat_id", chat_id)
+            .not("metadata", "is", null)
+            .order("created_at", { ascending: false });
+          
+          const files: any[] = [];
+          for (const msg of messages || []) {
+            const metadata = msg.metadata as any;
+            if (metadata?.files) {
+              metadata.files.forEach((f: any) => {
+                files.push({ ...f, uploaded_at: msg.created_at });
+              });
+            }
+          }
+          
+          toolResult = files.length > 0
+            ? `Chat Files (${files.length}):\n` + files.map(f => 
+                `- ${f.name} (${f.type || 'unknown'}) - ${new Date(f.uploaded_at).toLocaleDateString()}`
+              ).join('\n')
+            : "No files uploaded in this chat";
+        } else if (toolName === "save_to_knowledge_base") {
+          // Save content as document
+          const fileName = toolArgs.name;
+          const filePath = `${workspace_id}/${Date.now()}_${fileName}`;
+          const blob = new Blob([toolArgs.content], { type: 'text/plain' });
+          
+          const { error: uploadError } = await supabase
+            .storage
+            .from('workspace-files')
+            .upload(filePath, blob);
+          
+          if (!uploadError) {
+            await supabase
+              .from("workspace_documents")
+              .insert({
+                workspace_id,
+                name: fileName,
+                description: toolArgs.description,
+                file_path: filePath,
+                file_type: 'text/plain',
+                file_size: toolArgs.content.length,
+                folder: toolArgs.folder || 'root',
+                uploaded_by: user_id,
+                extracted_content: toolArgs.content
+              });
+            
+            toolResult = `Saved '${fileName}' to knowledge base`;
+          } else {
+            toolResult = `Failed to save: ${uploadError.message}`;
+          }
+        } else if (toolName === "create_knowledge_article") {
+          const { error } = await supabase
+            .from("workspace_knowledge")
+            .insert({
+              workspace_id,
+              title: toolArgs.title,
+              content: toolArgs.content,
+              category: toolArgs.category,
+              tags: toolArgs.tags || [],
+              created_by: user_id
+            });
+          
+          toolResult = error 
+            ? `Failed to create article: ${error.message}`
+            : `Created knowledge article: ${toolArgs.title}`;
         } else if (toolName === "list_installed_agents") {
           const { data: installations } = await supabase
             .from("agent_installations")

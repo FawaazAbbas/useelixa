@@ -188,6 +188,126 @@ export const platformTools = [
         required: ["agent_id"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_knowledge_document",
+      description: "Read the full content of a document or file from the workspace knowledge base. Use this when you need to see the actual content of uploaded files.",
+      parameters: {
+        type: "object",
+        properties: {
+          document_name: {
+            type: "string",
+            description: "The exact name of the document to read (e.g., 'report.pdf', 'data.xlsx')"
+          }
+        },
+        required: ["document_name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_knowledge_documents",
+      description: "List all documents and files available in the workspace knowledge base",
+      parameters: {
+        type: "object",
+        properties: {
+          folder: {
+            type: "string",
+            description: "Optional: filter by folder name"
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "read_chat_file",
+      description: "Read the content of a file that was uploaded in this chat conversation",
+      parameters: {
+        type: "object",
+        properties: {
+          file_name: {
+            type: "string",
+            description: "The name of the file uploaded in this chat"
+          }
+        },
+        required: ["file_name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "list_chat_files",
+      description: "List all files that have been uploaded in this chat conversation",
+      parameters: {
+        type: "object",
+        properties: {}
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "save_to_knowledge_base",
+      description: "Save a file or content to the workspace knowledge base for future reference",
+      parameters: {
+        type: "object",
+        properties: {
+          content: {
+            type: "string",
+            description: "The content to save (text, JSON, etc.)"
+          },
+          name: {
+            type: "string",
+            description: "Name for the saved document"
+          },
+          description: {
+            type: "string",
+            description: "Optional description of what this document contains"
+          },
+          folder: {
+            type: "string",
+            description: "Optional folder to organize the document"
+          }
+        },
+        required: ["content", "name"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_knowledge_article",
+      description: "Create a searchable knowledge article in the workspace",
+      parameters: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description: "Title of the knowledge article"
+          },
+          content: {
+            type: "string",
+            description: "The article content"
+          },
+          category: {
+            type: "string",
+            description: "Optional category (e.g., 'processes', 'guidelines')"
+          },
+          tags: {
+            type: "array",
+            items: { type: "string" },
+            description: "Optional tags for searchability"
+          }
+        },
+        required: ["title", "content"]
+      }
+    }
   }
 ];
 

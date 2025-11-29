@@ -99,11 +99,14 @@ export async function processAgentWorkflow(
 
       // ❌ REJECT if not chat compatible
       if (!agent.is_chat_compatible) {
+        console.error(`❌ Agent ${agent.name} is not chat compatible`);
         return {
           content: "⚠️ This agent is not configured for chat. It's missing a chat trigger node and cannot be used in conversations. Please contact the developer to make this agent chat-compatible.",
           processingTime: Date.now() - startTime
         };
       }
+
+      console.log(`✓ Agent ${agent.name} is chat compatible, processing workflow...`);
 
       const parsedWorkflow = parseN8nWorkflow(agent.workflow_json);
       const userCredentials = await fetchUserCredentials(userId, supabase);
@@ -148,17 +151,31 @@ export async function processAgentWorkflow(
         }
       }
 
-      // Validation
+      // Validation with detailed feedback
       const validator = new WorkflowValidator(nodeRegistry, credentialResolver);
       const validation = await validator.validateWorkflow(parsedWorkflow, userCredentials);
       
       if (!validation.isValid) {
+        console.error(`❌ Workflow validation failed for ${agent.name}:`, validation);
+        
         const missingServices = validation.missingCredentials.join(', ');
+        
+        let errorMessage = "I'm having trouble with this request:\n\n";
+        
+        if (missingServices) {
+          errorMessage += `🔑 **Missing Connections:** ${missingServices}\n`;
+          errorMessage += "Please visit the Connections page to set these up.\n\n";
+        }
+        
+        errorMessage += "Would you like me to try a different approach or help with something else?";
+        
         return {
-          content: `I need you to connect the following services: ${missingServices}. Please visit the Connections page.`,
+          content: errorMessage,
           processingTime: Date.now() - startTime
         };
       }
+
+      console.log(`✓ Workflow validation passed for ${agent.name}`);
 
       // Generate tools and call AI
       const toolDefinitions = generateToolDefinitions(parsedWorkflow, userCredentials);

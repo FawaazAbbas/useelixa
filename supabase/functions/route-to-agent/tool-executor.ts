@@ -92,6 +92,16 @@ export async function executeToolCall(
         return await executeJSONExport(args, credentials, nodeParameters);
       } else if (nodeType === 'workspace_document') {
         return await executeWorkspaceDocumentRead(args);
+      } else if (nodeType === 'list_knowledge') {
+        return await executeListKnowledge(args);
+      } else if (nodeType === 'read_chat_file') {
+        return await executeReadChatFile(args, context);
+      } else if (nodeType === 'list_chat_files') {
+        return await executeListChatFiles(args, context);
+      } else if (nodeType === 'save_to_knowledge') {
+        return await executeSaveToKnowledge(args, context);
+      } else if (nodeType === 'create_knowledge_article') {
+        return await executeCreateKnowledgeArticle(args, context);
       } else if (nodeType === 'task_creation') {
         return await executeTaskCreation(args);
       } else if (nodeType === 'list_automations') {
@@ -1255,6 +1265,217 @@ async function executeAgentMemory(
   }
 
   throw new Error(`Invalid action: ${action}`);
+}
+
+// Knowledge base tools executors
+async function executeListKnowledge(args: any): Promise<any> {
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const workspaceId = Deno.env.get("WORKSPACE_ID");
+  
+  let query = supabase
+    .from("workspace_documents")
+    .select("name, description, file_type, folder, tags, created_at")
+    .eq("workspace_id", workspaceId);
+  
+  if (args.folder) {
+    query = query.eq("folder", args.folder);
+  }
+  
+  const { data: docs, error } = await query.order("created_at", { ascending: false });
+  
+  if (error) throw new Error(`Failed to list documents: ${error.message}`);
+  
+  if (docs && docs.length > 0) {
+    return {
+      success: true,
+      documents: docs,
+      summary: `Found ${docs.length} documents in knowledge base`
+    };
+  }
+  
+  return {
+    success: true,
+    documents: [],
+    summary: "No documents found in knowledge base"
+  };
+}
+
+async function executeReadChatFile(args: any, context?: any): Promise<any> {
+  if (!context?.chat_id) {
+    throw new Error("Chat context required to read chat files");
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("metadata")
+    .eq("chat_id", context.chat_id)
+    .not("metadata", "is", null);
+  
+  let fileFound = false;
+  let fileContent = "";
+  let fileInfo: any = null;
+  
+  for (const msg of messages || []) {
+    const metadata = msg.metadata as any;
+    if (metadata?.files) {
+      const file = metadata.files.find((f: any) => f.name === args.file_name);
+      if (file) {
+        fileInfo = file;
+        const { data: fileData, error } = await supabase
+          .storage
+          .from('chat-files')
+          .download(file.path);
+        
+        if (fileData && !error) {
+          fileContent = await fileData.text();
+          fileFound = true;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (!fileFound) {
+    throw new Error(`File '${args.file_name}' not found in chat history`);
+  }
+  
+  return {
+    success: true,
+    file_name: args.file_name,
+    file_type: fileInfo?.type || 'unknown',
+    content: fileContent
+  };
+}
+
+async function executeListChatFiles(args: any, context?: any): Promise<any> {
+  if (!context?.chat_id) {
+    throw new Error("Chat context required to list chat files");
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const { data: messages } = await supabase
+    .from("messages")
+    .select("metadata, created_at")
+    .eq("chat_id", context.chat_id)
+    .not("metadata", "is", null)
+    .order("created_at", { ascending: false });
+  
+  const files: any[] = [];
+  for (const msg of messages || []) {
+    const metadata = msg.metadata as any;
+    if (metadata?.files) {
+      metadata.files.forEach((f: any) => {
+        files.push({ 
+          name: f.name, 
+          type: f.type || 'unknown',
+          size: f.size,
+          uploaded_at: msg.created_at 
+        });
+      });
+    }
+  }
+  
+  return {
+    success: true,
+    files: files,
+    count: files.length,
+    summary: files.length > 0 
+      ? `Found ${files.length} files in chat`
+      : "No files uploaded in this chat"
+  };
+}
+
+async function executeSaveToKnowledge(args: any, context?: any): Promise<any> {
+  if (!context?.workspace_id || !context?.user_id) {
+    throw new Error("Workspace and user context required");
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const fileName = args.name;
+  const filePath = `${context.workspace_id}/${Date.now()}_${fileName}`;
+  const blob = new Blob([args.content], { type: 'text/plain' });
+  
+  const { error: uploadError } = await supabase
+    .storage
+    .from('workspace-files')
+    .upload(filePath, blob);
+  
+  if (uploadError) {
+    throw new Error(`Failed to upload file: ${uploadError.message}`);
+  }
+  
+  const { error: dbError } = await supabase
+    .from("workspace_documents")
+    .insert({
+      workspace_id: context.workspace_id,
+      name: fileName,
+      description: args.description,
+      file_path: filePath,
+      file_type: 'text/plain',
+      file_size: args.content.length,
+      folder: args.folder || 'root',
+      uploaded_by: context.user_id,
+      extracted_content: args.content
+    });
+  
+  if (dbError) {
+    throw new Error(`Failed to save document record: ${dbError.message}`);
+  }
+  
+  return {
+    success: true,
+    document_name: fileName,
+    message: `Successfully saved '${fileName}' to knowledge base`
+  };
+}
+
+async function executeCreateKnowledgeArticle(args: any, context?: any): Promise<any> {
+  if (!context?.workspace_id || !context?.user_id) {
+    throw new Error("Workspace and user context required");
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  const { error } = await supabase
+    .from("workspace_knowledge")
+    .insert({
+      workspace_id: context.workspace_id,
+      title: args.title,
+      content: args.content,
+      category: args.category,
+      tags: args.tags || [],
+      created_by: context.user_id
+    });
+  
+  if (error) {
+    throw new Error(`Failed to create knowledge article: ${error.message}`);
+  }
+  
+  return {
+    success: true,
+    title: args.title,
+    message: `Successfully created knowledge article: ${args.title}`
+  };
 }
 
 // PHASE 8: Schedule Reminder
