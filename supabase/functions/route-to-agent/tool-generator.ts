@@ -93,6 +93,148 @@ export function generateToolDefinitions(
   
   tools.push(documentTool);
 
+  // Add list knowledge documents tool
+  const listKnowledgeTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "list_knowledge_documents",
+      description: "List all documents and files available in the workspace knowledge base",
+      parameters: {
+        type: "object",
+        properties: {
+          folder: {
+            type: "string",
+            description: "Optional: filter by folder name"
+          }
+        },
+        required: []
+      }
+    }
+  };
+  
+  (listKnowledgeTool.function as any).nodeType = "list_knowledge";
+  (listKnowledgeTool.function as any).nodeParameters = {};
+  (listKnowledgeTool.function as any).credentials = {};
+  
+  tools.push(listKnowledgeTool);
+
+  // Add chat file reading tools
+  const readChatFileTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "read_chat_file",
+      description: "Read the content of a file that was uploaded in this chat conversation",
+      parameters: {
+        type: "object",
+        properties: {
+          file_name: {
+            type: "string",
+            description: "The name of the file uploaded in this chat"
+          }
+        },
+        required: ["file_name"]
+      }
+    }
+  };
+  
+  (readChatFileTool.function as any).nodeType = "read_chat_file";
+  (readChatFileTool.function as any).nodeParameters = {};
+  (readChatFileTool.function as any).credentials = {};
+  
+  tools.push(readChatFileTool);
+
+  const listChatFilesTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "list_chat_files",
+      description: "List all files that have been uploaded in this chat conversation",
+      parameters: {
+        type: "object",
+        properties: {}
+      }
+    }
+  };
+  
+  (listChatFilesTool.function as any).nodeType = "list_chat_files";
+  (listChatFilesTool.function as any).nodeParameters = {};
+  (listChatFilesTool.function as any).credentials = {};
+  
+  tools.push(listChatFilesTool);
+
+  // Add save to knowledge base tools
+  const saveToKnowledgeTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "save_to_knowledge_base",
+      description: "Save content to the workspace knowledge base for future reference",
+      parameters: {
+        type: "object",
+        properties: {
+          content: {
+            type: "string",
+            description: "The content to save"
+          },
+          name: {
+            type: "string",
+            description: "Name for the saved document"
+          },
+          description: {
+            type: "string",
+            description: "Optional description"
+          },
+          folder: {
+            type: "string",
+            description: "Optional folder"
+          }
+        },
+        required: ["content", "name"]
+      }
+    }
+  };
+  
+  (saveToKnowledgeTool.function as any).nodeType = "save_to_knowledge";
+  (saveToKnowledgeTool.function as any).nodeParameters = {};
+  (saveToKnowledgeTool.function as any).credentials = {};
+  
+  tools.push(saveToKnowledgeTool);
+
+  const createKnowledgeArticleTool: LovableAITool = {
+    type: "function",
+    function: {
+      name: "create_knowledge_article",
+      description: "Create a searchable knowledge article in the workspace",
+      parameters: {
+        type: "object",
+        properties: {
+          title: {
+            type: "string",
+            description: "Article title"
+          },
+          content: {
+            type: "string",
+            description: "Article content"
+          },
+          category: {
+            type: "string",
+            description: "Optional category"
+          },
+          tags: {
+            type: "array",
+            items: { type: "string" },
+            description: "Optional tags"
+          }
+        },
+        required: ["title", "content"]
+      }
+    }
+  };
+  
+  (createKnowledgeArticleTool.function as any).nodeType = "create_knowledge_article";
+  (createKnowledgeArticleTool.function as any).nodeParameters = {};
+  (createKnowledgeArticleTool.function as any).credentials = {};
+  
+  tools.push(createKnowledgeArticleTool);
+
   // Add task creation tool (Phase 3)
   const taskCreationTool: LovableAITool = {
     type: "function",
