@@ -649,19 +649,6 @@ const Workspace = () => {
           </Button>
         </div>
 
-        {/* User Profile */}
-        <div className="p-3 border-t border-chat-border">
-          <button className="flex items-center gap-2 w-full hover:bg-muted/50 rounded px-2 py-1.5 transition-colors">
-            <Avatar className="h-6 w-6">
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 text-left">
-              <div className="text-sm font-medium text-white">User</div>
-              <div className="text-xs text-muted-foreground">Online</div>
-            </div>
-            <Settings className="h-4 w-4 text-muted-foreground" />
-          </button>
-        </div>
       </div>
 
       {/* Main Chat Area */}
