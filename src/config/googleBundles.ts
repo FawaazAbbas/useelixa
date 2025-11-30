@@ -23,7 +23,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Gmail, Calendar, Drive, Docs, Sheets, Slides, Forms, Apps Script',
     icon: '📧',
     color: 'bg-blue-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg',
     companyName: 'Google',
     serviceName: 'Email & Workspace',
     scopes: [
@@ -48,7 +48,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Google Ads, Campaign Manager, Search Ads, AdSense, AdMob, Shopping',
     icon: '📢',
     color: 'bg-green-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+    logo: 'https://www.gstatic.com/images/branding/product/1x/google_ads_512dp.png',
     companyName: 'Google',
     serviceName: 'Ads & Marketing',
     scopes: [
@@ -68,7 +68,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'GA4, Analytics, YouTube Analytics, Search Console, PageSpeed',
     icon: '📊',
     color: 'bg-purple-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+    logo: 'https://www.gstatic.com/analytics-suite/header/suite/v2/ic_analytics.svg',
     companyName: 'Google',
     serviceName: 'Analytics & Reporting',
     scopes: [
@@ -90,7 +90,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'BigQuery, Cloud Storage, Cloud SQL, Datastore, Logging, Monitoring',
     icon: '☁️',
     color: 'bg-orange-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+    logo: 'https://www.gstatic.com/images/branding/product/1x/google_cloud_512dp.png',
     companyName: 'Google',
     serviceName: 'Cloud & Data',
     scopes: [
@@ -114,7 +114,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Firebase Hosting, Remote Config, Management, Installations, Projects',
     icon: '🔥',
     color: 'bg-yellow-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+    logo: 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_96dp.png',
     companyName: 'Google',
     serviceName: 'Firebase & Apps',
     scopes: [
@@ -131,7 +131,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Android Management, Play Developer, Play Games, Play Integrity',
     icon: '🤖',
     color: 'bg-green-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg',
     companyName: 'Google',
     serviceName: 'Android & Play',
     scopes: [
