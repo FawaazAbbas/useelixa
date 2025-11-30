@@ -21,7 +21,8 @@ serve(async (req) => {
 
     console.log(`🔐 Exchanging OAuth code for ${credentialType}`, { 
       userId,
-      bundleType,
+      bundleType: bundleType || 'null',
+      scopes: scopes || 'null',
       redirectUri: getRedirectUri(),
       siteUrl: Deno.env.get("SITE_URL")
     });
@@ -168,8 +169,16 @@ serve(async (req) => {
         console.log(`✓ Fetched Google account email: ${accountEmail}`);
       } catch (emailError) {
         console.error("⚠️ Failed to fetch account email:", emailError);
+        // Continue without email - we'll handle it below
       }
     }
+    
+    console.log(`📝 Credential storage data:`, { 
+      credentialType, 
+      bundleType: bundleType || 'null', 
+      accountEmail: accountEmail || 'null',
+      hasRefreshToken: !!tokens.refresh_token
+    });
 
     // Store tokens in user_credentials table
     const supabaseClient = createClient(
@@ -177,78 +186,71 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check if this exact combination exists (for Google bundles)
-    if (credentialType === "googleOAuth2Api" && bundleType && accountEmail) {
-      const { data: existing } = await supabaseClient
-        .from('user_credentials')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('credential_type', credentialType)
-        .eq('bundle_type', bundleType)
-        .eq('account_email', accountEmail)
-        .maybeSingle();
+    // Prepare credential data
+    const credentialData = {
+      user_id: userId,
+      credential_type: credentialType,
+      bundle_type: bundleType || null,
+      account_email: accountEmail || null,
+      account_label: accountEmail || null,
+      scopes: scopes ? scopes.split(' ') : null,
+      access_token: tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at: tokens.expires_in 
+        ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+        : null,
+      token_type: tokens.token_type || "Bearer",
+    };
 
-      const credentialData = {
-        user_id: userId,
-        credential_type: credentialType,
-        bundle_type: bundleType,
-        account_email: accountEmail,
-        account_label: accountEmail,
-        scopes: scopes ? scopes.split(' ') : null,
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expires_at: tokens.expires_in 
-          ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
-          : null,
-        token_type: tokens.token_type || "Bearer",
-      };
-
-      if (existing) {
-        // UPDATE existing credential
-        const { error: updateError } = await supabaseClient
-          .from("user_credentials")
-          .update(credentialData)
-          .eq('id', existing.id);
-
-        if (updateError) {
-          console.error("❌ Error updating credentials:", updateError);
-          throw updateError;
-        }
-        console.log(`✅ Updated existing ${credentialType} credential for ${accountEmail}`);
-      } else {
-        // INSERT new credential
-        const { error: insertError } = await supabaseClient
-          .from("user_credentials")
-          .insert(credentialData);
-
-        if (insertError) {
-          console.error("❌ Error inserting credentials:", insertError);
-          throw insertError;
-        }
-        console.log(`✅ Inserted new ${credentialType} credential for ${accountEmail}`);
-      }
+    // Use select-then-insert/update pattern for all credential types
+    console.log(`🔍 Checking for existing credential...`);
+    
+    const query = supabaseClient
+      .from('user_credentials')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('credential_type', credentialType);
+    
+    // Add filters for bundle_type and account_email based on what we have
+    if (bundleType) {
+      query.eq('bundle_type', bundleType);
     } else {
-      // Non-Google credentials or legacy Google without bundle
-      const { error: upsertError } = await supabaseClient
-        .from("user_credentials")
-        .upsert({
-          user_id: userId,
-          credential_type: credentialType,
-          access_token: tokens.access_token,
-          refresh_token: tokens.refresh_token,
-          expires_at: tokens.expires_in 
-            ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
-            : null,
-          token_type: tokens.token_type || "Bearer",
-        }, {
-          onConflict: "user_id,credential_type"
-        });
+      query.is('bundle_type', null);
+    }
+    
+    if (accountEmail) {
+      query.eq('account_email', accountEmail);
+    } else {
+      query.is('account_email', null);
+    }
+    
+    const { data: existing } = await query.maybeSingle();
 
-      if (upsertError) {
-        console.error("❌ Error storing credentials:", upsertError);
-        throw upsertError;
+    if (existing) {
+      // UPDATE existing credential
+      console.log(`📝 Updating existing credential (id: ${existing.id})...`);
+      const { error: updateError } = await supabaseClient
+        .from("user_credentials")
+        .update(credentialData)
+        .eq('id', existing.id);
+
+      if (updateError) {
+        console.error("❌ Error updating credentials:", updateError);
+        throw updateError;
       }
-      console.log(`✅ Successfully stored ${credentialType} credentials for user`);
+      console.log(`✅ Updated ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
+    } else {
+      // INSERT new credential
+      console.log(`📝 Inserting new credential...`);
+      const { error: insertError } = await supabaseClient
+        .from("user_credentials")
+        .insert(credentialData);
+
+      if (insertError) {
+        console.error("❌ Error inserting credentials:", insertError);
+        throw insertError;
+      }
+      console.log(`✅ Inserted new ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
     }
 
     return new Response(
@@ -302,6 +304,10 @@ function getSecretNames(credentialType: string): { clientIdKey: string; clientSe
     calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },
     mailchimpOAuth2Api: { clientIdKey: 'MAILCHIMP_OAUTH_CLIENT_ID', clientSecretKey: 'MAILCHIMP_OAUTH_CLIENT_SECRET' },
     shopifyApi: { clientIdKey: 'SHOPIFY_OAUTH_CLIENT_ID', clientSecretKey: 'SHOPIFY_OAUTH_CLIENT_SECRET' },
+    slackOAuth2Api: { clientIdKey: 'SLACK_OAUTH_CLIENT_ID', clientSecretKey: 'SLACK_OAUTH_CLIENT_SECRET' },
+    facebookOAuth2Api: { clientIdKey: 'META_OAUTH_CLIENT_ID', clientSecretKey: 'META_OAUTH_CLIENT_SECRET' },
+    twilioApi: { clientIdKey: 'TWILIO_OAUTH_CLIENT_ID', clientSecretKey: 'TWILIO_OAUTH_CLIENT_SECRET' },
+    typeformApi: { clientIdKey: 'TYPEFORM_OAUTH_CLIENT_ID', clientSecretKey: 'TYPEFORM_OAUTH_CLIENT_SECRET' },
   };
   
   return mappings[credentialType] || { 

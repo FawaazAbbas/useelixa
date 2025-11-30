@@ -220,6 +220,10 @@ function getSecretNames(credentialType: string): { clientIdKey: string; clientSe
     calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },
     mailchimpOAuth2Api: { clientIdKey: 'MAILCHIMP_OAUTH_CLIENT_ID', clientSecretKey: 'MAILCHIMP_OAUTH_CLIENT_SECRET' },
     shopifyApi: { clientIdKey: 'SHOPIFY_OAUTH_CLIENT_ID', clientSecretKey: 'SHOPIFY_OAUTH_CLIENT_SECRET' },
+    slackOAuth2Api: { clientIdKey: 'SLACK_OAUTH_CLIENT_ID', clientSecretKey: 'SLACK_OAUTH_CLIENT_SECRET' },
+    facebookOAuth2Api: { clientIdKey: 'META_OAUTH_CLIENT_ID', clientSecretKey: 'META_OAUTH_CLIENT_SECRET' },
+    twilioApi: { clientIdKey: 'TWILIO_OAUTH_CLIENT_ID', clientSecretKey: 'TWILIO_OAUTH_CLIENT_SECRET' },
+    typeformApi: { clientIdKey: 'TYPEFORM_OAUTH_CLIENT_ID', clientSecretKey: 'TYPEFORM_OAUTH_CLIENT_SECRET' },
   };
   
   return mappings[credentialType] || { 
