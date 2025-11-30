@@ -902,7 +902,7 @@ serve(async (req) => {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${credential.access_token}`,
-                  'Content-Type': 'multipart/related'
+                  'Content-Type': 'multipart/related; boundary=boundary'
                 },
                 body: `--boundary\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(metadata)}\r\n--boundary\r\nContent-Type: ${toolArgs.mime_type || 'text/plain'}\r\n\r\n${toolArgs.content}\r\n--boundary--`
               });
