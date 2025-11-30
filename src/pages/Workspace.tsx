@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -158,6 +158,7 @@ const Workspace = () => {
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [processingAgent, setProcessingAgent] = useState<string | null>(null);
   const [delegationStatus, setDelegationStatus] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showBrian, setShowBrian] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
@@ -248,6 +249,11 @@ const Workspace = () => {
       };
     }
   }, [selectedChat, fetchMessages]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
@@ -1096,11 +1102,17 @@ const Workspace = () => {
                               : "bg-muted"
                           }`}
                         >
-                          <div className={`text-sm prose prose-sm max-w-none ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {isUserMessage ? (
+                            <div className="text-sm whitespace-pre-wrap break-words">
                               {msg.content}
-                            </ReactMarkdown>
-                          </div>
+                            </div>
+                          ) : (
+                            <div className={`text-sm prose prose-sm max-w-none ${isMobile ? 'break-words' : ''} dark:prose-invert`}>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.content}
+                              </ReactMarkdown>
+                            </div>
+                          )}
                         </div>
                         {msg.metadata?.files && (
                           <div className="max-w-[85%]">
@@ -1109,6 +1121,11 @@ const Workspace = () => {
                         )}
                       </div>
                     </div>
+                    {isUserMessage && (
+                      <Avatar className="h-8 w-8 flex-shrink-0">
+                        <AvatarFallback className="text-xs">You</AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
                 );
               })
@@ -1137,8 +1154,10 @@ const Workspace = () => {
                       <div className="text-xs text-primary font-medium animate-pulse">
                         🔀 {delegationStatus}
                       </div>
-                    )}
-                  </div>
+            )}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
+          </div>
                 </div>
               </div>
             )}
