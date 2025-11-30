@@ -36,6 +36,7 @@ import { MessageContextMenu } from "@/components/MessageContextMenu";
 import { MessageSelectionBar } from "@/components/MessageSelectionBar";
 import { NewChatDialog } from "@/components/NewChatDialog";
 import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
+import { DemoBanner } from "@/components/DemoBanner";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -142,6 +143,7 @@ const Workspace = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { workspaceId } = useWorkspace();
+  const isDemoMode = !user; // Enable demo mode when no user is logged in
   const { chats, messages, loading: chatLoading, sending, fetchMessages, sendMessage, deleteMessage, deleteMultipleMessages, leaveGroupChat, refreshChats } = useRealTimeChat(user?.id, workspaceId);
   const [selectedChat, setSelectedChat] = useState<any>(null);
   const [message, setMessage] = useState("");
@@ -472,7 +474,11 @@ const Workspace = () => {
   };
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      {/* Demo banner */}
+      {isDemoMode && <DemoBanner />}
+      
+      <div className="flex-1 flex overflow-hidden bg-background">
       {/* Group Chat Dialog */}
       <GroupChatDialog
         open={showGroupDialog}
@@ -1708,6 +1714,7 @@ const Workspace = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 };

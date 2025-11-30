@@ -1,6 +1,7 @@
-import { Star, Sparkles } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 interface Agent {
@@ -22,67 +23,90 @@ interface AgentCardProps {
 
 export const AgentCard = ({ agent }: AgentCardProps) => {
   const navigate = useNavigate();
-
+  
   // Check if agent has AI capabilities
-  const hasAICapabilities = agent.is_workflow_based && agent.workflow_json?.nodes?.some(
-    (node: any) => node.type === 'n8n-nodes-base.openAi'
-  );
+  const hasAICapabilities = agent.is_workflow_based && 
+    agent.workflow_json && 
+    typeof agent.workflow_json === 'object' && 
+    'nodes' in agent.workflow_json && 
+    Array.isArray(agent.workflow_json.nodes) && 
+    agent.workflow_json.nodes.some((node: any) => node.type === 'n8n-nodes-base.openAi');
 
-  // Generate a gradient background based on the agent name
+  // Generate gradient based on agent name
   const getGradient = (name: string) => {
-    const gradients = [
-      "from-blue-500/10 to-purple-500/10",
-      "from-green-500/10 to-teal-500/10",
-      "from-orange-500/10 to-red-500/10",
-      "from-pink-500/10 to-purple-500/10",
-      "from-cyan-500/10 to-blue-500/10",
-      "from-yellow-500/10 to-orange-500/10",
-    ];
-    const index = name.length % gradients.length;
-    return gradients[index];
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const hue1 = hash % 360;
+    const hue2 = (hash * 1.618) % 360;
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 50%), hsl(${hue2}, 70%, 60%))`;
   };
+
+  const initial = agent.name.charAt(0).toUpperCase();
 
   return (
     <Card 
-      className="overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 group"
+      className="group relative overflow-hidden border-2 border-border/50 hover:border-primary/50 transition-all duration-500 cursor-pointer hover:shadow-2xl hover:shadow-primary/10 animate-fade-in bg-card/50 backdrop-blur-sm"
       onClick={() => navigate(`/agent/${agent.id}`)}
     >
-      <div className={`h-40 bg-gradient-to-br ${getGradient(agent.name)} flex items-center justify-center relative overflow-hidden`}>
-        <div className="absolute inset-0 bg-grid-white/10 [mask-image:radial-gradient(white,transparent_70%)]" />
-        <div className="text-6xl opacity-20 group-hover:opacity-30 transition-opacity">
-          {agent.name.charAt(0)}
+      {/* Animated gradient background on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      {/* Gradient header with avatar */}
+      <div className="relative h-28 overflow-hidden" style={{ background: getGradient(agent.name) }}>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-50" />
+        
+        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+          <div className="w-14 h-14 rounded-xl bg-background/95 backdrop-blur-md flex items-center justify-center text-xl font-bold shadow-xl border-2 border-white/20 group-hover:scale-110 transition-transform duration-300">
+            {initial}
+          </div>
+          {hasAICapabilities && (
+            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 border-0 text-white shadow-lg animate-glow-pulse">
+              AI Powered
+            </Badge>
+          )}
         </div>
       </div>
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+      
+      {/* Content */}
+      <CardContent className="relative p-4">
+        <div className="flex items-start justify-between mb-2 gap-2">
+          <h3 className="font-bold text-base group-hover:text-primary transition-colors line-clamp-1 flex-1">
             {agent.name}
           </h3>
-          <div className="flex gap-2">
-            {hasAICapabilities && (
-              <Badge variant="default" className="text-xs gap-1 bg-gradient-to-r from-purple-500 to-pink-500">
-                <Sparkles className="h-3 w-3" />
-                AI-Powered
-              </Badge>
-            )}
-            <Badge variant="secondary" className="text-xs">
-              {agent.category}
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="text-xs whitespace-nowrap">
+            {agent.category}
+          </Badge>
         </div>
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+        
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[2.5rem]">
           {agent.description}
         </p>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-sm">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-medium">{agent.rating}</span>
-            <span className="text-muted-foreground">({agent.total_reviews})</span>
+        
+        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+          <div className="flex items-center gap-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 group-hover:scale-110 transition-transform" />
+            <span className="text-sm font-semibold">{agent.rating}</span>
+            <span className="text-xs text-muted-foreground">({agent.total_reviews})</span>
           </div>
-          <div className="text-xl font-bold text-primary">
-            ${agent.price}
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              ${agent.price}
+            </span>
+            <span className="text-xs text-muted-foreground">/mo</span>
           </div>
         </div>
+        
+        {/* Hover action buttons */}
+        <div className="absolute inset-x-4 bottom-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2 translate-y-2 group-hover:translate-y-0">
+          <Button size="sm" className="flex-1 shadow-lg" onClick={(e) => { e.stopPropagation(); navigate(`/agent/${agent.id}`); }}>
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+      
+      {/* Shine effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
       </div>
     </Card>
   );

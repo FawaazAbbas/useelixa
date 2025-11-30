@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { Star, Search } from "lucide-react";
+import { Star, Search, Sparkles, TrendingUp, Zap } from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
+import { FeaturedAgentCard } from "@/components/FeaturedAgentCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { mockAgents, getFeaturedAgents } from "@/data/mockAgents";
+import { mockCategories } from "@/data/mockCategories";
 
 interface Agent {
   id: string;
@@ -29,9 +33,19 @@ const Marketplace = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [displayedCount, setDisplayedCount] = useState(12);
   const [hasMore, setHasMore] = useState(true);
+  const [useMockData] = useState(true); // Use mock data for demo
 
   useEffect(() => {
     const fetchData = async () => {
+      if (useMockData) {
+        // Use mock data for demo
+        setAgents(mockAgents as any);
+        setCategories(mockCategories.map(c => c.name));
+        setLoading(false);
+        return;
+      }
+
+      // Real Supabase data (keep for production)
       const [agentsRes, categoriesRes] = await Promise.all([
         supabase
           .from("agents")
@@ -73,7 +87,7 @@ const Marketplace = () => {
     };
 
     fetchData();
-  }, []);
+  }, [useMockData]);
 
   // Filter agents based on search and category
   const filteredAgents = agents.filter(agent => {
@@ -101,87 +115,162 @@ const Marketplace = () => {
     setHasMore(filteredAgents.length > 12);
   }, [searchQuery, selectedCategory, filteredAgents.length]);
 
+  const featuredAgents = useMockData ? getFeaturedAgents() : [];
+
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <div className="min-h-screen bg-background relative">
+      {/* Animated background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* Glassmorphic navbar */}
+      <nav className="border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-4 md:gap-8">
-            <img src="/elixa-logo.png" alt="ELIXA" className="h-8 md:h-10 w-auto object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
+            <img 
+              src="/elixa-logo.png" 
+              alt="ELIXA" 
+              className="h-8 md:h-10 w-auto object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer animate-fade-in" 
+              onClick={() => navigate("/")}
+            />
             <div className="hidden lg:flex gap-6">
-              <button className="text-sm font-medium hover:text-primary transition-colors">
+              <button className="text-sm font-medium hover:text-primary transition-all relative group">
                 Discover
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </button>
-              <button className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              <button className="text-sm font-medium text-muted-foreground hover:text-primary transition-all relative group">
                 Categories
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </button>
-              <button className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+              <button className="text-sm font-medium text-muted-foreground hover:text-primary transition-all relative group">
                 Top Charts
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </button>
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
-            {user ? (
-              <>
-                <Button onClick={() => navigate("/workspace")} variant="outline" size="sm" className="text-xs md:text-sm hidden sm:inline-flex">
-                  My Agents
-                </Button>
-                <Button onClick={() => navigate("/publish")} variant="default" size="sm" className="text-xs md:text-sm">
-                  Publish
-                </Button>
-              </>
-            ) : (
-              <Button onClick={() => navigate("/auth")} variant="default" size="sm" className="text-xs md:text-sm">
-                Sign In
-              </Button>
-            )}
+            <Button onClick={() => navigate("/workspace")} variant="outline" size="sm" className="text-xs md:text-sm hidden sm:inline-flex hover:scale-105 transition-transform">
+              <Zap className="h-4 w-4 mr-2" />
+              Workspace
+            </Button>
+            <Button onClick={() => navigate("/auth")} variant="default" size="sm" className="text-xs md:text-sm hover:scale-105 transition-transform shadow-lg shadow-primary/20">
+              Get Started
+            </Button>
           </div>
         </div>
       </nav>
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-12 md:py-20">
-          <div className="max-w-3xl">
-            <h2 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Discover AI Agents
-            </h2>
-            <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8">
-              Browse AI agents built by creators. Deploy instantly.
+      {/* Hero section with enhanced gradients */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 md:px-6 py-16 md:py-24">
+          <div className="max-w-4xl mx-auto text-center">
+            <Badge className="mb-6 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 animate-fade-in">
+              <Sparkles className="h-3 w-3 mr-1" />
+              500+ AI Agents Available
+            </Badge>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-gradient-shift bg-300% animate-fade-in">
+              Discover AI Agents That Work For You
+            </h1>
+            
+            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              Browse powerful AI agents built by creators worldwide. From customer support to content creation, find the perfect agent to automate your workflow.
             </p>
-            <div className="relative">
-              <Search className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
-              <Input 
-                placeholder="Search for agents..." 
-                className="pl-10 md:pl-12 py-3 md:py-6 text-base md:text-lg border-2"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            
+            {/* Enhanced search bar with glassmorphism */}
+            <div className="relative max-w-2xl mx-auto group animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500" />
+              <div className="relative bg-background/80 backdrop-blur-xl rounded-xl border-2 border-border/50 group-hover:border-primary/50 transition-all duration-300 shadow-xl">
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                <Input 
+                  placeholder="Search for agents..." 
+                  className="pl-14 pr-4 py-7 text-lg border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            {/* Trust indicators */}
+            <div className="mt-12 flex items-center justify-center gap-8 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span>500+ Agents</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span>4.8 Avg Rating</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span>AI-Powered</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 pb-20 md:pb-12">
-        <div className="mb-8 md:mb-12 overflow-x-auto">
-          <div className="flex gap-2 md:gap-3 pb-3 md:pb-4">
-            <Button 
-              variant={selectedCategory === null ? "default" : "outline"} 
-              className="whitespace-nowrap text-xs md:text-sm"
-              size="sm"
-              onClick={() => setSelectedCategory(null)}
-            >
-              All
-            </Button>
-            {categories.map((category) => (
-              <Button 
-                key={category} 
-                variant={selectedCategory === category ? "default" : "outline"} 
-                className="whitespace-nowrap text-xs md:text-sm"
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </Button>
+      {/* Featured Agents Section */}
+      {featuredAgents.length > 0 && !searchQuery && !selectedCategory && (
+        <section className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+          <div className="flex items-center gap-3 mb-6">
+            <Sparkles className="h-6 w-6 text-primary animate-glow-pulse" />
+            <h2 className="text-2xl md:text-3xl font-bold">Featured Agents</h2>
+          </div>
+          <div className="space-y-6">
+            {featuredAgents.map((agent, idx) => (
+              <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${idx * 0.1}s` }}>
+                <FeaturedAgentCard agent={agent as any} />
+              </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* Categories with enhanced design */}
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12 pb-20 md:pb-12">
+        <div className="mb-8 md:mb-12">
+          <h3 className="text-xl font-semibold mb-4">Browse by Category</h3>
+          <div className="relative">
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+              <Button 
+                variant={selectedCategory === null ? "default" : "outline"} 
+                className="whitespace-nowrap hover:scale-105 transition-transform shadow-sm"
+                size="default"
+                onClick={() => setSelectedCategory(null)}
+              >
+                All Agents
+              </Button>
+              {useMockData ? mockCategories.map((category) => (
+                <Button 
+                  key={category.name} 
+                  variant={selectedCategory === category.name ? "default" : "outline"} 
+                  className="whitespace-nowrap hover:scale-105 transition-transform shadow-sm"
+                  size="default"
+                  onClick={() => setSelectedCategory(category.name)}
+                >
+                  <span className="mr-2">{category.icon}</span>
+                  {category.name}
+                  <Badge variant="secondary" className="ml-2 text-xs">{category.count}</Badge>
+                </Button>
+              )) : categories.map((category) => (
+                <Button 
+                  key={category} 
+                  variant={selectedCategory === category ? "default" : "outline"} 
+                  className="whitespace-nowrap hover:scale-105 transition-transform shadow-sm"
+                  size="default"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+            <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
           </div>
         </div>
 
