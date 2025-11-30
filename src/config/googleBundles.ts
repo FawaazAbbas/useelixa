@@ -60,7 +60,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
   analytics_reporting: {
     id: 'analytics_reporting',
     name: 'Analytics & Reporting',
-    description: 'Google Analytics, YouTube Analytics (read-only), Search Console, PageSpeed',
+    description: 'Google Analytics, YouTube Analytics (read-only), Search Console',
     icon: '📊',
     color: 'bg-purple-500',
     logo: 'https://www.gstatic.com/analytics-suite/header/suite/v2/ic_analytics.svg',
@@ -71,7 +71,6 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
       'https://www.googleapis.com/auth/youtube.readonly',
       'https://www.googleapis.com/auth/yt-analytics.readonly',
       'https://www.googleapis.com/auth/webmasters.readonly',
-      'https://www.googleapis.com/auth/pagespeedonline',
     ],
   },
   cloud_data: {
