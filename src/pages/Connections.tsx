@@ -33,22 +33,13 @@ const CREDENTIAL_INFO: Record<string, {
   companyName: string;
 }> = {
   notionApi: {
-    name: 'Notion',
+    name: 'Notion Workspace',
     description: 'Connect your Notion workspace for document management and collaboration',
     category: 'Productivity',
     icon: '📝',
     color: 'bg-gray-800',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
     companyName: 'Notion',
-  },
-  slackOAuth2Api: {
-    name: 'Slack',
-    description: 'Connect your Slack workspace for team communication and notifications',
-    category: 'Communication',
-    icon: '💬',
-    color: 'bg-purple-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
-    companyName: 'Slack',
   },
   microsoftOAuth2Api: {
     name: 'Microsoft 365',
@@ -276,7 +267,7 @@ export default function Connections() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto py-8 px-4 max-w-7xl overflow-y-auto h-full">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col gap-4">
           <div>
