@@ -156,9 +156,23 @@ serve(async (req) => {
 
     const tokens = await tokenResponse.json();
 
-    // For Google OAuth, fetch user email to identify the account
+    // For Google OAuth, fetch user email and use ACTUAL GRANTED SCOPES from token response
     let accountEmail = null;
+    let actualGrantedScopes = scopes; // Default to requested scopes
+    
     if (credentialType === "googleOAuth2Api") {
+      // CRITICAL: Use the scopes that Google ACTUALLY GRANTED, not what we requested
+      if (tokens.scope) {
+        actualGrantedScopes = tokens.scope; // Google returns space-separated string
+        console.log(`✓ Google granted scopes: ${actualGrantedScopes}`);
+        
+        // Warn if granted scopes differ from requested
+        if (scopes && actualGrantedScopes !== scopes) {
+          console.warn(`⚠️ Scope mismatch! Requested: ${scopes.split(' ').length} scopes, Granted: ${actualGrantedScopes.split(' ').length} scopes`);
+          console.warn(`   Requested but NOT granted: ${scopes.split(' ').filter((s: string) => !actualGrantedScopes.includes(s)).join(', ')}`);
+        }
+      }
+      
       try {
         const userInfoResponse = await fetch(
           'https://www.googleapis.com/oauth2/v2/userinfo',
@@ -177,7 +191,8 @@ serve(async (req) => {
       credentialType, 
       bundleType: bundleType || 'null', 
       accountEmail: accountEmail || 'null',
-      hasRefreshToken: !!tokens.refresh_token
+      hasRefreshToken: !!tokens.refresh_token,
+      scopeCount: actualGrantedScopes ? actualGrantedScopes.split(' ').length : 0
     });
 
     // Store tokens in user_credentials table
@@ -186,14 +201,14 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Prepare credential data
+    // Prepare credential data with ACTUAL GRANTED SCOPES
     const credentialData = {
       user_id: userId,
       credential_type: credentialType,
       bundle_type: bundleType || null,
       account_email: accountEmail || null,
       account_label: accountEmail || null,
-      scopes: scopes ? scopes.split(' ') : null,
+      scopes: actualGrantedScopes ? actualGrantedScopes.split(' ') : null, // Use actual granted scopes!
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
       expires_at: tokens.expires_in 
