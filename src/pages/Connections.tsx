@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import { Plug, CheckCircle2, XCircle, Loader2, Search, Star, HelpCircle } from "lucide-react";
+import { Plug, CheckCircle2, Loader2, Search, Plus, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { OAUTH_CLIENT_IDS } from "@/config/oauth";
 import { GOOGLE_BUNDLES, getBundleScopes } from "@/config/googleBundles";
 
@@ -20,128 +20,82 @@ interface ConnectionStatus {
   bundleType?: string;
   accountEmail?: string;
   accountLabel?: string;
+  id?: string;
 }
 
-const CREDENTIAL_INFO = {
-  // Google bundles are now handled separately via GOOGLE_BUNDLES config
-  notionApi: { 
-    name: "Notion",
-    shortName: "Notion",
-    description: "Manage pages, databases, and team wikis",
-    category: "Productivity",
-    icon: "📝",
-    color: "bg-gray-800",
-    popular: true
+const CREDENTIAL_INFO: Record<string, {
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  color: string;
+  logo: string;
+  companyName: string;
+}> = {
+  notionApi: {
+    name: 'Notion',
+    description: 'Connect your Notion workspace for document management and collaboration',
+    category: 'Productivity',
+    icon: '📝',
+    color: 'bg-gray-800',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
+    companyName: 'Notion',
   },
-  slackApi: { 
-    name: "Slack",
-    shortName: "Slack",
-    description: "Team messaging and channel management",
-    category: "Communication",
-    icon: "💬",
-    color: "bg-purple-600",
-    popular: true
-  },
-  quickbooksApi: {
-    name: "QuickBooks Online",
-    shortName: "QuickBooks",
-    description: "Accounting, invoicing, expenses, and financial reports",
-    category: "Finance",
-    icon: "💰",
-    color: "bg-green-600",
-    popular: true
+  slackOAuth2Api: {
+    name: 'Slack',
+    description: 'Connect your Slack workspace for team communication and notifications',
+    category: 'Communication',
+    icon: '💬',
+    color: 'bg-purple-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
+    companyName: 'Slack',
   },
   microsoftOAuth2Api: {
-    name: "Microsoft 365",
-    shortName: "Microsoft",
-    description: "Outlook, OneDrive, Teams, Excel, Word",
-    category: "Productivity",
-    icon: "📊",
-    color: "bg-blue-600",
-    popular: true
+    name: 'Microsoft 365',
+    description: 'Access Outlook, OneDrive, Teams, and other Microsoft services',
+    category: 'Productivity',
+    icon: '🪟',
+    color: 'bg-blue-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg',
+    companyName: 'Microsoft',
   },
   calendlyApi: {
-    name: "Calendly",
-    shortName: "Calendly",
-    description: "Meeting scheduling and appointment booking",
-    category: "Scheduling",
-    icon: "📅",
-    color: "bg-blue-400",
-    popular: true
-  },
-  hubspotOAuth2Api: {
-    name: "HubSpot CRM",
-    shortName: "HubSpot",
-    description: "Contact management, deals pipeline, and marketing automation",
-    category: "CRM",
-    icon: "🎯",
-    color: "bg-orange-500",
-    popular: true
+    name: 'Calendly',
+    description: 'Schedule and manage meetings with Calendly integration',
+    category: 'Scheduling',
+    icon: '📅',
+    color: 'bg-blue-500',
+    logo: 'https://images.ctfassets.net/k0lk9kiuza3o/5UdSwOx0Q3FxtxlzmYEJLh/9c5fcd2c6e01a5af9d7fef7ad7e56d40/calendly-logo-square.png',
+    companyName: 'Calendly',
   },
   mailchimpOAuth2Api: {
-    name: "Mailchimp",
-    shortName: "Mailchimp",
-    description: "Email marketing, newsletters, and campaign management",
-    category: "Marketing",
-    icon: "📧",
-    color: "bg-yellow-500",
-    popular: true
+    name: 'Mailchimp',
+    description: 'Connect Mailchimp for email marketing and campaign management',
+    category: 'Marketing',
+    icon: '🐵',
+    color: 'bg-yellow-500',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Mailchimp_Logo.svg/320px-Mailchimp_Logo.svg.png',
+    companyName: 'Mailchimp',
   },
-  facebookOAuth2Api: {
-    name: "Meta Business Suite",
-    shortName: "Meta",
-    description: "Facebook Pages, Instagram Business, and ad management",
-    category: "Marketing",
-    icon: "📱",
-    color: "bg-blue-700",
-    popular: false
-  },
-  stripeApi: {
-    name: "Stripe",
-    shortName: "Stripe",
-    description: "Payment processing, subscriptions, and invoicing",
-    category: "Payments",
-    icon: "💳",
-    color: "bg-indigo-600",
-    popular: true
-  },
-  twilioApi: {
-    name: "Twilio",
-    shortName: "Twilio",
-    description: "SMS messaging, phone calls, and WhatsApp integration",
-    category: "Communication",
-    icon: "📞",
-    color: "bg-red-600",
-    popular: false
-  },
-  typeformApi: {
-    name: "Typeform",
-    shortName: "Typeform",
-    description: "Forms, surveys, and customer feedback collection",
-    category: "Forms",
-    icon: "📋",
-    color: "bg-pink-500",
-    popular: false
-  },
-  shopifyApi: {
-    name: "Shopify",
-    shortName: "Shopify",
-    description: "E-commerce store management and product catalog",
-    category: "E-commerce",
-    icon: "🛒",
-    color: "bg-green-700",
-    popular: true
+  shopifyOAuth2Api: {
+    name: 'Shopify',
+    description: 'Connect your Shopify store for e-commerce automation',
+    category: 'E-commerce',
+    icon: '🛍️',
+    color: 'bg-green-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg',
+    companyName: 'Shopify',
   },
 };
 
 export default function Connections() {
   const { user } = useAuth();
   const [connections, setConnections] = useState<ConnectionStatus[]>([]);
-  const [googleCredentials, setGoogleCredentials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [connecting, setConnecting] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedProvider, setSelectedProvider] = useState<string>('all');
 
   useEffect(() => {
     if (user) {
@@ -160,27 +114,17 @@ export default function Connections() {
 
       if (error) throw error;
 
-      // Separate Google credentials from others
-      const googleCreds = data?.filter(c => c.credential_type === "googleOAuth2Api") || [];
-      const otherCreds = data?.filter(c => c.credential_type !== "googleOAuth2Api") || [];
-
-      setGoogleCredentials(googleCreds);
-
-      const connectedTypes = new Set(otherCreds.map(c => c.credential_type));
-      const statusList = Object.keys(CREDENTIAL_INFO).map(type => {
-        const credential = otherCreds.find(c => c.credential_type === type);
-        const isExpired = credential?.expires_at 
-          ? new Date(credential.expires_at).getTime() < Date.now()
-          : false;
-
-        return {
-          type,
-          connected: connectedTypes.has(type),
-          lastConnected: credential?.updated_at,
-          expiresAt: credential?.expires_at,
-          isExpired,
-        };
-      });
+      const statusList: ConnectionStatus[] = data?.map(cred => ({
+        type: cred.credential_type,
+        connected: true,
+        lastConnected: cred.updated_at,
+        expiresAt: cred.expires_at || undefined,
+        isExpired: cred.expires_at ? new Date(cred.expires_at).getTime() < Date.now() : false,
+        bundleType: cred.bundle_type || undefined,
+        accountEmail: cred.account_email || undefined,
+        accountLabel: cred.account_label || undefined,
+        id: cred.id,
+      })) || [];
 
       setConnections(statusList);
     } catch (error) {
@@ -194,12 +138,11 @@ export default function Connections() {
   const handleConnect = (credentialType: string, bundleType?: string) => {
     if (!user) return;
 
-    setConnecting(credentialType);
-
     const state = btoa(JSON.stringify({
       userId: user.id,
       credentialType,
       bundleType,
+      scopes: bundleType ? getBundleScopes(bundleType).join(' ') : undefined,
       returnTo: "/connections",
     }));
 
@@ -210,7 +153,6 @@ export default function Connections() {
       case "googleOAuth2Api":
         if (!bundleType) {
           toast.error("Please specify which Google bundle to connect");
-          setConnecting(null);
           return;
         }
         const scopes = getBundleScopes(bundleType);
@@ -219,42 +161,18 @@ export default function Connections() {
       case "notionApi":
         authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.NOTION}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&owner=user&state=${state}`;
         break;
-      case "slackApi":
-        authUrl = `https://slack.com/oauth/v2/authorize?client_id=${import.meta.env.VITE_SLACK_CLIENT_ID || 'YOUR_SLACK_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=chat:write,channels:read&state=${state}`;
-        break;
-      case "quickbooksApi":
-        authUrl = `https://appcenter.intuit.com/connect/oauth2?client_id=${import.meta.env.VITE_QUICKBOOKS_CLIENT_ID || 'YOUR_QUICKBOOKS_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=com.intuit.quickbooks.accounting&state=${state}`;
-        break;
       case "microsoftOAuth2Api":
         authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${OAUTH_CLIENT_IDS.MICROSOFT}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('User.Read Mail.ReadWrite Calendars.ReadWrite Files.ReadWrite.All')}&state=${state}`;
         break;
       case "calendlyApi":
         authUrl = `https://auth.calendly.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.CALENDLY}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
         break;
-      case "hubspotOAuth2Api":
-        authUrl = `https://app.hubspot.com/oauth/authorize?client_id=${import.meta.env.VITE_HUBSPOT_CLIENT_ID || 'YOUR_HUBSPOT_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=contacts%20crm.objects.contacts.read&state=${state}`;
-        break;
       case "mailchimpOAuth2Api":
         authUrl = `https://login.mailchimp.com/oauth2/authorize?client_id=${OAUTH_CLIENT_IDS.MAILCHIMP}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
         break;
-      case "facebookOAuth2Api":
-        authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${import.meta.env.VITE_FACEBOOK_CLIENT_ID || 'YOUR_FACEBOOK_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=pages_show_list,pages_read_engagement,instagram_basic&state=${state}`;
-        break;
-      case "stripeApi":
-        authUrl = `https://connect.stripe.com/oauth/authorize?client_id=${import.meta.env.VITE_STRIPE_CLIENT_ID || 'YOUR_STRIPE_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=read_write&state=${state}`;
-        break;
-      case "twilioApi":
-        authUrl = `https://www.twilio.com/authorize?client_id=${import.meta.env.VITE_TWILIO_CLIENT_ID || 'YOUR_TWILIO_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=messaging%20calls&state=${state}`;
-        break;
-      case "typeformApi":
-        authUrl = `https://api.typeform.com/oauth/authorize?client_id=${import.meta.env.VITE_TYPEFORM_CLIENT_ID || 'YOUR_TYPEFORM_CLIENT_ID'}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=accounts:read%20forms:read%20responses:read&state=${state}`;
-        break;
-      case "shopifyApi":
+      case "shopifyOAuth2Api":
         const shopDomain = prompt("Enter your Shopify store domain (e.g., mystore.myshopify.com):");
-        if (!shopDomain) {
-          setConnecting(null);
-          return;
-        }
+        if (!shopDomain) return;
         authUrl = `https://${shopDomain}/admin/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.SHOPIFY}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read_products,write_products,read_orders&state=${state}`;
         break;
     }
@@ -264,27 +182,19 @@ export default function Connections() {
     }
   };
 
-  const handleDisconnect = async (credentialType: string, credentialId?: string) => {
+  const handleDisconnect = async (credentialId: string) => {
     if (!user) return;
 
     try {
-      let query = supabase
+      const { error } = await supabase
         .from("user_credentials")
         .delete()
+        .eq("id", credentialId)
         .eq("user_id", user.id);
-
-      if (credentialId) {
-        query = query.eq("id", credentialId);
-      } else {
-        query = query.eq("credential_type", credentialType);
-      }
-
-      const { error } = await query;
 
       if (error) throw error;
 
-      const credInfo = CREDENTIAL_INFO[credentialType as keyof typeof CREDENTIAL_INFO];
-      toast.success(`${credInfo ? credInfo.name : credentialType} disconnected`);
+      toast.success("Connection removed");
       fetchConnections();
     } catch (error) {
       console.error("Error disconnecting:", error);
@@ -292,47 +202,69 @@ export default function Connections() {
     }
   };
 
-  const handleRefresh = async (credentialType: string) => {
-    if (!user) return;
+  const categories = ['all', ...new Set(Object.values(CREDENTIAL_INFO).map(info => info.category))];
 
-    try {
-      const { data, error } = await supabase.functions.invoke("refresh-oauth-token", {
-        body: {
-          userId: user.id,
-          credentialType,
+  // Flatten all connections into one array
+  const allConnectionItems = [
+    // Google bundles as separate items
+    ...Object.values(GOOGLE_BUNDLES).map(bundle => {
+      const bundleCredentials = connections.filter(
+        c => c.type === 'googleOAuth2Api' && c.bundleType === bundle.id
+      );
+      return {
+        type: `google_${bundle.id}`,
+        isGoogleBundle: true,
+        bundle,
+        credentials: bundleCredentials,
+        info: {
+          name: bundle.serviceName,
+          description: bundle.description,
+          category: 'Productivity',
+          icon: bundle.icon,
+          color: bundle.color,
+          logo: bundle.logo,
+          companyName: bundle.companyName,
         },
-      });
+        connection: bundleCredentials.length > 0 ? bundleCredentials[0] : undefined,
+      };
+    }),
+    // Other connections
+    ...Object.entries(CREDENTIAL_INFO).map(([type, info]) => ({
+      type,
+      isGoogleBundle: false,
+      info,
+      connection: connections.find(c => c.type === type && !c.bundleType),
+    })),
+  ];
 
-      if (error) throw error;
-
-      toast.success(`${CREDENTIAL_INFO[credentialType as keyof typeof CREDENTIAL_INFO].name} token refreshed`);
-      fetchConnections();
-    } catch (error) {
-      console.error("Error refreshing token:", error);
-      toast.error("Failed to refresh token. Please reconnect your account.");
-    }
-  };
-
-  const categories = ["Productivity", "Communication", "Finance", "CRM", "Marketing", "Payments", "E-commerce", "Scheduling", "Forms"];
-
-  const filteredConnections = connections.filter((connection) => {
-    const info = CREDENTIAL_INFO[connection.type as keyof typeof CREDENTIAL_INFO];
-    
+  // Filter logic
+  const filteredConnections = allConnectionItems.filter((item) => {
     const matchesSearch = 
-      info.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      info.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      info.shortName.toLowerCase().includes(searchQuery.toLowerCase());
+      item.info.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.info.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.info.companyName.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = 
-      selectedCategory === "all" || 
-      info.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || item.info.category === selectedCategory;
     
-    return matchesSearch && matchesCategory;
+    const isConnected = item.isGoogleBundle 
+      ? (item as any).credentials?.length > 0
+      : !!item.connection;
+    
+    const matchesStatus = selectedStatus === 'all' || 
+      (selectedStatus === 'connected' && isConnected) ||
+      (selectedStatus === 'not-connected' && !isConnected);
+    
+    const matchesProvider = selectedProvider === 'all' ||
+      (selectedProvider === 'google' && item.isGoogleBundle) ||
+      (selectedProvider === 'third-party' && !item.isGoogleBundle);
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesProvider;
   });
 
-  const popularConnections = filteredConnections.filter(c => 
-    CREDENTIAL_INFO[c.type as keyof typeof CREDENTIAL_INFO].popular
-  );
+  const connectedCount = allConnectionItems.filter(item => 
+    item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection
+  ).length;
+  const availableCount = allConnectionItems.length - connectedCount;
 
   if (loading) {
     return (
@@ -343,412 +275,195 @@ export default function Connections() {
     );
   }
 
-  const hasConnections = connections.some(c => c.connected);
-
   return (
-    <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl overflow-y-auto h-full pb-20 md:pb-8">
-      {/* Empty State for No Connections */}
-      {!hasConnections && searchQuery === "" && selectedCategory === "all" && (
-        <Card className="mb-6 border-2 border-dashed">
-          <CardContent className="py-12 text-center">
-            <div className="text-6xl mb-4">🔗</div>
-            <h3 className="text-2xl font-semibold mb-2">Connect Your Tools</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Link your accounts once, and every agent can use them instantly. No repeated setups, no friction.
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center mb-6">
-              {connections.slice(0, 6).map(conn => (
-                <Badge key={conn.type} variant="outline" className="text-sm">
-                  {CREDENTIAL_INFO[conn.type as keyof typeof CREDENTIAL_INFO].shortName}
-                </Badge>
-              ))}
-            </div>
-            <Button size="lg" onClick={() => {
-              const firstConnection = connections[0];
-              if (firstConnection) handleConnect(firstConnection.type);
-            }}>
-              Connect Your First Tool
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Hero Section */}
-      <div className="mb-6 md:mb-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl md:text-4xl font-bold mb-2 flex items-center gap-2 md:gap-3">
-              <Plug className="h-6 w-6 md:h-10 md:w-10" />
-              Connections
-            </h1>
-            <p className="text-muted-foreground text-sm md:text-lg">
-              {connections.filter(c => c.connected).length} of {connections.length} connected
+            <h1 className="text-4xl font-bold mb-2">Connections</h1>
+            <p className="text-muted-foreground">
+              Connect your tools and services to enable powerful automations
             </p>
           </div>
-          
-          {/* Quick stats */}
-          <div className="hidden md:flex gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
-                {connections.filter(c => c.connected).length}
+
+          {/* Filters */}
+          <div className="space-y-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search connections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-md pl-10"
+                />
               </div>
-              <div className="text-xs text-muted-foreground">Connected</div>
             </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-muted-foreground">
-                {connections.filter(c => !c.connected).length}
-              </div>
-              <div className="text-xs text-muted-foreground">Available</div>
+            
+            <div className="flex flex-wrap gap-3">
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="connected">Connected</SelectItem>
+                  <SelectItem value="not-connected">Not Connected</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.filter(c => c !== 'all').map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Providers</SelectItem>
+                  <SelectItem value="google">Google</SelectItem>
+                  <SelectItem value="third-party">Third-Party</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Stats */}
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <span>Connected: <span className="font-semibold text-foreground">{connectedCount}</span></span>
+              <span>•</span>
+              <span>Available: <span className="font-semibold text-foreground">{availableCount}</span></span>
+              <span>•</span>
+              <span>Total: <span className="font-semibold text-foreground">{allConnectionItems.length}</span></span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Search & Filters Section */}
-      <div className="mb-4 md:mb-6 space-y-3 md:space-y-4">
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search connections..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 w-full"
-          />
-        </div>
-        
-        {/* Category Filters - Horizontal scroll on mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-2 md:flex-wrap md:overflow-visible md:pb-0">
-          <Badge 
-            variant={selectedCategory === "all" ? "default" : "outline"}
-            className="cursor-pointer whitespace-nowrap"
-            onClick={() => setSelectedCategory("all")}
-          >
-            All
-          </Badge>
-          {categories.map(cat => (
-            <Badge 
-              key={cat}
-              variant={selectedCategory === cat ? "default" : "outline"}
-              className="cursor-pointer whitespace-nowrap"
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </Badge>
-          ))}
-        </div>
-      </div>
-
-      {/* Google Bundles Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <span className="text-2xl">🔗</span>
-          Google Connections
-        </h2>
-        <p className="text-sm text-muted-foreground mb-6">
-          Connect different Google services with separate accounts. Each bundle provides access to specific Google APIs.
-        </p>
+        {/* Unified Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.values(GOOGLE_BUNDLES).map((bundle) => {
-            const bundleCreds = googleCredentials.filter(c => c.bundle_type === bundle.id);
-            const hasConnections = bundleCreds.length > 0;
+          {filteredConnections.map((item) => {
+            const isConnected = item.isGoogleBundle 
+              ? (item as any).credentials?.length > 0
+              : !!item.connection;
 
             return (
-              <Card 
-                key={bundle.id}
-                className={cn(
-                  "relative overflow-hidden transition-all hover:shadow-lg",
-                  hasConnections && "ring-2 ring-green-500/20"
-                )}
-              >
-                <div className={cn("absolute top-0 left-0 right-0 h-2", bundle.color)} />
-                
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="text-4xl">{bundle.icon}</div>
-                    {hasConnections ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-muted-foreground" />
+              <Card key={item.type} className={`hover:shadow-lg transition-shadow ${isConnected ? 'ring-2 ring-green-500/20' : ''}`}>
+                <CardHeader>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src={item.info.logo} 
+                          alt={item.info.companyName}
+                          className="w-8 h-8 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <CardTitle className="text-base leading-tight">{item.info.name}</CardTitle>
+                        <p className="text-xs text-muted-foreground">by {item.info.companyName}</p>
+                      </div>
+                    </div>
+                    {isConnected && (
+                      <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
                     )}
                   </div>
-                  
-                  <CardTitle className="text-lg">{bundle.name}</CardTitle>
-                  <Badge variant="secondary" className="w-fit text-xs">
-                    Google
-                  </Badge>
-                  
-                  <CardDescription className="text-xs mt-2">
-                    {bundle.description}
-                  </CardDescription>
-
-                  {/* Connected Accounts */}
-                  {hasConnections && (
-                    <div className="mt-3 space-y-2">
-                      {bundleCreds.map((cred) => (
-                        <div 
-                          key={cred.id}
-                          className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">
-                              {cred.account_label || cred.account_email}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(cred.updated_at).toLocaleDateString()}
-                            </p>
+                  <CardDescription className="text-sm">{item.info.description}</CardDescription>
+                  <div className="flex gap-2 mt-3">
+                    <Badge variant="outline" className="text-xs">{item.info.category}</Badge>
+                    {isConnected && (
+                      <Badge variant="default" className="text-xs bg-green-500">Connected</Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {item.isGoogleBundle ? (
+                    // Google bundle with multiple accounts
+                    <>
+                      {(item as any).credentials.length > 0 ? (
+                        <>
+                          <div className="space-y-2 mb-3">
+                            {(item as any).credentials.map((cred: any) => (
+                              <div key={cred.id} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                  <span className="text-xs truncate">{cred.accountEmail}</span>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleDisconnect(cred.id!)}
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
                           </div>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            className="h-7 text-xs"
-                            onClick={() => handleDisconnect("googleOAuth2Api", cred.id)}
+                            onClick={() => handleConnect('googleOAuth2Api', (item as any).bundle.id)}
+                            className="w-full"
                           >
-                            Remove
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Another Account
                           </Button>
-                        </div>
-                      ))}
-                    </div>
+                        </>
+                      ) : (
+                        <Button
+                          onClick={() => handleConnect('googleOAuth2Api', (item as any).bundle.id)}
+                          className="w-full"
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Connect
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    // Regular connection
+                    <>
+                      {item.connection ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDisconnect(item.connection!.id!)}
+                          className="w-full"
+                        >
+                          Disconnect
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleConnect(item.type)}
+                          className="w-full"
+                          size="sm"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Connect
+                        </Button>
+                      )}
+                    </>
                   )}
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <Button
-                    size="sm"
-                    variant={hasConnections ? "outline" : "default"}
-                    className="w-full"
-                    onClick={() => handleConnect("googleOAuth2Api", bundle.id)}
-                    disabled={connecting === `google_${bundle.id}`}
-                  >
-                    {connecting === `google_${bundle.id}` ? (
-                      <>
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : hasConnections ? (
-                      "+ Add Another Account"
-                    ) : (
-                      "Connect Google Account"
-                    )}
-                  </Button>
                 </CardContent>
               </Card>
             );
           })}
         </div>
-      </div>
 
-      {/* Popular Connections Section */}
-      {selectedCategory === "all" && searchQuery === "" && popularConnections.length > 0 && (
-        <div className="mb-6 md:mb-8">
-          <h2 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
-            <Star className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
-            Popular
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {popularConnections.map((connection) => {
-              const info = CREDENTIAL_INFO[connection.type as keyof typeof CREDENTIAL_INFO];
-              return (
-                <Card 
-                  key={connection.type}
-                  className={cn(
-                    "relative overflow-hidden transition-all hover:shadow-lg",
-                    connection.connected && "ring-2 ring-green-500/20"
-                  )}
-                >
-                  <div className={cn("absolute top-0 left-0 right-0 h-2", info.color)} />
-                  
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="text-4xl">{info.icon}</div>
-                      {connection.connected ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    
-                    <CardTitle className="text-lg">{info.name}</CardTitle>
-                    <Badge variant="secondary" className="w-fit text-xs">
-                      {info.category}
-                    </Badge>
-                    
-                    <CardDescription className="text-xs mt-2 line-clamp-2">
-                      {info.description}
-                    </CardDescription>
-                    
-                    {connection.connected && connection.lastConnected && (
-                      <div className="mt-2 space-y-1">
-                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Connected {new Date(connection.lastConnected).toLocaleDateString()}
-                        </p>
-                        {connection.isExpired && (
-                          <Badge variant="destructive" className="text-xs">
-                            Token Expired
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    {connection.connected ? (
-                      <div className="flex gap-2">
-                        {connection.isExpired && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => handleRefresh(connection.type)}
-                          >
-                            Refresh Token
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={connection.isExpired ? "flex-1" : "w-full"}
-                          onClick={() => handleDisconnect(connection.type)}
-                        >
-                          Disconnect
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => handleConnect(connection.type)}
-                        disabled={connecting === connection.type}
-                      >
-                        {connecting === connection.type ? (
-                          <>
-                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                            Connecting...
-                          </>
-                        ) : (
-                          "Connect"
-                        )}
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* All Connections Section */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">
-          All Available Connections ({filteredConnections.length})
-        </h2>
-        {filteredConnections.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredConnections.map((connection) => {
-              const info = CREDENTIAL_INFO[connection.type as keyof typeof CREDENTIAL_INFO];
-              return (
-                <Card 
-                  key={connection.type}
-                  className={cn(
-                    "relative overflow-hidden transition-all hover:shadow-lg",
-                    connection.connected && "ring-2 ring-green-500/20"
-                  )}
-                >
-                  <div className={cn("absolute top-0 left-0 right-0 h-2", info.color)} />
-                  
-                  {info.popular && (
-                    <Badge variant="outline" className="absolute top-4 right-4 text-xs">
-                      <Star className="h-3 w-3 mr-1" /> Popular
-                    </Badge>
-                  )}
-                  
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="text-4xl">{info.icon}</div>
-                      {connection.connected ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-                    
-                    <CardTitle className="text-lg">{info.name}</CardTitle>
-                    <Badge variant="secondary" className="w-fit text-xs">
-                      {info.category}
-                    </Badge>
-                    
-                    <CardDescription className="text-xs mt-2 line-clamp-2">
-                      {info.description}
-                    </CardDescription>
-                    
-                    {connection.connected && connection.lastConnected && (
-                      <div className="mt-2 space-y-1">
-                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Connected {new Date(connection.lastConnected).toLocaleDateString()}
-                        </p>
-                        {connection.isExpired && (
-                          <Badge variant="destructive" className="text-xs">
-                            Token Expired
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    {connection.connected ? (
-                      <div className="flex gap-2">
-                        {connection.isExpired && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => handleRefresh(connection.type)}
-                          >
-                            Refresh Token
-                          </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={connection.isExpired ? "flex-1" : "w-full"}
-                          onClick={() => handleDisconnect(connection.type)}
-                        >
-                          Disconnect
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        size="sm"
-                        className="w-full"
-                        onClick={() => handleConnect(connection.type)}
-                        disabled={connecting === connection.type}
-                      >
-                        {connecting === connection.type ? (
-                          <>
-                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                            Connecting...
-                          </>
-                        ) : (
-                          "Connect"
-                        )}
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
+        {filteredConnections.length === 0 && (
           <div className="text-center py-12">
-            <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No connections found</h3>
-            <p className="text-muted-foreground">
-              Try adjusting your search or filters
-            </p>
+            <p className="text-muted-foreground">No connections found matching your filters.</p>
           </div>
         )}
       </div>
