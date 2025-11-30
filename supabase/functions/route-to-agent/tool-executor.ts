@@ -341,11 +341,15 @@ export async function executeGmailRequest(
   credentials: any,
   nodeParameters: any
 ): Promise<any> {
-  if (!credentials.googleOAuth2Api?.access_token && !credentials.gmailOAuth2?.access_token) {
+  const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+    ? credentials.googleOAuth2Api[0] 
+    : credentials.googleOAuth2Api;
+  
+  if (!googleCred?.access_token && !credentials.gmailOAuth2?.access_token) {
     throw new Error('Gmail credentials not configured');
   }
   
-  const accessToken = credentials.googleOAuth2Api?.access_token || credentials.gmailOAuth2?.access_token;
+  const accessToken = googleCred?.access_token || credentials.gmailOAuth2?.access_token;
   const operation = nodeParameters.operation || 'send';
   
   if (operation === 'send') {
@@ -411,8 +415,12 @@ export async function executeSheetsRequest(
   nodeParameters: any
 ): Promise<any> {
   // Support both direct googleOAuth2Api and aliased credentials
+  const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+    ? credentials.googleOAuth2Api[0] 
+    : credentials.googleOAuth2Api;
+  
   const accessToken = 
-    credentials.googleOAuth2Api?.access_token || 
+    googleCred?.access_token || 
     credentials.googleSheetsOAuth2?.access_token ||
     credentials.googleSheetsOAuth2Api?.access_token;
 

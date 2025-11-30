@@ -73,18 +73,51 @@ export class CredentialResolver {
   /**
    * Resolves a requested credential type against available user credentials
    * Uses multiple strategies: exact match, pattern matching, service fallback
+   * For Google: handles multiple accounts and selects best match based on scopes
    */
   resolveCredential(
     requestedType: string,
-    availableCredentials: Record<string, any>
+    availableCredentials: Record<string, any>,
+    requiredScopes?: string[]
   ): ResolvedCredential | null {
-    console.log(`🔍 Resolving credential: ${requestedType}`);
+    console.log(`🔍 Resolving credential: ${requestedType}`, requiredScopes ? `with scopes: ${requiredScopes.join(', ')}` : '');
 
-    // Strategy 1: Exact match (fastest)
-    if (availableCredentials[requestedType]?.access_token) {
+    // Strategy 1: Exact match
+    const exactCred = availableCredentials[requestedType];
+    
+    // Handle Google OAuth as array (multiple accounts)
+    if (requestedType === 'googleOAuth2Api' && Array.isArray(exactCred)) {
+      console.log(`✓ Found ${exactCred.length} Google account(s)`);
+      
+      // If requiredScopes provided, find best matching account
+      if (requiredScopes && requiredScopes.length > 0) {
+        for (const cred of exactCred) {
+          if (cred.scopes && requiredScopes.every((scope: string) => cred.scopes.includes(scope))) {
+            console.log(`✓ Best match found: ${cred.account_email} (has all required scopes)`);
+            return { 
+              credential: cred, 
+              resolvedAs: `${requestedType} (${cred.account_email})`, 
+              method: 'exact_match' 
+            };
+          }
+        }
+        console.log(`⚠️ No account has all required scopes, using first available`);
+      }
+      
+      // Fallback: use first account if no scope matching needed
+      if (exactCred.length > 0 && exactCred[0].access_token) {
+        console.log(`✓ Using first Google account: ${exactCred[0].account_email}`);
+        return { 
+          credential: exactCred[0], 
+          resolvedAs: `${requestedType} (${exactCred[0].account_email})`, 
+          method: 'exact_match' 
+        };
+      }
+    } else if (exactCred?.access_token) {
+      // Non-Google credential (single credential)
       console.log(`✓ Exact match found: ${requestedType}`);
       return { 
-        credential: availableCredentials[requestedType], 
+        credential: exactCred, 
         resolvedAs: requestedType, 
         method: 'exact_match' 
       };
@@ -106,10 +139,20 @@ export class CredentialResolver {
         }
         
         // Check if base type exists
-        if (availableCredentials[mapping.baseType]?.access_token) {
+        const baseCred = availableCredentials[mapping.baseType];
+        
+        // Handle Google as array
+        if (mapping.baseType === 'googleOAuth2Api' && Array.isArray(baseCred) && baseCred.length > 0) {
+          console.log(`✓ Pattern match: ${requestedType} → ${mapping.baseType} (using first account)`);
+          return { 
+            credential: baseCred[0], 
+            resolvedAs: `${mapping.baseType} (${baseCred[0].account_email})`, 
+            method: 'pattern_match' 
+          };
+        } else if (baseCred?.access_token) {
           console.log(`✓ Pattern match: ${requestedType} → ${mapping.baseType}`);
           return { 
-            credential: availableCredentials[mapping.baseType], 
+            credential: baseCred, 
             resolvedAs: mapping.baseType, 
             method: 'pattern_match' 
           };
@@ -124,16 +167,28 @@ export class CredentialResolver {
     
     if (serviceMatch) {
       const sameServiceCreds = Object.entries(availableCredentials).find(
-        ([key, _]) => key.toLowerCase().includes(serviceMatch.serviceCategory)
+        ([key, val]) => {
+          // Handle Google array
+          if (key === 'googleOAuth2Api' && Array.isArray(val) && val.length > 0) {
+            return key.toLowerCase().includes(serviceMatch.serviceCategory);
+          }
+          return key.toLowerCase().includes(serviceMatch.serviceCategory) && val?.access_token;
+        }
       );
       
-      if (sameServiceCreds && sameServiceCreds[1]?.access_token) {
-        console.log(`✓ Service fallback: ${requestedType} → ${sameServiceCreds[0]}`);
-        return { 
-          credential: sameServiceCreds[1], 
-          resolvedAs: sameServiceCreds[0], 
-          method: 'service_fallback' 
-        };
+      if (sameServiceCreds) {
+        const [key, val] = sameServiceCreds;
+        const cred = Array.isArray(val) ? val[0] : val;
+        
+        if (cred?.access_token) {
+          const resolvedName = Array.isArray(val) ? `${key} (${cred.account_email})` : key;
+          console.log(`✓ Service fallback: ${requestedType} → ${resolvedName}`);
+          return { 
+            credential: cred, 
+            resolvedAs: resolvedName, 
+            method: 'service_fallback' 
+          };
+        }
       }
     }
 
@@ -162,6 +217,7 @@ export class CredentialResolver {
 
   /**
    * Check if all required credentials are available
+   * For Google: checks if any account is connected
    */
   validateCredentials(
     requiredTypes: string[],
@@ -185,5 +241,25 @@ export class CredentialResolver {
       missing,
       resolutions
     };
+  }
+
+  /**
+   * Get summary of available credentials for system prompt
+   */
+  getCredentialsSummary(availableCredentials: Record<string, any>): string {
+    const lines: string[] = [];
+    
+    for (const [type, cred] of Object.entries(availableCredentials)) {
+      if (type === 'googleOAuth2Api' && Array.isArray(cred)) {
+        const accounts = cred.map(c => c.account_email || c.account_label).join(', ');
+        lines.push(`- Google (${cred.length} account${cred.length > 1 ? 's' : ''}): ${accounts}`);
+      } else if (cred?.access_token) {
+        lines.push(`- ${type}`);
+      }
+    }
+    
+    return lines.length > 0 
+      ? `You have access to these connected services:\n${lines.join('\n')}`
+      : 'No services connected yet.';
   }
 }

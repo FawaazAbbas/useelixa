@@ -1192,33 +1192,45 @@ export type Database = {
       user_credentials: {
         Row: {
           access_token: string
+          account_email: string | null
+          account_label: string | null
+          bundle_type: string | null
           created_at: string
           credential_type: string
           expires_at: string | null
           id: string
           refresh_token: string | null
+          scopes: string[] | null
           token_type: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           access_token: string
+          account_email?: string | null
+          account_label?: string | null
+          bundle_type?: string | null
           created_at?: string
           credential_type: string
           expires_at?: string | null
           id?: string
           refresh_token?: string | null
+          scopes?: string[] | null
           token_type?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           access_token?: string
+          account_email?: string | null
+          account_label?: string | null
+          bundle_type?: string | null
           created_at?: string
           credential_type?: string
           expires_at?: string | null
           id?: string
           refresh_token?: string | null
+          scopes?: string[] | null
           token_type?: string | null
           updated_at?: string
           user_id?: string

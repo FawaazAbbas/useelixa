@@ -113,8 +113,12 @@ export class ExecutionStrategies {
     };
     
     // Auto-inject OAuth token if available
+    const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+      ? credentials.googleOAuth2Api[0] 
+      : credentials.googleOAuth2Api;
+    
     const accessToken = credentials.access_token || 
-                       credentials.googleOAuth2Api?.access_token ||
+                       googleCred?.access_token ||
                        credentials.slackOAuth2Api?.access_token;
     
     if (accessToken) {

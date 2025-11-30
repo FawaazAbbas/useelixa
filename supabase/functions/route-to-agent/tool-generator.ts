@@ -637,8 +637,12 @@ export function generateToolDefinitions(
       tools.push(notionQueryTool);
     }
 
-    // Gmail tools
-    if (userCredentials.googleOAuth2Api || Object.keys(userCredentials).some(k => k.toLowerCase().includes('google'))) {
+    // Gmail tools - handle Google as array
+    const hasGoogle = (Array.isArray(userCredentials.googleOAuth2Api) && userCredentials.googleOAuth2Api.length > 0) || 
+                      userCredentials.googleOAuth2Api?.access_token ||
+                      Object.keys(userCredentials).some(k => k.toLowerCase().includes('google'));
+    
+    if (hasGoogle) {
       const gmailSendTool: LovableAITool = {
         type: "function",
         function: {
@@ -975,10 +979,16 @@ REMEMBERING USER PREFERENCES (critical):
     }
   });
   
-  // PHASE 2: From user credentials directly
+  // PHASE 2: From user credentials directly - handle Google as array
   if (userCredentials) {
-    Object.keys(userCredentials).forEach(credType => {
-      if (credType.includes('googleOAuth2')) {
+    Object.entries(userCredentials).forEach(([credType, cred]) => {
+      // Handle Google credentials array
+      if (credType === 'googleOAuth2Api' && Array.isArray(cred)) {
+        connectedServices.add('Gmail');
+        connectedServices.add('Google Drive');
+        connectedServices.add('Google Sheets');
+        connectedServices.add('Google Calendar');
+      } else if (credType.includes('googleOAuth2')) {
         connectedServices.add('Gmail');
         connectedServices.add('Google Drive');
         connectedServices.add('Google Sheets');
@@ -1016,10 +1026,14 @@ REMEMBERING USER PREFERENCES (critical):
     .join('\n');
   
   // Build CRITICAL credential status section (must be first and prominent)
+  const credentialSummary = credentialResolver.getCredentialsSummary(userCredentials || {});
+  
   const credentialSection = connectedServices.size > 0 
     ? `🔐 CRITICAL AUTHENTICATION STATUS:
 You have FULL ACCESS to the following services with VALID, ACTIVE credentials:
 ${Array.from(connectedServices).map(service => `✓ ${service} - CONNECTED AND AUTHORIZED`).join('\n')}
+
+${credentialSummary}
 
 ⚠️ MANDATORY RULES - READ CAREFULLY:
 1. NEVER claim these services are "not connected", "unavailable", or "need to be set up"
