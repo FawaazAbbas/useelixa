@@ -53,6 +53,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Fetch unread counts for all chats
@@ -175,6 +176,9 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Fetch messages for a chat
   const fetchMessages = useCallback(async (chatId: string) => {
+      // Set current chat ID for real-time filtering
+      setCurrentChatId(chatId);
+      
       const { data } = await supabase
         .from('messages')
         .select('*')
@@ -293,15 +297,19 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
         },
         (payload) => {
           const newMessage = payload.new as any;
-          setMessages((prev: Message[]) => {
-            // Avoid duplicates
-            if (prev.some(m => m.id === newMessage.id)) return prev;
-            const typedMessage: Message = {
-              ...newMessage,
-              metadata: newMessage.metadata as Message['metadata']
-            };
-            return [...prev, typedMessage];
-          });
+          
+          // Only add message if it belongs to the current chat
+          if (currentChatId && newMessage.chat_id === currentChatId) {
+            setMessages((prev: Message[]) => {
+              // Avoid duplicates
+              if (prev.some(m => m.id === newMessage.id)) return prev;
+              const typedMessage: Message = {
+                ...newMessage,
+                metadata: newMessage.metadata as Message['metadata']
+              };
+              return [...prev, typedMessage];
+            });
+          }
           
           // Refresh unread counts when new message arrives
           if (!newMessage.user_id) { // Only for agent messages
@@ -353,7 +361,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, workspaceId, fetchChats, fetchUnreadCounts]);
+  }, [userId, workspaceId, currentChatId, fetchChats, fetchUnreadCounts]);
 
   // Delete message
   const deleteMessage = useCallback(async (messageId: string) => {
