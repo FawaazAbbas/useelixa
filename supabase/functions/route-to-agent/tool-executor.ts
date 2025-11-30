@@ -1684,12 +1684,23 @@ async function executeExternalGmailTool(
   args: any,
   credentials: any
 ): Promise<any> {
-  const googleCred = credentials.googleOAuth2Api || 
-    Object.values(credentials).find((c: any) => c.credential_type?.toLowerCase().includes('google'));
+  // Handle Google credentials as array (multiple accounts)
+  const rawGoogleCred = credentials.googleOAuth2Api;
+  const googleCred = Array.isArray(rawGoogleCred) 
+    ? rawGoogleCred[0] 
+    : rawGoogleCred;
   
   if (!googleCred?.access_token) {
-    throw new Error('Gmail credentials not available');
+    console.error('Gmail credentials check failed:', {
+      hasGoogleCreds: !!credentials.googleOAuth2Api,
+      isArray: Array.isArray(credentials.googleOAuth2Api),
+      credCount: Array.isArray(credentials.googleOAuth2Api) ? credentials.googleOAuth2Api.length : 0
+    });
+    throw new Error('Gmail credentials not available. Please connect your Google account in the Connections page.');
   }
+
+  console.log(`✓ Using Google account for Gmail: ${googleCred.account_email || 'unknown'}`);
+
 
   if (toolName === 'gmail_send_email') {
     const email = [
@@ -1748,12 +1759,23 @@ async function executeExternalDriveTool(
   args: any,
   credentials: any
 ): Promise<any> {
-  const googleCred = credentials.googleOAuth2Api || 
-    Object.values(credentials).find((c: any) => c.credential_type?.toLowerCase().includes('google'));
+  // Handle Google credentials as array (multiple accounts)
+  const rawGoogleCred = credentials.googleOAuth2Api;
+  const googleCred = Array.isArray(rawGoogleCred) 
+    ? rawGoogleCred[0] 
+    : rawGoogleCred;
   
   if (!googleCred?.access_token) {
-    throw new Error('Google Drive credentials not available');
+    console.error('Google Drive credentials check failed:', {
+      hasGoogleCreds: !!credentials.googleOAuth2Api,
+      isArray: Array.isArray(credentials.googleOAuth2Api),
+      credCount: Array.isArray(credentials.googleOAuth2Api) ? credentials.googleOAuth2Api.length : 0
+    });
+    throw new Error('Google Drive credentials not available. Please connect your Google account in the Connections page.');
   }
+
+  console.log(`✓ Using Google account for Drive: ${googleCred.account_email || 'unknown'}`);
+
 
   if (toolName === 'google_drive_upload') {
     const metadata = {

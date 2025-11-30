@@ -32,6 +32,17 @@ const NODE_CREDENTIAL_REQUIREMENTS: Record<string, string> = {
   'n8n-nodes-base.googleAds': 'googleOAuth2Api',
 };
 
+// PHASE 3: Map node types to required OAuth scopes for intelligent credential selection
+const NODE_SCOPE_REQUIREMENTS: Record<string, string[]> = {
+  'n8n-nodes-base.gmail': ['https://www.googleapis.com/auth/gmail.send', 'https://www.googleapis.com/auth/gmail.readonly'],
+  'n8n-nodes-base.googleDrive': ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/drive.file'],
+  'n8n-nodes-base.googleSheets': ['https://www.googleapis.com/auth/spreadsheets'],
+  'n8n-nodes-base.googleDocs': ['https://www.googleapis.com/auth/documents'],
+  'n8n-nodes-base.googleCalendar': ['https://www.googleapis.com/auth/calendar'],
+  'n8n-nodes-base.googleAds': ['https://www.googleapis.com/auth/adwords'],
+  'n8n-nodes-base.googleAnalytics': ['https://www.googleapis.com/auth/analytics.readonly'],
+};
+
 export function generateToolDefinitions(
   workflow: ParsedWorkflow,
   userCredentials: Record<string, any>
@@ -64,10 +75,16 @@ export function generateToolDefinitions(
     // PHASE 3: Resolve and inject credentials using intelligent resolver
     const resolvedCreds: Record<string, any> = {};
     
+    // Get required scopes for this node type
+    const requiredScopes = NODE_SCOPE_REQUIREMENTS[node.type];
+    if (requiredScopes) {
+      console.log(`  📋 Required scopes for ${node.type}: ${requiredScopes.join(', ')}`);
+    }
+    
     // First, try credentials declared in workflow
     if (node.credentials) {
       for (const credKey of Object.keys(node.credentials)) {
-        const resolved = credentialResolver.resolveCredential(credKey, userCredentials);
+        const resolved = credentialResolver.resolveCredential(credKey, userCredentials, requiredScopes);
         
         if (resolved) {
           resolvedCreds[credKey] = resolved.credential;
@@ -82,7 +99,7 @@ export function generateToolDefinitions(
     const requiredCredType = NODE_CREDENTIAL_REQUIREMENTS[node.type];
     if (requiredCredType && Object.keys(resolvedCreds).length === 0) {
       console.log(`  🔍 Auto-detecting credentials for ${node.type}...`);
-      const resolved = credentialResolver.resolveCredential(requiredCredType, userCredentials);
+      const resolved = credentialResolver.resolveCredential(requiredCredType, userCredentials, requiredScopes);
       
       if (resolved) {
         resolvedCreds[requiredCredType] = resolved.credential;
