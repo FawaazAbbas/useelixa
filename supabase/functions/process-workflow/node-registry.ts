@@ -576,6 +576,15 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     isExecutable: true,
   },
 
+  googleAds: {
+    nodeTypes: [
+      'n8n-nodes-base.googleAds',
+    ],
+    category: 'automation',
+    credentialPatterns: ['googleAds*', 'googleOAuth2*'],
+    isExecutable: true,
+  },
+
   evernote: {
     nodeTypes: [
       'n8n-nodes-base.evernote',
