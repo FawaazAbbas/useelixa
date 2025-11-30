@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { OAUTH_CLIENT_IDS } from "@/config/oauth";
+import { GOOGLE_BUNDLES, getBundleScopes } from "@/config/googleBundles";
 
 interface ConnectionStatus {
   type: string;
@@ -16,18 +17,13 @@ interface ConnectionStatus {
   lastConnected?: string;
   expiresAt?: string;
   isExpired?: boolean;
+  bundleType?: string;
+  accountEmail?: string;
+  accountLabel?: string;
 }
 
 const CREDENTIAL_INFO = {
-  googleOAuth2Api: { 
-    name: "Google Workspace",
-    shortName: "Google",
-    description: "Gmail, Calendar, Drive, Sheets, Docs, Forms, Tasks",
-    category: "Productivity",
-    icon: "🔗",
-    color: "bg-blue-500",
-    popular: true
-  },
+  // Google bundles are now handled separately via GOOGLE_BUNDLES config
   notionApi: { 
     name: "Notion",
     shortName: "Notion",
@@ -141,6 +137,7 @@ const CREDENTIAL_INFO = {
 export default function Connections() {
   const { user } = useAuth();
   const [connections, setConnections] = useState<ConnectionStatus[]>([]);
+  const [googleCredentials, setGoogleCredentials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -158,14 +155,20 @@ export default function Connections() {
     try {
       const { data, error } = await supabase
         .from("user_credentials")
-        .select("credential_type, updated_at, expires_at")
+        .select("id, credential_type, updated_at, expires_at, bundle_type, account_email, account_label")
         .eq("user_id", user.id);
 
       if (error) throw error;
 
-      const connectedTypes = new Set(data?.map(c => c.credential_type) || []);
+      // Separate Google credentials from others
+      const googleCreds = data?.filter(c => c.credential_type === "googleOAuth2Api") || [];
+      const otherCreds = data?.filter(c => c.credential_type !== "googleOAuth2Api") || [];
+
+      setGoogleCredentials(googleCreds);
+
+      const connectedTypes = new Set(otherCreds.map(c => c.credential_type));
       const statusList = Object.keys(CREDENTIAL_INFO).map(type => {
-        const credential = data?.find(c => c.credential_type === type);
+        const credential = otherCreds.find(c => c.credential_type === type);
         const isExpired = credential?.expires_at 
           ? new Date(credential.expires_at).getTime() < Date.now()
           : false;
@@ -188,7 +191,7 @@ export default function Connections() {
     }
   };
 
-  const handleConnect = (credentialType: string) => {
+  const handleConnect = (credentialType: string, bundleType?: string) => {
     if (!user) return;
 
     setConnecting(credentialType);
@@ -196,6 +199,7 @@ export default function Connections() {
     const state = btoa(JSON.stringify({
       userId: user.id,
       credentialType,
+      bundleType,
       returnTo: "/connections",
     }));
 
@@ -204,7 +208,13 @@ export default function Connections() {
 
     switch (credentialType) {
       case "googleOAuth2Api":
-        authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${OAUTH_CLIENT_IDS.GOOGLE}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/documents https://www.googleapis.com/auth/tasks')}&access_type=offline&prompt=consent&state=${state}`;
+        if (!bundleType) {
+          toast.error("Please specify which Google bundle to connect");
+          setConnecting(null);
+          return;
+        }
+        const scopes = getBundleScopes(bundleType);
+        authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${OAUTH_CLIENT_IDS.GOOGLE}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}&access_type=offline&prompt=consent&state=${state}`;
         break;
       case "notionApi":
         authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.NOTION}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&owner=user&state=${state}`;
@@ -254,19 +264,27 @@ export default function Connections() {
     }
   };
 
-  const handleDisconnect = async (credentialType: string) => {
+  const handleDisconnect = async (credentialType: string, credentialId?: string) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      let query = supabase
         .from("user_credentials")
         .delete()
-        .eq("user_id", user.id)
-        .eq("credential_type", credentialType);
+        .eq("user_id", user.id);
+
+      if (credentialId) {
+        query = query.eq("id", credentialId);
+      } else {
+        query = query.eq("credential_type", credentialType);
+      }
+
+      const { error } = await query;
 
       if (error) throw error;
 
-      toast.success(`${CREDENTIAL_INFO[credentialType as keyof typeof CREDENTIAL_INFO].name} disconnected`);
+      const credInfo = CREDENTIAL_INFO[credentialType as keyof typeof CREDENTIAL_INFO];
+      toast.success(`${credInfo ? credInfo.name : credentialType} disconnected`);
       fetchConnections();
     } catch (error) {
       console.error("Error disconnecting:", error);
@@ -418,6 +436,105 @@ export default function Connections() {
               {cat}
             </Badge>
           ))}
+        </div>
+      </div>
+
+      {/* Google Bundles Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <span className="text-2xl">🔗</span>
+          Google Connections
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Connect different Google services with separate accounts. Each bundle provides access to specific Google APIs.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.values(GOOGLE_BUNDLES).map((bundle) => {
+            const bundleCreds = googleCredentials.filter(c => c.bundle_type === bundle.id);
+            const hasConnections = bundleCreds.length > 0;
+
+            return (
+              <Card 
+                key={bundle.id}
+                className={cn(
+                  "relative overflow-hidden transition-all hover:shadow-lg",
+                  hasConnections && "ring-2 ring-green-500/20"
+                )}
+              >
+                <div className={cn("absolute top-0 left-0 right-0 h-2", bundle.color)} />
+                
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="text-4xl">{bundle.icon}</div>
+                    {hasConnections ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  
+                  <CardTitle className="text-lg">{bundle.name}</CardTitle>
+                  <Badge variant="secondary" className="w-fit text-xs">
+                    Google
+                  </Badge>
+                  
+                  <CardDescription className="text-xs mt-2">
+                    {bundle.description}
+                  </CardDescription>
+
+                  {/* Connected Accounts */}
+                  {hasConnections && (
+                    <div className="mt-3 space-y-2">
+                      {bundleCreds.map((cred) => (
+                        <div 
+                          key={cred.id}
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded-md"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">
+                              {cred.account_label || cred.account_email}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(cred.updated_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            onClick={() => handleDisconnect("googleOAuth2Api", cred.id)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <Button
+                    size="sm"
+                    variant={hasConnections ? "outline" : "default"}
+                    className="w-full"
+                    onClick={() => handleConnect("googleOAuth2Api", bundle.id)}
+                    disabled={connecting === `google_${bundle.id}`}
+                  >
+                    {connecting === `google_${bundle.id}` ? (
+                      <>
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : hasConnections ? (
+                      "+ Add Another Account"
+                    ) : (
+                      "Connect Google Account"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 

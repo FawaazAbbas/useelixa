@@ -343,8 +343,12 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
       const operation = args.operation || nodeParameters.operation || 'list';
       const calendarId = args.calendar_id || nodeParameters.calendarId || 'primary';
       
+      const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+        ? credentials.googleOAuth2Api[0] 
+        : credentials.googleOAuth2Api;
+      
       const headers = {
-        'Authorization': `Bearer ${credentials.googleCalendarOAuth2?.access_token || credentials.googleOAuth2Api?.access_token}`,
+        'Authorization': `Bearer ${credentials.googleCalendarOAuth2?.access_token || googleCred?.access_token}`,
         'Content-Type': 'application/json'
       };
 
@@ -406,8 +410,12 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     executor: async (args: any, credentials: any, nodeParameters: any) => {
       const operation = args.operation || nodeParameters.operation || 'list';
       
+      const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+        ? credentials.googleOAuth2Api[0] 
+        : credentials.googleOAuth2Api;
+      
       const headers = {
-        'Authorization': `Bearer ${credentials.googleDriveOAuth2?.access_token || credentials.googleOAuth2Api?.access_token}`,
+        'Authorization': `Bearer ${credentials.googleDriveOAuth2?.access_token || googleCred?.access_token}`,
         'Content-Type': 'application/json'
       };
 

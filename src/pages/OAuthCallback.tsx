@@ -29,14 +29,22 @@ export default function OAuthCallback() {
         throw new Error('Missing OAuth parameters');
       }
 
-      // Decode state to get user ID and credential type
-      const { userId, credentialType, returnTo } = JSON.parse(atob(state));
+      // Decode state to get user ID, credential type, and bundle type
+      const { userId, credentialType, bundleType, returnTo } = JSON.parse(atob(state));
 
       setMessage('Exchanging authorization code for access token...');
 
       // Exchange code for token via edge function
       const { data, error: exchangeError } = await supabase.functions.invoke('exchange-oauth-token', {
-        body: { code, credentialType, userId }
+        body: { 
+          code, 
+          credentialType, 
+          userId,
+          bundleType: bundleType || undefined,
+          scopes: window.location.href.includes('scope=') 
+            ? decodeURIComponent(new URL(window.location.href).searchParams.get('scope') || '')
+            : undefined
+        }
       });
 
       if (exchangeError) {

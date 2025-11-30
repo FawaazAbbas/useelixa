@@ -12,13 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, credentialType } = await req.json();
+    const { userId, credentialType, credentialId, bundleType, accountEmail } = await req.json();
 
     if (!userId || !credentialType) {
       throw new Error("Missing required parameters");
     }
 
-    console.log(`Refreshing token for ${credentialType}`);
+    console.log(`Refreshing token for ${credentialType}`, { credentialId, bundleType, accountEmail });
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -26,12 +26,21 @@ serve(async (req) => {
     );
 
     // Get existing credentials with refresh_token
-    const { data: creds, error: fetchError } = await supabaseClient
+    let query = supabaseClient
       .from("user_credentials")
       .select("*")
       .eq("user_id", userId)
-      .eq("credential_type", credentialType)
-      .single();
+      .eq("credential_type", credentialType);
+
+    // If credentialId is provided, use it for precise lookup
+    if (credentialId) {
+      query = query.eq("id", credentialId);
+    } else if (bundleType && accountEmail) {
+      // For Google bundles, match by bundle and account
+      query = query.eq("bundle_type", bundleType).eq("account_email", accountEmail);
+    }
+
+    const { data: creds, error: fetchError } = await query.maybeSingle();
 
     if (fetchError || !creds || !creds.refresh_token) {
       throw new Error("No refresh token found. Please reconnect your account.");
@@ -152,7 +161,7 @@ serve(async (req) => {
     const tokens = await tokenResponse.json();
 
     // Update credentials with new access token
-    const { error: updateError } = await supabaseClient
+    let updateQuery = supabaseClient
       .from("user_credentials")
       .update({
         access_token: tokens.access_token,
@@ -163,6 +172,14 @@ serve(async (req) => {
       })
       .eq("user_id", userId)
       .eq("credential_type", credentialType);
+
+    if (credentialId) {
+      updateQuery = updateQuery.eq("id", credentialId);
+    } else if (bundleType && accountEmail) {
+      updateQuery = updateQuery.eq("bundle_type", bundleType).eq("account_email", accountEmail);
+    }
+
+    const { error: updateError } = await updateQuery;
 
     if (updateError) {
       console.error("Error updating credentials:", updateError);

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { code, credentialType, userId } = await req.json();
+    const { code, credentialType, userId, bundleType, scopes } = await req.json();
 
     if (!code || !credentialType || !userId) {
       console.error("Missing parameters:", { code: !!code, credentialType, userId: !!userId });
@@ -20,7 +20,8 @@ serve(async (req) => {
     }
 
     console.log(`🔐 Exchanging OAuth code for ${credentialType}`, { 
-      userId, 
+      userId,
+      bundleType,
       redirectUri: getRedirectUri(),
       siteUrl: Deno.env.get("SITE_URL")
     });
@@ -154,33 +155,101 @@ serve(async (req) => {
 
     const tokens = await tokenResponse.json();
 
+    // For Google OAuth, fetch user email to identify the account
+    let accountEmail = null;
+    if (credentialType === "googleOAuth2Api") {
+      try {
+        const userInfoResponse = await fetch(
+          'https://www.googleapis.com/oauth2/v2/userinfo',
+          { headers: { 'Authorization': `Bearer ${tokens.access_token}` }}
+        );
+        const userInfo = await userInfoResponse.json();
+        accountEmail = userInfo.email;
+        console.log(`✓ Fetched Google account email: ${accountEmail}`);
+      } catch (emailError) {
+        console.error("⚠️ Failed to fetch account email:", emailError);
+      }
+    }
+
     // Store tokens in user_credentials table
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { error: upsertError } = await supabaseClient
-      .from("user_credentials")
-      .upsert({
+    // Check if this exact combination exists (for Google bundles)
+    if (credentialType === "googleOAuth2Api" && bundleType && accountEmail) {
+      const { data: existing } = await supabaseClient
+        .from('user_credentials')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('credential_type', credentialType)
+        .eq('bundle_type', bundleType)
+        .eq('account_email', accountEmail)
+        .maybeSingle();
+
+      const credentialData = {
         user_id: userId,
         credential_type: credentialType,
+        bundle_type: bundleType,
+        account_email: accountEmail,
+        account_label: accountEmail,
+        scopes: scopes ? scopes.split(' ') : null,
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_at: tokens.expires_in 
           ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
           : null,
         token_type: tokens.token_type || "Bearer",
-      }, {
-        onConflict: "user_id,credential_type"
-      });
+      };
 
-    if (upsertError) {
-      console.error("❌ Error storing credentials:", upsertError);
-      throw upsertError;
+      if (existing) {
+        // UPDATE existing credential
+        const { error: updateError } = await supabaseClient
+          .from("user_credentials")
+          .update(credentialData)
+          .eq('id', existing.id);
+
+        if (updateError) {
+          console.error("❌ Error updating credentials:", updateError);
+          throw updateError;
+        }
+        console.log(`✅ Updated existing ${credentialType} credential for ${accountEmail}`);
+      } else {
+        // INSERT new credential
+        const { error: insertError } = await supabaseClient
+          .from("user_credentials")
+          .insert(credentialData);
+
+        if (insertError) {
+          console.error("❌ Error inserting credentials:", insertError);
+          throw insertError;
+        }
+        console.log(`✅ Inserted new ${credentialType} credential for ${accountEmail}`);
+      }
+    } else {
+      // Non-Google credentials or legacy Google without bundle
+      const { error: upsertError } = await supabaseClient
+        .from("user_credentials")
+        .upsert({
+          user_id: userId,
+          credential_type: credentialType,
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          expires_at: tokens.expires_in 
+            ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+            : null,
+          token_type: tokens.token_type || "Bearer",
+        }, {
+          onConflict: "user_id,credential_type"
+        });
+
+      if (upsertError) {
+        console.error("❌ Error storing credentials:", upsertError);
+        throw upsertError;
+      }
+      console.log(`✅ Successfully stored ${credentialType} credentials for user`);
     }
-
-    console.log(`✅ Successfully stored ${credentialType} credentials for user`);
 
     return new Response(
       JSON.stringify({

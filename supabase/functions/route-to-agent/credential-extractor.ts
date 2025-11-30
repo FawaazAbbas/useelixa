@@ -45,6 +45,7 @@ export async function fetchUserCredentials(
   }
   
   // Transform array of credentials into object keyed by credential_type
+  // For Google, store as array to support multiple accounts
   const credentials: Record<string, any> = {};
   
   for (const cred of (data || [])) {
@@ -56,7 +57,7 @@ export async function fetchUserCredentials(
       console.log(`🔄 Token for ${cred.credential_type} expired or expiring soon, refreshing...`);
       
       try {
-        // Call refresh token edge function
+        // Call refresh token edge function with credential ID for precise refresh
         const refreshResponse = await fetch(
           `${Deno.env.get('SUPABASE_URL')}/functions/v1/refresh-oauth-token`,
           {
@@ -68,6 +69,9 @@ export async function fetchUserCredentials(
             body: JSON.stringify({
               userId,
               credentialType: cred.credential_type,
+              credentialId: cred.id,
+              bundleType: cred.bundle_type,
+              accountEmail: cred.account_email,
             }),
           }
         );
@@ -77,43 +81,100 @@ export async function fetchUserCredentials(
           console.log(`✅ Token refreshed for ${cred.credential_type}`);
           
           // Use refreshed token
-          credentials[cred.credential_type] = {
+          const tokenData = {
+            id: cred.id,
             access_token: refreshData.access_token,
             refresh_token: cred.refresh_token,
             token_type: cred.token_type,
             expires_at: cred.expires_at,
+            bundle_type: cred.bundle_type,
+            account_email: cred.account_email,
+            scopes: cred.scopes,
           };
+
+          // For Google, store as array; for others, single credential
+          if (cred.credential_type === 'googleOAuth2Api') {
+            if (!credentials[cred.credential_type]) {
+              credentials[cred.credential_type] = [];
+            }
+            credentials[cred.credential_type].push(tokenData);
+          } else {
+            credentials[cred.credential_type] = tokenData;
+          }
         } else {
           console.warn(`⚠️ Failed to refresh token for ${cred.credential_type}, using existing token`);
-          credentials[cred.credential_type] = {
+          
+          const tokenData = {
+            id: cred.id,
             access_token: cred.access_token,
             refresh_token: cred.refresh_token,
             token_type: cred.token_type,
             expires_at: cred.expires_at,
+            bundle_type: cred.bundle_type,
+            account_email: cred.account_email,
+            scopes: cred.scopes,
           };
+
+          if (cred.credential_type === 'googleOAuth2Api') {
+            if (!credentials[cred.credential_type]) {
+              credentials[cred.credential_type] = [];
+            }
+            credentials[cred.credential_type].push(tokenData);
+          } else {
+            credentials[cred.credential_type] = tokenData;
+          }
         }
       } catch (refreshError) {
         console.error(`Error refreshing token for ${cred.credential_type}:`, refreshError);
         // Fallback to existing token
-        credentials[cred.credential_type] = {
+        const tokenData = {
+          id: cred.id,
           access_token: cred.access_token,
           refresh_token: cred.refresh_token,
           token_type: cred.token_type,
           expires_at: cred.expires_at,
+          bundle_type: cred.bundle_type,
+          account_email: cred.account_email,
+          scopes: cred.scopes,
         };
+
+        if (cred.credential_type === 'googleOAuth2Api') {
+          if (!credentials[cred.credential_type]) {
+            credentials[cred.credential_type] = [];
+          }
+          credentials[cred.credential_type].push(tokenData);
+        } else {
+          credentials[cred.credential_type] = tokenData;
+        }
       }
     } else {
       // Token is still valid
-      credentials[cred.credential_type] = {
+      const tokenData = {
+        id: cred.id,
         access_token: cred.access_token,
         refresh_token: cred.refresh_token,
         token_type: cred.token_type,
         expires_at: cred.expires_at,
+        bundle_type: cred.bundle_type,
+        account_email: cred.account_email,
+        scopes: cred.scopes,
       };
+
+      if (cred.credential_type === 'googleOAuth2Api') {
+        if (!credentials[cred.credential_type]) {
+          credentials[cred.credential_type] = [];
+        }
+        credentials[cred.credential_type].push(tokenData);
+      } else {
+        credentials[cred.credential_type] = tokenData;
+      }
     }
   }
   
   console.log('Available credentials:', Object.keys(credentials));
+  if (credentials['googleOAuth2Api']) {
+    console.log('Google accounts:', credentials['googleOAuth2Api'].map((c: any) => c.account_email));
+  }
   return credentials;
 }
 
