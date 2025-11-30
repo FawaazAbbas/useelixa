@@ -652,6 +652,94 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
     })
   },
 
+  // Google Ads
+  googleAds: {
+    nodeTypes: ['n8n-nodes-base.googleAds'],
+    category: 'automation',
+    credentialPatterns: ['googleAds*', 'googleOAuth2*'],
+    isExecutable: true,
+    executor: async (args: any, credentials: any, nodeParameters: any) => {
+      const operation = args.operation || nodeParameters.operation || 'getCampaigns';
+      const customerId = args.customer_id || nodeParameters.customerId;
+      
+      const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+        ? credentials.googleOAuth2Api[0] 
+        : credentials.googleOAuth2Api;
+      
+      const headers = {
+        'Authorization': `Bearer ${credentials.googleAdsOAuth2?.access_token || googleCred?.access_token}`,
+        'Content-Type': 'application/json',
+        'developer-token': credentials.googleAdsApi?.developerToken || 'PLACEHOLDER_DEV_TOKEN'
+      };
+
+      // Google Ads API v15
+      const baseUrl = `https://googleads.googleapis.com/v15/customers/${customerId}`;
+
+      if (operation === 'getCampaigns' || operation === 'list') {
+        // Query for campaign metrics
+        const query = `
+          SELECT 
+            campaign.id,
+            campaign.name,
+            campaign.status,
+            metrics.clicks,
+            metrics.impressions,
+            metrics.cost_micros,
+            metrics.conversions,
+            metrics.conversions_value,
+            metrics.average_cpc
+          FROM campaign
+          WHERE campaign.status != 'REMOVED'
+          AND segments.date DURING LAST_30_DAYS
+        `;
+        
+        const url = `${baseUrl}/googleAds:searchStream`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ query })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Google Ads API error:', errorText);
+          throw new Error(`Google Ads API error: ${response.statusText}`);
+        }
+        
+        return await response.json();
+      }
+      
+      throw new Error(`Unsupported Google Ads operation: ${operation}`);
+    },
+    toolGenerator: (node) => ({
+      type: 'function',
+      function: {
+        name: `google_ads_${node.id}`,
+        description: node.parameters.description || `Fetch Google Ads campaign data and performance metrics`,
+        parameters: {
+          type: 'object',
+          properties: {
+            operation: { 
+              type: 'string', 
+              enum: ['getCampaigns', 'list'], 
+              description: 'Google Ads operation (default: getCampaigns)' 
+            },
+            customer_id: { 
+              type: 'string', 
+              description: 'Google Ads customer ID (without hyphens)' 
+            },
+            date_range: {
+              type: 'string',
+              enum: ['LAST_7_DAYS', 'LAST_30_DAYS', 'THIS_MONTH', 'LAST_MONTH'],
+              description: 'Date range for metrics (default: LAST_30_DAYS)'
+            }
+          },
+          required: ['customer_id']
+        }
+      }
+    })
+  },
+
   // Microsoft Teams
   microsoftTeams: {
     nodeTypes: ['n8n-nodes-base.microsoftTeams'],

@@ -29,6 +29,7 @@ const NODE_CREDENTIAL_REQUIREMENTS: Record<string, string> = {
   'n8n-nodes-base.mailchimp': 'mailchimpOAuth2Api',
   'n8n-nodes-base.shopify': 'shopifyApi',
   'n8n-nodes-base.openai': 'LOVABLE_AI',
+  'n8n-nodes-base.googleAds': 'googleOAuth2Api',
 };
 
 export function generateToolDefinitions(
