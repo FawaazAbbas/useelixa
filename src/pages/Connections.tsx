@@ -78,13 +78,40 @@ const CREDENTIAL_INFO: Record<string, {
     companyName: 'Mailchimp',
   },
   shopifyOAuth2Api: {
-    name: 'Shopify',
+    name: 'Shopify Store',
     description: 'Connect your Shopify store for e-commerce automation',
     category: 'E-commerce',
     icon: '🛍️',
     color: 'bg-green-600',
     logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg',
     companyName: 'Shopify',
+  },
+  metaBusinessApi: {
+    name: 'Meta Business Suite',
+    description: 'Connect Facebook and Instagram for social media management',
+    category: 'Social Media',
+    icon: '📱',
+    color: 'bg-blue-500',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg',
+    companyName: 'Meta',
+  },
+  twilioApi: {
+    name: 'Twilio',
+    description: 'Connect Twilio for SMS, voice, and messaging automation',
+    category: 'Communication',
+    icon: '📞',
+    color: 'bg-red-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Twilio-logo-red.svg',
+    companyName: 'Twilio',
+  },
+  typeformOAuth2Api: {
+    name: 'Typeform',
+    description: 'Connect Typeform for form and survey automation',
+    category: 'Forms',
+    icon: '📋',
+    color: 'bg-gray-900',
+    logo: 'https://images.typeform.com/images/FN7WnMAzJRu3',
+    companyName: 'Typeform',
   },
 };
 
@@ -177,6 +204,15 @@ export default function Connections() {
         const shopDomain = prompt("Enter your Shopify store domain (e.g., mystore.myshopify.com):");
         if (!shopDomain) return;
         authUrl = `https://${shopDomain}/admin/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.SHOPIFY}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read_products,write_products,read_orders&state=${state}`;
+        break;
+      case "metaBusinessApi":
+        authUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${OAUTH_CLIENT_IDS.META}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=pages_manage_posts,pages_read_engagement,instagram_basic,instagram_content_publish&state=${state}`;
+        break;
+      case "twilioApi":
+        authUrl = `https://www.twilio.com/authorize?client_id=${OAUTH_CLIENT_IDS.TWILIO}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=account&state=${state}`;
+        break;
+      case "typeformOAuth2Api":
+        authUrl = `https://api.typeform.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.TYPEFORM}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=forms:read,responses:read&state=${state}`;
         break;
     }
 

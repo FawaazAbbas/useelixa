@@ -11,4 +11,7 @@ export const OAUTH_CLIENT_IDS = {
   CALENDLY: 'Nnj-dmLFXc9lRSx6m7I5g2xEv33H4AEUCeQJA6rW-fI',
   MAILCHIMP: '334313964170',
   SHOPIFY: '44ad1408b7b236bb6dfe4d8ee9efff5d',
+  META: 'your-meta-client-id',
+  TWILIO: 'your-twilio-client-id',
+  TYPEFORM: 'your-typeform-client-id',
 } as const;
