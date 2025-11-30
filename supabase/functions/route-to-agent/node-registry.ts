@@ -30,6 +30,7 @@ import {
   executeSlackRequest,
   executeSheetsRequest,
   executeRSSRequest,
+  executeGoogleAdsRequest,
 } from './tool-executor.ts';
 
 /**

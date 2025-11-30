@@ -80,6 +80,8 @@ export async function executeToolCall(
         return await executeGmailRequest(args, credentials, nodeParameters);
       } else if (nodeType === 'n8n-nodes-base.googleSheets' || nodeType === 'n8n-nodes-base.googleSheetsTool') {
         return await executeSheetsRequest(args, credentials, nodeParameters);
+      } else if (nodeType === 'n8n-nodes-base.googleAds') {
+        return await executeGoogleAdsRequest(args, credentials, nodeParameters);
       } else if (nodeType === 'n8n-nodes-base.openAi') {
         return await executeOpenAIRequest(args, credentials, nodeParameters);
       } else if (nodeType === 'n8n-nodes-base.rssFeedRead') {
@@ -407,6 +409,77 @@ export async function executeGmailRequest(
   }
   
   throw new Error(`Unsupported Gmail operation: ${operation}`);
+}
+
+export async function executeGoogleAdsRequest(
+  args: any,
+  credentials: any,
+  nodeParameters: any
+): Promise<any> {
+  const googleCred = Array.isArray(credentials.googleOAuth2Api) 
+    ? credentials.googleOAuth2Api[0] 
+    : credentials.googleOAuth2Api;
+  
+  if (!googleCred?.access_token) {
+    throw new Error('Google Ads credentials not configured');
+  }
+  
+  const accessToken = googleCred.access_token;
+  const operation = args.operation || nodeParameters.operation || 'getCampaigns';
+  const customerId = args.customer_id || nodeParameters.customerId;
+  
+  if (!customerId) {
+    throw new Error('Google Ads customer_id is required');
+  }
+  
+  console.log('Executing Google Ads operation:', { operation, customerId });
+  
+  if (operation === 'getCampaigns') {
+    // Use Google Ads API to fetch campaigns
+    const query = `
+      SELECT 
+        campaign.id,
+        campaign.name,
+        campaign.status,
+        campaign.advertising_channel_type,
+        metrics.impressions,
+        metrics.clicks,
+        metrics.cost_micros
+      FROM campaign 
+      WHERE campaign.status != 'REMOVED'
+      ORDER BY campaign.id
+    `;
+    
+    const response = await fetch(
+      `https://googleads.googleapis.com/v16/customers/${customerId.replace(/-/g, '')}/googleAds:searchStream`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'developer-token': Deno.env.get('GOOGLE_ADS_DEVELOPER_TOKEN') || '',
+        },
+        body: JSON.stringify({ query })
+      }
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Google Ads API error:', response.status, errorText);
+      throw new Error(`Google Ads API ${response.status}: ${errorText}`);
+    }
+    
+    const result = await response.json();
+    console.log('✓ Google Ads campaigns fetched successfully');
+    
+    return {
+      success: true,
+      campaigns: result,
+      result: 'Campaigns fetched successfully'
+    };
+  }
+  
+  throw new Error(`Unsupported Google Ads operation: ${operation}`);
 }
 
 export async function executeSheetsRequest(
