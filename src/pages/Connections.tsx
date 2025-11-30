@@ -41,6 +41,15 @@ const CREDENTIAL_INFO: Record<string, {
     logo: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
     companyName: 'Notion',
   },
+  slackOAuth2Api: {
+    name: 'Slack Workspace',
+    description: 'Connect your Slack workspace for team communication and notifications',
+    category: 'Communication',
+    icon: '💬',
+    color: 'bg-purple-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
+    companyName: 'Slack',
+  },
   microsoftOAuth2Api: {
     name: 'Microsoft 365',
     description: 'Access Outlook, OneDrive, Teams, and other Microsoft services',
@@ -151,6 +160,9 @@ export default function Connections() {
         break;
       case "notionApi":
         authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.NOTION}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&owner=user&state=${state}`;
+        break;
+      case "slackOAuth2Api":
+        authUrl = `https://slack.com/oauth/v2/authorize?client_id=${OAUTH_CLIENT_IDS.SLACK}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=channels:read,chat:write,users:read&state=${state}`;
         break;
       case "microsoftOAuth2Api":
         authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${OAUTH_CLIENT_IDS.MICROSOFT}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('User.Read Mail.ReadWrite Calendars.ReadWrite Files.ReadWrite.All')}&state=${state}`;
