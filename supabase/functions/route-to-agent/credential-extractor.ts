@@ -34,15 +34,19 @@ export async function fetchUserCredentials(
   userId: string,
   supabase: any
 ): Promise<Record<string, any>> {
+  console.log(`🔐 Fetching credentials for user: ${userId}`);
+  
   const { data, error } = await supabase
     .from('user_credentials')
     .select('*')
     .eq('user_id', userId);
     
   if (error) {
-    console.error('Error fetching user credentials:', error);
+    console.error('❌ Error fetching user credentials:', error);
     return {};
   }
+  
+  console.log(`✓ Found ${data?.length || 0} credential(s) in database`);
   
   // Transform array of credentials into object keyed by credential_type
   // For Google, store as array to support multiple accounts
@@ -53,8 +57,14 @@ export async function fetchUserCredentials(
     const needsRefresh = cred.expires_at && 
       new Date(cred.expires_at).getTime() < Date.now() + (5 * 60 * 1000);
     
+    const expiryInfo = cred.expires_at 
+      ? `expires ${new Date(cred.expires_at).toISOString()}`
+      : 'no expiry';
+    
+    console.log(`  • ${cred.credential_type} (${cred.account_email || 'default'}, ${cred.bundle_type || 'no bundle'}) - ${expiryInfo}`);
+    
     if (needsRefresh && cred.refresh_token) {
-      console.log(`🔄 Token for ${cred.credential_type} expired or expiring soon, refreshing...`);
+      console.log(`    🔄 Token expiring soon, attempting refresh...`);
       
       try {
         // Call refresh token edge function with credential ID for precise refresh
@@ -78,7 +88,7 @@ export async function fetchUserCredentials(
 
         if (refreshResponse.ok) {
           const refreshData = await refreshResponse.json();
-          console.log(`✅ Token refreshed for ${cred.credential_type}`);
+          console.log(`    ✅ Token refreshed successfully`);
           
           // Use refreshed token
           const tokenData = {
@@ -102,7 +112,9 @@ export async function fetchUserCredentials(
             credentials[cred.credential_type] = tokenData;
           }
         } else {
-          console.warn(`⚠️ Failed to refresh token for ${cred.credential_type}, using existing token`);
+          const errorText = await refreshResponse.text();
+          console.error(`    ❌ Refresh failed (${refreshResponse.status}):`, errorText);
+          console.warn(`    ⚠️ Using existing token (may be expired)`);
           
           const tokenData = {
             id: cred.id,
@@ -171,10 +183,18 @@ export async function fetchUserCredentials(
     }
   }
   
-  console.log('Available credentials:', Object.keys(credentials));
+  console.log('\n📋 Credential Summary:');
+  console.log(`  Total credential types available: ${Object.keys(credentials).length}`);
   if (credentials['googleOAuth2Api']) {
-    console.log('Google accounts:', credentials['googleOAuth2Api'].map((c: any) => c.account_email));
+    console.log(`  - Google accounts: ${credentials['googleOAuth2Api'].length}`);
+    credentials['googleOAuth2Api'].forEach((acc: any, idx: number) => {
+      console.log(`    ${idx + 1}. ${acc.account_email} (bundle: ${acc.bundle_type || 'legacy'}, scopes: ${acc.scopes?.length || 0})`);
+    });
   }
+  Object.keys(credentials).filter(k => k !== 'googleOAuth2Api').forEach(credType => {
+    console.log(`  - ${credType}: connected`);
+  });
+  
   return credentials;
 }
 
