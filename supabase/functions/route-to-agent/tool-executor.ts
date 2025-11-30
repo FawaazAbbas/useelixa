@@ -451,7 +451,7 @@ export async function executeGoogleAdsRequest(
     `;
     
     const response = await fetch(
-      `https://googleads.googleapis.com/v16/customers/${customerId.replace(/-/g, '')}/googleAds:searchStream`,
+      `https://googleads.googleapis.com/v16/customers/${customerId.replace(/-/g, '')}/googleAds:search`,
       {
         method: 'POST',
         headers: {
