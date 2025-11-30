@@ -432,10 +432,16 @@ export async function executeGoogleAdsRequest(
     throw new Error('Google Ads customer_id is required');
   }
   
+  // Early validation: Check if developer token is configured
+  const developerToken = Deno.env.get('GOOGLE_ADS_DEVELOPER_TOKEN');
+  if (!developerToken) {
+    throw new Error('Google Ads Developer Token is not configured. Please add GOOGLE_ADS_DEVELOPER_TOKEN in project secrets.');
+  }
+  
   console.log('Executing Google Ads operation:', { operation, customerId });
   
   if (operation === 'getCampaigns') {
-    // Use Google Ads API to fetch campaigns
+    // Use Google Ads API v22 to fetch campaigns
     const query = `
       SELECT 
         campaign.id,
@@ -450,15 +456,25 @@ export async function executeGoogleAdsRequest(
       ORDER BY campaign.id
     `;
     
+    // Build headers with MCC support
+    const loginCustomerId = args.login_customer_id || nodeParameters.loginCustomerId;
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'developer-token': developerToken,
+    };
+    
+    // Add login-customer-id header for Manager (MCC) account access
+    if (loginCustomerId) {
+      headers['login-customer-id'] = String(loginCustomerId).replace(/-/g, '');
+      console.log('Using MCC account:', loginCustomerId);
+    }
+    
     const response = await fetch(
-      `https://googleads.googleapis.com/v16/customers/${customerId.replace(/-/g, '')}/googleAds:search`,
+      `https://googleads.googleapis.com/v22/customers/${customerId.replace(/-/g, '')}/googleAds:search`,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          'developer-token': Deno.env.get('GOOGLE_ADS_DEVELOPER_TOKEN') || '',
-        },
+        headers,
         body: JSON.stringify({ query })
       }
     );
@@ -466,6 +482,12 @@ export async function executeGoogleAdsRequest(
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Google Ads API error:', response.status, errorText);
+      
+      // Provide actionable error messages
+      if (response.status === 404) {
+        throw new Error(`Google Ads API 404: Customer ID ${customerId} not found. Verify: (1) Customer ID is correct, (2) Developer token has access, (3) If using MCC, provide login_customer_id parameter.`);
+      }
+      
       throw new Error(`Google Ads API ${response.status}: ${errorText}`);
     }
     

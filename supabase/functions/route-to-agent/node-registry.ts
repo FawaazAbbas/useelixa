@@ -663,18 +663,31 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
       const operation = args.operation || nodeParameters.operation || 'getCampaigns';
       const customerId = args.customer_id || nodeParameters.customerId;
       
+      // Early validation: Check if developer token is configured
+      const developerToken = Deno.env.get('GOOGLE_ADS_DEVELOPER_TOKEN');
+      if (!developerToken) {
+        throw new Error('Google Ads Developer Token not configured. Add GOOGLE_ADS_DEVELOPER_TOKEN secret.');
+      }
+      
       const googleCred = Array.isArray(credentials.googleOAuth2Api) 
         ? credentials.googleOAuth2Api[0] 
         : credentials.googleOAuth2Api;
       
-      const headers = {
+      // Build headers with MCC support
+      const loginCustomerId = args.login_customer_id || nodeParameters.loginCustomerId;
+      const headers: Record<string, string> = {
         'Authorization': `Bearer ${credentials.googleAdsOAuth2?.access_token || googleCred?.access_token}`,
         'Content-Type': 'application/json',
-        'developer-token': credentials.googleAdsApi?.developerToken || 'PLACEHOLDER_DEV_TOKEN'
+        'developer-token': developerToken
       };
+      
+      // Add login-customer-id header for Manager (MCC) account access
+      if (loginCustomerId) {
+        headers['login-customer-id'] = String(loginCustomerId).replace(/-/g, '');
+      }
 
-      // Google Ads API v15
-      const baseUrl = `https://googleads.googleapis.com/v15/customers/${customerId}`;
+      // Google Ads API v22 (latest stable)
+      const baseUrl = `https://googleads.googleapis.com/v22/customers/${customerId}`;
 
       if (operation === 'getCampaigns' || operation === 'list') {
         // Query for campaign metrics
@@ -694,7 +707,7 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
           AND segments.date DURING LAST_30_DAYS
         `;
         
-        const url = `${baseUrl}/googleAds:searchStream`;
+        const url = `${baseUrl}/googleAds:search`;
         const response = await fetch(url, {
           method: 'POST',
           headers,
@@ -704,6 +717,11 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Google Ads API error:', errorText);
+          
+          if (response.status === 404) {
+            throw new Error(`Google Ads API 404: Customer ID not found. Verify customer ID and MCC access.`);
+          }
+          
           throw new Error(`Google Ads API error: ${response.statusText}`);
         }
         
@@ -728,6 +746,10 @@ export const NODE_REGISTRY: Record<string, NodeDefinition> = {
             customer_id: { 
               type: 'string', 
               description: 'Google Ads customer ID (without hyphens)' 
+            },
+            login_customer_id: {
+              type: 'string',
+              description: 'Manager (MCC) account ID if accessing client accounts through a manager account'
             },
             date_range: {
               type: 'string',
