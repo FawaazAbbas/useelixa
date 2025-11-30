@@ -45,13 +45,14 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
   ads_marketing: {
     id: 'ads_marketing',
     name: 'Ads & Marketing',
-    description: 'AdSense, AdMob, Merchant Center (Shopping)',
+    description: 'Google Ads, AdSense, AdMob, Merchant Center (Shopping)',
     icon: '📢',
     color: 'bg-green-500',
     logo: 'https://www.gstatic.com/images/branding/product/1x/google_ads_512dp.png',
     companyName: 'Google',
     serviceName: 'Ads & Marketing',
     scopes: [
+      'https://www.googleapis.com/auth/adwords',
       'https://www.googleapis.com/auth/adsense.readonly',
       'https://www.googleapis.com/auth/admob.readonly',
       'https://www.googleapis.com/auth/content',
