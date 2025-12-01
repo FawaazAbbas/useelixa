@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { AgentOAuthSetup } from "@/components/AgentOAuthSetup";
-import { AgentReviewSection } from "@/components/AgentReviewSection";
+import { mockAgents } from "@/data/mockAgents";
 
 const AgentDetail = () => {
   const { id } = useParams();
@@ -38,7 +38,18 @@ const AgentDetail = () => {
 
       if (error) {
         console.error("Error fetching agent:", error);
-        navigate("/");
+        // Fallback to mock agents
+        const mockAgent = mockAgents.find(a => a.id === id);
+        if (mockAgent) {
+          setAgent({
+            ...mockAgent,
+            agent_categories: { name: mockAgent.category },
+            long_description: mockAgent.description,
+            capabilities: mockAgent.capabilities || [],
+          });
+        } else {
+          navigate("/");
+        }
       } else {
         setAgent(data);
       }
@@ -94,7 +105,11 @@ const AgentDetail = () => {
 
   const handleInstall = async () => {
     if (!user) {
-      navigate("/auth");
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to install agents and use them in your workspace",
+      });
+      setTimeout(() => navigate("/workspace"), 1000);
       return;
     }
 
@@ -303,13 +318,13 @@ const AgentDetail = () => {
               </Card>
             )}
 
-            {/* Reviews Section */}
+            {/* Reviews Section - Disabled in Demo */}
             <Card>
               <CardHeader>
                 <CardTitle>Reviews & Ratings</CardTitle>
               </CardHeader>
-              <CardContent>
-                <AgentReviewSection agentId={agent.id} />
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground">Reviews available after installation</p>
               </CardContent>
             </Card>
           </div>
