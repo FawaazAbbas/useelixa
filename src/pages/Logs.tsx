@@ -1,37 +1,25 @@
 import { useState, useCallback } from "react";
-import { Activity, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import PullToRefresh from "react-pull-to-refresh";
-import { Card, CardContent } from "@/components/ui/card";
+import { Activity, CheckCircle, XCircle, AlertCircle, Clock, Zap, ArrowRight, FileText, Link2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { format, formatDistanceToNow } from "date-fns";
 import { DemoBanner } from "@/components/DemoBanner";
-import { mockActivityLogs } from "@/data/mockLogs";
+import { mockActivityLogs, type MockActivityLog } from "@/data/mockLogs";
 
-interface ActivityLog {
-  id: string;
-  action: string;
-  entity_type: string;
-  status: string;
-  created_at: string;
-  metadata: {
-    tool_name: string;
-    execution_time_ms: number;
-    description: string;
-    error_message?: string;
-  };
-  agent?: {
-    name: string;
-    image_url: string;
-  };
-}
+type ActivityLog = MockActivityLog;
 
 const Logs = () => {
-  const [logs] = useState<ActivityLog[]>(mockActivityLogs as any);
+  const [logs] = useState<ActivityLog[]>(mockActivityLogs);
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
 
   const handleRefresh = useCallback(async () => {
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -112,7 +100,11 @@ const Logs = () => {
             <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-280px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {filteredLogs.map((log) => (
-                  <Card key={log.id} className="flex flex-col">
+                  <Card 
+                    key={log.id} 
+                    className="flex flex-col cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] hover:border-primary/50"
+                    onClick={() => setSelectedLog(log)}
+                  >
                     <CardContent className="p-3 md:p-4 flex-1">
                       <div className="flex items-start gap-2 md:gap-3">
                         {getStatusIcon(log.status)}
@@ -172,6 +164,247 @@ const Logs = () => {
             </ScrollArea>
           )}
         </div>
+
+        <Sheet open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+          <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+            {selectedLog && (
+              <>
+                <SheetHeader className="space-y-4">
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-lg ${
+                      selectedLog.status === "success" 
+                        ? "bg-green-500/10 text-green-500" 
+                        : selectedLog.status === "failed"
+                        ? "bg-destructive/10 text-destructive"
+                        : "bg-yellow-500/10 text-yellow-500"
+                    }`}>
+                      {getStatusIcon(selectedLog.status)}
+                    </div>
+                    <div className="flex-1">
+                      <SheetTitle className="text-xl mb-2">
+                        {selectedLog.metadata.description}
+                      </SheetTitle>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        {selectedLog.agent && (
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={selectedLog.agent.image_url} />
+                              <AvatarFallback>{selectedLog.agent.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <span>{selectedLog.agent.name}</span>
+                          </div>
+                        )}
+                        <span>•</span>
+                        <span>{formatDistanceToNow(new Date(selectedLog.created_at), { addSuffix: true })}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(selectedLog.created_at), "PPpp")}
+                      </p>
+                    </div>
+                  </div>
+                </SheetHeader>
+
+                <Separator className="my-6" />
+
+                {/* Status & Metrics */}
+                <Card className="mb-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium">Status & Metrics</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Status</p>
+                        <Badge
+                          variant={
+                            selectedLog.status === "success"
+                              ? "default"
+                              : selectedLog.status === "failed"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
+                          {selectedLog.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Execution Time</p>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span className="text-sm font-medium">{selectedLog.metadata.execution_time_ms}ms</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Tool</p>
+                        <div className="flex items-center gap-1">
+                          <Zap className="h-3 w-3" />
+                          <span className="text-sm font-medium">{selectedLog.metadata.tool_name}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Trigger Source</p>
+                      <p className="text-sm font-medium">{selectedLog.trigger_source}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Error Details */}
+                {selectedLog.metadata.error_message && (
+                  <Alert variant="destructive" className="mb-6">
+                    <XCircle className="h-4 w-4" />
+                    <AlertDescription className="ml-2">
+                      <p className="font-medium mb-1">Error Details</p>
+                      <p className="text-sm">{selectedLog.metadata.error_message}</p>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Input Data */}
+                {selectedLog.input_data && (
+                  <Card className="mb-6">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Input Parameters
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {Object.entries(selectedLog.input_data).map(([key, value]) => (
+                          <div key={key} className="flex justify-between py-1">
+                            <span className="text-sm text-muted-foreground capitalize">
+                              {key.replace(/_/g, " ")}:
+                            </span>
+                            <span className="text-sm font-medium text-right ml-4">
+                              {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Output Data */}
+                {selectedLog.output_data && (
+                  <Card className="mb-6">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Output Results
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {Object.entries(selectedLog.output_data).map(([key, value]) => (
+                          <div key={key} className="flex justify-between py-1">
+                            <span className="text-sm text-muted-foreground capitalize">
+                              {key.replace(/_/g, " ")}:
+                            </span>
+                            <span className="text-sm font-medium text-right ml-4">
+                              {Array.isArray(value) 
+                                ? value.join(", ") 
+                                : typeof value === "object" 
+                                ? JSON.stringify(value) 
+                                : String(value)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Execution Steps */}
+                {selectedLog.steps && selectedLog.steps.length > 0 && (
+                  <Card className="mb-6">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Activity className="h-4 w-4" />
+                        Execution Timeline
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {selectedLog.steps.map((step, index) => (
+                          <div key={index} className="flex items-start gap-3">
+                            <div className="flex flex-col items-center">
+                              <div className={`p-1 rounded-full ${
+                                step.status === "success" 
+                                  ? "bg-green-500/20 text-green-500"
+                                  : step.status === "failed"
+                                  ? "bg-destructive/20 text-destructive"
+                                  : "bg-muted text-muted-foreground"
+                              }`}>
+                                {step.status === "success" ? (
+                                  <CheckCircle className="h-3 w-3" />
+                                ) : step.status === "failed" ? (
+                                  <XCircle className="h-3 w-3" />
+                                ) : (
+                                  <ArrowRight className="h-3 w-3" />
+                                )}
+                              </div>
+                              {index < selectedLog.steps.length - 1 && (
+                                <div className="w-px h-6 bg-border mt-1" />
+                              )}
+                            </div>
+                            <div className="flex-1 pb-2">
+                              <p className="text-sm font-medium">{step.name}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs text-muted-foreground">
+                                  {step.duration_ms}ms
+                                </span>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <Badge 
+                                  variant={step.status === "success" ? "default" : "secondary"}
+                                  className="text-xs"
+                                >
+                                  {step.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Related Entities */}
+                {selectedLog.related_entities && selectedLog.related_entities.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Link2 className="h-4 w-4" />
+                        Related Items
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {selectedLog.related_entities.map((entity) => (
+                          <div 
+                            key={entity.id} 
+                            className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {entity.type}
+                              </Badge>
+                              <span className="text-sm">{entity.name}</span>
+                            </div>
+                            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+          </SheetContent>
+        </Sheet>
     </div>
   );
 };
