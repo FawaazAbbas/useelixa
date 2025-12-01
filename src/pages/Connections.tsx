@@ -76,7 +76,7 @@ const CREDENTIAL_INFO: Record<
     category: "Marketing",
     icon: "🐵",
     color: "bg-yellow-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/MicrosoftLogo.webp`,
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/mailchimp.png`,
     companyName: "Mailchimp",
   },
   shopifyOAuth2Api: {
