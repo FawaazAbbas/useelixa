@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { useBrianChat } from "@/hooks/useBrianChat";
 import { ChatMemoriesPanel } from "@/components/ChatMemoriesPanel";
 import { MessageContextMenu } from "@/components/MessageContextMenu";
 import { MessageSelectionBar } from "@/components/MessageSelectionBar";
@@ -161,11 +162,25 @@ const Workspace = () => {
   const [processingAgent, setProcessingAgent] = useState<string | null>(null);
   const [delegationStatus, setDelegationStatus] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showBrian, setShowBrian] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
+  const [selectedBrianIndices, setSelectedBrianIndices] = useState<Set<number>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  
+  // Brian chat hook
+  const { 
+    messages: brianMessages, 
+    loading: brianLoading, 
+    sending: brianSending, 
+    sendMessage: sendBrianMessage,
+    deleteMessage: deleteBrianMessage,
+    deleteMultipleMessages: deleteBrianMultipleMessages,
+  } = useBrianChat(user?.id, workspaceId);
+  const [brianInput, setBrianInput] = useState("");
+  const initialSetupDone = useRef(false);
 
   useEffect(() => {
     if (workspaceId) {
@@ -174,14 +189,26 @@ const Workspace = () => {
   }, [workspaceId]);
 
   useEffect(() => {
-    if (chats.length > 0 && !selectedChat) {
+    if (isDemoMode) {
+      // Only auto-select Brian on initial mount, not on every state change
+      if (!initialSetupDone.current) {
+        setShowBrian(true);
+        initialSetupDone.current = true;
+      }
+      return;
+    }
+    
+    if (chats.length > 0 && !selectedChat && !showBrian) {
       const firstChat = chats[0];
       setSelectedChat(firstChat);
       if (firstChat?.id) {
         fetchMessages(firstChat.id);
       }
+    } else if (chats.length === 0 && !showBrian) {
+      // Auto-select Brian when there are no chats
+      setShowBrian(true);
     }
-  }, [chats, selectedChat, fetchMessages]);
+  }, [chats, selectedChat, showBrian, fetchMessages, isDemoMode]);
 
   useEffect(() => {
     if (selectedChat?.id) {
@@ -244,7 +271,7 @@ const Workspace = () => {
   // Scroll to bottom when messages change or chat is selected
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedChat]);
+  }, [messages, selectedChat, brianMessages, showBrian]);
 
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
@@ -323,30 +350,52 @@ const Workspace = () => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleToggleMessageSelection = (id: string) => {
-    setSelectedMessageIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
+  const handleToggleMessageSelection = (id: string | number, isBrian: boolean = false) => {
+    if (isBrian) {
+      const idx = id as number;
+      setSelectedBrianIndices((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(idx)) {
+          newSet.delete(idx);
+        } else {
+          newSet.add(idx);
+        }
+        return newSet;
+      });
+    } else {
+      const msgId = id as string;
+      setSelectedMessageIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(msgId)) {
+          newSet.delete(msgId);
+        } else {
+          newSet.add(msgId);
+        }
+        return newSet;
+      });
+    }
   };
 
   const handleSelectAll = () => {
-    if (selectedMessageIds.size === messages.length) {
-      setSelectedMessageIds(new Set());
+    if (showBrian) {
+      if (selectedBrianIndices.size === brianMessages.length) {
+        setSelectedBrianIndices(new Set());
+      } else {
+        setSelectedBrianIndices(new Set(brianMessages.map((_, idx) => idx)));
+      }
     } else {
-      setSelectedMessageIds(new Set(messages.map(msg => msg.id)));
+      if (selectedMessageIds.size === messages.length) {
+        setSelectedMessageIds(new Set());
+      } else {
+        setSelectedMessageIds(new Set(messages.map(msg => msg.id)));
+      }
     }
-  };
   };
 
   const handleCancelSelection = () => {
     setIsSelectionMode(false);
     setSelectedMessageIds(new Set());
+    setSelectedBrianIndices(new Set());
   };
 
   const handleConfirmDelete = () => {
@@ -355,7 +404,9 @@ const Workspace = () => {
 
   const handleDeleteSelected = async () => {
     try {
-      if (selectedChat && selectedMessageIds.size > 0) {
+      if (showBrian && selectedBrianIndices.size > 0) {
+        await deleteBrianMultipleMessages(Array.from(selectedBrianIndices));
+      } else if (selectedChat && selectedMessageIds.size > 0) {
         await deleteMultipleMessages(Array.from(selectedMessageIds));
       }
       handleCancelSelection();
@@ -391,6 +442,7 @@ const Workspace = () => {
 
   const handleSelectChat = (chat: any) => {
     setSelectedChat(chat);
+    setShowBrian(false);
     if (chat?.id) {
       fetchMessages(chat.id);
     }
@@ -506,6 +558,35 @@ const Workspace = () => {
           </div>
         </div>
 
+        {/* Brian Section - ALWAYS VISIBLE */}
+        <div className="px-3 py-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Brian
+          </h3>
+          <button
+            onClick={() => {
+              setShowBrian(true);
+              setSelectedChat(null);
+            }}
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors ${
+              showBrian 
+                ? "bg-primary/20 text-primary" 
+                : "hover:bg-muted/50"
+            }`}
+          >
+            <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500">
+              <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-white">Brian</div>
+              <div className="text-xs text-muted-foreground">Your AI COO</div>
+            </div>
+          </button>
+        </div>
+
+        <Separator className="my-2" />
+
         {/* Direct Messages */}
         <div className="flex-1 overflow-auto">
           <div className="px-3 py-2">
@@ -531,7 +612,7 @@ const Workspace = () => {
                      key={chat.id}
                      onClick={() => handleSelectChat(chat)}
                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                       selectedChat?.id === chat.id ? "bg-muted/50" : ""
+                       selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
                      }`}
                    >
                     <div className="relative">
@@ -567,7 +648,7 @@ const Workspace = () => {
                     key={chat.id}
                     onClick={() => handleSelectChat(chat)}
                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                      selectedChat?.id === chat.id ? "bg-muted/50" : ""
+                      selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
                     }`}
                   >
                     <div className="relative">
@@ -604,6 +685,290 @@ const Workspace = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
+        {showBrian ? (
+          <>
+            {/* Brian Chat Header */}
+            <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500">
+                  <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="font-semibold">Brian</div>
+                  <div className="text-xs text-muted-foreground">Your AI COO</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setShowCallingDisabled(true)}
+                title="Voice calling"
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="lg:hidden"
+                  onClick={() => setShowAutomations(!showAutomations)}
+                >
+                  <LayoutList className="h-4 w-4" />
+                  <span className="ml-2">Panels</span>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setShowSettings(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Brian Messages */}
+            <ScrollArea className={`flex-1 p-4 ${isMobile ? 'pb-20' : ''}`}>
+              <div className="space-y-4 max-w-4xl mx-auto">
+                {brianLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : brianMessages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-3">
+                    <p className="text-muted-foreground">Start a conversation with Brian, your AI COO</p>
+                  </div>
+                ) : (
+                  brianMessages.map((msg, idx) => {
+                    const isUserMessage = msg.role === "user";
+                    const isSelected = selectedBrianIndices.has(idx);
+                    return (
+                      <div
+                        key={idx}
+                        className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""} ${
+                          isSelected ? "bg-primary/10 rounded-lg p-2" : ""
+                        }`}
+                        onClick={() => isSelectionMode && handleToggleMessageSelection(idx, true)}
+                      >
+                        {isSelectionMode && (
+                          <div className="flex items-start pt-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                            >
+                              <CheckSquare
+                                className={`h-5 w-5 ${
+                                  isSelected ? "text-primary fill-primary" : "text-muted-foreground"
+                                }`}
+                              />
+                            </Button>
+                          </div>
+                        )}
+                         {!isUserMessage && (
+                           <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-600 to-blue-500">
+                             <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                           </Avatar>
+                         )}
+                         <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                           <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
+                             <span className="font-semibold">
+                               {isUserMessage ? "You" : "Brian"}
+                             </span>
+                           </div>
+                           <div
+                             className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                               isUserMessage
+                                 ? "bg-primary/90 text-primary-foreground"
+                                 : "bg-muted/80"
+                             }`}
+                           >
+                             <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                 {msg.content}
+                               </ReactMarkdown>
+                             </div>
+                           </div>
+                           {msg.metadata?.files && (
+                             <div className="max-w-[85%] mt-2">
+                               <FileMessageCard files={msg.metadata.files} />
+                             </div>
+                           )}
+                         </div>
+                         {isUserMessage && (
+                           <Avatar className="h-10 w-10">
+                             <AvatarFallback>U</AvatarFallback>
+                           </Avatar>
+                         )}
+                        {!isSelectionMode && (
+                          <MessageContextMenu
+                            messageId={idx.toString()}
+                            canDelete={true}
+                            onDelete={() => deleteBrianMessage(idx)}
+                          />
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+                {brianSending && (
+                  <div className="flex gap-3">
+                    <Avatar className="bg-gradient-to-br from-purple-600 to-blue-500">
+                      <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="inline-block px-4 py-2 rounded-lg bg-muted">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Brian is thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Brian Input */}
+            <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+              <div className="space-y-2 max-w-4xl mx-auto">
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    id="brian-file-upload"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    disabled={brianSending || uploading}
+                  />
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => document.getElementById('brian-file-upload')?.click()}
+                    disabled={brianSending || uploading}
+                    className={isMobile ? 'h-10 w-10' : ''}
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    placeholder="Message Brian..."
+                    value={brianInput}
+                    onChange={(e) => setBrianInput(e.target.value)}
+                    onKeyPress={async (e) => {
+                      if (e.key === "Enter" && !e.shiftKey && brianInput.trim()) {
+                        e.preventDefault();
+                        const messageContent = brianInput;
+                        setBrianInput("");
+                        
+                        // Handle file uploads if any
+                        let fileMetadata = undefined;
+                        if (selectedFiles.length > 0) {
+                          setUploading(true);
+                          try {
+                            const uploadPromises = selectedFiles.map(async (file) => {
+                              const fileExt = file.name.split('.').pop();
+                              const filePath = `${user?.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                              
+                              const { data, error } = await supabase.storage
+                                .from('chat-files')
+                                .upload(filePath, file);
+
+                              if (error) throw error;
+
+                              const { data: { publicUrl } } = supabase.storage
+                                .from('chat-files')
+                                .getPublicUrl(filePath);
+
+                              return {
+                                name: file.name,
+                                url: publicUrl,
+                                type: file.type,
+                                size: file.size
+                              };
+                            });
+
+                            const fileAttachments = await Promise.all(uploadPromises);
+                            fileMetadata = { files: fileAttachments };
+                            setSelectedFiles([]);
+                          } catch (error) {
+                            console.error('Error uploading files:', error);
+                            toast({
+                              variant: 'destructive',
+                              title: 'Error',
+                              description: 'Failed to upload files'
+                            });
+                          } finally {
+                            setUploading(false);
+                          }
+                        }
+                        
+                        await sendBrianMessage(messageContent, fileMetadata);
+                      }
+                    }}
+                    disabled={brianSending || uploading}
+                    className={isMobile ? 'text-base' : ''}
+                  />
+                  <Button 
+                    size="icon" 
+                    onClick={async () => {
+                      if (!brianInput.trim()) return;
+                      const messageContent = brianInput;
+                      setBrianInput("");
+                      
+                      // Handle file uploads if any
+                      let fileMetadata = undefined;
+                      if (selectedFiles.length > 0) {
+                        setUploading(true);
+                        try {
+                          const uploadPromises = selectedFiles.map(async (file) => {
+                            const fileExt = file.name.split('.').pop();
+                            const filePath = `${user?.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                            
+                            const { data, error } = await supabase.storage
+                              .from('chat-files')
+                              .upload(filePath, file);
+
+                            if (error) throw error;
+
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('chat-files')
+                              .getPublicUrl(filePath);
+
+                            return {
+                              name: file.name,
+                              url: publicUrl,
+                              type: file.type,
+                              size: file.size
+                            };
+                          });
+
+                          const fileAttachments = await Promise.all(uploadPromises);
+                          fileMetadata = { files: fileAttachments };
+                          setSelectedFiles([]);
+                        } catch (error) {
+                          console.error('Error uploading files:', error);
+                          toast({
+                            variant: 'destructive',
+                            title: 'Error',
+                            description: 'Failed to upload files'
+                          });
+                        } finally {
+                          setUploading(false);
+                        }
+                      }
+                      
+                      await sendBrianMessage(messageContent, fileMetadata);
+                    }}
+                    disabled={brianSending || uploading || !brianInput.trim()}
+                    className={isMobile ? 'h-10 w-10' : ''}
+                  >
+                    {(brianSending || uploading) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
             {/* Chat Header */}
             <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
               <div className="flex items-center gap-3">
@@ -883,9 +1248,28 @@ const Workspace = () => {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
 
       {/* Chat Settings Dialog */}
+      {showBrian && showSettings && (
+        <ChatSettingsDialog
+          chatId="brian"
+          chatType="brian"
+          currentName="Brian"
+          onClose={() => setShowSettings(false)}
+          onDeleted={() => {
+            // Brian cannot be deleted
+            setShowSettings(false);
+          }}
+          onEnterDeleteMode={() => {
+            setIsSelectionMode(true);
+            setSelectedBrianIndices(new Set());
+          }}
+        />
+      )}
+      
       {selectedChat && selectedChat.type === 'direct' && showSettings && (
         <ChatSettingsDialog
           chatId={selectedChat.id}
@@ -951,16 +1335,18 @@ const Workspace = () => {
       )}
 
       {/* Panels Drawer for Mobile/Tablet */}
-      {selectedChat && (
+      {(selectedChat || showBrian) && (
         <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
         <SheetContent side="right" className="w-full sm:w-96 p-0">
           <div className="h-full flex flex-col">
             <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="flex-1 flex flex-col">
               <div className="p-4 border-b">
-                <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="automations">
+                <TabsList className={`grid w-full ${showBrian ? 'grid-cols-4' : 'grid-cols-5'}`}>
+                  {!showBrian && (
+                    <TabsTrigger value="automations">
                       <PlayCircle className="h-4 w-4" />
                     </TabsTrigger>
+                  )}
                   <TabsTrigger value="files">
                     <FileText className="h-4 w-4" />
                   </TabsTrigger>
@@ -1007,7 +1393,12 @@ const Workspace = () => {
               </TabsContent>
 
               <TabsContent value="memories" className="flex-1 m-0">
-                {selectedChat ? (
+                {showBrian ? (
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-4">Brian's Memories</h3>
+                    <p className="text-sm text-muted-foreground">Workspace-level memories and preferences</p>
+                  </div>
+                ) : selectedChat ? (
                   <ChatMemoriesPanel
                     chatId={selectedChat.id}
                     workspaceId={workspaceId || ''}
@@ -1021,7 +1412,12 @@ const Workspace = () => {
               </TabsContent>
 
               <TabsContent value="logs" className="flex-1 m-0">
-                {selectedChat ? (
+                {showBrian ? (
+                  <div className="p-4">
+                    <h3 className="font-semibold mb-4">Brian's Activity Log</h3>
+                    <p className="text-sm text-muted-foreground">Conversation history and activity</p>
+                  </div>
+                ) : selectedChat ? (
                   <ChatLogsPanel chatId={selectedChat.id} />
                 ) : (
                   <div className="p-4 text-center">
@@ -1031,9 +1427,25 @@ const Workspace = () => {
               </TabsContent>
 
               <TabsContent value="settings" className="flex-1 m-0 p-4">
-                <p className="text-sm text-muted-foreground text-center">
-                  Click the settings icon in the header to manage chat settings
-                </p>
+                {showBrian ? (
+                  <div>
+                    <h3 className="font-semibold mb-4">Brian Settings</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Configure Brian's behavior and preferences</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowSettings(true)}
+                      className="w-full"
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Open Brian Settings
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Click the settings icon in the header to manage chat settings
+                  </p>
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -1042,17 +1454,21 @@ const Workspace = () => {
       )}
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
-      {selectedChat && (
+      {(selectedChat || showBrian) && (
         <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
-            <TabsList className="grid w-full grid-cols-7">
-              <TabsTrigger value="about" className="text-xs">
-                <Info className="h-4 w-4" />
-              </TabsTrigger>
-              <TabsTrigger value="automations" className="text-xs">
-                <PlayCircle className="h-4 w-4" />
-              </TabsTrigger>
+            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-5' : 'grid-cols-7'}`}>
+              {!showBrian && (
+                <>
+                  <TabsTrigger value="about" className="text-xs">
+                    <Info className="h-4 w-4" />
+                  </TabsTrigger>
+                  <TabsTrigger value="automations" className="text-xs">
+                    <PlayCircle className="h-4 w-4" />
+                  </TabsTrigger>
+                </>
+              )}
               <TabsTrigger value="files" className="text-xs">
                 <FileText className="h-4 w-4" />
               </TabsTrigger>
@@ -1071,7 +1487,9 @@ const Workspace = () => {
             </TabsList>
           </div>
 
-          <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
+          {!showBrian && (
+            <>
+              <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
                 {selectedChat?.agent ? (
                   <>
                     <div>
@@ -1124,9 +1542,16 @@ const Workspace = () => {
                   </div>
                 )}
               </TabsContent>
+            </>
+          )}
 
           <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
-            {selectedChat && selectedChat.type === 'direct' ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's Files</h3>
+                <p className="text-sm text-muted-foreground mb-4">Workspace-level files accessible to Brian</p>
+              </div>
+            ) : selectedChat && selectedChat.type === 'direct' ? (
               <AgentFilesPanel
                 agentInstallationId={selectedChat.agent_installation_id}
                 workspaceId={workspaceId || ''}
@@ -1143,7 +1568,12 @@ const Workspace = () => {
           </TabsContent>
 
           <TabsContent value="memories" className="flex-1 m-0 overflow-hidden">
-            {selectedChat ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's Memories</h3>
+                <p className="text-sm text-muted-foreground mb-4">Workspace-level memories and preferences</p>
+              </div>
+            ) : selectedChat ? (
               <ChatMemoriesPanel
                 chatId={selectedChat.id}
                 workspaceId={workspaceId || ''}
@@ -1157,7 +1587,12 @@ const Workspace = () => {
           </TabsContent>
 
           <TabsContent value="logs" className="flex-1 m-0 overflow-hidden">
-            {selectedChat ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's Activity Log</h3>
+                <p className="text-sm text-muted-foreground mb-4">Conversation history and activity</p>
+              </div>
+            ) : selectedChat ? (
               <div className="h-full overflow-auto">
                 <div className="p-4">
                   <h3 className="font-semibold mb-4">Chat Logs</h3>
@@ -1180,24 +1615,45 @@ const Workspace = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="flex-1 m-0 overflow-hidden p-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                Click the settings icon in the header to manage chat settings
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setShowSettings(true)}
-                disabled={!selectedChat}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Open Chat Settings
-              </Button>
-            </div>
+            {showBrian ? (
+              <div>
+                <h3 className="font-semibold mb-4">Brian Settings</h3>
+                <p className="text-sm text-muted-foreground mb-4">Configure Brian's behavior and preferences</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowSettings(true)}
+                  className="w-full"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Open Brian Settings
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Click the settings icon in the header to manage chat settings
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowSettings(true)}
+                  disabled={!selectedChat}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Open Chat Settings
+                </Button>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="history" className="flex-1 m-0 overflow-hidden">
-            {selectedChat ? (
+            {showBrian ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Brian's History</h3>
+                <p className="text-sm text-muted-foreground">All workspace-level activity coordinated by Brian</p>
+              </div>
+            ) : selectedChat ? (
               <div className="h-full overflow-auto p-4">
                 <h3 className="font-semibold mb-4">Automation History</h3>
                 <AutomationHistoryDashboard 
@@ -1235,8 +1691,8 @@ const Workspace = () => {
       {/* Message Selection Bar */}
       {isSelectionMode && (
         <MessageSelectionBar
-          selectedCount={selectedMessageIds.size}
-          totalCount={messages.length}
+          selectedCount={showBrian ? selectedBrianIndices.size : selectedMessageIds.size}
+          totalCount={showBrian ? brianMessages.length : messages.length}
           onCancel={handleCancelSelection}
           onDelete={handleConfirmDelete}
           onSelectAll={handleSelectAll}
@@ -1249,7 +1705,7 @@ const Workspace = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Messages</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedMessageIds.size} message(s)?
+              Are you sure you want to delete {showBrian ? selectedBrianIndices.size : selectedMessageIds.size} message(s)? 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
