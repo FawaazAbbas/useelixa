@@ -18,8 +18,9 @@ export const DraggableEvent = ({ id, children, className = "", style, onClick }:
   return (
     <div
       ref={setNodeRef}
+      data-draggable="true"
       className={`${className} ${isDragging ? "opacity-50" : ""} group relative cursor-move`}
-      style={style}
+      style={{ ...style, touchAction: 'none' }}
       onClick={onClick}
       {...attributes}
       {...listeners}
