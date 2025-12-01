@@ -206,16 +206,16 @@ const Calendar = () => {
     const currentTimeTop = getCurrentTimePosition();
 
     return (
-      <div className="flex-1 overflow-hidden flex flex-col">
+      <div className="flex-1 w-full overflow-hidden flex flex-col">
         <div className="border-b bg-background p-4">
           <h2 className="text-xl font-semibold">
             {format(currentDate, "EEEE, MMMM d, yyyy")}
           </h2>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="grid grid-cols-12 relative">
-            <div className="col-span-1 border-r bg-muted/30">
+        <ScrollArea className="flex-1 w-full">
+          <div className="flex w-full relative">
+            <div className="w-16 shrink-0 border-r bg-muted/30">
               {hours.map((hour) => (
                 <div
                   key={hour}
@@ -226,7 +226,7 @@ const Calendar = () => {
               ))}
             </div>
 
-            <div className="col-span-11 relative">
+            <div className="flex-1 relative">
               {hours.map((hour) => (
                 <DroppableTimeSlot
                   key={hour}
@@ -380,18 +380,18 @@ const Calendar = () => {
     }, {} as Record<string, MockCalendarEvent[]>);
 
     return (
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
+      <ScrollArea className="flex-1 w-full">
+        <div className="p-6 space-y-6 w-full">
           {Object.entries(groupedByDate).map(([dateKey, events]) => (
-            <div key={dateKey} className="space-y-3">
+            <div key={dateKey} className="space-y-3 w-full">
               <h3 className="font-semibold text-lg sticky top-0 bg-background py-2">
                 {format(new Date(dateKey), "EEEE, MMMM d, yyyy")}
               </h3>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 {events.map((event) => (
                   <Card
                     key={event.id}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    className="w-full hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => handleEventClick(event)}
                   >
                     <CardContent className="p-4 flex gap-4">
