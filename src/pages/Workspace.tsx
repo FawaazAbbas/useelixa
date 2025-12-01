@@ -1431,7 +1431,7 @@ const Workspace = () => {
           <div className="h-full flex flex-col">
             <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="flex-1 flex flex-col">
               <div className="p-4 border-b">
-                <TabsList className={`grid w-full ${showBrian ? 'grid-cols-4' : 'grid-cols-5'}`}>
+                <TabsList className={`grid w-full ${showBrian ? 'grid-cols-3' : 'grid-cols-4'}`}>
                   {!showBrian && (
                     <TabsTrigger value="automations">
                       <PlayCircle className="h-4 w-4" />
@@ -1445,9 +1445,6 @@ const Workspace = () => {
                   </TabsTrigger>
                   <TabsTrigger value="logs">
                     <LayoutList className="h-4 w-4" />
-                  </TabsTrigger>
-                  <TabsTrigger value="settings">
-                    <Settings className="h-4 w-4" />
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -1515,28 +1512,6 @@ const Workspace = () => {
                   </div>
                 )}
               </TabsContent>
-
-              <TabsContent value="settings" className="flex-1 m-0 p-4">
-                {showBrian ? (
-                  <div>
-                    <h3 className="font-semibold mb-4">Brian Settings</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Configure Brian's behavior and preferences</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setShowSettings(true)}
-                      className="w-full"
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Open Brian Settings
-                    </Button>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center">
-                    Click the settings icon in the header to manage chat settings
-                  </p>
-                )}
-              </TabsContent>
             </Tabs>
           </div>
         </SheetContent>
@@ -1547,8 +1522,8 @@ const Workspace = () => {
       {(selectedChat || showBrian) && (
         <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
-          <div className="p-4 pb-0">
-            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-4' : 'grid-cols-5'}`}>
+          <div className="px-4 pt-4 pb-2 overflow-x-auto">
+            <TabsList className="inline-flex w-auto min-w-full">
               {!showBrian && (
                 <>
                   <TabsTrigger value="about" className="text-xs">
@@ -1572,9 +1547,6 @@ const Workspace = () => {
               </TabsTrigger>
               <TabsTrigger value="history" className="text-xs">
                 <Activity className="h-4 w-4" />
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="text-xs">
-                <Settings className="h-4 w-4" />
               </TabsTrigger>
             </TabsList>
           </div>
@@ -1738,40 +1710,6 @@ const Workspace = () => {
             ) : (
               <div className="p-4 text-center">
                 <p className="text-sm text-muted-foreground">Select a chat to view memories</p>
-              </div>
-            )}
-          </TabsContent>
-
-
-          <TabsContent value="settings" className="flex-1 m-0 overflow-hidden p-4">
-            {showBrian ? (
-              <div>
-                <h3 className="font-semibold mb-4">Brian Settings</h3>
-                <p className="text-sm text-muted-foreground mb-4">Configure Brian's behavior and preferences</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowSettings(true)}
-                  className="w-full"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Open Brian Settings
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Click the settings icon in the header to manage chat settings
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowSettings(true)}
-                  disabled={!selectedChat}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Open Chat Settings
-                </Button>
               </div>
             )}
           </TabsContent>
