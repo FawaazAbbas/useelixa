@@ -48,7 +48,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Google Ads, AdSense, AdMob, Merchant Center (Shopping)',
     icon: '📢',
     color: 'bg-green-500',
-    logo: 'https://www.gstatic.com/images/branding/product/1x/google_ads_512dp.png',
+    logo: 'https://cdn.worldvectorlogo.com/logos/google-ads-2.svg',
     companyName: 'Google',
     serviceName: 'Ads & Marketing',
     scopes: [
