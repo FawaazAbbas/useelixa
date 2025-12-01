@@ -215,7 +215,7 @@ const Calendar = () => {
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
     return (
-      <div className="w-full overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
+      <div className="overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
         <div className="border-b bg-gradient-to-r from-muted/30 to-muted/50 backdrop-blur-sm">
           <div className="grid grid-cols-8 min-h-[60px]">
             <div className="border-r" />
@@ -242,7 +242,7 @@ const Calendar = () => {
         </div>
 
         <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
-          <div className="grid grid-cols-8 relative">
+          <div className="grid grid-cols-8 relative max-w-full">
             <div className="border-r bg-gradient-to-b from-muted/20 to-muted/30">
               {hours.map((hour) => (
                 <div
@@ -327,7 +327,7 @@ const Calendar = () => {
     const dayEvents = getEventsForDay(currentDate);
 
     return (
-      <div className="w-full overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
+      <div className="overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
         <div className="border-b bg-gradient-to-r from-muted/30 to-muted/50 backdrop-blur-sm p-4">
           <h2 className="text-xl font-bold">
             {format(currentDate, "EEEE, MMMM d, yyyy")}
@@ -335,7 +335,7 @@ const Calendar = () => {
         </div>
 
         <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
-          <div className="flex relative">
+          <div className="flex relative max-w-full">
             <div className="w-20 shrink-0 border-r bg-gradient-to-b from-muted/20 to-muted/30">
               {hours.map((hour) => (
                 <div
@@ -421,8 +421,8 @@ const Calendar = () => {
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <div className="w-full overflow-auto min-h-[600px]">
-        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden shadow-sm">
+      <div className="overflow-auto min-h-[600px]">
+        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden shadow-sm max-w-full">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div
               key={day}
