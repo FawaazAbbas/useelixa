@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { format, addDays, subDays, isToday, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus } from "lucide-react";
+import { format, addDays, subDays, isToday, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getWeek, startOfYear } from "date-fns";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Filter } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from "@dnd-kit/core";
 import { mockCalendarEvents, MockCalendarEvent } from "@/data/mockCalendarEvents";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import EventDetailSheet from "@/components/EventDetailSheet";
 import CreateEventDialog from "@/components/CreateEventDialog";
 import { DraggableEvent } from "@/components/DraggableEvent";
@@ -17,12 +18,14 @@ import { toast } from "sonner";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<"day" | "week" | "month" | "agenda">("week");
+  const [view, setView] = useState<"day" | "week" | "month">("week");
   const [selectedEvent, setSelectedEvent] = useState<MockCalendarEvent | null>(null);
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [createEventDate, setCreateEventDate] = useState<Date | undefined>(undefined);
+  const [miniCalDate, setMiniCalDate] = useState(new Date());
+  const [eventTypeFilters, setEventTypeFilters] = useState<string[]>(["meeting", "call", "task", "reminder", "personal"]);
 
   const hours = Array.from({ length: 24 }, (_, i) => i); // Full 24 hours
 
@@ -44,14 +47,12 @@ const Calendar = () => {
     if (view === "day") setCurrentDate(subDays(currentDate, 1));
     else if (view === "week") setCurrentDate(subWeeks(currentDate, 1));
     else if (view === "month") setCurrentDate(subMonths(currentDate, 1));
-    else setCurrentDate(subWeeks(currentDate, 2));
   };
 
   const handleNext = () => {
     if (view === "day") setCurrentDate(addDays(currentDate, 1));
     else if (view === "week") setCurrentDate(addWeeks(currentDate, 1));
     else if (view === "month") setCurrentDate(addMonths(currentDate, 1));
-    else setCurrentDate(addWeeks(currentDate, 2));
   };
 
   const handleToday = () => setCurrentDate(new Date());
@@ -86,8 +87,125 @@ const Calendar = () => {
   };
 
   const getEventsForDay = (day: Date) => {
-    return mockCalendarEvents.filter((event) =>
-      isSameDay(new Date(event.start_time), day)
+    return mockCalendarEvents.filter((event) => {
+      const matchesDate = isSameDay(new Date(event.start_time), day);
+      const matchesFilter = eventTypeFilters.includes(event.type);
+      return matchesDate && matchesFilter;
+    });
+  };
+
+  const getUpcomingEvents = () => {
+    return [...mockCalendarEvents]
+      .filter(event => eventTypeFilters.includes(event.type))
+      .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+      .filter(event => new Date(event.start_time) >= new Date())
+      .slice(0, 5);
+  };
+
+  const getEventTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      meeting: "hsl(var(--chart-1))",
+      call: "hsl(var(--chart-2))",
+      task: "hsl(var(--chart-3))",
+      reminder: "hsl(var(--chart-4))",
+      personal: "hsl(var(--chart-5))",
+    };
+    return colors[type] || "hsl(var(--primary))";
+  };
+
+  const getEventTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      meeting: "Meeting",
+      call: "Call",
+      task: "Task",
+      reminder: "Reminder",
+      personal: "Personal",
+    };
+    return labels[type] || type;
+  };
+
+  // Mini Calendar
+  const renderMiniCalendar = () => {
+    const monthStart = startOfMonth(miniCalDate);
+    const monthEnd = endOfMonth(miniCalDate);
+    const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const firstDayOfMonth = monthStart.getDay();
+    const paddingDays = Array.from({ length: firstDayOfMonth }, () => null);
+    const allDays = [...paddingDays, ...monthDays];
+
+    return (
+      <Card className="shadow-sm bg-card/50 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">
+              {format(miniCalDate, "MMMM yyyy")}
+            </CardTitle>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setMiniCalDate(subMonths(miniCalDate, 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setMiniCalDate(addMonths(miniCalDate, 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
+              <div key={i} className="text-center text-xs font-medium text-muted-foreground">
+                {day}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {allDays.map((day, index) => {
+              if (!day)
+                return <div key={`empty-${index}`} className="h-8" />;
+
+              const dayIsToday = isToday(day);
+              const dayIsSelected = isSameDay(day, currentDate);
+              const hasEvents = getEventsForDay(day).length > 0;
+
+              return (
+                <Button
+                  key={day.toISOString()}
+                  variant={dayIsSelected ? "default" : dayIsToday ? "secondary" : "ghost"}
+                  className={`h-8 w-full p-0 text-xs ${
+                    dayIsSelected ? "font-bold" : ""
+                  }`}
+                  onClick={() => {
+                    setCurrentDate(day);
+                    setView("day");
+                  }}
+                >
+                  <div className="relative">
+                    {format(day, "d")}
+                    {hasEvents && (
+                      <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                    )}
+                  </div>
+                </Button>
+              );
+            })}
+          </div>
+          <div className="mt-3 pt-3 border-t">
+            <div className="text-xs text-muted-foreground text-center">
+              Week {getWeek(currentDate, { weekStartsOn: 0 })} of {format(currentDate, "yyyy")}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -439,30 +557,73 @@ const Calendar = () => {
     );
   };
 
-  const getEventTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      meeting: "Meeting",
-      call: "Call",
-      task: "Task",
-      reminder: "Reminder",
-      personal: "Personal",
-    };
-    return labels[type] || type;
-  };
-
   return (
     <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex-1 w-full h-full overflow-y-auto bg-gradient-to-b from-background via-background to-primary/5">
+      <div className="flex h-full overflow-hidden bg-gradient-to-b from-background via-background to-primary/5">
         <DemoBanner />
 
-        {/* Header */}
-        <div className="py-6 px-4 sm:px-6 md:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
+        {/* Left Sidebar - Mini Calendar & Upcoming Events */}
+        <div className="hidden lg:block w-80 border-r border-border/50 bg-gradient-to-b from-muted/20 to-muted/30 backdrop-blur-sm overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="p-6 space-y-6">
+              {/* Mini Calendar */}
+              {renderMiniCalendar()}
+
+              {/* Upcoming Events */}
+              <Card className="shadow-sm bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold">Upcoming Events</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {getUpcomingEvents().map((event) => {
+                    const startDate = new Date(event.start_time);
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={() => handleEventClick(event)}
+                        className="p-3 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02] animate-fade-in"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="w-1 h-12 rounded-full shrink-0"
+                            style={{ backgroundColor: event.color }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm truncate">{event.title}</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {format(startDate, "MMM d")} •{" "}
+                              {event.is_all_day ? "All Day" : format(startDate, "h:mm a")}
+                            </div>
+                            {event.location && (
+                              <div className="text-xs text-muted-foreground mt-1 truncate">
+                                📍 {event.location}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {getUpcomingEvents().length === 0 && (
+                    <div className="text-sm text-muted-foreground text-center py-4">
+                      No upcoming events
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Header */}
+          <div className="py-6 px-4 sm:px-6 md:px-8 border-b bg-gradient-to-r from-background/80 to-background backdrop-blur-sm sticky top-0 z-20">
+            <div className="max-w-7xl mx-auto">
               <div className="flex items-start justify-between gap-4 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl backdrop-blur-sm">
@@ -471,7 +632,7 @@ const Calendar = () => {
                   <div>
                     <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
                     <p className="text-sm md:text-base text-muted-foreground mt-1">
-                      Manage your schedule and events
+                      Manage your schedule
                     </p>
                   </div>
                 </div>
@@ -484,90 +645,139 @@ const Calendar = () => {
                   <span className="sm:hidden">New</span>
                 </Button>
               </div>
-            </div>
 
-            <Card className="shadow-lg mb-6 bg-gradient-to-r from-card/80 to-card backdrop-blur-sm border-primary/10">
-              <CardContent className="p-4 space-y-4">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handlePrevious}
-                      className="h-10 w-10 touch-manipulation hover:bg-primary/10"
+              {/* Event Type Filters */}
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Filter className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filter by type:</span>
+                </div>
+                <ToggleGroup
+                  type="multiple"
+                  value={eventTypeFilters}
+                  onValueChange={(value) => {
+                    if (value.length > 0) {
+                      setEventTypeFilters(value);
+                    }
+                  }}
+                  className="justify-start flex-wrap"
+                >
+                  <ToggleGroupItem
+                    value="meeting"
+                    aria-label="Toggle meetings"
+                    className="data-[state=on]:bg-chart-1/20 data-[state=on]:text-chart-1 data-[state=on]:border-chart-1"
+                  >
+                    Meeting
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="call"
+                    aria-label="Toggle calls"
+                    className="data-[state=on]:bg-chart-2/20 data-[state=on]:text-chart-2 data-[state=on]:border-chart-2"
+                  >
+                    Call
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="task"
+                    aria-label="Toggle tasks"
+                    className="data-[state=on]:bg-chart-3/20 data-[state=on]:text-chart-3 data-[state=on]:border-chart-3"
+                  >
+                    Task
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="reminder"
+                    aria-label="Toggle reminders"
+                    className="data-[state=on]:bg-chart-4/20 data-[state=on]:text-chart-4 data-[state=on]:border-chart-4"
+                  >
+                    Reminder
+                  </ToggleGroupItem>
+                  <ToggleGroupItem
+                    value="personal"
+                    aria-label="Toggle personal"
+                    className="data-[state=on]:bg-chart-5/20 data-[state=on]:text-chart-5 data-[state=on]:border-chart-5"
+                  >
+                    Personal
+                  </ToggleGroupItem>
+                </ToggleGroup>
+              </div>
+
+              <Card className="shadow-lg bg-gradient-to-r from-card/80 to-card backdrop-blur-sm border-primary/10">
+                <CardContent className="p-4 space-y-4">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handlePrevious}
+                        className="h-10 w-10 touch-manipulation hover:bg-primary/10"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleToday}
+                        className="h-10 px-4 touch-manipulation hover:bg-primary/10"
+                      >
+                        Today
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleNext}
+                        className="h-10 w-10 touch-manipulation hover:bg-primary/10"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <Tabs
+                      value={view}
+                      onValueChange={(v) => setView(v as any)}
+                      className="flex-1"
                     >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleToday}
-                      className="h-10 px-4 touch-manipulation hover:bg-primary/10"
-                    >
-                      Today
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={handleNext}
-                      className="h-10 w-10 touch-manipulation hover:bg-primary/10"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
+                      <TabsList className="grid grid-cols-3 w-full h-10">
+                        <TabsTrigger value="day" className="text-xs sm:text-sm">
+                          Day
+                        </TabsTrigger>
+                        <TabsTrigger value="week" className="text-xs sm:text-sm">
+                          Week
+                        </TabsTrigger>
+                        <TabsTrigger value="month" className="text-xs sm:text-sm">
+                          Month
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                   </div>
 
-                  <Tabs
-                    value={view}
-                    onValueChange={(v) => setView(v as any)}
-                    className="flex-1"
-                  >
-                    <TabsList className="grid grid-cols-4 w-full h-10">
-                      <TabsTrigger value="day" className="text-xs sm:text-sm">
-                        Day
-                      </TabsTrigger>
-                      <TabsTrigger value="week" className="text-xs sm:text-sm">
-                        Week
-                      </TabsTrigger>
-                      <TabsTrigger value="month" className="text-xs sm:text-sm">
-                        Month
-                      </TabsTrigger>
-                      <TabsTrigger value="agenda" className="text-xs sm:text-sm">
-                        Agenda
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Badge
-                    variant="secondary"
-                    className="text-xs sm:text-sm px-3 py-1.5 font-medium"
-                  >
-                    {view === "month" && format(currentDate, "MMMM yyyy")}
-                    {view === "week" &&
-                      format(currentDate, "MMM d") +
-                        " - " +
-                        format(
-                          addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
-                          "MMM d, yyyy"
-                        )}
-                    {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
-                    {view === "agenda" && "Upcoming Events"}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {mockCalendarEvents.length} events
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="flex items-center justify-between">
+                    <Badge
+                      variant="secondary"
+                      className="text-xs sm:text-sm px-3 py-1.5 font-medium"
+                    >
+                      {view === "month" && format(currentDate, "MMMM yyyy")}
+                      {view === "week" &&
+                        format(currentDate, "MMM d") +
+                          " - " +
+                          format(
+                            addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
+                            "MMM d, yyyy"
+                          )}
+                      {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      Week {getWeek(currentDate, { weekStartsOn: 0 })}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
 
-        {/* Calendar Views */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pb-20 md:pb-8">
-          {view === "week" && renderWeekView()}
-          {view === "day" && renderDayView()}
-          {view === "month" && renderMonthView()}
-          {view === "agenda" && renderAgendaView()}
+          {/* Calendar Views */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
+            {view === "week" && renderWeekView()}
+            {view === "day" && renderDayView()}
+            {view === "month" && renderMonthView()}
+          </div>
         </div>
 
         <EventDetailSheet
