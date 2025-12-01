@@ -1433,17 +1433,17 @@ const Workspace = () => {
               <div className="p-4 border-b">
                 <TabsList className={`grid w-full ${showBrian ? 'grid-cols-3' : 'grid-cols-4'}`}>
                   {!showBrian && (
-                    <TabsTrigger value="automations">
+                    <TabsTrigger value="automations" className="flex items-center justify-center">
                       <PlayCircle className="h-4 w-4" />
                     </TabsTrigger>
                   )}
-                  <TabsTrigger value="files">
+                  <TabsTrigger value="files" className="flex items-center justify-center">
                     <FileText className="h-4 w-4" />
                   </TabsTrigger>
-                  <TabsTrigger value="memories">
+                  <TabsTrigger value="memories" className="flex items-center justify-center">
                     <Brain className="h-4 w-4" />
                   </TabsTrigger>
-                  <TabsTrigger value="logs">
+                  <TabsTrigger value="logs" className="flex items-center justify-center">
                     <LayoutList className="h-4 w-4" />
                   </TabsTrigger>
                 </TabsList>
@@ -1522,30 +1522,30 @@ const Workspace = () => {
       {(selectedChat || showBrian) && (
         <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
-          <div className="px-4 pt-4 pb-2 overflow-x-auto">
-            <TabsList className="inline-flex w-auto min-w-full">
+          <div className="px-4 pt-4 pb-2">
+            <TabsList className={`w-full ${showBrian ? 'grid grid-cols-4' : 'grid grid-cols-5'}`}>
               {!showBrian && (
                 <>
-                  <TabsTrigger value="about" className="text-xs">
+                  <TabsTrigger value="about" className="text-xs flex items-center justify-center">
                     <Info className="h-4 w-4" />
                   </TabsTrigger>
-                  <TabsTrigger value="automations" className="text-xs">
+                  <TabsTrigger value="automations" className="text-xs flex items-center justify-center">
                     <PlayCircle className="h-4 w-4" />
                   </TabsTrigger>
                 </>
               )}
               {showBrian && (
-                <TabsTrigger value="about" className="text-xs">
+                <TabsTrigger value="about" className="text-xs flex items-center justify-center">
                   <Info className="h-4 w-4" />
                 </TabsTrigger>
               )}
-              <TabsTrigger value="files" className="text-xs">
+              <TabsTrigger value="files" className="text-xs flex items-center justify-center">
                 <FileText className="h-4 w-4" />
               </TabsTrigger>
-              <TabsTrigger value="memories" className="text-xs">
+              <TabsTrigger value="memories" className="text-xs flex items-center justify-center">
                 <Brain className="h-4 w-4" />
               </TabsTrigger>
-              <TabsTrigger value="history" className="text-xs">
+              <TabsTrigger value="history" className="text-xs flex items-center justify-center">
                 <Activity className="h-4 w-4" />
               </TabsTrigger>
             </TabsList>
