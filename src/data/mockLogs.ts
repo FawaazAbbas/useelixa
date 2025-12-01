@@ -20,6 +20,7 @@ export interface MockActivityLog {
   agent?: {
     name: string;
     image_url: string;
+    category?: string;
   };
   trigger_source: string;
   input_data?: Record<string, any>;
@@ -51,6 +52,7 @@ export const mockActivityLogs: MockActivityLog[] = [
     agent: {
       name: "Customer Support Pro",
       image_url: "/elixa-logo.png",
+      category: "Customer Service",
     },
     trigger_source: "Scheduled automation",
     input_data: {

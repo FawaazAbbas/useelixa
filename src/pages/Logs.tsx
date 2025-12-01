@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Activity, CheckCircle, XCircle, AlertCircle, Clock, Zap, ArrowRight, FileText, Link2, Bot } from "lucide-react";
+import { getAgentColor } from "@/utils/agentColors";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -201,9 +202,14 @@ const Logs = () => {
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         {selectedLog.agent && (
                           <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                              <Bot className="h-4 w-4 text-primary" />
-                            </div>
+                            {(() => {
+                              const colors = getAgentColor(selectedLog.agent.category || 'General');
+                              return (
+                                <div className={`h-6 w-6 rounded-full ${colors.bg} flex items-center justify-center`}>
+                                  <Bot className={`h-4 w-4 ${colors.icon}`} />
+                                </div>
+                              );
+                            })()}
                             <span>{selectedLog.agent.name}</span>
                           </div>
                         )}
