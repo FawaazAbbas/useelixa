@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import {
@@ -56,6 +56,17 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
   });
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+
+  // Update date when initialDate changes or dialog opens
+  useEffect(() => {
+    if (open && initialDate) {
+      setDate(initialDate);
+      setStartTime(format(initialDate, "HH:mm"));
+      const endDate = new Date(initialDate);
+      endDate.setHours(endDate.getHours() + 1);
+      setEndTime(format(endDate, "HH:mm"));
+    }
+  }, [open, initialDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
