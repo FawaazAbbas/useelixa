@@ -40,8 +40,18 @@ export const ChatAutomationsPanel = ({ chatId, userId, workspaceId }: ChatAutoma
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [executing, setExecuting] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Demo mode: check if chatId is a mock ID (not a valid UUID)
+  const isDemoMode = !userId || chatId.startsWith('chat-mock') || chatId.startsWith('group-');
 
   const fetchAutomations = async () => {
+    if (isDemoMode) {
+      // In demo mode, show empty automations
+      setAutomations([]);
+      setLoading(false);
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('automations')
       .select(`

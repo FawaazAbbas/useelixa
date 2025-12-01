@@ -40,8 +40,18 @@ export const AgentFilesPanel = ({ agentInstallationId, workspaceId }: AgentFiles
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const { toast } = useToast();
+  
+  // Demo mode: check if agentInstallationId is a mock ID
+  const isDemoMode = !agentInstallationId || agentInstallationId.startsWith('mock-');
 
   const fetchDocuments = async () => {
+    if (isDemoMode) {
+      // In demo mode, show empty documents
+      setDocuments([]);
+      setLoading(false);
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('agent_documents')
       .select(`
@@ -58,6 +68,11 @@ export const AgentFilesPanel = ({ agentInstallationId, workspaceId }: AgentFiles
   };
 
   const fetchAvailableDocuments = async () => {
+    if (isDemoMode) {
+      setAvailableDocuments([]);
+      return;
+    }
+    
     const { data } = await supabase
       .from('workspace_documents')
       .select('id, name, file_size, file_type')

@@ -46,12 +46,23 @@ export function ChatMemoriesPanel({ chatId, workspaceId, agentInstallationId }: 
   const [chatMemories, setChatMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  // Demo mode: check if IDs are mock IDs
+  const isDemoMode = !agentInstallationId || (chatId && (chatId.startsWith('chat-mock') || chatId.startsWith('group-')));
 
   useEffect(() => {
     fetchMemories();
   }, [chatId, workspaceId, agentInstallationId]);
 
   const fetchMemories = async () => {
+    if (isDemoMode) {
+      // In demo mode, show empty memories
+      setWorkspaceMemories([]);
+      setChatMemories([]);
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
 
