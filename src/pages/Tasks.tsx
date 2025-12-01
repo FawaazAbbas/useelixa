@@ -1,163 +1,44 @@
-import { useState, useEffect, useCallback } from "react";
-import { CheckSquare, Plus, Trash2, Loader2, Zap } from "lucide-react";
+import { useState } from "react";
+import { CheckSquare, Plus, Trash2, Zap } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
 import PullToRefresh from "react-pull-to-refresh";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { TaskDetailDialog } from "@/components/TaskDetailDialog";
-import { TaskCreationModeDialog } from "@/components/TaskCreationModeDialog";
-import { BrianChatDialog } from "@/components/BrianChatDialog";
-import { ManualTaskDialog } from "@/components/ManualTaskDialog";
 import { EmptyState } from "@/components/EmptyState";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  priority: string | null;
-  status: string | null;
-  due_date: string | null;
-  completed_at: string | null;
-  created_at: string;
-  automation_count: number;
-  completed_automation_count: number;
-  is_asap: boolean;
-}
+import { DemoBanner } from "@/components/DemoBanner";
+import { mockTasks, MockTask } from "@/data/mockTasks";
 
 const Tasks = () => {
-  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modeDialogOpen, setModeDialogOpen] = useState(false);
-  const [brianDialogOpen, setBrianDialogOpen] = useState(false);
-  const [manualDialogOpen, setManualDialogOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [tasks, setTasks] = useState<MockTask[]>(mockTasks);
   const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (authLoading) return;
-    
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    fetchTasks();
-
-    const channel = supabase
-      .channel("tasks-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "tasks",
-          filter: `user_id=eq.${user.id}`
-        },
-        () => {
-          fetchTasks();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, authLoading, navigate]);
-
-  // Handle deep linking to specific task
-  useEffect(() => {
-    const taskIdParam = searchParams.get('taskId');
-    if (taskIdParam && tasks.length > 0) {
-      const task = tasks.find(t => t.id === taskIdParam);
-      if (task) {
-        setSelectedTask(task);
-        setTaskDetailOpen(true);
-        // Remove query param
-        navigate('/tasks', { replace: true });
-      }
-    }
-  }, [searchParams, tasks, navigate]);
-
-  const fetchTasks = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*, automation_count, completed_automation_count, is_asap")
-      .eq("user_id", user.id)
-      .order("is_asap", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching tasks:", error);
-      toast({
-        variant: "destructive",
-        title: "Error loading tasks",
-        description: error.message,
-      });
-    } else {
-      setTasks(data || []);
-    }
-    setLoading(false);
+  const handleRefresh = async () => {
+    // Simulate refresh
+    await new Promise(resolve => setTimeout(resolve, 500));
   };
 
-  const handleRefresh = useCallback(async () => {
-    await fetchTasks();
-  }, [user]);
-
-  const handleModeSelect = (mode: "brian" | "manual") => {
-    if (mode === "brian") {
-      setBrianDialogOpen(true);
-    } else {
-      setManualDialogOpen(true);
-    }
+  const toggleTaskComplete = (taskId: string, currentStatus: string | null) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId 
+        ? { ...task, status: currentStatus === "completed" ? "pending" : "completed" }
+        : task
+    ));
+    toast({
+      title: "Demo Mode",
+      description: "Task status updated (changes won't be saved)",
+    });
   };
 
-  const toggleTaskComplete = async (taskId: string, currentStatus: string | null) => {
-    const newStatus = currentStatus === "completed" ? "pending" : "completed";
-    const { error } = await supabase
-      .from("tasks")
-      .update({ 
-        status: newStatus,
-        completed_at: newStatus === "completed" ? new Date().toISOString() : null
-      })
-      .eq("id", taskId);
-
-    if (error) {
-      console.error("Error updating task:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update task",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const deleteTask = async (taskId: string) => {
-    const { error } = await supabase
-      .from("tasks")
-      .delete()
-      .eq("id", taskId);
-
-    if (error) {
-      console.error("Error deleting task:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete task",
-        variant: "destructive"
-      });
-    }
+  const deleteTask = (taskId: string) => {
+    setTasks(tasks.filter(task => task.id !== taskId));
+    toast({
+      title: "Demo Mode",
+      description: "Task removed (changes won't be saved)",
+    });
   };
 
   const getPriorityColor = (priority: string | null) => {
@@ -173,15 +54,7 @@ const Tasks = () => {
     }
   };
 
-  if (authLoading || loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  const TaskCard = ({ task }: { task: Task }) => {
+  const TaskCard = ({ task }: { task: MockTask }) => {
     const handlers = useSwipeable({
       onSwipedLeft: () => setSwipedTaskId(task.id),
       onSwipedRight: () => setSwipedTaskId(null),
@@ -194,10 +67,6 @@ const Tasks = () => {
           className={`cursor-pointer hover:bg-accent/50 transition-all ${
             swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0"
           }`}
-          onClick={() => {
-            setSelectedTask(task);
-            setTaskDetailOpen(true);
-          }}
         >
           <CardContent className="p-4 md:p-6">
             <div className="flex items-start gap-3 md:gap-4">
@@ -270,62 +139,41 @@ const Tasks = () => {
   };
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-      <div className="flex-1 p-4 md:p-8 overflow-auto pb-20 md:pb-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
-          <div className="flex items-center gap-3">
-            <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-            <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
+    <>
+      <DemoBanner />
+      <PullToRefresh onRefresh={handleRefresh} className="flex-1">
+        <div className="flex-1 p-4 md:p-8 overflow-auto pb-20 md:pb-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
+              <div className="flex items-center gap-3">
+                <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+                <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
+              </div>
+              <Button onClick={() => toast({ title: "Demo Mode", description: "Task creation disabled in demo" })} className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                New Task
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              {tasks.length === 0 ? (
+                <EmptyState
+                  icon="📋"
+                  title="No tasks yet"
+                  description="Create your first task to start organizing your work with AI-powered automations"
+                  action={{
+                    label: "Create Task",
+                    onClick: () => toast({ title: "Demo Mode", description: "Task creation disabled in demo" }),
+                  }}
+                />
+              ) : (
+                tasks.map((task) => <TaskCard key={task.id} task={task} />)
+              )}
+            </div>
           </div>
-          <Button onClick={() => setModeDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            New Task
-          </Button>
         </div>
-
-        <div className="grid gap-4">
-          {tasks.length === 0 ? (
-            <EmptyState
-              icon="📋"
-              title="No tasks yet"
-              description="Create your first task to start organizing your work with AI-powered automations"
-              action={{
-                label: "Create Task",
-                onClick: () => setModeDialogOpen(true),
-              }}
-            />
-          ) : (
-            tasks.map((task) => <TaskCard key={task.id} task={task} />)
-          )}
-        </div>
-      </div>
-
-      <TaskCreationModeDialog
-        open={modeDialogOpen}
-        onOpenChange={setModeDialogOpen}
-        onSelectMode={handleModeSelect}
-      />
-
-      <BrianChatDialog
-        open={brianDialogOpen}
-        onOpenChange={setBrianDialogOpen}
-        onTaskCreated={fetchTasks}
-      />
-
-      <ManualTaskDialog
-        open={manualDialogOpen}
-        onOpenChange={setManualDialogOpen}
-        onTaskCreated={fetchTasks}
-      />
-
-      <TaskDetailDialog
-        task={selectedTask}
-        open={taskDetailOpen}
-        onOpenChange={setTaskDetailOpen}
-      />
-      </div>
-    </PullToRefresh>
+      </PullToRefresh>
+    </>
   );
 };
 

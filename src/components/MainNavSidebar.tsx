@@ -22,17 +22,24 @@ const navItems = [
 ];
 
 export const MainNavSidebar = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Mock user for demo
+  const mockUser = { email: "demo@example.com" };
+  const displayUser = user || mockUser;
+
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
+    if (user) {
+      const { signOut } = useAuth();
+      await signOut();
+    }
+    navigate("/marketplace");
   };
 
   const getUserInitials = () => {
-    if (!user?.email) return "U";
-    return user.email.charAt(0).toUpperCase();
+    if (!displayUser?.email) return "D";
+    return displayUser.email.charAt(0).toUpperCase();
   };
 
   return (
@@ -83,39 +90,37 @@ export const MainNavSidebar = () => {
       </div>
 
       {/* User Profile */}
-      {user && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="p-2 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56" style={{ zIndex: 999999 }}>
-            <DropdownMenuLabel>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">My Account</p>
-                <p className="text-xs leading-none text-muted-foreground truncate">
-                  {user.email}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/settings")}>
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="p-2 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56" style={{ zIndex: 999999 }}>
+          <DropdownMenuLabel>
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">Demo Account</p>
+              <p className="text-xs leading-none text-muted-foreground truncate">
+                {displayUser.email}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => navigate("/settings")}>
+            <SettingsIcon className="mr-2 h-4 w-4" />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+            <LogOut className="mr-2 h-4 w-4" />
+            {user ? "Sign Out" : "Exit Demo"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

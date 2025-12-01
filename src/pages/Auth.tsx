@@ -17,31 +17,8 @@ const Auth = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        const redirectTo = sessionStorage.getItem('redirectAfterAuth');
-        if (redirectTo) {
-          sessionStorage.removeItem('redirectAfterAuth');
-          navigate(redirectTo);
-        } else {
-          navigate("/workspace");
-        }
-      }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        const redirectTo = sessionStorage.getItem('redirectAfterAuth');
-        if (redirectTo) {
-          sessionStorage.removeItem('redirectAfterAuth');
-          navigate(redirectTo);
-        } else {
-          navigate("/workspace");
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    // Auto-redirect to workspace in demo mode
+    navigate("/workspace");
   }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
