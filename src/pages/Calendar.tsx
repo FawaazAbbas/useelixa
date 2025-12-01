@@ -349,7 +349,7 @@ const Calendar = () => {
       <div className="min-h-screen bg-background">
         <DemoBanner />
 
-        <div className="container mx-auto p-4 space-y-4">
+        <div className="w-full p-4 space-y-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
