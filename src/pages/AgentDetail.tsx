@@ -27,18 +27,11 @@ const AgentDetail = () => {
     const fetchAgent = async () => {
       if (!id) return;
 
-      const { data, error } = await supabase
-        .from("agents")
-        .select(`
-          *,
-          agent_categories(name)
-        `)
-        .eq("id", id)
-        .single();
-
-      if (error) {
-        console.error("Error fetching agent:", error);
-        // Fallback to mock agents
+      // Check if ID is a mock ID (not a valid UUID)
+      const isMockId = id.startsWith("mock-");
+      
+      if (isMockId) {
+        // Use mock data directly
         const mockAgent = mockAgents.find(a => a.id === id);
         if (mockAgent) {
           setAgent({
@@ -50,6 +43,23 @@ const AgentDetail = () => {
         } else {
           navigate("/");
         }
+        setLoading(false);
+        return;
+      }
+
+      // Try real database for valid UUIDs
+      const { data, error } = await supabase
+        .from("agents")
+        .select(`
+          *,
+          agent_categories(name)
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Error fetching agent:", error);
+        navigate("/");
       } else {
         setAgent(data);
       }
