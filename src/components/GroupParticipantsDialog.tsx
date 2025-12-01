@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Trash2, UserPlus } from 'lucide-react';
+import { Loader2, Trash2, UserPlus, Bot } from 'lucide-react';
 
 interface Participant {
   id: string;
@@ -188,11 +187,9 @@ export const GroupParticipantsDialog = ({
                       className="flex items-center justify-between p-2 border rounded"
                     >
                       <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {participant.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Bot className="h-5 w-5 text-primary" />
+                        </div>
                         <span className="text-sm">{participant.name}</span>
                         <Badge variant="secondary" className="text-xs">
                           {participant.type}
@@ -225,11 +222,9 @@ export const GroupParticipantsDialog = ({
                       className="flex items-center justify-between p-2 border rounded hover:bg-muted/50"
                     >
                       <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {agent.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                          <Bot className="h-5 w-5 text-primary" />
+                        </div>
                         <span className="text-sm">{agent.name}</span>
                       </div>
                       <Button
