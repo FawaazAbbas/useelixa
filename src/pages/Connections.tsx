@@ -67,7 +67,7 @@ const CREDENTIAL_INFO: Record<
     category: "Scheduling",
     icon: "📅",
     color: "bg-blue-500",
-    logo: "https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_7024293ac1af0ca3fd0fa0e081eb9127/calendly.png",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/CalendlyLogo.png`,
     companyName: "Calendly",
   },
   mailchimpOAuth2Api: {
@@ -112,7 +112,7 @@ const CREDENTIAL_INFO: Record<
     category: "Forms",
     icon: "📋",
     color: "bg-gray-900",
-    logo: "http://drive.google.com/file/d/1EQvQBPbYd7WV1-lEW5EhAH7_OT0qBF59/view",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/TypeFormLogo.png`,
     companyName: "Typeform",
   },
 };
