@@ -19,6 +19,8 @@ const folders = ["root", "marketing", "technical", "finance"];
 export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialogProps) {
   const [fileName, setFileName] = useState("");
   const [folder, setFolder] = useState("root");
+  const [isNewFolder, setIsNewFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const [description, setDescription] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -41,14 +43,22 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
       return;
     }
 
-    toast.success("Demo Mode", {
-      description: "Document upload is not available in demo mode",
+    if (isNewFolder && !newFolderName.trim()) {
+      toast.error("Please enter a folder name");
+      return;
+    }
+
+    const targetFolder = isNewFolder ? newFolderName : folder;
+    toast.success("Document Uploaded", {
+      description: `"${fileName}" has been uploaded to the ${targetFolder} folder`,
     });
     onOpenChange(false);
     
     // Reset form
     setFileName("");
     setFolder("root");
+    setIsNewFolder(false);
+    setNewFolderName("");
     setDescription("");
     setTags([]);
     setTagInput("");
@@ -120,18 +130,52 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
 
           <div className="space-y-2">
             <Label htmlFor="folder">Folder</Label>
-            <Select value={folder} onValueChange={setFolder}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {folders.map((f) => (
-                  <SelectItem key={f} value={f}>
-                    {f}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!isNewFolder ? (
+              <div className="space-y-2">
+                <Select value={folder} onValueChange={setFolder}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {folders.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {f}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setIsNewFolder(true)}
+                >
+                  + Create New Folder
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Input
+                  id="newFolder"
+                  placeholder="Enter folder name..."
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => {
+                    setIsNewFolder(false);
+                    setNewFolderName("");
+                  }}
+                >
+                  Use Existing Folder
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
