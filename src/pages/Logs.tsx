@@ -111,15 +111,14 @@ const Logs = () => {
               </CardContent>
             </Card>
           ) : (
-            <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-280px)]">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                {filteredLogs.map((log, idx) => (
-                  <Card 
-                    key={log.id} 
-                    className="flex flex-col cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] hover:border-primary/50 animate-fade-in"
-                    onClick={() => setSelectedLog(log)}
-                    style={{ animationDelay: `${idx * 20}ms` }}
-                  >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 p-1">
+              {filteredLogs.map((log, idx) => (
+                <Card 
+                  key={log.id} 
+                  className="flex flex-col cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] hover:border-primary/50 hover:z-10 animate-fade-in"
+                  onClick={() => setSelectedLog(log)}
+                  style={{ animationDelay: `${idx * 20}ms` }}
+                >
                     <CardContent className="p-3 md:p-4 flex-1">
                       <div className="flex items-start gap-2 md:gap-3">
                         {getStatusIcon(log.status)}
@@ -174,9 +173,9 @@ const Logs = () => {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            </ScrollArea>
+                ))
+              }
+            </div>
           )}
         </div>
 
@@ -202,8 +201,8 @@ const Logs = () => {
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         {selectedLog.agent && (
                           <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={selectedLog.agent.image_url} />
+                            <Avatar className="h-6 w-6 rounded-none">
+                              <AvatarImage src={selectedLog.agent.image_url} className="rounded-none" />
                               <AvatarFallback>{selectedLog.agent.name[0]}</AvatarFallback>
                             </Avatar>
                             <span>{selectedLog.agent.name}</span>
