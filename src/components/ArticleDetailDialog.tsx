@@ -50,9 +50,9 @@ export function ArticleDetailDialog({ article, open, onOpenChange }: ArticleDeta
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`max-w-4xl max-h-[85vh] overflow-y-auto border-l-4 ${categoryColor}`}>
         <DialogHeader>
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 pr-8">
             <div className="flex-1">
-              <DialogTitle className="text-2xl mb-3">{article.title}</DialogTitle>
+              <DialogTitle className="text-2xl mb-3 pr-4">{article.title}</DialogTitle>
               <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {article.category && (
                   <Badge variant="secondary">{article.category}</Badge>
