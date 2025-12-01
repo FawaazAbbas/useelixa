@@ -774,6 +774,16 @@ const Workspace = () => {
                              <span className="font-semibold">
                                {isUserMessage ? "You" : "Brian"}
                              </span>
+                             <span className="text-xs text-muted-foreground">
+                               {new Date().toLocaleTimeString()}
+                             </span>
+                             {!isSelectionMode && (
+                               <MessageContextMenu
+                                 messageId={idx.toString()}
+                                 canDelete={true}
+                                 onDelete={() => deleteBrianMessage(idx)}
+                               />
+                             )}
                            </div>
                            <div
                              className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
@@ -795,31 +805,24 @@ const Workspace = () => {
                            )}
                          </div>
                          {isUserMessage && (
-                           <Avatar className="h-10 w-10">
+                           <Avatar className="h-10 w-10 flex-shrink-0">
                              <AvatarFallback>U</AvatarFallback>
                            </Avatar>
                          )}
-                        {!isSelectionMode && (
-                          <MessageContextMenu
-                            messageId={idx.toString()}
-                            canDelete={true}
-                            onDelete={() => deleteBrianMessage(idx)}
-                          />
-                        )}
                       </div>
                     );
                   })
                 )}
                 {brianSending && (
                   <div className="flex gap-3">
-                    <Avatar className="bg-gradient-to-br from-purple-600 to-blue-500">
+                    <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-600 to-blue-500">
                       <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="inline-block px-4 py-2 rounded-lg bg-muted">
                         <div className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="text-sm">Brian is thinking...</span>
+                          <span className="text-sm">Processing...</span>
                         </div>
                       </div>
                     </div>
