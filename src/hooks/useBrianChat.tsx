@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { mockBrianMessages } from "@/data/mockWorkspaceData";
 
 interface Message {
   role: "user" | "assistant";
@@ -21,8 +22,18 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const { toast } = useToast();
+  
+  // Demo mode: when no user is logged in
+  const isDemoMode = !userId;
 
   useEffect(() => {
+    if (isDemoMode) {
+      // In demo mode, use mock Brian messages
+      setMessages(mockBrianMessages);
+      setLoading(false);
+      return;
+    }
+    
     if (userId && workspaceId) {
       loadConversation();
 
@@ -49,7 +60,7 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
         supabase.removeChannel(channel);
       };
     }
-  }, [userId, workspaceId]);
+  }, [userId, workspaceId, isDemoMode]);
 
   const loadConversation = async () => {
     if (!userId || !workspaceId) return;
@@ -78,6 +89,14 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
   };
 
   const sendMessage = async (content: string, metadata?: Message['metadata']) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to chat with Brian and unlock full features!",
+      });
+      return;
+    }
+    
     if (!userId || !workspaceId || (!content.trim() && !metadata?.files?.length)) return;
 
     setSending(true);
@@ -119,6 +138,14 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
   };
 
   const deleteMessage = async (messageIndex: number) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to delete messages!",
+      });
+      return;
+    }
+    
     if (!userId || !workspaceId) return;
 
     try {
@@ -149,6 +176,14 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
   };
 
   const deleteMultipleMessages = async (messageIndices: number[]) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to delete messages!",
+      });
+      return;
+    }
+    
     if (!userId || !workspaceId) return;
 
     try {

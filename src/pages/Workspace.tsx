@@ -187,6 +187,12 @@ const Workspace = () => {
   }, [workspaceId]);
 
   useEffect(() => {
+    if (isDemoMode) {
+      // In demo mode, auto-select Brian
+      setShowBrian(true);
+      return;
+    }
+    
     if (chats.length > 0 && !selectedChat && !showBrian) {
       const firstChat = chats[0];
       setSelectedChat(firstChat);
@@ -197,7 +203,7 @@ const Workspace = () => {
       // Auto-select Brian when there are no chats
       setShowBrian(true);
     }
-  }, [chats, selectedChat, showBrian, fetchMessages]);
+  }, [chats, selectedChat, showBrian, fetchMessages, isDemoMode]);
 
   useEffect(() => {
     if (selectedChat?.id) {

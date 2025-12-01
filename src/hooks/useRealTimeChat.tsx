@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { mockInstalledAgents, mockDirectChats, mockGroupChats } from '@/data/mockWorkspaceData';
 
 interface Message {
   id: string;
@@ -55,10 +56,43 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
   const [sending, setSending] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
+  
+  // Demo mode: when no user is logged in
+  const isDemoMode = !userId;
+  
+  // Initialize demo data
+  useEffect(() => {
+    if (isDemoMode) {
+      // Create mock direct chats from installed agents
+      const mockDirectChatsList: Chat[] = mockInstalledAgents.map((agent, index) => ({
+        id: `chat-${agent.id}`,
+        name: agent.name,
+        type: 'direct',
+        agent_id: agent.id,
+        last_activity: new Date(Date.now() - 3600000 * (index + 1)).toISOString(),
+        agent: {
+          id: agent.id,
+          name: agent.name,
+          image_url: agent.image_url,
+          description: agent.description,
+          short_description: agent.description,
+          long_description: agent.description,
+          capabilities: agent.capabilities || null,
+        },
+        unread_count: 0,
+      }));
+      
+      // Add group chats
+      const allMockChats = [...mockDirectChatsList, ...mockGroupChats];
+      setChats(allMockChats);
+      setLoading(false);
+      return;
+    }
+  }, [isDemoMode]);
 
   // Fetch unread counts for all chats
   const fetchUnreadCounts = useCallback(async () => {
-    if (!userId || !workspaceId) return;
+    if (isDemoMode || !userId || !workspaceId) return;
 
     const { data: chatList } = await supabase
       .from('chats')
@@ -88,7 +122,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Fetch user's chats (both direct and group)
   const fetchChats = useCallback(async () => {
-    if (!userId || !workspaceId) return;
+    if (isDemoMode || !userId || !workspaceId) return;
 
     // Fetch direct chats from installed agents
     const { data: installations } = await supabase
@@ -176,6 +210,26 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Fetch messages for a chat
   const fetchMessages = useCallback(async (chatId: string) => {
+      if (isDemoMode) {
+        // Set current chat ID
+        setCurrentChatId(chatId);
+        
+        // Check if it's a group chat
+        const groupChat = mockGroupChats.find(gc => gc.id === chatId);
+        if (groupChat) {
+          setMessages(groupChat.messages as any);
+          return;
+        }
+        
+        // Check if it's a direct chat
+        const agentId = chatId.replace('chat-', '');
+        const directChat = mockDirectChats[agentId];
+        if (directChat) {
+          setMessages(directChat.messages as any);
+        }
+        return;
+      }
+      
       // Set current chat ID for real-time filtering
       setCurrentChatId(chatId);
       
@@ -210,6 +264,14 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
     chatType: 'direct' | 'group' = 'direct',
     metadata?: { files?: Array<{ name: string; url: string; type: string; size: number }> }
   ) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to chat with agents and unlock full features!",
+      });
+      return;
+    }
+    
     if (!userId || !content.trim()) return;
 
     setSending(true);
@@ -365,6 +427,14 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Delete message
   const deleteMessage = useCallback(async (messageId: string) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to delete messages!",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('messages')
@@ -391,6 +461,14 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Delete multiple messages
   const deleteMultipleMessages = useCallback(async (messageIds: string[]) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to delete messages!",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('messages')
@@ -417,6 +495,14 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
 
   // Leave group chat
   const leaveGroupChat = useCallback(async (chatId: string) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Sign up to manage group chats!",
+      });
+      return;
+    }
+    
     if (!userId) return;
 
     try {
