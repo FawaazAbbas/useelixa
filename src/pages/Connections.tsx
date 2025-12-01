@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { GOOGLE_BUNDLES } from "@/config/googleBundles";
 import { DemoBanner } from "@/components/DemoBanner";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface ConnectionStatus {
   type: string;
@@ -63,7 +64,7 @@ const CREDENTIAL_INFO: Record<string, {
     category: 'Scheduling',
     icon: '📅',
     color: 'bg-blue-500',
-    logo: 'https://images.ctfassets.net/k0lk9kiuza3o/5UdSwOx0Q3FxtxlzmYEJLh/9c5fcd2c6e01a5af9d7fef7ad7e56d40/calendly-logo-square.png',
+    logo: 'https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_7024293ac1af0ca3fd0fa0e081eb9127/calendly.png',
     companyName: 'Calendly',
   },
   mailchimpOAuth2Api: {
@@ -108,7 +109,7 @@ const CREDENTIAL_INFO: Record<string, {
     category: 'Forms',
     icon: '📋',
     color: 'bg-gray-900',
-    logo: 'https://images.typeform.com/images/FN7WnMAzJRu3',
+    logo: 'https://images.ctfassets.net/rvt0uslu5yqp/4MaLXdXZUmGKIq4emw64q0/63b67b6d65cd8c9e11a2d6a0df4e3ed7/typeform-logo-symbol.svg',
     companyName: 'Typeform',
   },
 };
@@ -118,6 +119,7 @@ export default function Connections() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedProvider, setSelectedProvider] = useState<string>('all');
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   const connections: ConnectionStatus[] = [
     {
@@ -148,7 +150,7 @@ export default function Connections() {
   ];
 
   const handleConnect = () => {
-    toast.error("Connection feature disabled in demo mode");
+    setWaitlistOpen(true);
   };
 
   const handleDisconnect = () => {
@@ -216,9 +218,9 @@ export default function Connections() {
   const availableCount = allConnectionItems.length - connectedCount;
 
   return (
-    <>
+    <div className="flex-1 w-full overflow-y-auto">
       <DemoBanner />
-      <div className="container mx-auto py-8 px-4 max-w-7xl overflow-y-auto h-full">
+      <div className="container mx-auto py-8 px-4 max-w-7xl">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col gap-4">
             <div>
@@ -346,6 +348,8 @@ export default function Connections() {
           </div>
         </div>
       </div>
-    </>
+      
+      <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
+    </div>
   );
 }
