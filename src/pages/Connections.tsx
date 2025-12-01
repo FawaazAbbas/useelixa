@@ -22,103 +22,106 @@ interface ConnectionStatus {
   id?: string;
 }
 
-const CREDENTIAL_INFO: Record<string, {
-  name: string;
-  description: string;
-  category: string;
-  icon: string;
-  color: string;
-  logo: string;
-  companyName: string;
-}> = {
+const CREDENTIAL_INFO: Record<
+  string,
+  {
+    name: string;
+    description: string;
+    category: string;
+    icon: string;
+    color: string;
+    logo: string;
+    companyName: string;
+  }
+> = {
   notionApi: {
-    name: 'Notion Workspace',
-    description: 'Connect your Notion workspace for document management and collaboration',
-    category: 'Productivity',
-    icon: '📝',
-    color: 'bg-gray-800',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
-    companyName: 'Notion',
+    name: "Notion Workspace",
+    description: "Connect your Notion workspace for document management and collaboration",
+    category: "Productivity",
+    icon: "📝",
+    color: "bg-gray-800",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
+    companyName: "Notion",
   },
   slackOAuth2Api: {
-    name: 'Slack Workspace',
-    description: 'Connect your Slack workspace for team communication and notifications',
-    category: 'Communication',
-    icon: '💬',
-    color: 'bg-purple-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
-    companyName: 'Slack',
+    name: "Slack Workspace",
+    description: "Connect your Slack workspace for team communication and notifications",
+    category: "Communication",
+    icon: "💬",
+    color: "bg-purple-600",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg",
+    companyName: "Slack",
   },
   microsoftOAuth2Api: {
-    name: 'Microsoft 365',
-    description: 'Access Outlook, OneDrive, Teams, and other Microsoft services',
-    category: 'Productivity',
-    icon: '🪟',
-    color: 'bg-blue-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg',
-    companyName: 'Microsoft',
+    name: "Microsoft 365",
+    description: "Access Outlook, OneDrive, Teams, and other Microsoft services",
+    category: "Productivity",
+    icon: "🪟",
+    color: "bg-blue-600",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg",
+    companyName: "Microsoft",
   },
   calendlyApi: {
-    name: 'Calendly',
-    description: 'Schedule and manage meetings with Calendly integration',
-    category: 'Scheduling',
-    icon: '📅',
-    color: 'bg-blue-500',
-    logo: 'https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_7024293ac1af0ca3fd0fa0e081eb9127/calendly.png',
-    companyName: 'Calendly',
+    name: "Calendly",
+    description: "Schedule and manage meetings with Calendly integration",
+    category: "Scheduling",
+    icon: "📅",
+    color: "bg-blue-500",
+    logo: "https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_7024293ac1af0ca3fd0fa0e081eb9127/calendly.png",
+    companyName: "Calendly",
   },
   mailchimpOAuth2Api: {
-    name: 'Mailchimp',
-    description: 'Connect Mailchimp for email marketing and campaign management',
-    category: 'Marketing',
-    icon: '🐵',
-    color: 'bg-yellow-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Mailchimp_Logo.svg/320px-Mailchimp_Logo.svg.png',
-    companyName: 'Mailchimp',
+    name: "Mailchimp",
+    description: "Connect Mailchimp for email marketing and campaign management",
+    category: "Marketing",
+    icon: "🐵",
+    color: "bg-yellow-500",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Mailchimp_Logo.svg/320px-Mailchimp_Logo.svg.png",
+    companyName: "Mailchimp",
   },
   shopifyOAuth2Api: {
-    name: 'Shopify Store',
-    description: 'Connect your Shopify store for e-commerce automation',
-    category: 'E-commerce',
-    icon: '🛍️',
-    color: 'bg-green-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg',
-    companyName: 'Shopify',
+    name: "Shopify Store",
+    description: "Connect your Shopify store for e-commerce automation",
+    category: "E-commerce",
+    icon: "🛍️",
+    color: "bg-green-600",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg",
+    companyName: "Shopify",
   },
   metaBusinessApi: {
-    name: 'Meta Business Suite',
-    description: 'Connect Facebook and Instagram for social media management',
-    category: 'Social Media',
-    icon: '📱',
-    color: 'bg-blue-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg',
-    companyName: 'Meta',
+    name: "Meta Business Suite",
+    description: "Connect Facebook and Instagram for social media management",
+    category: "Social Media",
+    icon: "📱",
+    color: "bg-blue-500",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg",
+    companyName: "Meta",
   },
   twilioApi: {
-    name: 'Twilio',
-    description: 'Connect Twilio for SMS, voice, and messaging automation',
-    category: 'Communication',
-    icon: '📞',
-    color: 'bg-red-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Twilio-logo-red.svg',
-    companyName: 'Twilio',
+    name: "Twilio",
+    description: "Connect Twilio for SMS, voice, and messaging automation",
+    category: "Communication",
+    icon: "📞",
+    color: "bg-red-600",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Twilio-logo-red.svg",
+    companyName: "Twilio",
   },
   typeformOAuth2Api: {
-    name: 'Typeform',
-    description: 'Connect Typeform for form and survey automation',
-    category: 'Forms',
-    icon: '📋',
-    color: 'bg-gray-900',
-    logo: 'https://images.ctfassets.net/rvt0uslu5yqp/4MaLXdXZUmGKIq4emw64q0/63b67b6d65cd8c9e11a2d6a0df4e3ed7/typeform-logo-symbol.svg',
-    companyName: 'Typeform',
+    name: "Typeform",
+    description: "Connect Typeform for form and survey automation",
+    category: "Forms",
+    icon: "📋",
+    color: "bg-gray-900",
+    logo: "https://drive.google.com/file/d/1EQvQBPbYd7WV1-lEW5EhAH7_OT0qBF59/view?usp=sharing",
+    companyName: "Typeform",
   },
 };
 
 export default function Connections() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedProvider, setSelectedProvider] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   const connections: ConnectionStatus[] = [
@@ -157,13 +160,11 @@ export default function Connections() {
     toast.error("Disconnect feature disabled in demo mode");
   };
 
-  const categories = ['all', ...new Set(Object.values(CREDENTIAL_INFO).map(info => info.category))];
+  const categories = ["all", ...new Set(Object.values(CREDENTIAL_INFO).map((info) => info.category))];
 
   const allConnectionItems = [
-    ...Object.values(GOOGLE_BUNDLES).map(bundle => {
-      const bundleCredentials = connections.filter(
-        c => c.type === 'googleOAuth2Api' && c.bundleType === bundle.id
-      );
+    ...Object.values(GOOGLE_BUNDLES).map((bundle) => {
+      const bundleCredentials = connections.filter((c) => c.type === "googleOAuth2Api" && c.bundleType === bundle.id);
       return {
         type: `google_${bundle.id}`,
         isGoogleBundle: true,
@@ -172,7 +173,7 @@ export default function Connections() {
         info: {
           name: bundle.serviceName,
           description: bundle.description,
-          category: 'Productivity',
+          category: "Productivity",
           icon: bundle.icon,
           color: bundle.color,
           logo: bundle.logo,
@@ -185,35 +186,35 @@ export default function Connections() {
       type,
       isGoogleBundle: false,
       info,
-      connection: connections.find(c => c.type === type && !c.bundleType),
+      connection: connections.find((c) => c.type === type && !c.bundleType),
     })),
   ];
 
   const filteredConnections = allConnectionItems.filter((item) => {
-    const matchesSearch = 
+    const matchesSearch =
       item.info.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.info.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.info.companyName.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = selectedCategory === 'all' || item.info.category === selectedCategory;
-    
-    const isConnected = item.isGoogleBundle 
-      ? (item as any).credentials?.length > 0
-      : !!item.connection;
-    
-    const matchesStatus = selectedStatus === 'all' || 
-      (selectedStatus === 'connected' && isConnected) ||
-      (selectedStatus === 'not-connected' && !isConnected);
-    
-    const matchesProvider = selectedProvider === 'all' ||
-      (selectedProvider === 'google' && item.isGoogleBundle) ||
-      (selectedProvider === 'third-party' && !item.isGoogleBundle);
-    
+
+    const matchesCategory = selectedCategory === "all" || item.info.category === selectedCategory;
+
+    const isConnected = item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection;
+
+    const matchesStatus =
+      selectedStatus === "all" ||
+      (selectedStatus === "connected" && isConnected) ||
+      (selectedStatus === "not-connected" && !isConnected);
+
+    const matchesProvider =
+      selectedProvider === "all" ||
+      (selectedProvider === "google" && item.isGoogleBundle) ||
+      (selectedProvider === "third-party" && !item.isGoogleBundle);
+
     return matchesSearch && matchesCategory && matchesStatus && matchesProvider;
   });
 
-  const connectedCount = allConnectionItems.filter(item => 
-    item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection
+  const connectedCount = allConnectionItems.filter((item) =>
+    item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection,
   ).length;
   const availableCount = allConnectionItems.length - connectedCount;
 
@@ -225,9 +226,7 @@ export default function Connections() {
           <div className="flex flex-col gap-4">
             <div>
               <h1 className="text-4xl font-bold mb-2">Connections</h1>
-              <p className="text-muted-foreground">
-                Connect your tools and services to enable powerful automations
-              </p>
+              <p className="text-muted-foreground">Connect your tools and services to enable powerful automations</p>
             </div>
 
             <div className="space-y-4">
@@ -242,7 +241,7 @@ export default function Connections() {
                   />
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap gap-3">
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                   <SelectTrigger className="w-[180px]">
@@ -261,9 +260,13 @@ export default function Connections() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories.filter(c => c !== 'all').map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
+                    {categories
+                      .filter((c) => c !== "all")
+                      .map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
 
@@ -280,33 +283,40 @@ export default function Connections() {
               </div>
 
               <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>Connected: <span className="font-semibold text-foreground">{connectedCount}</span></span>
+                <span>
+                  Connected: <span className="font-semibold text-foreground">{connectedCount}</span>
+                </span>
                 <span>•</span>
-                <span>Available: <span className="font-semibold text-foreground">{availableCount}</span></span>
+                <span>
+                  Available: <span className="font-semibold text-foreground">{availableCount}</span>
+                </span>
                 <span>•</span>
-                <span>Total: <span className="font-semibold text-foreground">{allConnectionItems.length}</span></span>
+                <span>
+                  Total: <span className="font-semibold text-foreground">{allConnectionItems.length}</span>
+                </span>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredConnections.map((item) => {
-              const isConnected = item.isGoogleBundle 
-                ? (item as any).credentials?.length > 0
-                : !!item.connection;
+              const isConnected = item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection;
 
               return (
-                <Card key={item.type} className={`hover:shadow-lg transition-shadow ${isConnected ? 'ring-2 ring-green-500/20' : ''}`}>
+                <Card
+                  key={item.type}
+                  className={`hover:shadow-lg transition-shadow ${isConnected ? "ring-2 ring-green-500/20" : ""}`}
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                          <img 
-                            src={item.info.logo} 
+                          <img
+                            src={item.info.logo}
                             alt={item.info.companyName}
                             className="w-8 h-8 object-contain"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).style.display = "none";
                             }}
                           />
                         </div>
@@ -315,15 +325,17 @@ export default function Connections() {
                           <p className="text-xs text-muted-foreground">by {item.info.companyName}</p>
                         </div>
                       </div>
-                      {isConnected && (
-                        <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-                      )}
+                      {isConnected && <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />}
                     </div>
                     <CardDescription className="text-sm">{item.info.description}</CardDescription>
                     <div className="flex gap-2 mt-3">
-                      <Badge variant="outline" className="text-xs">{item.info.category}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {item.info.category}
+                      </Badge>
                       {isConnected && (
-                        <Badge variant="default" className="text-xs bg-green-500">Connected</Badge>
+                        <Badge variant="default" className="text-xs bg-green-500">
+                          Connected
+                        </Badge>
                       )}
                     </div>
                   </CardHeader>
@@ -348,7 +360,7 @@ export default function Connections() {
           </div>
         </div>
       </div>
-      
+
       <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
     </div>
   );
