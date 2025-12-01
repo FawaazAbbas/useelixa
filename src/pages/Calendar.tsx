@@ -68,8 +68,8 @@ const Calendar = () => {
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="grid grid-cols-8">
+        <ScrollArea className="flex-1 h-full">
+          <div className="grid grid-cols-8 relative">
             <div className="border-r bg-muted/30">
               {hours.map((hour) => (
                 <div key={hour} className="h-[60px] border-b px-2 py-1 text-xs text-muted-foreground text-right">
@@ -81,7 +81,7 @@ const Calendar = () => {
             {weekDays.map((day) => {
               const dayEvents = getEventsForDay(day);
               return (
-                <div key={day.toISOString()} className={`border-r ${isToday(day) ? "bg-primary/5" : ""}`}>
+                <div key={day.toISOString()} className={`border-r relative ${isToday(day) ? "bg-primary/5" : ""}`}>
                   {hours.map((hour) => (
                     <div key={hour} className="h-[60px] border-b" />
                   ))}
@@ -121,8 +121,8 @@ const Calendar = () => {
           </h2>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="flex">
+        <ScrollArea className="flex-1 h-full">
+          <div className="flex relative">
             <div className="w-20 shrink-0 border-r bg-muted/30">
               {hours.map((hour) => (
                 <div key={hour} className="h-[80px] border-b px-2 py-1 text-sm text-muted-foreground text-right">
@@ -131,7 +131,7 @@ const Calendar = () => {
               ))}
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 relative">
               {hours.map((hour) => (
                 <div key={hour} className="h-[80px] border-b" />
               ))}
@@ -224,7 +224,7 @@ const Calendar = () => {
       .slice(0, 20);
 
     return (
-      <ScrollArea className="flex-1 w-full">
+      <ScrollArea className="flex-1 w-full h-full">
         <div className="p-6 space-y-3 w-full">
           {upcomingEvents.map((event) => (
             <Card
