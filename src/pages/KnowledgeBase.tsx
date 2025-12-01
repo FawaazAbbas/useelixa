@@ -90,7 +90,7 @@ export default function KnowledgeBase() {
     <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
       
-      <div className="py-6 px-8 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
+      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
