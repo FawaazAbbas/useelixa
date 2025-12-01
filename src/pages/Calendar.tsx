@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import EventDetailSheet from "@/components/EventDetailSheet";
 import { DemoBanner } from "@/components/DemoBanner";
 
@@ -87,10 +88,10 @@ const Calendar = () => {
                   ))}
                   
                   {dayEvents.map((event, idx) => (
-                    <div
+                     <div
                       key={event.id}
                       onClick={() => handleEventClick(event)}
-                      className="absolute left-1 right-1 rounded p-2 text-xs cursor-pointer hover:shadow-md transition-shadow"
+                      className="absolute left-1 right-1 rounded p-2 text-xs cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200 animate-fade-in"
                       style={{
                         top: `${(idx * 70) + 80}px`,
                         backgroundColor: event.color,
@@ -136,15 +137,16 @@ const Calendar = () => {
                 <div key={hour} className="h-[80px] border-b" />
               ))}
               
-              {dayEvents.map((event, idx) => (
+               {dayEvents.map((event, idx) => (
                 <div
                   key={event.id}
                   onClick={() => handleEventClick(event)}
-                  className="absolute left-2 right-2 rounded-lg p-3 cursor-pointer hover:shadow-lg transition-shadow border-l-4"
+                  className="absolute left-2 right-2 rounded-lg p-3 cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all duration-200 border-l-4 animate-fade-in"
                   style={{
                     top: `${(idx * 90) + 20}px`,
                     borderLeftColor: event.color,
                     backgroundColor: "hsl(var(--card))",
+                    animationDelay: `${idx * 50}ms`
                   }}
                 >
                   <div className="font-semibold">{event.title}</div>
@@ -197,7 +199,7 @@ const Calendar = () => {
                     <div
                       key={event.id}
                       onClick={() => handleEventClick(event)}
-                      className="text-xs rounded px-1.5 py-0.5 truncate cursor-pointer hover:opacity-80"
+                      className="text-xs rounded px-1.5 py-0.5 truncate cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-200"
                       style={{ backgroundColor: event.color, color: "white" }}
                     >
                       {event.title}
@@ -226,11 +228,15 @@ const Calendar = () => {
     return (
       <ScrollArea className="flex-1 w-full h-full">
         <div className="p-6 space-y-3 w-full">
-          {upcomingEvents.map((event) => (
+          {upcomingEvents.map((event, idx) => (
             <Card
               key={event.id}
-              className="w-full cursor-pointer hover:shadow-md transition-shadow"
+              className="w-full cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all duration-200 border-l-4 animate-fade-in"
               onClick={() => handleEventClick(event)}
+              style={{
+                borderLeftColor: event.color,
+                animationDelay: `${idx * 30}ms`
+              }}
             >
               <CardContent className="p-4 flex gap-4">
                 <div className="w-1 rounded-full" style={{ backgroundColor: event.color }} />
@@ -249,44 +255,57 @@ const Calendar = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
+    <div className="h-screen w-full bg-gradient-to-b from-background to-muted/20 flex flex-col overflow-hidden">
       <DemoBanner />
 
       {/* Header */}
-      <div className="border-b bg-card p-4 w-full">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-4">
-            <CalendarIcon className="h-6 w-6" />
-            <h1 className="text-2xl font-bold">Calendar</h1>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={handlePrevious}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" onClick={handleToday}>
-                Today
-              </Button>
-              <Button variant="outline" size="icon" onClick={handleNext}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+      <div className="border-b bg-card/50 backdrop-blur-sm p-6 w-full">
+        <div className="flex items-center justify-between w-full mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <CalendarIcon className="h-6 w-6 text-primary" />
             </div>
-
-            <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-              <TabsList>
-                <TabsTrigger value="day">Day</TabsTrigger>
-                <TabsTrigger value="week">Week</TabsTrigger>
-                <TabsTrigger value="month">Month</TabsTrigger>
-                <TabsTrigger value="agenda">Agenda</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div>
+              <h1 className="text-2xl font-bold">Calendar</h1>
+              <p className="text-sm text-muted-foreground">
+                {mockCalendarEvents.length} events scheduled
+              </p>
+            </div>
           </div>
+
+          <Card className="shadow-sm">
+            <CardContent className="p-3 flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" onClick={handleToday} className="min-w-[80px]">
+                  Today
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Tabs value={view} onValueChange={(v) => setView(v as any)}>
+                <TabsList>
+                  <TabsTrigger value="day">Day</TabsTrigger>
+                  <TabsTrigger value="week">Week</TabsTrigger>
+                  <TabsTrigger value="month">Month</TabsTrigger>
+                  <TabsTrigger value="agenda">Agenda</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="mt-4 text-lg font-semibold">
-          {view === "month" && format(currentDate, "MMMM yyyy")}
-          {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
+        <div className="flex items-center gap-3">
+          <Badge variant="secondary" className="text-base px-3 py-1">
+            {view === "month" && format(currentDate, "MMMM yyyy")}
+            {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
+            {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
+            {view === "agenda" && "Upcoming Events"}
+          </Badge>
         </div>
       </div>
 
