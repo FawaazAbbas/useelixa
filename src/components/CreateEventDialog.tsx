@@ -40,8 +40,20 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
   const [isAllDay, setIsAllDay] = useState(false);
   const [title, setTitle] = useState("");
   const [eventType, setEventType] = useState("meeting");
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
+  const [startTime, setStartTime] = useState(() => {
+    if (initialDate) {
+      return format(initialDate, "HH:mm");
+    }
+    return "09:00";
+  });
+  const [endTime, setEndTime] = useState(() => {
+    if (initialDate) {
+      const endDate = new Date(initialDate);
+      endDate.setHours(endDate.getHours() + 1);
+      return format(endDate, "HH:mm");
+    }
+    return "10:00";
+  });
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
 
