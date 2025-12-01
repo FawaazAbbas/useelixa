@@ -770,7 +770,7 @@ const Workspace = () => {
                            </Avatar>
                          )}
                          <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
-                           <div className={`flex items-center gap-2 mb-2 ${isUserMessage ? "flex-row-reverse" : ""}`}>
+                           <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                              <span className="font-semibold">
                                {isUserMessage ? "You" : "Brian"}
                              </span>
@@ -1098,7 +1098,7 @@ const Workspace = () => {
                        </Avatar>
                      )}
                      <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
-                       <div className={`flex items-center gap-2 mb-2 ${isUserMessage ? "flex-row-reverse" : ""}`}>
+                       <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                          <span className="font-semibold">
                            {isUserMessage ? "You" : agentInfo?.name}
                          </span>
