@@ -139,11 +139,9 @@ const Tasks = () => {
   };
 
   return (
-    <>
+    <div className="flex-1 w-full overflow-y-auto">
       <DemoBanner />
-      <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-        <div className="flex-1 p-4 md:p-8 overflow-auto pb-20 md:pb-8">
-          <div className="max-w-6xl mx-auto">
+      <div className="p-4 md:p-8 pb-20 md:pb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
               <div className="flex items-center gap-3">
                 <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
@@ -171,9 +169,7 @@ const Tasks = () => {
               )}
             </div>
           </div>
-        </div>
-      </PullToRefresh>
-    </>
+    </div>
   );
 };
 

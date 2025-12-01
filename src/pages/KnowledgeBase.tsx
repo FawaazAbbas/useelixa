@@ -31,9 +31,9 @@ export default function KnowledgeBase() {
   const hasContent = articles.length > 0 || documents.length > 0;
 
   return (
-    <>
+    <div className="flex-1 w-full overflow-y-auto">
       <DemoBanner />
-      <div className="container mx-auto py-4 md:py-8 px-4 max-w-7xl overflow-y-auto h-full pb-20 md:pb-8">
+      <div className="container mx-auto py-4 md:py-8 px-4 pb-20 md:pb-8">
         <div className="mb-6 md:mb-8">
           <h1 className="text-2xl md:text-4xl font-bold mb-2">Knowledge Base</h1>
           <p className="text-muted-foreground text-sm md:text-base">
@@ -202,6 +202,6 @@ export default function KnowledgeBase() {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </div>
   );
 }
