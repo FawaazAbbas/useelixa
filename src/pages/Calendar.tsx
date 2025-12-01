@@ -1,152 +1,438 @@
-import { useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { format, startOfWeek, addDays, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, isToday, getHours, getMinutes, addWeeks, subWeeks } from "date-fns";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
-import PullToRefresh from "react-pull-to-refresh";
-import { Card, CardContent } from "@/components/ui/card";
+import { mockCalendarEvents, MockCalendarEvent } from "@/data/mockCalendarEvents";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { format, addDays, startOfWeek, addWeeks, subWeeks } from "date-fns";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Calendar as MiniCalendar } from "@/components/ui/calendar";
+import EventDetailSheet from "@/components/EventDetailSheet";
+import CreateEventDialog from "@/components/CreateEventDialog";
 import { DemoBanner } from "@/components/DemoBanner";
-import { mockCalendarEvents, MockCalendarEvent } from "@/data/mockCalendarEvents";
 
 const Calendar = () => {
-  const { toast } = useToast();
-  const [events] = useState<MockCalendarEvent[]>(mockCalendarEvents);
-  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<"day" | "week" | "month">("week");
+  const [selectedEvent, setSelectedEvent] = useState<MockCalendarEvent | null>(null);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [miniCalendarDate, setMiniCalendarDate] = useState<Date | undefined>(new Date());
 
-  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 0 });
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const handleRefresh = useCallback(async () => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }, []);
+  const hours = Array.from({ length: 17 }, (_, i) => i + 6); // 6 AM to 10 PM
 
-  const deleteEvent = (eventId: string) => {
-    toast({
-      title: "Demo Mode",
-      description: "Event deletion disabled in demo",
-    });
+  const handlePrevious = () => {
+    if (view === "week") setCurrentDate(subWeeks(currentDate, 1));
+    else if (view === "day") setCurrentDate(addDays(currentDate, -1));
+    else setCurrentDate(addDays(currentDate, -7));
   };
 
+  const handleNext = () => {
+    if (view === "week") setCurrentDate(addWeeks(currentDate, 1));
+    else if (view === "day") setCurrentDate(addDays(currentDate, 1));
+    else setCurrentDate(addDays(currentDate, 7));
+  };
+
+  const handleToday = () => setCurrentDate(new Date());
+
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => setCurrentWeek(addWeeks(currentWeek, 1)),
-    onSwipedRight: () => setCurrentWeek(subWeeks(currentWeek, 1)),
+    onSwipedLeft: handleNext,
+    onSwipedRight: handlePrevious,
     trackMouse: false,
   });
 
-  return (
-    <div className="flex-1 w-full overflow-y-auto">
-      <DemoBanner />
-      <div className="flex flex-col h-full overflow-hidden bg-background pb-16 md:pb-0">
-          <div className="border-b border-border px-4 md:px-6 py-3 md:py-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}>
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10" onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-                <h1 className="text-lg md:text-2xl font-semibold">{format(currentWeek, "MMM yyyy")}</h1>
-                <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setCurrentWeek(new Date())}>
-                  Today
-                </Button>
-              </div>
-              <Button size="sm" onClick={() => toast({ title: "Demo Mode", description: "Event creation disabled in demo" })}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Event
-              </Button>
-            </div>
-          </div>
+  const handleEventClick = (event: MockCalendarEvent) => {
+    setSelectedEvent(event);
+    setDetailSheetOpen(true);
+  };
 
-          <div className="flex-1 overflow-auto p-4 md:p-6" {...swipeHandlers}>
-            <div className="md:hidden space-y-3">
-              {weekDays.map((day, idx) => {
-                const dayEvents = events.filter(event => 
-                  format(new Date(event.start_time), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-                );
-                const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-                
-                return (
-                  <Card key={idx} className={isToday ? "border-primary" : ""}>
-                    <CardContent className="p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <div className="text-xs text-muted-foreground">{format(day, "EEEE")}</div>
-                          <div className={`text-lg font-semibold ${isToday ? "text-primary" : ""}`}>
-                            {format(day, "MMM d")}
-                          </div>
-                        </div>
-                        {isToday && <Badge variant="default" className="text-xs">Today</Badge>}
-                      </div>
-                      {dayEvents.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">No events</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {dayEvents.map((event) => (
-                            <div key={event.id} className="p-2 bg-accent/50 rounded text-xs">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">{event.title}</p>
-                                  <p className="text-muted-foreground">
-                                    {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
-                                  </p>
-                                </div>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => deleteEvent(event.id)}>
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+  const getEventsForDay = (day: Date) => {
+    return mockCalendarEvents.filter((event) =>
+      isSameDay(new Date(event.start_time), day)
+    );
+  };
 
-            <div className="hidden md:block">
-              <div className="grid grid-cols-7 gap-4 mb-4">
-                {weekDays.map((day, idx) => (
-                  <div key={idx} className="text-center">
-                    <div className="text-sm text-muted-foreground">{format(day, "EEE")}</div>
-                    <div className={`text-2xl font-semibold ${format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") ? "text-primary" : ""}`}>
-                      {format(day, "d")}
-                    </div>
+  const getEventPosition = (event: MockCalendarEvent) => {
+    const start = new Date(event.start_time);
+    const end = new Date(event.end_time);
+    const startHour = getHours(start);
+    const startMinute = getMinutes(start);
+    const endHour = getHours(end);
+    const endMinute = getMinutes(end);
+
+    const top = ((startHour - 6) * 60 + startMinute) * (64 / 60); // 64px per hour
+    const duration = (endHour - startHour) * 60 + (endMinute - startMinute);
+    const height = Math.max((duration * 64) / 60, 20); // Minimum 20px height
+
+    return { top, height };
+  };
+
+  const renderWeekView = () => (
+    <div className="flex-1 flex flex-col md:flex-row gap-4">
+      {/* Mini Calendar Sidebar - Desktop Only */}
+      <div className="hidden lg:block w-64 space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Mini Calendar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MiniCalendar
+              mode="single"
+              selected={miniCalendarDate}
+              onSelect={(date) => {
+                setMiniCalendarDate(date);
+                if (date) setCurrentDate(date);
+              }}
+              className="rounded-md border-0 pointer-events-auto"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Upcoming Events</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {mockCalendarEvents.slice(0, 5).map((event) => (
+                <button
+                  key={event.id}
+                  onClick={() => handleEventClick(event)}
+                  className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors"
+                >
+                  <div
+                    className="w-1 h-full absolute left-0 rounded-l-lg"
+                    style={{ backgroundColor: event.color }}
+                  />
+                  <div className="text-xs font-medium truncate">{event.title}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {format(new Date(event.start_time), "MMM d, h:mm a")}
                   </div>
-                ))}
-              </div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-              <div className="space-y-3">
-                {events.map((event) => (
-                  <Card key={event.id} className="p-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <h3 className="font-medium">{event.title}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {format(new Date(event.start_time), "MMM d, h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
-                        </p>
-                        {event.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                        )}
-                        {event.location && (
-                          <p className="text-sm text-muted-foreground mt-1">📍 {event.location}</p>
-                        )}
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => deleteEvent(event.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+      {/* Week Grid */}
+      <div className="flex-1">
+        {/* Mobile Day Cards */}
+        <div className="md:hidden space-y-3">
+          {weekDays.map((day) => {
+            const events = getEventsForDay(day);
+            const dayIsToday = isToday(day);
+
+            return (
+              <Card
+                key={day.toISOString()}
+                className={dayIsToday ? "border-primary" : ""}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">
+                      {format(day, "EEEE, MMM d")}
+                    </CardTitle>
+                    {dayIsToday && <Badge>Today</Badge>}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {events.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No events</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {events.map((event) => (
+                        <button
+                          key={event.id}
+                          onClick={() => handleEventClick(event)}
+                          className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors"
+                          style={{ borderLeftColor: event.color, borderLeftWidth: "3px" }}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{event.title}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {event.is_all_day
+                                  ? "All Day"
+                                  : `${format(new Date(event.start_time), "h:mm a")} - ${format(new Date(event.end_time), "h:mm a")}`}
+                              </div>
+                              {event.location && (
+                                <div className="text-xs text-muted-foreground truncate">{event.location}</div>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </Card>
-                ))}
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Desktop Time Grid */}
+        <Card className="hidden md:block">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <div className="min-w-[800px]">
+                {/* Header */}
+                <div className="grid grid-cols-8 border-b sticky top-0 bg-background z-10">
+                  <div className="p-2 border-r text-xs text-muted-foreground">Time</div>
+                  {weekDays.map((day) => (
+                    <div
+                      key={day.toISOString()}
+                      className={`p-2 text-center border-r ${isToday(day) ? "bg-primary/10" : ""}`}
+                    >
+                      <div className="text-xs text-muted-foreground">{format(day, "EEE")}</div>
+                      <div className={`text-lg font-semibold ${isToday(day) ? "text-primary" : ""}`}>
+                        {format(day, "d")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time Grid */}
+                <div className="grid grid-cols-8">
+                  {/* Time column */}
+                  <div className="border-r">
+                    {hours.map((hour) => (
+                      <div key={hour} className="h-16 border-b p-2 text-xs text-muted-foreground">
+                        {format(new Date().setHours(hour, 0), "h a")}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Day columns */}
+                  {weekDays.map((day) => {
+                    const events = getEventsForDay(day);
+                    return (
+                      <div
+                        key={day.toISOString()}
+                        className={`relative border-r ${isToday(day) ? "bg-primary/5" : ""}`}
+                      >
+                        {hours.map((hour) => (
+                          <div key={hour} className="h-16 border-b" />
+                        ))}
+                        {/* Events positioned absolutely */}
+                        {events.map((event) => {
+                          if (event.is_all_day) return null;
+                          const { top, height } = getEventPosition(event);
+                          return (
+                            <button
+                              key={event.id}
+                              onClick={() => handleEventClick(event)}
+                              className="absolute left-1 right-1 rounded px-1.5 py-1 text-white text-xs font-medium hover:opacity-90 transition-opacity overflow-hidden"
+                              style={{
+                                top: `${top}px`,
+                                height: `${height}px`,
+                                backgroundColor: event.color,
+                              }}
+                            >
+                              <div className="truncate">{event.title}</div>
+                              <div className="text-[10px] opacity-90">
+                                {format(new Date(event.start_time), "h:mm a")}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+
+  const renderMonthView = () => {
+    const firstDayOfMonth = monthStart.getDay();
+    const paddingDays = Array.from({ length: firstDayOfMonth }, (_, i) => null);
+    const allDays = [...paddingDays, ...monthDays];
+
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-7 gap-2">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day} className="text-center text-sm font-semibold text-muted-foreground p-2">
+                {day}
+              </div>
+            ))}
+            {allDays.map((day, index) => {
+              if (!day) return <div key={`empty-${index}`} />;
+              const events = getEventsForDay(day);
+              const dayIsToday = isToday(day);
+
+              return (
+                <button
+                  key={day.toISOString()}
+                  onClick={() => {
+                    setCurrentDate(day);
+                    setView("day");
+                  }}
+                  className={`min-h-24 p-2 rounded-lg border hover:bg-accent transition-colors ${
+                    dayIsToday ? "bg-primary/10 border-primary" : ""
+                  }`}
+                >
+                  <div className={`text-sm font-semibold mb-1 ${dayIsToday ? "text-primary" : ""}`}>
+                    {format(day, "d")}
+                  </div>
+                  <div className="space-y-1">
+                    {events.slice(0, 3).map((event) => (
+                      <div
+                        key={event.id}
+                        className="text-[10px] truncate rounded px-1 py-0.5 text-white"
+                        style={{ backgroundColor: event.color }}
+                      >
+                        {event.title}
+                      </div>
+                    ))}
+                    {events.length > 3 && (
+                      <div className="text-[10px] text-muted-foreground">+{events.length - 3} more</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderDayView = () => {
+    const events = getEventsForDay(currentDate);
+
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{format(currentDate, "EEEE, MMMM d, yyyy")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1">
+            {hours.map((hour) => {
+              const hourEvents = events.filter((event) => {
+                if (event.is_all_day) return false;
+                const eventHour = getHours(new Date(event.start_time));
+                return eventHour === hour;
+              });
+
+              return (
+                <div key={hour} className="flex gap-3 border-b pb-3 pt-3">
+                  <div className="w-20 text-sm text-muted-foreground">
+                    {format(new Date().setHours(hour, 0), "h:mm a")}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    {hourEvents.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">No events</div>
+                    ) : (
+                      hourEvents.map((event) => (
+                        <button
+                          key={event.id}
+                          onClick={() => handleEventClick(event)}
+                          className="w-full text-left p-3 rounded-lg hover:bg-accent transition-colors"
+                          style={{ borderLeftColor: event.color, borderLeftWidth: "4px", borderStyle: "solid" }}
+                        >
+                          <div className="font-medium">{event.title}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
+                          </div>
+                          {event.location && (
+                            <div className="text-sm text-muted-foreground">{event.location}</div>
+                          )}
+                          {event.description && (
+                            <div className="text-sm text-muted-foreground mt-1">{event.description}</div>
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-4 md:p-6 space-y-4">
+      <DemoBanner />
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Calendar</h1>
+          <p className="text-muted-foreground">
+            {view === "week" && `Week of ${format(weekStart, "MMM d, yyyy")}`}
+            {view === "month" && format(currentDate, "MMMM yyyy")}
+            {view === "day" && format(currentDate, "MMMM d, yyyy")}
+          </p>
         </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handlePrevious}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleToday}>
+            Today
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleNext}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            New Event
+          </Button>
+        </div>
+      </div>
+
+      {/* View Tabs */}
+      <Tabs value={view} onValueChange={(v) => setView(v as "day" | "week" | "month")}>
+        <TabsList>
+          <TabsTrigger value="day">Day</TabsTrigger>
+          <TabsTrigger value="week">Week</TabsTrigger>
+          <TabsTrigger value="month">Month</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="week" {...swipeHandlers}>
+          {renderWeekView()}
+        </TabsContent>
+
+        <TabsContent value="month" {...swipeHandlers}>
+          {renderMonthView()}
+        </TabsContent>
+
+        <TabsContent value="day" {...swipeHandlers}>
+          {renderDayView()}
+        </TabsContent>
+      </Tabs>
+
+      {/* Event Detail Sheet */}
+      <EventDetailSheet
+        event={selectedEvent}
+        open={detailSheetOpen}
+        onOpenChange={setDetailSheetOpen}
+      />
+
+      {/* Create Event Dialog */}
+      <CreateEventDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        initialDate={currentDate}
+      />
     </div>
   );
 };
