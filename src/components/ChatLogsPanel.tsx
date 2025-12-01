@@ -27,8 +27,18 @@ export const ChatLogsPanel = ({ chatId }: ChatLogsPanelProps) => {
   const [logs, setLogs] = useState<AutomationLog[]>([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+  
+  // Demo mode: check if chatId is a mock ID
+  const isDemoMode = chatId.startsWith('chat-mock') || chatId.startsWith('group-');
 
   const fetchLogs = async () => {
+    if (isDemoMode) {
+      // In demo mode, show empty logs
+      setLogs([]);
+      setLoading(false);
+      return;
+    }
+    
     let query = supabase
       .from('automation_logs')
       .select(`
