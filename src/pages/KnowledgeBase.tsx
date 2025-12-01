@@ -107,20 +107,20 @@ export default function KnowledgeBase() {
         </div>
 
         {/* Filter Card */}
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="p-3 sm:p-4 sm:pt-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search articles and documents..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 h-10"
                 />
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px] h-10 touch-manipulation">
                   <SelectValue placeholder="Sort by..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,25 +134,27 @@ export default function KnowledgeBase() {
         </Card>
 
         {/* Tabs */}
-        <Tabs defaultValue="articles" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="articles" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Knowledge Articles
-              <Badge variant="secondary" className="ml-2">{filteredArticles.length}</Badge>
+        <Tabs defaultValue="articles" className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 h-auto">
+            <TabsTrigger value="articles" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2.5 sm:py-3">
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Knowledge Articles</span>
+              <span className="sm:hidden">Articles</span>
+              <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">{filteredArticles.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2">
-              <Folder className="h-4 w-4" />
-              Documents
-              <Badge variant="secondary" className="ml-2">{filteredDocuments.length}</Badge>
+            <TabsTrigger value="documents" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2.5 sm:py-3">
+              <Folder className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Documents</span>
+              <span className="sm:hidden">Docs</span>
+              <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">{filteredDocuments.length}</Badge>
             </TabsTrigger>
           </TabsList>
 
           {/* Articles Tab */}
-          <TabsContent value="articles" className="space-y-6">
-            <div className="flex justify-between items-center">
+          <TabsContent value="articles" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px] h-10 touch-manipulation">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
@@ -163,7 +165,7 @@ export default function KnowledgeBase() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={() => setShowCreateArticle(true)}>
+              <Button onClick={() => setShowCreateArticle(true)} className="h-10 w-full sm:w-auto touch-manipulation">
                 <Plus className="h-4 w-4 mr-2" />
                 New Article
               </Button>
@@ -236,10 +238,10 @@ export default function KnowledgeBase() {
           </TabsContent>
 
           {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-6">
-            <div className="flex justify-between items-center">
+          <TabsContent value="documents" className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
               <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full sm:w-[200px] h-10 touch-manipulation">
                   <SelectValue placeholder="All Folders" />
                 </SelectTrigger>
                 <SelectContent>
@@ -250,7 +252,7 @@ export default function KnowledgeBase() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={() => setShowUploadDocument(true)}>
+              <Button onClick={() => setShowUploadDocument(true)} className="h-10 w-full sm:w-auto touch-manipulation">
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Document
               </Button>

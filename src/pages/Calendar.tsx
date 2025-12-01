@@ -259,7 +259,7 @@ const Calendar = () => {
       <DemoBanner />
 
       {/* Header */}
-      <div className="py-6 px-4 md:py-8 pb-6">
+      <div className="py-4 sm:py-6 px-4 md:py-8 pb-4 sm:pb-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
@@ -275,30 +275,32 @@ const Calendar = () => {
             </div>
           </div>
 
-          <Card className="shadow-sm mb-6">
-            <CardContent className="p-3 flex flex-col sm:flex-row items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" onClick={handleToday} className="min-w-[80px]">
-                  Today
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+          <Card className="shadow-sm mb-4 sm:mb-6">
+            <CardContent className="p-3 sm:p-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9 touch-manipulation">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" onClick={handleToday} className="min-w-[70px] h-9 touch-manipulation text-sm">
+                    Today
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleNext} className="h-9 w-9 touch-manipulation">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <Tabs value={view} onValueChange={(v) => setView(v as any)} className="flex-1">
+                  <TabsList className="grid grid-cols-4 w-full sm:w-auto">
+                    <TabsTrigger value="day" className="text-xs sm:text-sm">Day</TabsTrigger>
+                    <TabsTrigger value="week" className="text-xs sm:text-sm">Week</TabsTrigger>
+                    <TabsTrigger value="month" className="text-xs sm:text-sm">Month</TabsTrigger>
+                    <TabsTrigger value="agenda" className="text-xs sm:text-sm">Agenda</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
 
-              <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                <TabsList>
-                  <TabsTrigger value="day">Day</TabsTrigger>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                  <TabsTrigger value="agenda">Agenda</TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <Badge variant="secondary" className="text-sm px-3 py-1 ml-auto">
+              <Badge variant="secondary" className="text-xs sm:text-sm px-2 sm:px-3 py-1 w-full sm:w-auto text-center truncate">
                 {view === "month" && format(currentDate, "MMMM yyyy")}
                 {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
                 {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
@@ -310,11 +312,13 @@ const Calendar = () => {
       </div>
 
       {/* Calendar Views */}
-      <div className="max-w-7xl mx-auto px-4 pb-20 md:pb-8">
-        {view === "week" && renderWeekView()}
-        {view === "day" && renderDayView()}
-        {view === "month" && renderMonthView()}
-        {view === "agenda" && renderAgendaView()}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 pb-20 md:pb-8">
+        <div className={view === "week" || view === "day" ? "overflow-x-auto -mx-2 sm:mx-0" : ""}>
+          {view === "week" && renderWeekView()}
+          {view === "day" && renderDayView()}
+          {view === "month" && renderMonthView()}
+          {view === "agenda" && renderAgendaView()}
+        </div>
       </div>
 
       <EventDetailSheet
