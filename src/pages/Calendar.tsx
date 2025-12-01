@@ -567,7 +567,7 @@ const Calendar = () => {
         <DemoBanner />
 
         {/* Left Sidebar - Mini Calendar & Upcoming Events */}
-        <div className="hidden lg:block w-80 border-r border-border/50 bg-gradient-to-b from-muted/20 to-muted/30 backdrop-blur-sm overflow-hidden">
+        <div className="hidden lg:block w-64 border-r border-border/50 bg-gradient-to-b from-muted/20 to-muted/30 backdrop-blur-sm overflow-hidden">
           <ScrollArea className="h-full">
             <div className="p-6 space-y-6">
               {/* Mini Calendar */}
