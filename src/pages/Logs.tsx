@@ -54,35 +54,49 @@ const Logs = () => {
   });
 
   return (
-    <div className="flex-1 w-full overflow-y-auto">
+    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
       <div className="p-4 md:p-6 pb-20 md:pb-6">
           <div className="mb-4 md:mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Activity Logs</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Activity className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Activity Logs</h1>
+                <p className="text-sm text-muted-foreground">
+                  {logs.length} total activities
+                </p>
+              </div>
+            </div>
             <p className="text-muted-foreground text-sm md:text-base">
               Monitor agent activities
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mb-4 md:mb-6">
-            <Input
-              placeholder="Search logs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:max-w-xs"
-            />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="success">Success</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Card className="mb-4 md:mb-6 shadow-sm">
+            <CardContent className="p-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  placeholder="Search logs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 border-0 focus-visible:ring-0"
+                />
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="success">Success</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
 
           {filteredLogs.length === 0 ? (
             <Card>
@@ -99,11 +113,12 @@ const Logs = () => {
           ) : (
             <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-280px)]">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                {filteredLogs.map((log) => (
+                {filteredLogs.map((log, idx) => (
                   <Card 
                     key={log.id} 
-                    className="flex flex-col cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] hover:border-primary/50"
+                    className="flex flex-col cursor-pointer transition-all hover:shadow-xl hover:scale-[1.02] hover:border-primary/50 animate-fade-in"
                     onClick={() => setSelectedLog(log)}
+                    style={{ animationDelay: `${idx * 20}ms` }}
                   >
                     <CardContent className="p-3 md:p-4 flex-1">
                       <div className="flex items-start gap-2 md:gap-3">

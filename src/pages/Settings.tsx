@@ -29,12 +29,12 @@ const Settings = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-gradient-to-b from-background to-muted/20">
       <MainNavSidebar />
       
       <div className="flex-1 overflow-auto pb-20 md:pb-0">
         <DemoBanner />
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in">
           <Button 
             variant="ghost" 
             className="gap-2 mb-4 md:mb-6"
@@ -44,7 +44,12 @@ const Settings = () => {
             Back
           </Button>
 
-          <h1 className="text-2xl md:text-3xl font-bold mb-6 md:mb-8">Settings</h1>
+          <div className="flex items-center gap-3 mb-6 md:mb-8">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <User className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+          </div>
 
           <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
             <TabsList className="w-full grid grid-cols-2 h-auto">
@@ -53,7 +58,7 @@ const Settings = () => {
             </TabsList>
 
             <TabsContent value="profile">
-              <Card>
+              <Card className="shadow-lg border-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
@@ -97,7 +102,7 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="security">
-              <Card>
+              <Card className="shadow-lg border-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Lock className="h-5 w-5" />

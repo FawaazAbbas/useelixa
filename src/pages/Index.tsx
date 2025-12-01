@@ -17,8 +17,8 @@ const Index = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 py-12 md:py-20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <div className="container mx-auto px-4 py-12 md:py-20 animate-fade-in">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center mb-6">
@@ -43,7 +43,7 @@ const Index = () => {
 
         {/* Features Grid */}
         <div className="grid md:grid-cols-3 gap-6 mb-16">
-          <Card className="border-2 hover:border-primary/50 transition-colors">
+          <Card className="border-2 hover:border-primary/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-200 animate-fade-in">
             <CardContent className="pt-6">
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <MessageSquare className="h-6 w-6 text-primary" />
@@ -55,7 +55,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-2 hover:border-primary/50 transition-colors">
+          <Card className="border-2 hover:border-primary/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-200 animate-fade-in" style={{ animationDelay: '100ms' }}>
             <CardContent className="pt-6">
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <Zap className="h-6 w-6 text-primary" />
@@ -67,7 +67,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-2 hover:border-primary/50 transition-colors">
+          <Card className="border-2 hover:border-primary/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
             <CardContent className="pt-6">
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <Shield className="h-6 w-6 text-primary" />
