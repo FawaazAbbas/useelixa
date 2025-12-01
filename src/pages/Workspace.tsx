@@ -179,6 +179,7 @@ const Workspace = () => {
     deleteMultipleMessages: deleteBrianMultipleMessages,
   } = useBrianChat(user?.id, workspaceId);
   const [brianInput, setBrianInput] = useState("");
+  const initialSetupDone = useRef(false);
 
   useEffect(() => {
     if (workspaceId) {
@@ -188,8 +189,11 @@ const Workspace = () => {
 
   useEffect(() => {
     if (isDemoMode) {
-      // In demo mode, auto-select Brian
-      setShowBrian(true);
+      // Only auto-select Brian on initial mount, not on every state change
+      if (!initialSetupDone.current) {
+        setShowBrian(true);
+        initialSetupDone.current = true;
+      }
       return;
     }
     
