@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckSquare, Plus, Trash2, Zap, Search, Filter } from "lucide-react";
+import { CheckSquare, Plus, Trash2, Zap, Search, Filter, Calendar } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,16 +72,16 @@ const Tasks = () => {
     setSwipedTaskId(null);
   };
 
-  const getPriorityColor = (priority: string | null) => {
+  const getPriorityBadgeColor = (priority: string | null) => {
     switch (priority) {
       case "high":
-        return "bg-red-500";
+        return "destructive";
       case "medium":
-        return "bg-yellow-500";
+        return "default";
       case "low":
-        return "bg-green-500";
+        return "secondary";
       default:
-        return "bg-gray-500";
+        return "outline";
     }
   };
 
@@ -137,33 +137,49 @@ const Tasks = () => {
       trackMouse: false,
     });
 
+    const isCompleted = task.status === "completed";
+
     return (
-      <div className="relative overflow-hidden" {...handlers}>
+      <div className="relative overflow-hidden animate-fade-in" {...handlers}>
         <Card
-          className={`cursor-pointer hover:bg-accent/50 transition-all ${
+          className={`group cursor-pointer transition-all duration-300 hover:shadow-lg border-l-4 ${
             swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0"
-          }`}
+          } ${
+            task.priority === "high" 
+              ? "border-l-red-500" 
+              : task.priority === "medium" 
+              ? "border-l-yellow-500" 
+              : "border-l-green-500"
+          } ${isCompleted ? "opacity-60" : ""}`}
           onClick={() => openTaskDetail(task)}
         >
-          <CardContent className="p-4 md:p-6">
-            <div className="flex items-start gap-3 md:gap-4">
+          <CardContent className="p-5 md:p-6">
+            <div className="flex items-start gap-4">
               <Checkbox
-                checked={task.status === "completed"}
+                checked={isCompleted}
                 onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
                 onClick={(e) => e.stopPropagation()}
-                className="mt-1"
+                className="mt-1 transition-transform hover:scale-110"
               />
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-                    {task.title}
-                  </h3>
-                  <div className="flex items-center gap-1 flex-shrink-0 md:block hidden">
-                    <div className={`w-2 h-2 rounded-full ${getPriorityColor(task.priority)}`} />
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex-1">
+                    <h3 className={`font-semibold text-base transition-all ${
+                      isCompleted 
+                        ? "line-through text-muted-foreground" 
+                        : "text-foreground group-hover:text-primary"
+                    }`}>
+                      {task.title}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Badge variant={getPriorityBadgeColor(task.priority)} className="hidden md:flex">
+                      {task.priority}
+                    </Badge>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-destructive hover:text-destructive h-8 w-8"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive h-8 w-8 hidden md:flex"
                       onClick={(e) => {
                         e.stopPropagation();
                         setTaskToDelete(task.id);
@@ -172,26 +188,34 @@ const Tasks = () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <div className={`w-2 h-2 rounded-full md:hidden ${getPriorityColor(task.priority)}`} />
                 </div>
                 {task.description && (
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{task.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+                    {task.description}
+                  </p>
                 )}
-                <div className="flex flex-wrap gap-2 text-xs">
+                <div className="flex flex-wrap gap-2">
                   {task.is_asap && (
-                    <Badge variant="destructive" className="gap-1">
+                    <Badge variant="destructive" className="gap-1 animate-pulse">
                       <Zap className="h-3 w-3" />
                       ASAP
                     </Badge>
                   )}
                   {task.due_date && (
-                    <span className="text-muted-foreground">Due: {new Date(task.due_date).toLocaleDateString()}</span>
-                  )}
-                  {task.automation_count && task.automation_count > 0 && (
-                    <Badge variant="outline" className="text-xs">
-                      {task.completed_automation_count}/{task.automation_count} automations
+                    <Badge variant="outline" className="gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(task.due_date).toLocaleDateString()}
                     </Badge>
                   )}
+                  {task.automation_count && task.automation_count > 0 && (
+                    <Badge variant="secondary" className="gap-1">
+                      <span className="font-medium">{task.completed_automation_count}/{task.automation_count}</span>
+                      <span className="text-muted-foreground">automations</span>
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className="md:hidden">
+                    {task.priority}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -201,7 +225,7 @@ const Tasks = () => {
           <Button
             variant="destructive"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full shadow-lg animate-scale-in"
             onClick={(e) => {
               e.stopPropagation();
               setTaskToDelete(task.id);
@@ -217,96 +241,138 @@ const Tasks = () => {
   const filteredTasks = filterTasks(tasks);
 
   return (
-    <div className="flex-1 w-full overflow-y-auto">
+    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="p-4 md:p-8 pb-20 md:pb-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
-          <div className="flex items-center gap-3">
-            <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-            <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
+      <div className="p-4 md:p-8 pb-20 md:pb-8 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 md:mb-10">
+          <div className="flex items-center gap-3 animate-fade-in">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <CheckSquare className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
+              </p>
+            </div>
           </div>
-          <Button onClick={() => setShowCreationModeDialog(true)} className="w-full sm:w-auto">
+          <Button 
+            onClick={() => setShowCreationModeDialog(true)} 
+            className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow"
+            size="lg"
+          >
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
         </div>
 
         {/* Filters & Search */}
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+        <Card className="mb-6 shadow-sm">
+          <CardContent className="p-4 md:p-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks by title or description..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-11"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-10">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priorities</SelectItem>
+                    <SelectItem value="high">High Priority</SelectItem>
+                    <SelectItem value="medium">Medium Priority</SelectItem>
+                    <SelectItem value="low">Low Priority</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_at-desc">Newest First</SelectItem>
+                    <SelectItem value="created_at-asc">Oldest First</SelectItem>
+                    <SelectItem value="due_date-asc">Due Date</SelectItem>
+                    <SelectItem value="priority-desc">Priority</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priorities</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="created_at-desc">Newest First</SelectItem>
-                <SelectItem value="created_at-asc">Oldest First</SelectItem>
-                <SelectItem value="due_date-asc">Due Date</SelectItem>
-                <SelectItem value="priority-desc">Priority</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="asap">ASAP</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 mb-6 h-12 bg-muted/50">
+            <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow">
+              All
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {tasks.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="active" className="data-[state=active]:bg-background data-[state=active]:shadow">
+              Active
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {tasks.filter(t => t.status === "pending").length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="data-[state=active]:bg-background data-[state=active]:shadow">
+              Completed
+              <Badge variant="secondary" className="ml-2 text-xs">
+                {tasks.filter(t => t.status === "completed").length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger value="asap" className="data-[state=active]:bg-background data-[state=active]:shadow">
+              ASAP
+              <Badge variant="destructive" className="ml-2 text-xs">
+                {tasks.filter(t => t.is_asap).length}
+              </Badge>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-0">
             {filteredTasks.length === 0 ? (
-              <EmptyState
-                icon="📋"
-                title={searchQuery || statusFilter !== "all" || priorityFilter !== "all" ? "No tasks found" : "No tasks yet"}
-                description={
-                  searchQuery || statusFilter !== "all" || priorityFilter !== "all"
-                    ? "Try adjusting your filters"
-                    : "Create your first task to start organizing your work with AI-powered automations"
-                }
-                action={{
-                  label: "Create Task",
-                  onClick: () => setShowCreationModeDialog(true),
-                }}
-              />
+              <Card className="border-dashed">
+                <CardContent className="py-12">
+                  <EmptyState
+                    icon="📋"
+                    title={searchQuery || statusFilter !== "all" || priorityFilter !== "all" ? "No tasks found" : "No tasks yet"}
+                    description={
+                      searchQuery || statusFilter !== "all" || priorityFilter !== "all"
+                        ? "Try adjusting your filters or search terms"
+                        : "Create your first task to start organizing your work with AI-powered automations"
+                    }
+                    action={{
+                      label: "Create Task",
+                      onClick: () => setShowCreationModeDialog(true),
+                    }}
+                  />
+                </CardContent>
+              </Card>
             ) : (
-              <div className="grid gap-4">
-                {filteredTasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+              <div className="grid gap-3">
+                {filteredTasks.map((task, index) => (
+                  <div key={task.id} style={{ animationDelay: `${index * 50}ms` }}>
+                    <TaskCard task={task} />
+                  </div>
                 ))}
               </div>
             )}
