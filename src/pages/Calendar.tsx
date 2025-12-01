@@ -162,14 +162,14 @@ const Calendar = () => {
                 <button
                   key={event.id}
                   onClick={() => handleEventClick(event)}
-                  className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors"
+                  className="w-full text-left p-2 rounded-lg hover:bg-accent transition-colors relative"
                 >
                   <div
-                    className="w-1 h-full absolute left-0 rounded-l-lg"
+                    className="w-1 h-full absolute left-0 top-0 bottom-0 rounded-l-lg"
                     style={{ backgroundColor: event.color }}
                   />
-                  <div className="text-xs font-medium truncate">{event.title}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs font-medium truncate pl-2">{event.title}</div>
+                  <div className="text-xs text-muted-foreground pl-2">
                     {format(new Date(event.start_time), "MMM d, h:mm a")}
                   </div>
                 </button>
@@ -312,16 +312,19 @@ const Calendar = () => {
                             key={hour}
                             id={`timeslot-${day.toISOString()}-${hour}`}
                             data={{ day, hour }}
-                            className="w-full h-16 border-b"
+                            className="w-full h-16 border-b hover:bg-accent/50 transition-colors group cursor-pointer"
+                            onClick={(e) => {
+                              // Only trigger if clicking on the empty area, not on events
+                              if (e.target === e.currentTarget || (e.target as HTMLElement).closest('.timeslot-bg')) {
+                                handleTimeSlotClick(day, hour);
+                              }
+                            }}
                           >
-                            <button
-                              onClick={() => handleTimeSlotClick(day, hour)}
-                              className="w-full h-full hover:bg-accent/50 transition-colors group"
-                            >
+                            <div className="timeslot-bg w-full h-full flex items-center justify-center">
                               <div className="opacity-0 group-hover:opacity-100 text-xs text-muted-foreground transition-opacity">
                                 +
                               </div>
-                            </button>
+                            </div>
                           </DroppableTimeSlot>
                         ))}
                         
@@ -343,8 +346,11 @@ const Calendar = () => {
                             <DraggableEvent
                               key={event.id}
                               id={event.id}
-                              onClick={() => handleEventClick(event)}
-                              className="absolute rounded px-1.5 py-1 text-white text-xs font-medium hover:opacity-90 hover:z-10 transition-all overflow-hidden shadow-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEventClick(event);
+                              }}
+                              className="absolute rounded px-1.5 py-1 text-white text-xs font-medium hover:opacity-90 z-[5] hover:z-20 transition-all overflow-hidden shadow-sm"
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
@@ -366,7 +372,7 @@ const Calendar = () => {
                         {/* Current time indicator */}
                         {isToday(day) && currentTimeTop !== null && (
                           <div
-                            className="absolute left-0 right-0 z-10 pointer-events-none"
+                            className="absolute left-0 right-0 z-20 pointer-events-none"
                             style={{ top: `${currentTimeTop}px` }}
                           >
                             <div className="relative">
@@ -411,22 +417,23 @@ const Calendar = () => {
                   key={day.toISOString()}
                   id={`month-${day.toISOString()}`}
                   data={{ day }}
-                  className={`min-h-24 p-2 rounded-lg border hover:bg-accent transition-colors ${
+                  className={`min-h-24 p-2 rounded-lg border hover:bg-accent transition-colors cursor-pointer ${
                     dayIsToday ? "bg-primary/10 border-primary" : ""
                   }`}
-                >
-                  <button
-                    onClick={() => {
+                  onClick={(e) => {
+                    // Only change view if clicking on empty area, not on events
+                    if (e.target === e.currentTarget || !(e.target as HTMLElement).closest('[data-draggable]')) {
                       setCurrentDate(day);
                       setView("day");
-                    }}
-                    className="w-full text-left mb-2"
-                  >
+                    }
+                  }}
+                >
+                  <div className="w-full text-left mb-2">
                     <div className={`text-sm font-semibold ${dayIsToday ? "text-primary" : ""}`}>
                       {format(day, "d")}
                     </div>
-                  </button>
-                  <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+                  </div>
+                  <div className="space-y-1">
                     {events.slice(0, 3).map((event) => (
                       <DraggableEvent
                         key={event.id}
@@ -435,7 +442,7 @@ const Calendar = () => {
                           e.stopPropagation();
                           handleEventClick(event);
                         }}
-                        className="text-[10px] truncate rounded px-1 py-0.5 text-white"
+                        className="text-[10px] truncate rounded px-1 py-0.5 text-white z-[5] hover:z-10"
                         style={{ backgroundColor: event.color }}
                       >
                         <span className="truncate">{event.title}</span>
@@ -503,44 +510,45 @@ const Calendar = () => {
                   <DroppableTimeSlot
                     id={`day-${hour}`}
                     data={{ day: currentDate, hour }}
-                    className="flex-1 min-h-16"
+                    className="flex-1 min-h-16 p-3 hover:bg-accent/50 transition-colors cursor-pointer group"
+                    onClick={(e) => {
+                      // Only trigger if clicking empty area, not on events
+                      if (e.target === e.currentTarget || !(e.target as HTMLElement).closest('[data-draggable]')) {
+                        handleTimeSlotClick(currentDate, hour);
+                      }
+                    }}
                   >
-                    <button
-                      onClick={() => handleTimeSlotClick(currentDate, hour)}
-                      className="w-full h-full p-3 hover:bg-accent/50 transition-colors group text-left"
-                    >
-                      {hourEvents.length === 0 ? (
-                        <div className="text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                          Click to add event
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {hourEvents.map((event) => (
-                            <DraggableEvent
-                              key={event.id}
-                              id={event.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEventClick(event);
-                              }}
-                              className="w-full text-left p-3 rounded-lg hover:scale-[1.02] transition-transform shadow-sm"
-                              style={{ borderLeftColor: event.color, borderLeftWidth: "4px", borderStyle: "solid", backgroundColor: "hsl(var(--accent))" }}
-                            >
-                              <div className="font-medium">{event.title}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
-                              </div>
-                              {event.location && (
-                                <div className="text-sm text-muted-foreground mt-1">📍 {event.location}</div>
-                              )}
-                              {event.description && (
-                                <div className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</div>
-                              )}
-                            </DraggableEvent>
-                          ))}
-                        </div>
-                      )}
-                    </button>
+                    {hourEvents.length === 0 ? (
+                      <div className="text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click to add event
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {hourEvents.map((event) => (
+                          <DraggableEvent
+                            key={event.id}
+                            id={event.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEventClick(event);
+                            }}
+                            className="w-full text-left p-3 rounded-lg hover:scale-[1.02] transition-transform shadow-sm z-[5] hover:z-10"
+                            style={{ borderLeftColor: event.color, borderLeftWidth: "4px", borderStyle: "solid", backgroundColor: "hsl(var(--accent))" }}
+                          >
+                            <div className="font-medium">{event.title}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
+                            </div>
+                            {event.location && (
+                              <div className="text-sm text-muted-foreground mt-1">📍 {event.location}</div>
+                            )}
+                            {event.description && (
+                              <div className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</div>
+                            )}
+                          </DraggableEvent>
+                        ))}
+                      </div>
+                    )}
                   </DroppableTimeSlot>
                 </div>
               );
