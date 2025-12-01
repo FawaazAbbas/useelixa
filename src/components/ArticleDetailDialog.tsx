@@ -7,6 +7,17 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
+const categoryColors: Record<string, string> = {
+  "Company Policies": "border-l-blue-500",
+  "Sales": "border-l-green-500",
+  "Product": "border-l-purple-500",
+  "Customer Support": "border-l-orange-500",
+  "Engineering": "border-l-cyan-500",
+  "HR": "border-l-pink-500",
+  "Finance": "border-l-yellow-500",
+  "Marketing": "border-l-red-500",
+};
+
 interface ArticleDetailDialogProps {
   article: MockKnowledgeArticle | null;
   open: boolean;
@@ -15,6 +26,8 @@ interface ArticleDetailDialogProps {
 
 export function ArticleDetailDialog({ article, open, onOpenChange }: ArticleDetailDialogProps) {
   if (!article) return null;
+
+  const categoryColor = article.category ? categoryColors[article.category] : "border-l-gray-500";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(article.content);
@@ -35,7 +48,7 @@ export function ArticleDetailDialog({ article, open, onOpenChange }: ArticleDeta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className={`max-w-4xl max-h-[85vh] overflow-y-auto border-l-4 ${categoryColor}`}>
         <DialogHeader>
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
