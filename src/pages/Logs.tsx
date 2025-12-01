@@ -201,8 +201,8 @@ const Logs = () => {
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         {selectedLog.agent && (
                           <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6 rounded-none">
-                              <AvatarImage src={selectedLog.agent.image_url} className="rounded-none" />
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={selectedLog.agent.image_url} className="object-contain" />
                               <AvatarFallback>{selectedLog.agent.name[0]}</AvatarFallback>
                             </Avatar>
                             <span>{selectedLog.agent.name}</span>

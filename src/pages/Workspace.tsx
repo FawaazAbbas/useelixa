@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2 } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -278,8 +278,19 @@ const Workspace = () => {
 
   // Scroll to bottom when messages change or chat is selected
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Use instant scroll for initial load, smooth for new messages
+    const behavior = messages.length === 0 || brianMessages.length === 0 ? 'auto' : 'smooth';
+    messagesEndRef.current?.scrollIntoView({ behavior });
   }, [messages, selectedChat, brianMessages, showBrian]);
+
+  // Scroll to bottom immediately when selecting a chat
+  useEffect(() => {
+    if (selectedChat?.id || showBrian) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 100);
+    }
+  }, [selectedChat?.id, showBrian]);
 
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
@@ -686,11 +697,9 @@ const Workspace = () => {
                      }`}
                    >
                     <div className="relative">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {chat.agent?.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                      <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Bot className="h-4 w-4 text-primary" />
+                      </div>
                       <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background bg-green-500" />
                     </div>
                     <span className="text-sm truncate text-white">{chat.agent?.name}</span>
@@ -1048,12 +1057,10 @@ const Workspace = () => {
                 {selectedChat ? (
                   <>
                 {selectedChat.type === 'group' ? (
-                  <>
-                    <Avatar>
-                      <AvatarFallback>
-                        <Users className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
+                     <>
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                       <div className="font-semibold">{selectedChat.name}</div>
                       <div className="text-xs text-muted-foreground">
@@ -1063,11 +1070,9 @@ const Workspace = () => {
                   </>
                 ) : (
                   <>
-                    <Avatar>
-                      <AvatarFallback>
-                        {selectedChat.agent?.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Bot className="h-6 w-6 text-primary" />
+                    </div>
                     <div>
                       <div className="font-semibold">{selectedChat.agent?.name}</div>
                       <div className="text-xs text-muted-foreground">online</div>
@@ -1162,11 +1167,9 @@ const Workspace = () => {
                       </div>
                     )}
                      {!isUserMessage && (
-                       <Avatar className="h-10 w-10">
-                         <AvatarFallback>
-                           {agentInfo?.name.substring(0, 2).toUpperCase()}
-                         </AvatarFallback>
-                       </Avatar>
+                       <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                         <Bot className="h-6 w-6 text-primary" />
+                       </div>
                      )}
                      <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                        <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
@@ -1214,13 +1217,11 @@ const Workspace = () => {
                 );
               })
             )}
-            {sending && selectedChat && (
+              {sending && selectedChat && (
               <div className="flex gap-3">
-                <Avatar>
-                  <AvatarFallback>
-                    {selectedChat.type === 'group' ? <Users className="h-4 w-4" /> : selectedChat.agent?.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  {selectedChat.type === 'group' ? <Users className="h-5 w-5 text-primary" /> : <Bot className="h-6 w-6 text-primary" />}
+                </div>
                 <div className="flex-1">
                   <div className="space-y-2">
                     {processingAgent && (
@@ -1238,13 +1239,13 @@ const Workspace = () => {
                       <div className="text-xs text-primary font-medium animate-pulse">
                         🔀 {delegationStatus}
                       </div>
-            )}
-            {/* Scroll anchor */}
-            <div ref={messagesEndRef} />
-          </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
@@ -1531,7 +1532,7 @@ const Workspace = () => {
         <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
-            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-5' : 'grid-cols-7'}`}>
+            <TabsList className={`grid w-full ${showBrian ? 'grid-cols-4' : 'grid-cols-5'}`}>
               {!showBrian && (
                 <>
                   <TabsTrigger value="about" className="text-xs">
@@ -1542,14 +1543,16 @@ const Workspace = () => {
                   </TabsTrigger>
                 </>
               )}
+              {showBrian && (
+                <TabsTrigger value="about" className="text-xs">
+                  <Info className="h-4 w-4" />
+                </TabsTrigger>
+              )}
               <TabsTrigger value="files" className="text-xs">
                 <FileText className="h-4 w-4" />
               </TabsTrigger>
               <TabsTrigger value="memories" className="text-xs">
                 <Brain className="h-4 w-4" />
-              </TabsTrigger>
-              <TabsTrigger value="logs" className="text-xs">
-                <LayoutList className="h-4 w-4" />
               </TabsTrigger>
               <TabsTrigger value="history" className="text-xs">
                 <Activity className="h-4 w-4" />
@@ -1618,11 +1621,75 @@ const Workspace = () => {
             </>
           )}
 
+          {showBrian && (
+            <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">About Brian</h3>
+                <p className="text-muted-foreground">
+                  Brian is your AI Chief Operating Officer, designed to orchestrate and optimize your entire workspace. Unlike individual agents that specialize in specific tasks, Brian takes a holistic view of your operations, coordinating between agents, managing workflows, and ensuring everything runs smoothly.
+                </p>
+              </div>
+              
+              <div>
+                <h3 className="text-base font-semibold mb-3">Capabilities</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Coordinate multiple agents and delegate tasks intelligently</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Manage workspace-level automations and workflows</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Monitor agent performance and optimize operations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Provide strategic insights and operational recommendations</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">Handle complex multi-step workflows and decision-making</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-base font-semibold mb-2">How Brian Works</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                  Brian operates at the workspace level, maintaining context across all your agents and operations. When you assign a task to Brian, he analyzes the requirements, determines which agents are best suited for each component, and orchestrates the execution. He monitors progress, handles exceptions, and ensures successful completion while keeping you informed throughout the process.
+                </p>
+              </div>
+            </TabsContent>
+          )}
+
           <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
             {showBrian ? (
               <div className="h-full overflow-auto p-4">
-                <h3 className="font-semibold mb-4">Brian's Files</h3>
-                <p className="text-sm text-muted-foreground mb-4">Workspace-level files accessible to Brian</p>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Brian's Files</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Upload workspace-level files that Brian can access and reference</p>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                    <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm font-medium mb-1">Upload Files</p>
+                    <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
+                    <p className="text-xs text-muted-foreground mt-2">Supports PDF, DOC, TXT, CSV, and more</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">Recent Files</h4>
+                    <Card>
+                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                        No files uploaded yet
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </div>
             ) : selectedChat && selectedChat.type === 'direct' ? (
               <AgentFilesPanel
@@ -1659,33 +1726,6 @@ const Workspace = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="logs" className="flex-1 m-0 overflow-hidden">
-            {showBrian ? (
-              <div className="h-full overflow-auto p-4">
-                <h3 className="font-semibold mb-4">Brian's Activity Log</h3>
-                <p className="text-sm text-muted-foreground mb-4">Conversation history and activity</p>
-              </div>
-            ) : selectedChat ? (
-              <div className="h-full overflow-auto">
-                <div className="p-4">
-                  <h3 className="font-semibold mb-4">Chat Logs</h3>
-                  <ChatLogsPanel chatId={selectedChat.id} />
-                </div>
-                <Separator className="my-4" />
-                <div className="p-4">
-                  <h3 className="font-semibold mb-4">Automation History</h3>
-                  <AutomationHistoryDashboard 
-                    workspaceId={workspaceId || ''} 
-                    chatId={selectedChat.id}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="p-4 text-center">
-                <p className="text-sm text-muted-foreground">Select a chat to view logs</p>
-              </div>
-            )}
-          </TabsContent>
 
           <TabsContent value="settings" className="flex-1 m-0 overflow-hidden p-4">
             {showBrian ? (
