@@ -249,12 +249,12 @@ const Calendar = () => {
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
       <DemoBanner />
 
       {/* Header */}
-      <div className="border-b bg-card p-4">
-        <div className="flex items-center justify-between">
+      <div className="border-b bg-card p-4 w-full">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-4">
             <CalendarIcon className="h-6 w-6" />
             <h1 className="text-2xl font-bold">Calendar</h1>
@@ -291,7 +291,7 @@ const Calendar = () => {
       </div>
 
       {/* Calendar Views */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 w-full overflow-hidden">
         {view === "week" && renderWeekView()}
         {view === "day" && renderDayView()}
         {view === "month" && renderMonthView()}
