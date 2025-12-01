@@ -775,26 +775,24 @@ const Workspace = () => {
                                {isUserMessage ? "You" : "Brian"}
                              </span>
                            </div>
-                           <div className="space-y-2">
-                             <div
-                               className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
-                                 isUserMessage
-                                   ? "bg-primary/90 text-primary-foreground"
-                                   : "bg-muted/80"
-                               }`}
-                             >
-                               <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                   {msg.content}
-                                 </ReactMarkdown>
-                               </div>
+                           <div
+                             className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                               isUserMessage
+                                 ? "bg-primary/90 text-primary-foreground"
+                                 : "bg-muted/80"
+                             }`}
+                           >
+                             <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                 {msg.content}
+                               </ReactMarkdown>
                              </div>
-                             {msg.metadata?.files && (
-                               <div className="max-w-[85%]">
-                                 <FileMessageCard files={msg.metadata.files} />
-                               </div>
-                             )}
                            </div>
+                           {msg.metadata?.files && (
+                             <div className="max-w-[85%] mt-2">
+                               <FileMessageCard files={msg.metadata.files} />
+                             </div>
+                           )}
                          </div>
                          {isUserMessage && (
                            <Avatar className="h-10 w-10">
@@ -1113,13 +1111,12 @@ const Workspace = () => {
                            />
                          )}
                        </div>
-                       <div className="space-y-2">
-                         <div
-                           className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
-                             isUserMessage
-                               ? "bg-primary/90 text-primary-foreground"
-                               : msg.error_message
-                               ? "bg-destructive/10 border border-destructive"
+                       <div
+                         className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                           isUserMessage
+                             ? "bg-primary/90 text-primary-foreground"
+                             : msg.error_message
+                             ? "bg-destructive/10 border border-destructive"
                                : "bg-muted/80"
                            }`}
                          >
@@ -1130,12 +1127,11 @@ const Workspace = () => {
                            </div>
                          </div>
                          {msg.metadata?.files && (
-                           <div className="max-w-[85%]">
+                           <div className="max-w-[85%] mt-2">
                              <FileMessageCard files={msg.metadata.files} />
                            </div>
                          )}
                        </div>
-                     </div>
                      {isUserMessage && (
                        <Avatar className="h-10 w-10 flex-shrink-0">
                          <AvatarFallback>U</AvatarFallback>
