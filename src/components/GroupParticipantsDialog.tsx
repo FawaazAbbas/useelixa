@@ -7,6 +7,7 @@ import { Checkbox } from './ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Trash2, UserPlus, Bot } from 'lucide-react';
+import { getAgentColor } from '@/utils/agentColors';
 
 interface Participant {
   id: string;
@@ -14,6 +15,7 @@ interface Participant {
   image_url?: string | null;
   role?: string;
   type: 'agent' | 'user';
+  category?: string;
 }
 
 interface GroupParticipantsDialogProps {
@@ -53,7 +55,7 @@ export const GroupParticipantsDialog = ({
       const { data: chatAgents } = await supabase
         .from('chat_agents')
         .select(`
-          agent:agents(id, name, image_url)
+          agent:agents(id, name, image_url, category_id)
         `)
         .eq('chat_id', chatId);
 
@@ -61,6 +63,7 @@ export const GroupParticipantsDialog = ({
         id: ca.agent.id,
         name: ca.agent.name,
         image_url: ca.agent.image_url,
+        category: ca.agent.category_id || 'General',
         type: 'agent' as const,
       })) || [];
 
@@ -77,7 +80,7 @@ export const GroupParticipantsDialog = ({
       const { data: installations } = await supabase
         .from('agent_installations')
         .select(`
-          agent:agents(id, name, image_url)
+          agent:agents(id, name, image_url, category_id)
         `)
         .eq('user_id', userId);
 
@@ -88,6 +91,7 @@ export const GroupParticipantsDialog = ({
           id: i.agent.id,
           name: i.agent.name,
           image_url: i.agent.image_url,
+          category: i.agent.category_id || 'General',
           type: 'agent' as const,
         }))
         .filter(a => !currentAgentIds.has(a.id)) || [];
@@ -187,9 +191,14 @@ export const GroupParticipantsDialog = ({
                       className="flex items-center justify-between p-2 border rounded"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Bot className="h-5 w-5 text-primary" />
-                        </div>
+                        {(() => {
+                          const colors = getAgentColor(participant.category || 'General');
+                          return (
+                            <div className={`h-8 w-8 rounded-full ${colors.bg} flex items-center justify-center`}>
+                              <Bot className={`h-5 w-5 ${colors.icon}`} />
+                            </div>
+                          );
+                        })()}
                         <span className="text-sm">{participant.name}</span>
                         <Badge variant="secondary" className="text-xs">
                           {participant.type}
@@ -222,9 +231,14 @@ export const GroupParticipantsDialog = ({
                       className="flex items-center justify-between p-2 border rounded hover:bg-muted/50"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Bot className="h-5 w-5 text-primary" />
-                        </div>
+                        {(() => {
+                          const colors = getAgentColor(agent.category || 'General');
+                          return (
+                            <div className={`h-8 w-8 rounded-full ${colors.bg} flex items-center justify-center`}>
+                              <Bot className={`h-5 w-5 ${colors.icon}`} />
+                            </div>
+                          );
+                        })()}
                         <span className="text-sm">{agent.name}</span>
                       </div>
                       <Button

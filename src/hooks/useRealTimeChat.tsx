@@ -37,6 +37,7 @@ interface Chat {
     short_description: string | null;
     long_description: string | null;
     capabilities: string[] | null;
+    category?: string;
   };
   agents?: Array<{
     id: string;
@@ -46,6 +47,7 @@ interface Chat {
     short_description: string | null;
     long_description: string | null;
     capabilities: string[] | null;
+    category?: string;
   }>;
 }
 
@@ -78,6 +80,7 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
           short_description: agent.description,
           long_description: agent.description,
           capabilities: agent.capabilities || null,
+          category: agent.category,
         },
         unread_count: 0,
       }));

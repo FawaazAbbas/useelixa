@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload } from "lucide-react";
+import { getAgentColor } from '@/utils/agentColors';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -696,14 +697,19 @@ const Workspace = () => {
                        selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
                      }`}
                    >
-                    <div className="relative">
-                      <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">
-                        <Bot className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background bg-green-500" />
-                    </div>
-                    <span className="text-sm truncate text-white">{chat.agent?.name}</span>
-                  </button>
+                     <div className="relative">
+                       {(() => {
+                         const colors = getAgentColor(chat.agent?.category || 'General');
+                         return (
+                           <div className={`h-6 w-6 rounded-full ${colors.bg} flex items-center justify-center`}>
+                             <Bot className={`h-4 w-4 ${colors.icon}`} />
+                           </div>
+                         );
+                       })()}
+                       <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background bg-green-500" />
+                     </div>
+                     <span className="text-sm truncate text-white">{chat.agent?.name}</span>
+                   </button>
                 ))
               )}
             </div>
@@ -1165,13 +1171,16 @@ const Workspace = () => {
                           />
                         </Button>
                       </div>
-                    )}
-                     {!isUserMessage && (
-                       <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                         <Bot className="h-6 w-6 text-primary" />
-                       </div>
                      )}
-                     <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                      {!isUserMessage && (() => {
+                        const colors = getAgentColor(agentInfo?.category || 'General');
+                        return (
+                          <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                            <Bot className={`h-6 w-6 ${colors.icon}`} />
+                          </div>
+                        );
+                      })()}
+                      <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                        <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                          <span className="font-semibold">
                            {isUserMessage ? "You" : agentInfo?.name}
@@ -1219,9 +1228,16 @@ const Workspace = () => {
             )}
               {sending && selectedChat && (
               <div className="flex gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  {selectedChat.type === 'group' ? <Users className="h-5 w-5 text-primary" /> : <Bot className="h-6 w-6 text-primary" />}
-                </div>
+                {(() => {
+                  const colors = selectedChat.type === 'group' 
+                    ? { bg: 'bg-primary/20', icon: 'text-primary' }
+                    : getAgentColor(selectedChat.agent?.category || 'General');
+                  return (
+                    <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                      {selectedChat.type === 'group' ? <Users className="h-5 w-5 text-primary" /> : <Bot className={`h-6 w-6 ${colors.icon}`} />}
+                    </div>
+                  );
+                })()}
                 <div className="flex-1">
                   <div className="space-y-2">
                     {processingAgent && (
