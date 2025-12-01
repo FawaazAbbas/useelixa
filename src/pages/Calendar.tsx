@@ -24,7 +24,7 @@ const Calendar = () => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [createEventDate, setCreateEventDate] = useState<Date | undefined>(undefined);
 
-  const hours = Array.from({ length: 17 }, (_, i) => i + 7); // 7 AM to 11 PM
+  const hours = Array.from({ length: 24 }, (_, i) => i); // Full 24 hours
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -69,8 +69,12 @@ const Calendar = () => {
     setActiveId(event.active.id);
   };
 
-  const handleNewEvent = (date?: Date) => {
-    setCreateEventDate(date);
+  const handleNewEvent = (date?: Date, hour?: number) => {
+    const eventDate = date ? new Date(date) : new Date();
+    if (hour !== undefined) {
+      eventDate.setHours(hour, 0, 0, 0);
+    }
+    setCreateEventDate(eventDate);
     setCreateDialogOpen(true);
   };
 
@@ -142,25 +146,37 @@ const Calendar = () => {
                   className={`border-r relative ${
                     isToday(day) ? "bg-primary/5" : ""
                   }`}
-                  onClick={() => handleNewEvent(day)}
                 >
                   {hours.map((hour) => (
-                    <div key={hour} className="h-[60px] border-b" />
+                    <div 
+                      key={hour} 
+                      className="h-[60px] border-b hover:bg-accent/30 transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNewEvent(day, hour);
+                      }}
+                    />
                   ))}
 
-                  {dayEvents.map((event, idx) => {
+              {dayEvents.map((event, idx) => {
                     const startDate = new Date(event.start_time);
+                    const endDate = new Date(event.end_time);
+                    const startHour = startDate.getHours();
+                    const startMinute = startDate.getMinutes();
+                    const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60); // in minutes
                     const topPosition = event.is_all_day 
                       ? 10 
-                      : ((startDate.getHours() - 7) * 60) + (idx * 5);
+                      : (startHour * 60) + startMinute + (idx * 3);
+                    const height = event.is_all_day ? 40 : Math.max(duration, 30);
                     
                     return (
                       <DraggableEvent
                         key={event.id}
                         id={event.id}
-                        className="absolute left-1 right-1 rounded-lg p-2 text-xs shadow-md border border-white/20 backdrop-blur-sm animate-fade-in"
+                        className="absolute left-1 right-1 rounded-lg p-2 text-xs shadow-md border border-white/20 backdrop-blur-sm animate-fade-in overflow-hidden"
                         style={{
                           top: `${topPosition}px`,
+                          height: `${height}px`,
                           backgroundColor: event.color,
                           color: "black",
                           zIndex: 10,
@@ -217,25 +233,35 @@ const Calendar = () => {
               id={`day-${currentDate.toISOString()}`}
               data={{ day: currentDate }}
               className="flex-1 relative"
-              onClick={() => handleNewEvent(currentDate)}
             >
               {hours.map((hour) => (
-                <div key={hour} className="h-[80px] border-b" />
+                <div 
+                  key={hour} 
+                  className="h-[80px] border-b hover:bg-accent/30 transition-colors cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNewEvent(currentDate, hour);
+                  }}
+                />
               ))}
 
               {dayEvents.map((event, idx) => {
                 const startDate = new Date(event.start_time);
+                const endDate = new Date(event.end_time);
+                const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60); // in minutes
                 const topPosition = event.is_all_day
                   ? 10
-                  : (startDate.getHours() - 7) * 80 + 10;
+                  : (startDate.getHours() * 80) + (startDate.getMinutes() / 60 * 80) + 10;
+                const height = event.is_all_day ? 60 : Math.max((duration / 60) * 80, 60);
 
                 return (
                   <DraggableEvent
                     key={event.id}
                     id={event.id}
-                    className="absolute left-2 right-2 rounded-lg p-3 border-l-4 shadow-lg backdrop-blur-sm animate-fade-in"
+                    className="absolute left-2 right-2 rounded-lg p-3 border-l-4 shadow-lg backdrop-blur-sm animate-fade-in overflow-hidden"
                     style={{
                       top: `${topPosition}px`,
+                      height: `${height}px`,
                       borderLeftColor: event.color,
                       backgroundColor: "hsl(var(--card))",
                       animationDelay: `${idx * 50}ms`,
@@ -249,7 +275,12 @@ const Calendar = () => {
                     <div className="font-semibold">{event.title}</div>
                     {!event.is_all_day && (
                       <div className="text-sm text-muted-foreground mt-1">
-                        {format(startDate, "h:mm a")}
+                        {format(startDate, "h:mm a")} - {format(endDate, "h:mm a")}
+                      </div>
+                    )}
+                    {event.location && (
+                      <div className="text-xs text-muted-foreground mt-1 truncate">
+                        📍 {event.location}
                       </div>
                     )}
                   </DraggableEvent>
