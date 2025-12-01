@@ -126,6 +126,114 @@ export const mockDirectChats = {
         created_at: new Date(Date.now() - 3600000 * 6 + 95000).toISOString(),
       }
     ]
+  },
+  "mock-4": { // Sales Assistant
+    name: "Sales Assistant",
+    messages: [
+      {
+        id: "sa-1",
+        content: "Hi there! I'm your **Sales Assistant** 💼\n\nI help you:\n\n🎯 Qualify and score leads\n📧 Automate follow-up sequences\n📊 Manage your sales pipeline\n🤝 Track deal progress\n💰 Forecast revenue\n\nWhat can I help you with today?",
+        user_id: null,
+        agent_id: "mock-4",
+        created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+      },
+      {
+        id: "sa-2",
+        content: "Show me today's pipeline status",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 5 + 60000).toISOString(),
+      },
+      {
+        id: "sa-3",
+        content: "Here's your **pipeline snapshot** for today:\n\n## 📊 Pipeline Overview\n\n**Total Pipeline Value:** $847,500\n**Active Deals:** 23\n**Weighted Value:** $312,400 (37% avg close probability)\n\n---\n\n## 🔥 Hot Deals (Closing This Week)\n\n### 1. TechCorp - Enterprise Plan\n**Value:** $85,000/year\n**Stage:** Contract Review (90% close probability)\n**Next Step:** Legal review complete by Friday\n**Action:** Follow up tomorrow\n\n### 2. StartupHub - Professional Plan\n**Value:** $12,000/year\n**Stage:** Final Decision (75% close probability)\n**Next Step:** CEO approval pending\n**Action:** Send case study testimonials\n\n### 3. GrowthCo - Team Plan\n**Value:** $8,500/year\n**Stage:** Negotiation (60% close probability)\n**Next Step:** Price discussion\n**Action:** Prepare discount proposal\n\n---\n\n## ⚠️ At-Risk Deals\n\n**DataFlow Inc** - $45K - No response in 14 days\n*Recommended action:* Send re-engagement email with new value prop\n\n**CloudSystems** - $28K - Competitor evaluation in progress\n*Recommended action:* Schedule product comparison call\n\n---\n\n## 💡 Recommendations\n\n1. **Prioritize TechCorp** - Largest deal, highest probability\n2. **Re-engage DataFlow** - Don't let this slip away\n3. **Accelerate StartupHub** - Send decision-maker materials\n4. **20 new leads** need first contact this week\n\nWant me to draft any follow-up emails or update deal stages?",
+        user_id: null,
+        agent_id: "mock-4",
+        created_at: new Date(Date.now() - 3600000 * 5 + 65000).toISOString(),
+      },
+      {
+        id: "sa-4",
+        content: "Draft a re-engagement email for DataFlow Inc",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 5 + 120000).toISOString(),
+      },
+      {
+        id: "sa-5",
+        content: "Perfect! Here's a **compelling re-engagement email** for DataFlow Inc:\n\n---\n\n**Subject:** Quick question about your automation goals\n\n*Hi [Contact Name],*\n\n*I wanted to reach out because I know you're evaluating solutions to streamline your data workflows.*\n\n*Since we last spoke, we've helped 3 companies similar to DataFlow reduce their data processing time by an average of 67%. I thought you might find these results interesting:*\n\n• **AnalyticsPro** - Cut report generation from 4 hours to 35 minutes\n• **DataStream** - Eliminated 80% of manual data entry\n• **MetricsHub** - Increased team productivity by 45%\n\n*I'd love to share how we achieved these results and explore if there's a fit for DataFlow.*\n\n*Are you available for a quick 15-minute call this week? I have slots on:*\n• *Tuesday 2 PM*\n• *Wednesday 11 AM*\n• *Thursday 3 PM*\n\n*If timing isn't right, no worries - I can send over a brief case study that's specific to your industry instead.*\n\n*Looking forward to connecting!*\n\n*[Your Name]*\n\n---\n\n**Why this works:**\n✅ Opens with their pain point (not your product)\n✅ Uses specific, measurable results\n✅ Social proof from similar companies\n✅ Low-commitment ask (15 min)\n✅ Provides an easy out with case study alternative\n\nShall I send this email now or would you like me to adjust anything?",
+        user_id: null,
+        agent_id: "mock-4",
+        created_at: new Date(Date.now() - 3600000 * 5 + 125000).toISOString(),
+      },
+      {
+        id: "sa-6",
+        content: "Perfect, send it! Also, what are my top priorities for this week?",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 5 + 180000).toISOString(),
+      },
+      {
+        id: "sa-7",
+        content: "✅ **Email sent to DataFlow Inc!**\n\nHere are your **top sales priorities** for this week:\n\n## 🎯 Monday-Tuesday\n**PRIORITY 1:** Close TechCorp ($85K)\n- Follow up on legal review\n- Prepare contract signature logistics\n- Success probability: 90%\n\n**PRIORITY 2:** Accelerate StartupHub ($12K)\n- Send CEO decision-maker packet\n- Include 3 relevant case studies\n- Schedule final Q&A if needed\n\n## 🎯 Wednesday-Thursday\n**PRIORITY 3:** Rescue at-risk deals\n- DataFlow: Monitor email response\n- CloudSystems: Schedule comparison demo\n- Combined value: $73K\n\n**PRIORITY 4:** New lead outreach\n- 20 qualified leads need first contact\n- Focus on Enterprise segment (higher value)\n- Use personalized sequences\n\n## 🎯 Friday\n**PRIORITY 5:** Pipeline hygiene\n- Update all deal stages\n- Archive dead opportunities\n- Plan next week's strategy\n\n---\n\n**📈 Weekly Goals:**\n- Close minimum 2 deals ($97K+)\n- Move 5 deals to next stage\n- Book 8 new discovery calls\n- Response rate > 35%\n\n**🎉 Stretch Goal:** Close TechCorp + StartupHub = $97K in new ARR!\n\nI'll send you daily reminders and progress updates. Let's crush this week! 💪",
+        user_id: null,
+        agent_id: "mock-4",
+        created_at: new Date(Date.now() - 3600000 * 5 + 185000).toISOString(),
+      }
+    ]
+  },
+  "mock-5": { // Social Media Manager
+    name: "Social Media Manager",
+    messages: [
+      {
+        id: "sm-1",
+        content: "Hey! I'm your **Social Media Manager** 📱\n\nI handle everything social:\n\n📅 Content scheduling across all platforms\n📊 Performance analytics & insights\n🔍 Hashtag research & optimization\n💬 Engagement monitoring\n🎯 Audience growth strategies\n\nReady to boost your social presence?",
+        user_id: null,
+        agent_id: "mock-5",
+        created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+      },
+      {
+        id: "sm-2",
+        content: "What's our social media performance this month?",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 8 + 60000).toISOString(),
+      },
+      {
+        id: "sm-3",
+        content: "Here's your **monthly social media report** 📊\n\n## 🎉 Overall Performance\n\n**Total Reach:** 127,500 (+34% vs last month)\n**Engagement Rate:** 4.8% (+1.2%)\n**New Followers:** 2,847 (+28%)\n**Total Engagement:** 6,120 interactions\n\n---\n\n## 📱 Platform Breakdown\n\n### LinkedIn\n**Followers:** 8,450 (+312)\n**Engagement Rate:** 6.2% (👑 Best performing!)\n**Top Post:** \"5 AI Automation Mistakes\" - 847 likes, 92 comments\n**Insight:** Professional content + controversy = 🔥\n\n### Twitter/X\n**Followers:** 12,200 (+445)\n**Engagement Rate:** 3.9%\n**Top Tweet:** Thread on \"Future of Work\" - 1.2K likes, 234 retweets\n**Insight:** Threads outperform single tweets by 3x\n\n### Instagram\n**Followers:** 6,890 (+278)\n**Engagement Rate:** 5.1%\n**Top Post:** Behind-the-scenes office culture - 524 likes\n**Insight:** Authentic content > stock photos\n\n### Facebook\n**Followers:** 4,320 (+98)\n**Engagement Rate:** 2.7% (Needs improvement)\n**Top Post:** Customer success story video - 312 reactions\n**Insight:** Video content performs 2x better\n\n---\n\n## 🏆 Top Content Categories\n\n1. **Tutorials & How-Tos** - 6.8% engagement\n2. **Case Studies** - 5.9% engagement  \n3. **Industry Insights** - 5.2% engagement\n4. **Company Culture** - 4.6% engagement\n5. **Product Updates** - 3.1% engagement\n\n---\n\n## 💡 Key Recommendations\n\n1. **Double down on LinkedIn** - Highest ROI platform\n2. **More video content** - 2-3x better performance\n3. **Increase Twitter threads** - Strong engagement\n4. **Boost Facebook strategy** - Currently underperforming\n5. **Post consistency:** Aim for daily LinkedIn, 3x/day Twitter\n\n---\n\n## 📅 This Week's Schedule\n\n**Monday:** LinkedIn article on automation trends\n**Tuesday:** Twitter thread on productivity hacks\n**Wednesday:** Instagram behind-the-scenes\n**Thursday:** LinkedIn case study post\n**Friday:** All platforms - weekly roundup\n\nWant me to adjust the content calendar or create new posts?",
+        user_id: null,
+        agent_id: "mock-5",
+        created_at: new Date(Date.now() - 3600000 * 8 + 65000).toISOString(),
+      },
+      {
+        id: "sm-4",
+        content: "Great! Can you create 5 LinkedIn posts for this week?",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 8 + 120000).toISOString(),
+      },
+      {
+        id: "sm-5",
+        content: "Absolutely! Here are **5 high-performing LinkedIn posts** ready to schedule:\n\n---\n\n### 📌 POST 1 - Monday (Thought Leadership)\n\n*The biggest mistake I see companies make with AI automation?*\n\n*They try to automate everything at once.*\n\n*Here's what actually works:*\n\n*1. Start with ONE painful process*\n*2. Automate it completely*\n*3. Measure the impact*\n*4. Then move to the next*\n\n*We saved 40 hours/week by automating just our customer support workflow first.*\n\n*What process would save your team the most time?*\n\n**Best time to post:** 8:30 AM\n**Hashtags:** #AIAutomation #Productivity #BusinessGrowth\n**Expected reach:** 3,500-4,500\n\n---\n\n### 📌 POST 2 - Tuesday (Case Study)\n\n*How we increased customer satisfaction by 47% with AI agents 📈*\n\n*Before:*\n*• Average response time: 6 hours*\n*• Customer satisfaction: 72%*\n*• Support team: Overwhelmed*\n\n*After implementing AI agents:*\n*• Average response time: 8 minutes ⚡*\n*• Customer satisfaction: 94% 🎉*\n*• Support team: Handling complex cases only*\n\n*The secret? We didn't replace humans. We augmented them.*\n\n*Our AI handles routine questions (70% of tickets), while our team focuses on complex issues that need a human touch.*\n\n*Result: Happier customers + happier team.*\n\n*Are you using AI to augment or replace your team?*\n\n**Best time to post:** 12:00 PM\n**Hashtags:** #CustomerSuccess #AIinBusiness #CaseStudy\n**Expected reach:** 5,000-6,500\n\n---\n\n### 📌 POST 3 - Wednesday (Controversial/Engaging)\n\n*Unpopular opinion: Most productivity tools make you LESS productive.*\n\n*Why?*\n\n*Because you spend more time:*\n*• Setting them up*\n*• Learning how to use them*\n*• Managing them*\n*• Switching between 12 different tools*\n\n*The best productivity tool?*\n\n*Automation that works in the background while you focus on what actually moves the needle.*\n\n*Stop collecting productivity tools. Start eliminating tasks.*\n\n*Agree or disagree? 👇*\n\n**Best time to post:** 10:00 AM\n**Hashtags:** #Productivity #Automation #UnpopularOpinion\n**Expected reach:** 4,000-5,500 (high engagement potential)\n\n---\n\n### 📌 POST 4 - Thursday (Educational/Value)\n\n*5 tasks you should automate TODAY (not tomorrow):*\n\n*1. Email follow-ups*\n*Stop manually tracking who to email. Set up automated sequences.*\n\n*2. Meeting scheduling*\n*Back-and-forth emails waste 3 hours/week on average.*\n\n*3. Data entry*\n*If you are copying data between tools, you are doing it wrong.*\n\n*4. Report generation*\n*Weekly reports should not take hours. Automate them.*\n\n*5. Social media posting*\n*Batch create content once, schedule for the month.*\n\n*Each of these saves 2-5 hours/week.*\n*That is 10-25 hours back in your week.*\n\n*What would you do with an extra 20 hours?*\n\n**Best time to post:** 1:00 PM\n**Hashtags:** #TimeManagement #BusinessAutomation #Efficiency\n**Expected reach:** 3,800-5,000\n\n---\n\n### 📌 POST 5 - Friday (Engagement/Community)\n\n*It is Friday! Let us celebrate some wins 🎉*\n\n*This week our AI agents:*\n*• Handled 847 customer inquiries*\n*• Generated 23 qualified leads*\n*• Saved our team 67 hours*\n*• Created 12 pieces of content*\n*• Analyzed 15,000 data points*\n\n*All while our team focused on strategy and creativity.*\n\n*That is the future of work: Humans + AI working together.*\n\n*What is your biggest win this week? Drop it in the comments 👇*\n\n**Best time to post:** 3:00 PM\n**Hashtags:** #FridayFeeling #TeamWork #AIAutomation #WeeklyWins\n**Expected reach:** 4,200-5,800\n\n---\n\n## 📅 Suggested Schedule\n\n- **Monday 8:30 AM** - Post 1 (Thought Leadership)\n- **Tuesday 12:00 PM** - Post 2 (Case Study)\n- **Wednesday 10:00 AM** - Post 3 (Controversial)\n- **Thursday 1:00 PM** - Post 4 (Educational)\n- **Friday 3:00 PM** - Post 5 (Engagement)\n\n**Total expected reach:** 20,500-27,300\n**Predicted engagement:** 1,000-1,400 interactions\n\nShall I schedule these now?",
+        user_id: null,
+        agent_id: "mock-5",
+        created_at: new Date(Date.now() - 3600000 * 8 + 125000).toISOString(),
+      },
+      {
+        id: "sm-6",
+        content: "These are perfect! Yes, schedule them all",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 8 + 180000).toISOString(),
+      },
+      {
+        id: "sm-7",
+        content: "✅ **All 5 posts scheduled successfully!**\n\n📅 Your LinkedIn content calendar is set for the week:\n\n- Mon 8:30 AM - Thought Leadership ✓\n- Tue 12:00 PM - Case Study ✓\n- Wed 10:00 AM - Controversial Opinion ✓\n- Thu 1:00 PM - Educational Tips ✓\n- Fri 3:00 PM - Weekly Wins ✓\n\n---\n\n## 📊 What I'll Track\n\n- Impressions & reach\n- Engagement rates (likes, comments, shares)\n- Click-through rates\n- Follower growth\n- Best performing content types\n\n---\n\n## 🔔 Reminders\n\n- I'll notify you of any high-engagement posts that need responses\n- I'll send daily performance snapshots\n- I'll suggest optimal times to engage with your audience\n\n---\n\n**💡 Pro tip:** Reply to comments within the first hour for maximum engagement boost!\n\nI'll keep monitoring and let you know how these perform. Want me to start creating content for Twitter and Instagram too?",
+        user_id: null,
+        agent_id: "mock-5",
+        created_at: new Date(Date.now() - 3600000 * 8 + 185000).toISOString(),
+      }
+    ]
   }
 };
 
