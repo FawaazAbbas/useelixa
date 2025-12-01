@@ -744,7 +744,7 @@ const Workspace = () => {
                     return (
                       <div
                         key={idx}
-                        className={`flex gap-3 group ${
+                        className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""} ${
                           isSelected ? "bg-primary/10 rounded-lg p-2" : ""
                         }`}
                         onClick={() => isSelectionMode && handleToggleMessageSelection(idx, true)}
@@ -769,7 +769,7 @@ const Workspace = () => {
                              <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
                            </Avatar>
                          )}
-                         <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
+                         <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                            <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                              <span className="font-semibold">
                                {isUserMessage ? "You" : "Brian"}
@@ -1070,7 +1070,7 @@ const Workspace = () => {
                 return (
                   <div
                     key={msg.id}
-                    className={`flex gap-3 group ${
+                    className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""} ${
                       isSelected ? "bg-primary/10 rounded-lg p-2" : ""
                     }`}
                     onClick={() => isSelectionMode && handleToggleMessageSelection(msg.id, false)}
@@ -1097,7 +1097,7 @@ const Workspace = () => {
                          </AvatarFallback>
                        </Avatar>
                      )}
-                     <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
+                     <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                        <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                          <span className="font-semibold">
                            {isUserMessage ? "You" : agentInfo?.name}
