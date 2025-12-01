@@ -145,30 +145,32 @@ export const AutomationChainBuilder = ({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Automation Chain</CardTitle>
-            <CardDescription>
-              Drag to reorder • Automations execute sequentially
-            </CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onAddNew}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Automation
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleExecuteChain}
-              disabled={executing || sortedAutomations.length === 0}
-            >
-              <Play className="h-4 w-4 mr-2" />
-              Execute Chain
-            </Button>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <CardTitle>Automation Chain</CardTitle>
+              <CardDescription className="mt-1">
+                Drag to reorder • Automations execute sequentially
+              </CardDescription>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onAddNew}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Automation
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleExecuteChain}
+                disabled={executing || sortedAutomations.length === 0}
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Execute Chain
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>
