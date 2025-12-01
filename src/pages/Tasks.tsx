@@ -243,20 +243,27 @@ const Tasks = () => {
   return (
     <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="p-4 md:p-8 pb-20 md:pb-8 max-w-7xl mx-auto">
+      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 md:mb-10">
-          <div className="flex items-center gap-3 animate-fade-in">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <CheckSquare className="h-6 w-6 md:h-7 md:w-7 text-primary" />
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-2 animate-fade-in">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <CheckSquare className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <h1 className="text-3xl md:text-4xl font-bold">Tasks</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
                 {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
               </p>
             </div>
           </div>
+          <p className="text-muted-foreground text-sm md:text-base">
+            Manage and delegate work to your AI team
+          </p>
+        </div>
+
+        {/* New Task Button */}
+        <div className="mb-6">
           <Button 
             onClick={() => setShowCreationModeDialog(true)} 
             className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow"

@@ -56,15 +56,15 @@ const Logs = () => {
   return (
     <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="p-4 md:p-6 pb-20 md:pb-6">
-          <div className="mb-4 md:mb-6">
+      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
+          <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Activity className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Activity Logs</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-3xl md:text-4xl font-bold">Activity Logs</h1>
+                <p className="text-sm md:text-base text-muted-foreground">
                   {logs.length} total activities
                 </p>
               </div>

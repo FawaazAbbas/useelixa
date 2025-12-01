@@ -259,22 +259,23 @@ const Calendar = () => {
       <DemoBanner />
 
       {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm p-6 w-full">
-        <div className="flex items-center justify-between w-full mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <CalendarIcon className="h-6 w-6 text-primary" />
+      <div className="border-b bg-card/50 backdrop-blur-sm py-6 px-4 md:py-8 w-full">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between w-full mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <CalendarIcon className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
+                <p className="text-sm md:text-base text-muted-foreground">
+                  {mockCalendarEvents.length} events scheduled
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">Calendar</h1>
-              <p className="text-sm text-muted-foreground">
-                {mockCalendarEvents.length} events scheduled
-              </p>
-            </div>
-          </div>
 
-          <Card className="shadow-sm">
-            <CardContent className="p-3 flex items-center gap-4">
+            <Card className="shadow-sm">
+              <CardContent className="p-3 flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9">
                   <ChevronLeft className="h-4 w-4" />
@@ -294,18 +295,19 @@ const Calendar = () => {
                   <TabsTrigger value="month">Month</TabsTrigger>
                   <TabsTrigger value="agenda">Agenda</TabsTrigger>
                 </TabsList>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="secondary" className="text-base px-3 py-1">
-            {view === "month" && format(currentDate, "MMMM yyyy")}
-            {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
-            {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
-            {view === "agenda" && "Upcoming Events"}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="text-base px-3 py-1">
+              {view === "month" && format(currentDate, "MMMM yyyy")}
+              {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
+              {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
+              {view === "agenda" && "Upcoming Events"}
+            </Badge>
+          </div>
         </div>
       </div>
 
