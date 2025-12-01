@@ -20,6 +20,7 @@ import Settings from "./pages/Settings";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
+import { FloatingWaitlistButton } from "./components/FloatingWaitlistButton";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <MobileRedirect />
+        <FloatingWaitlistButton />
         <Routes>
           <Route path="/" element={<Marketplace />} />
           <Route path="/marketplace" element={<Marketplace />} />
