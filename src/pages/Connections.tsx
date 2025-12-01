@@ -219,29 +219,38 @@ export default function Connections() {
   const availableCount = allConnectionItems.length - connectedCount;
 
   return (
-    <div className="flex-1 w-full overflow-y-auto">
+    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
       <div className="container mx-auto py-8 px-4 max-w-7xl">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Connections</h1>
-              <p className="text-muted-foreground">Connect your tools and services to enable powerful automations</p>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Plug className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold mb-1">Connections</h1>
+                <p className="text-sm text-muted-foreground">
+                  {connectedCount} connected • {availableCount} available
+                </p>
+              </div>
             </div>
+            <p className="text-muted-foreground">Connect your tools and services to enable powerful automations</p>
 
-            <div className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search connections..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex flex-col md:flex-row gap-3">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search connections..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                </div>
 
                 <div className="flex flex-wrap gap-3">
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -281,23 +290,10 @@ export default function Connections() {
                       <SelectItem value="third-party">Third-Party</SelectItem>
                     </SelectContent>
                   </Select>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex gap-4 text-sm text-muted-foreground">
-                <span>
-                  Connected: <span className="font-semibold text-foreground">{connectedCount}</span>
-                </span>
-                <span>•</span>
-                <span>
-                  Available: <span className="font-semibold text-foreground">{availableCount}</span>
-                </span>
-                <span>•</span>
-                <span>
-                  Total: <span className="font-semibold text-foreground">{allConnectionItems.length}</span>
-                </span>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -307,7 +303,8 @@ export default function Connections() {
               return (
                 <Card
                   key={item.type}
-                  className={`hover:shadow-lg transition-shadow ${isConnected ? "ring-2 ring-green-500/20" : ""}`}
+                  className={`hover:shadow-xl hover:scale-[1.02] transition-all duration-200 animate-fade-in ${isConnected ? "ring-2 ring-green-500/20" : ""}`}
+                  style={{ animationDelay: `${filteredConnections.indexOf(item) * 30}ms` }}
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between mb-3">

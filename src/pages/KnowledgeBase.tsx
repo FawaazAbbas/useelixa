@@ -31,11 +31,21 @@ export default function KnowledgeBase() {
   const hasContent = articles.length > 0 || documents.length > 0;
 
   return (
-    <div className="flex-1 w-full overflow-y-auto">
+    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
       <div className="container mx-auto py-4 md:py-8 px-4 pb-20 md:pb-8">
         <div className="mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-bold mb-2">Knowledge Base</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <FileText className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-4xl font-bold">Knowledge Base</h1>
+              <p className="text-sm text-muted-foreground">
+                {articles.length} articles • {documents.length} documents
+              </p>
+            </div>
+          </div>
           <p className="text-muted-foreground text-sm md:text-base">
             Share context all agents can reference
           </p>
@@ -63,17 +73,19 @@ export default function KnowledgeBase() {
           </Card>
         )}
 
-        <div className="mb-4 md:mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search knowledge base..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+        <Card className="mb-4 md:mb-6 shadow-sm">
+          <CardContent className="p-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search knowledge base..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 border-0 focus-visible:ring-0"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="articles" className="w-full">
           <TabsList className="grid w-full grid-cols-2 h-auto">
@@ -103,8 +115,12 @@ export default function KnowledgeBase() {
                   </CardContent>
                 </Card>
               ) : (
-                filteredArticles.map((article) => (
-                  <Card key={article.id}>
+                filteredArticles.map((article, idx) => (
+                  <Card 
+                    key={article.id}
+                    className="hover:shadow-xl hover:scale-[1.01] transition-all duration-200 animate-fade-in"
+                    style={{ animationDelay: `${idx * 30}ms` }}
+                  >
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
@@ -174,8 +190,12 @@ export default function KnowledgeBase() {
                   </CardContent>
                 </Card>
               ) : (
-                filteredDocuments.map((doc) => (
-                  <Card key={doc.id}>
+                filteredDocuments.map((doc, idx) => (
+                  <Card 
+                    key={doc.id}
+                    className="hover:shadow-xl hover:scale-[1.01] transition-all duration-200 animate-fade-in"
+                    style={{ animationDelay: `${idx * 30}ms` }}
+                  >
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
