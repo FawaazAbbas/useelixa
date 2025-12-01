@@ -764,43 +764,43 @@ const Workspace = () => {
                             </Button>
                           </div>
                         )}
-                        {!isUserMessage && (
-                          <Avatar className="bg-gradient-to-br from-purple-600 to-blue-500">
-                            <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
-                          </Avatar>
-                        )}
+                         {!isUserMessage && (
+                           <Avatar className="h-10 w-10 bg-gradient-to-br from-purple-600 to-blue-500">
+                             <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+                           </Avatar>
+                         )}
                          <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
-                          <div className={`flex items-center gap-2 mb-1 ${isUserMessage ? "flex-row-reverse" : ""}`}>
-                            <span className="text-sm font-semibold">
-                              {isUserMessage ? "You" : "Brian"}
-                            </span>
-                          </div>
-                          <div className="space-y-2">
-                            <div
-                              className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
-                                isUserMessage
-                                  ? "bg-primary/90 text-primary-foreground"
-                                  : "bg-muted/80"
-                              }`}
-                            >
-                              <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                  {msg.content}
-                                </ReactMarkdown>
-                              </div>
-                            </div>
-                            {msg.metadata?.files && (
-                              <div className="max-w-[85%]">
-                                <FileMessageCard files={msg.metadata.files} />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {isUserMessage && (
-                          <Avatar>
-                            <AvatarFallback>U</AvatarFallback>
-                          </Avatar>
-                        )}
+                           <div className={`flex items-center gap-2 mb-2 ${isUserMessage ? "flex-row-reverse" : ""}`}>
+                             <span className="font-semibold">
+                               {isUserMessage ? "You" : "Brian"}
+                             </span>
+                           </div>
+                           <div className="space-y-2">
+                             <div
+                               className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                                 isUserMessage
+                                   ? "bg-primary/90 text-primary-foreground"
+                                   : "bg-muted/80"
+                               }`}
+                             >
+                               <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                   {msg.content}
+                                 </ReactMarkdown>
+                               </div>
+                             </div>
+                             {msg.metadata?.files && (
+                               <div className="max-w-[85%]">
+                                 <FileMessageCard files={msg.metadata.files} />
+                               </div>
+                             )}
+                           </div>
+                         </div>
+                         {isUserMessage && (
+                           <Avatar className="h-10 w-10">
+                             <AvatarFallback>U</AvatarFallback>
+                           </Avatar>
+                         )}
                         {!isSelectionMode && (
                           <MessageContextMenu
                             messageId={idx.toString()}
@@ -1090,57 +1090,57 @@ const Workspace = () => {
                         </Button>
                       </div>
                     )}
-                    {!isUserMessage && (
-                      <Avatar>
-                        <AvatarFallback>
-                          {agentInfo?.name.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
-                      <div className={`flex items-center gap-2 mb-1 ${isUserMessage ? "flex-row-reverse" : ""}`}>
-                        <span className="text-sm font-semibold">
-                          {isUserMessage ? "You" : agentInfo?.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(msg.created_at).toLocaleTimeString()}
-                        </span>
-                        {!isSelectionMode && (
-                          <MessageContextMenu
-                            messageId={msg.id}
-                            canDelete={isUserMessage || !msg.user_id}
-                            onDelete={deleteMessage}
-                          />
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <div
-                          className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
-                            isUserMessage
-                              ? "bg-primary/90 text-primary-foreground"
-                              : msg.error_message
-                              ? "bg-destructive/10 border border-destructive"
-                              : "bg-muted/80"
-                          }`}
-                        >
-                          <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {msg.content}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-                        {msg.metadata?.files && (
-                          <div className="max-w-[85%]">
-                            <FileMessageCard files={msg.metadata.files} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {isUserMessage && (
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarFallback className="text-xs">You</AvatarFallback>
-                      </Avatar>
-                    )}
+                     {!isUserMessage && (
+                       <Avatar className="h-10 w-10">
+                         <AvatarFallback>
+                           {agentInfo?.name.substring(0, 2).toUpperCase()}
+                         </AvatarFallback>
+                       </Avatar>
+                     )}
+                     <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
+                       <div className={`flex items-center gap-2 mb-2 ${isUserMessage ? "flex-row-reverse" : ""}`}>
+                         <span className="font-semibold">
+                           {isUserMessage ? "You" : agentInfo?.name}
+                         </span>
+                         <span className="text-xs text-muted-foreground">
+                           {new Date(msg.created_at).toLocaleTimeString()}
+                         </span>
+                         {!isSelectionMode && (
+                           <MessageContextMenu
+                             messageId={msg.id}
+                             canDelete={isUserMessage || !msg.user_id}
+                             onDelete={deleteMessage}
+                           />
+                         )}
+                       </div>
+                       <div className="space-y-2">
+                         <div
+                           className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                             isUserMessage
+                               ? "bg-primary/90 text-primary-foreground"
+                               : msg.error_message
+                               ? "bg-destructive/10 border border-destructive"
+                               : "bg-muted/80"
+                           }`}
+                         >
+                           <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                               {msg.content}
+                             </ReactMarkdown>
+                           </div>
+                         </div>
+                         {msg.metadata?.files && (
+                           <div className="max-w-[85%]">
+                             <FileMessageCard files={msg.metadata.files} />
+                           </div>
+                         )}
+                       </div>
+                     </div>
+                     {isUserMessage && (
+                       <Avatar className="h-10 w-10 flex-shrink-0">
+                         <AvatarFallback>U</AvatarFallback>
+                       </Avatar>
+                     )}
                   </div>
                 );
               })
