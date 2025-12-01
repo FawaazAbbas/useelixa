@@ -3,77 +3,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, CheckCircle, XCircle, AlertCircle, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { mockAutomationLogs, MockAutomationLog } from "@/data/mockAutomationLogs";
 
-interface AutomationLog {
-  id: string;
-  automation_id: string;
-  executed_at: string;
-  status: "success" | "failed" | "partial" | "pending";
-  output_data: any;
-  error_message: string | null;
-  execution_time_ms: number | null;
-  automation: {
-    name: string;
-  };
-}
+type AutomationLog = MockAutomationLog;
 
 interface AutomationLogsSectionProps {
   taskId: string;
 }
 
 export const AutomationLogsSection = ({ taskId }: AutomationLogsSectionProps) => {
-  const { toast } = useToast();
   const [logs, setLogs] = useState<AutomationLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchLogs();
-
-    const channel = supabase
-      .channel(`automation_logs_${taskId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "automation_logs",
-          filter: `task_id=eq.${taskId}`
-        },
-        () => {
-          fetchLogs();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [taskId]);
 
   const fetchLogs = async () => {
-    const { data, error } = await supabase
-      .from("automation_logs")
-      .select(`
-        *,
-        automation:automations(name)
-      `)
-      .eq("task_id", taskId)
-      .order("executed_at", { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error("Error fetching logs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load automation logs",
-        variant: "destructive"
-      });
-    } else {
-      setLogs(data as any || []);
-    }
+    // Demo mode: use mock data
+    const filteredLogs = mockAutomationLogs.filter(log => log.task_id === taskId);
+    setLogs(filteredLogs);
     setLoading(false);
   };
 

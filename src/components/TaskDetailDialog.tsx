@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -16,6 +15,7 @@ import { AutomationLogsSection } from "./AutomationLogsSection";
 import { AutomationChainBuilder } from "./AutomationChainBuilder";
 import { AutomationEditDialog } from "./AutomationEditDialog";
 import { AddAutomationDialog } from "./AddAutomationDialog";
+import { mockAutomations, MockAutomation } from "@/data/mockAutomations";
 
 interface Task {
   id: string;
@@ -36,21 +36,7 @@ interface Agent {
   capabilities: string[] | null;
 }
 
-interface Automation {
-  id: string;
-  name: string;
-  action: string;
-  status: string;
-  trigger: string;
-  progress: number;
-  last_run: string | null;
-  task_id: string | null;
-  chain_order: number;
-  agent_id: string | null;
-  next_run_at: string | null;
-  schedule_type: string | null;
-  agent?: Agent;
-}
+type Automation = MockAutomation;
 
 interface TaskDetailDialogProps {
   task: Task | null;
@@ -75,47 +61,20 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
     if (!task) return;
     
     setLoading(true);
-    const { data, error } = await supabase
-      .from("automations")
-      .select(`
-        *,
-        agent:agents(id, name, description, capabilities)
-      `)
-      .eq("task_id", task.id)
-      .order("chain_order");
-
-    if (error) {
-      console.error("Error fetching automations:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load automations",
-        variant: "destructive",
-      });
-    } else {
-      setAutomations(data || []);
-    }
+    
+    // Demo mode: use mock data
+    const filteredAutomations = mockAutomations.filter(a => a.task_id === task.id);
+    setAutomations(filteredAutomations);
+    
     setLoading(false);
   };
 
   const handleDeleteAutomation = async (automationId: string) => {
-    const { error } = await supabase
-      .from("automations")
-      .delete()
-      .eq("id", automationId);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete automation",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Automation deleted successfully"
-      });
-      fetchAutomations();
-    }
+    // Demo mode: just show toast
+    toast({
+      title: "Demo Mode",
+      description: "Automation deletion is disabled in demo mode"
+    });
   };
 
   const getPriorityColor = (priority: string) => {
@@ -155,9 +114,9 @@ export const TaskDetailDialog = ({ task, open, onOpenChange }: TaskDetailDialogP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4 pr-8">
             <div className="flex-1">
-              <DialogTitle className="text-2xl">{task.title}</DialogTitle>
+              <DialogTitle className="text-2xl pr-4">{task.title}</DialogTitle>
               <DialogDescription className="mt-2">
                 {task.description || "No description provided"}
               </DialogDescription>

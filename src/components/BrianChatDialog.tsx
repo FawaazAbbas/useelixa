@@ -59,7 +59,6 @@ interface BrianChatDialogProps {
 }
 
 export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChatDialogProps) => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -79,24 +78,10 @@ export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChat
           content: "Hi! I'm Brian, your AI task assistant. Let's create a task together. What would you like to accomplish?"
         }]);
       }
-      fetchAgents();
+      // Demo mode: no need to fetch agents from DB
+      setAgents([]);
     }
   }, [open]);
-
-  const fetchAgents = async () => {
-    const { data, error } = await supabase
-      .from("agents")
-      .select("id, name, description, capabilities")
-      .eq("status", "active")
-      .order("name");
-
-    if (error) {
-      console.error("Error fetching agents:", error);
-      return;
-    }
-
-    setAgents(data || []);
-  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -112,105 +97,57 @@ export const BrianChatDialog = ({ open, onOpenChange, onTaskCreated }: BrianChat
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
 
-    try {
-      const { data, error } = await supabase.functions.invoke("brian-task-assistant", {
-        body: {
-          messages: [...messages, { role: "user", content: userMessage }],
-          phase,
-          agents: agents.map(a => ({
-            id: a.id,
-            name: a.name,
-            description: a.description,
-            capabilities: a.capabilities
-          }))
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.summary) {
-        setTaskSummary(data.summary);
+    // Demo mode: mock responses
+    setTimeout(() => {
+      const mockResponses = [
+        "Got it! I'll help you create that task. Could you provide more details about the priority and deadline?",
+        "That sounds great. Should this be a high priority task?",
+        "Perfect! I'm preparing a task summary for you. Just a moment...",
+        "I understand. Let me break that down into automations for you."
+      ];
+      
+      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+      
+      // Simulate generating a summary after a few messages
+      if (messages.length >= 4) {
+        setTaskSummary({
+          title: "Demo Task",
+          description: "This is a demo task created in demo mode",
+          priority: "medium",
+          is_asap: false,
+          automations: []
+        });
         setPhase("summary");
         setMessages(prev => [...prev, {
           role: "assistant",
           content: "Perfect! Here's a summary of your task. Review and confirm when ready."
         }]);
       } else {
-        setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
+        setMessages(prev => [...prev, { role: "assistant", content: randomResponse }]);
       }
-    } catch (error) {
-      console.error("Error communicating with Brian:", error);
-      toast({
-        title: "Error",
-        description: "Failed to communicate with Brian. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   const handleCreateTask = async () => {
-    if (!taskSummary || !user) return;
+    if (!taskSummary) return;
 
     setCreating(true);
-    try {
-      const { data: task, error: taskError } = await supabase
-        .from("tasks")
-        .insert({
-          title: taskSummary.title,
-          description: taskSummary.description,
-          priority: taskSummary.priority,
-          due_date: taskSummary.due_date || null,
-          is_asap: taskSummary.is_asap,
-          user_id: user.id,
-          status: "pending"
-        })
-        .select()
-        .single();
-
-      if (taskError) throw taskError;
-
-      if (taskSummary.automations.length > 0) {
-        const automationsToInsert = taskSummary.automations.map(auto => ({
-          name: auto.name,
-          action: auto.instruction,
-          trigger: auto.trigger,
-          task_id: task.id,
-          workspace_id: user.id,
-          created_by: user.id,
-          agent_id: auto.agentId,
-          status: "active"
-        }));
-
-        const { error: autoError } = await supabase
-          .from("automations")
-          .insert(automationsToInsert);
-
-        if (autoError) throw autoError;
-      }
-
+    
+    // Demo mode: simulate task creation
+    setTimeout(() => {
       toast({
-        title: "Success",
-        description: "Task created successfully with automations!"
+        title: "Demo Mode",
+        description: "Task creation is disabled in demo mode. Changes won't be saved."
       });
 
-      onTaskCreated();
       onOpenChange(false);
       
       setMessages([]);
       setPhase("chat");
       setTaskSummary(null);
-    } catch (error) {
-      console.error("Error creating task:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create task. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
       setCreating(false);
-    }
+    }, 1000);
   };
 
   const toggleAutomation = (index: number) => {
