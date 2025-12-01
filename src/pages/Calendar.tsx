@@ -361,7 +361,7 @@ const Calendar = () => {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto sm:justify-end">
               <div className="flex items-center gap-1">
                 <Button variant="outline" size="icon" onClick={handlePrevious}>
                   <ChevronLeft className="w-4 h-4" />
@@ -374,15 +374,15 @@ const Calendar = () => {
                 </Button>
               </div>
 
-              <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-                <TabsList>
-                  <TabsTrigger value="day">Day</TabsTrigger>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
+              <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full sm:w-auto">
+                <TabsList className="w-full sm:w-auto grid grid-cols-3">
+                  <TabsTrigger value="day" className="flex-1">Day</TabsTrigger>
+                  <TabsTrigger value="week" className="flex-1">Week</TabsTrigger>
+                  <TabsTrigger value="month" className="flex-1">Month</TabsTrigger>
                 </TabsList>
               </Tabs>
 
-              <Button onClick={() => setCreateDialogOpen(true)}>
+              <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 New Event
               </Button>
@@ -425,7 +425,7 @@ const Calendar = () => {
                 <CardHeader>
                   <CardTitle className="text-sm">Mini Calendar</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-hidden">
                   <MiniCalendar
                     mode="single"
                     selected={miniCalendarDate}
@@ -436,7 +436,7 @@ const Calendar = () => {
                         setView("day");
                       }
                     }}
-                    className="rounded-md border-0"
+                    className="rounded-md border-0 w-full"
                   />
                 </CardContent>
               </Card>
