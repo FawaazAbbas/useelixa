@@ -162,7 +162,7 @@ const Calendar = () => {
                         style={{
                           top: `${topPosition}px`,
                           backgroundColor: event.color,
-                          color: "white",
+                          color: "black",
                           zIndex: 10,
                         }}
                         onClick={(e) => {
@@ -172,7 +172,7 @@ const Calendar = () => {
                       >
                         <div className="font-semibold truncate">{event.title}</div>
                         {!event.is_all_day && (
-                          <div className="text-[10px] opacity-90 mt-0.5">
+                          <div className="text-[10px] opacity-70 mt-0.5">
                             {format(startDate, "h:mm a")}
                           </div>
                         )}
@@ -325,7 +325,7 @@ const Calendar = () => {
                       className="text-[10px] md:text-xs rounded px-1.5 py-0.5 truncate cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-200 shadow-sm border border-white/20"
                       style={{
                         backgroundColor: event.color,
-                        color: "white",
+                        color: "black",
                       }}
                     >
                       {event.title}
@@ -557,7 +557,7 @@ const Calendar = () => {
               className="rounded-lg p-2 text-xs shadow-xl border border-white/20 backdrop-blur-sm opacity-90"
               style={{
                 backgroundColor: activeEvent.color,
-                color: "white",
+                color: "black",
               }}
             >
               <div className="font-semibold">{activeEvent.title}</div>
