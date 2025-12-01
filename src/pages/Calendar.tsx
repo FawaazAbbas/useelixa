@@ -255,14 +255,14 @@ const Calendar = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-gradient-to-b from-background to-muted/20 flex flex-col overflow-hidden">
+    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
 
       {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm py-6 px-4 md:py-8 w-full">
+      <div className="py-6 px-4 md:py-8 pb-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between w-full mb-6">
-            <div className="flex items-center gap-3">
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <CalendarIcon className="h-6 w-6 text-primary" />
               </div>
@@ -273,9 +273,10 @@ const Calendar = () => {
                 </p>
               </div>
             </div>
+          </div>
 
-            <Card className="shadow-sm">
-              <CardContent className="p-3 flex items-center gap-4">
+          <Card className="shadow-sm mb-6">
+            <CardContent className="p-3 flex flex-col sm:flex-row items-center gap-3">
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="icon" onClick={handlePrevious} className="h-9 w-9">
                   <ChevronLeft className="h-4 w-4" />
@@ -295,24 +296,21 @@ const Calendar = () => {
                   <TabsTrigger value="month">Month</TabsTrigger>
                   <TabsTrigger value="agenda">Agenda</TabsTrigger>
                 </TabsList>
-                </Tabs>
-              </CardContent>
-            </Card>
-          </div>
+              </Tabs>
 
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="text-base px-3 py-1">
-              {view === "month" && format(currentDate, "MMMM yyyy")}
-              {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
-              {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
-              {view === "agenda" && "Upcoming Events"}
-            </Badge>
-          </div>
+              <Badge variant="secondary" className="text-sm px-3 py-1 ml-auto">
+                {view === "month" && format(currentDate, "MMMM yyyy")}
+                {view === "week" && format(currentDate, "MMM d - ") + format(addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6), "MMM d, yyyy")}
+                {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
+                {view === "agenda" && "Upcoming Events"}
+              </Badge>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
       {/* Calendar Views */}
-      <div className="flex-1 w-full overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 pb-20 md:pb-8">
         {view === "week" && renderWeekView()}
         {view === "day" && renderDayView()}
         {view === "month" && renderMonthView()}
