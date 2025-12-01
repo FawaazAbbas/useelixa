@@ -69,7 +69,7 @@ const Logs = () => {
     <>
       <DemoBanner />
       <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-        <div className="p-4 md:p-6 max-w-6xl mx-auto pb-20 md:pb-6">
+        <div className="p-4 md:p-6 pb-20 md:pb-6 h-full">
           <div className="mb-4 md:mb-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Activity Logs</h1>
             <p className="text-muted-foreground text-sm md:text-base">
@@ -111,10 +111,10 @@ const Logs = () => {
             </Card>
           ) : (
             <ScrollArea className="h-[calc(100vh-240px)] md:h-[calc(100vh-280px)]">
-              <div className="space-y-2 md:space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {filteredLogs.map((log) => (
-                  <Card key={log.id}>
-                    <CardContent className="p-3 md:p-4">
+                  <Card key={log.id} className="flex flex-col">
+                    <CardContent className="p-3 md:p-4 flex-1">
                       <div className="flex items-start gap-2 md:gap-3">
                         {getStatusIcon(log.status)}
                         <div className="flex-1 min-w-0">
