@@ -70,7 +70,15 @@ const CREDENTIAL_INFO: Record<
     logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/CalendlyLogo.png`,
     companyName: "Calendly",
   },
-
+  mailchimpOAuth2Api: {
+    name: "Mailchimp",
+    description: "Connect Mailchimp for email marketing and campaign management",
+    category: "Marketing",
+    icon: "🐵",
+    color: "bg-yellow-500",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/mailchimp.png`,
+    companyName: "Mailchimp",
+  },
   shopifyOAuth2Api: {
     name: "Shopify Store",
     description: "Connect your Shopify store for e-commerce automation",
