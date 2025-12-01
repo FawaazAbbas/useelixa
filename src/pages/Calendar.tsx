@@ -214,19 +214,19 @@ const Calendar = () => {
         </div>
 
         <ScrollArea className="flex-1 w-full">
-          <div className="flex w-full relative">
-            <div className="w-16 shrink-0 border-r bg-muted/30">
+          <div className="flex w-full min-h-0">
+            <div className="w-20 shrink-0 border-r bg-muted/30">
               {hours.map((hour) => (
                 <div
                   key={hour}
-                  className="h-[80px] border-b px-2 py-1 text-xs text-muted-foreground text-right"
+                  className="h-[80px] border-b px-3 py-1 text-sm text-muted-foreground text-right flex items-start justify-end"
                 >
                   {format(new Date().setHours(hour, 0), "h a")}
                 </div>
               ))}
             </div>
 
-            <div className="flex-1 relative">
+            <div className="flex-1 relative min-w-0">
               {hours.map((hour) => (
                 <DroppableTimeSlot
                   key={hour}
