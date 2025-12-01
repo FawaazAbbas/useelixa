@@ -11,6 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { DemoBanner } from "@/components/DemoBanner";
+import { TaskCreationModeDialog } from "@/components/TaskCreationModeDialog";
+import { BrianChatDialog } from "@/components/BrianChatDialog";
+import { ManualTaskDialog } from "@/components/ManualTaskDialog";
+import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { mockTasks, MockTask } from "@/data/mockTasks";
 import {
   AlertDialog,
@@ -28,6 +32,13 @@ const Tasks = () => {
   const [tasks, setTasks] = useState<MockTask[]>(mockTasks);
   const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  
+  // Dialog states
+  const [showCreationModeDialog, setShowCreationModeDialog] = useState(false);
+  const [showBrianChat, setShowBrianChat] = useState(false);
+  const [showManualTask, setShowManualTask] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<MockTask | null>(null);
+  const [showTaskDetail, setShowTaskDetail] = useState(false);
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -74,6 +85,28 @@ const Tasks = () => {
     }
   };
 
+  const handleSelectCreationMode = (mode: "brian" | "manual") => {
+    if (mode === "brian") {
+      setShowBrianChat(true);
+    } else {
+      setShowManualTask(true);
+    }
+  };
+
+  const handleTaskCreated = () => {
+    toast({
+      title: "Demo Mode",
+      description: "Task creation disabled in demo mode",
+    });
+    setShowBrianChat(false);
+    setShowManualTask(false);
+  };
+
+  const openTaskDetail = (task: MockTask) => {
+    setSelectedTask(task);
+    setShowTaskDetail(true);
+  };
+
   const filterTasks = (tasksToFilter: MockTask[]) => {
     return tasksToFilter.filter(task => {
       // Search filter
@@ -110,6 +143,7 @@ const Tasks = () => {
           className={`cursor-pointer hover:bg-accent/50 transition-all ${
             swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0"
           }`}
+          onClick={() => openTaskDetail(task)}
         >
           <CardContent className="p-4 md:p-6">
             <div className="flex items-start gap-3 md:gap-4">
@@ -191,7 +225,7 @@ const Tasks = () => {
             <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
           </div>
-          <Button onClick={() => toast({ title: "Demo Mode", description: "Task creation disabled in demo" })} className="w-full sm:w-auto">
+          <Button onClick={() => setShowCreationModeDialog(true)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -266,7 +300,7 @@ const Tasks = () => {
                 }
                 action={{
                   label: "Create Task",
-                  onClick: () => toast({ title: "Demo Mode", description: "Task creation disabled in demo" }),
+                  onClick: () => setShowCreationModeDialog(true),
                 }}
               />
             ) : (
@@ -279,6 +313,34 @@ const Tasks = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialogs */}
+      <TaskCreationModeDialog
+        open={showCreationModeDialog}
+        onOpenChange={setShowCreationModeDialog}
+        onSelectMode={handleSelectCreationMode}
+      />
+
+      <BrianChatDialog
+        open={showBrianChat}
+        onOpenChange={setShowBrianChat}
+        onTaskCreated={handleTaskCreated}
+      />
+
+      <ManualTaskDialog
+        open={showManualTask}
+        onOpenChange={setShowManualTask}
+        onTaskCreated={handleTaskCreated}
+      />
+
+      <TaskDetailDialog
+        task={selectedTask}
+        open={showTaskDetail}
+        onOpenChange={(open) => {
+          setShowTaskDetail(open);
+          if (!open) setSelectedTask(null);
+        }}
+      />
 
       <AlertDialog open={!!taskToDelete} onOpenChange={() => setTaskToDelete(null)}>
         <AlertDialogContent>
