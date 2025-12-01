@@ -134,7 +134,7 @@ const Calendar = () => {
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <Card className="shadow-sm bg-card/50 backdrop-blur-sm">
+      <Card className="shadow-sm bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-semibold">
@@ -181,7 +181,7 @@ const Calendar = () => {
                 <Button
                   key={day.toISOString()}
                   variant={dayIsSelected ? "default" : dayIsToday ? "secondary" : "ghost"}
-                  className={`h-8 w-full p-0 text-xs ${
+                  className={`h-8 w-full p-0 text-xs hover:scale-110 transition-all ${
                     dayIsSelected ? "font-bold" : ""
                   }`}
                   onClick={() => {
@@ -595,57 +595,111 @@ const Calendar = () => {
 
                 {/* Event Type Filters */}
                 <div className="mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                <div className="flex items-center gap-2 mb-2">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Filter by type:</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Filter by type:</span>
+                  </div>
+                  <ToggleGroup
+                    type="multiple"
+                    value={eventTypeFilters}
+                    onValueChange={(value) => {
+                      if (value.length > 0) {
+                        setEventTypeFilters(value);
+                      }
+                    }}
+                    className="justify-start flex-wrap gap-2"
+                  >
+                    <ToggleGroupItem
+                      value="meeting"
+                      aria-label="Toggle meetings"
+                      className="data-[state=on]:bg-chart-1/20 data-[state=on]:text-chart-1 data-[state=on]:border-2 data-[state=on]:border-chart-1 data-[state=off]:border-0"
+                    >
+                      Meeting
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="call"
+                      aria-label="Toggle calls"
+                      className="data-[state=on]:bg-chart-2/20 data-[state=on]:text-chart-2 data-[state=on]:border-2 data-[state=on]:border-chart-2 data-[state=off]:border-0"
+                    >
+                      Call
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="task"
+                      aria-label="Toggle tasks"
+                      className="data-[state=on]:bg-chart-3/20 data-[state=on]:text-chart-3 data-[state=on]:border-2 data-[state=on]:border-chart-3 data-[state=off]:border-0"
+                    >
+                      Task
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="reminder"
+                      aria-label="Toggle reminders"
+                      className="data-[state=on]:bg-chart-4/20 data-[state=on]:text-chart-4 data-[state=on]:border-2 data-[state=on]:border-chart-4 data-[state=off]:border-0"
+                    >
+                      Reminder
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                      value="personal"
+                      aria-label="Toggle personal"
+                      className="data-[state=on]:bg-chart-5/20 data-[state=on]:text-chart-5 data-[state=on]:border-2 data-[state=on]:border-chart-5 data-[state=off]:border-0"
+                    >
+                      Personal
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
-                <ToggleGroup
-                  type="multiple"
-                  value={eventTypeFilters}
-                  onValueChange={(value) => {
-                    if (value.length > 0) {
-                      setEventTypeFilters(value);
-                    }
-                  }}
-                  className="justify-start flex-wrap"
-                >
-                  <ToggleGroupItem
-                    value="meeting"
-                    aria-label="Toggle meetings"
-                    className="data-[state=on]:bg-chart-1/20 data-[state=on]:text-chart-1 data-[state=on]:border-chart-1"
-                  >
-                    Meeting
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="call"
-                    aria-label="Toggle calls"
-                    className="data-[state=on]:bg-chart-2/20 data-[state=on]:text-chart-2 data-[state=on]:border-chart-2"
-                  >
-                    Call
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="task"
-                    aria-label="Toggle tasks"
-                    className="data-[state=on]:bg-chart-3/20 data-[state=on]:text-chart-3 data-[state=on]:border-chart-3"
-                  >
-                    Task
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="reminder"
-                    aria-label="Toggle reminders"
-                    className="data-[state=on]:bg-chart-4/20 data-[state=on]:text-chart-4 data-[state=on]:border-chart-4"
-                  >
-                    Reminder
-                  </ToggleGroupItem>
-                  <ToggleGroupItem
-                    value="personal"
-                    aria-label="Toggle personal"
-                    className="data-[state=on]:bg-chart-5/20 data-[state=on]:text-chart-5 data-[state=on]:border-chart-5"
-                  >
-                    Personal
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+
+                {/* Mini Calendar and Upcoming Events */}
+                <div className="grid lg:grid-cols-2 gap-6 mb-6 animate-fade-in" style={{ animationDelay: '150ms' }}>
+                  {/* Mini Calendar */}
+                  {renderMiniCalendar()}
+
+                  {/* Upcoming Events */}
+                  <Card className="shadow-sm bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base font-semibold">Upcoming Events</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[320px]">
+                        <div className="space-y-2">
+                          {getUpcomingEvents().map((event, idx) => {
+                            const startDate = new Date(event.start_time);
+                            return (
+                              <div
+                                key={event.id}
+                                onClick={() => handleEventClick(event)}
+                                className="p-3 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02] animate-fade-in"
+                                style={{ animationDelay: `${idx * 50}ms` }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div
+                                    className="w-1 h-12 rounded-full shrink-0"
+                                    style={{ backgroundColor: event.color }}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate">{event.title}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {format(startDate, "MMM d")} •{" "}
+                                      {event.is_all_day ? "All Day" : format(startDate, "h:mm a")}
+                                    </div>
+                                    {event.location && (
+                                      <div className="text-xs text-muted-foreground mt-1 truncate">
+                                        📍 {event.location}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {getUpcomingEvents().length === 0 && (
+                            <div className="text-sm text-muted-foreground text-center py-8">
+                              No upcoming events
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                </div>
 
                 {/* Navigation and Views */}
                 <Card className="shadow-lg bg-card/50 backdrop-blur-sm border hover:shadow-xl transition-all animate-fade-in" style={{ animationDelay: '200ms' }}>
