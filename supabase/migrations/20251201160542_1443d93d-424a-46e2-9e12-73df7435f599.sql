@@ -1,0 +1,1 @@
+ALTER TABLE public.integrations DISABLE ROW LEVEL SECURITY;
