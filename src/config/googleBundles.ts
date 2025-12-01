@@ -76,6 +76,22 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
       "https://www.googleapis.com/auth/monitoring.read",
     ],
   },
+  ads_marketing: {
+    id: "ads_marketing",
+    name: "Ads & Marketing",
+    description: "Google Ads, AdSense, AdMob, Merchant Center (Shopping)",
+    icon: "📢",
+    color: "bg-green-500",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GoogleAdsLogo.svg`,
+    companyName: "Google",
+    serviceName: "Ads & Marketing",
+    scopes: [
+      "https://www.googleapis.com/auth/adwords",
+      "https://www.googleapis.com/auth/adsense.readonly",
+      "https://www.googleapis.com/auth/admob.readonly",
+      "https://www.googleapis.com/auth/content",
+    ],
+  },
   firebase_app: {
     id: "firebase_app",
     name: "Firebase & App Infrastructure",
