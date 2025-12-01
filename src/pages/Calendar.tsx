@@ -563,92 +563,38 @@ const Calendar = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-background via-background to-primary/5">
+      <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-background to-muted/20">
         <DemoBanner />
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left Sidebar - Mini Calendar & Upcoming Events */}
-          <div className="hidden lg:block w-64 border-r border-border/50 bg-gradient-to-b from-muted/20 to-muted/30 backdrop-blur-sm overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="p-6 space-y-6">
-              {/* Mini Calendar */}
-              {renderMiniCalendar()}
-
-              {/* Upcoming Events */}
-              <Card className="shadow-sm bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold">Upcoming Events</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {getUpcomingEvents().map((event) => {
-                    const startDate = new Date(event.start_time);
-                    return (
-                      <div
-                        key={event.id}
-                        onClick={() => handleEventClick(event)}
-                        className="p-3 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02] animate-fade-in"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div
-                            className="w-1 h-12 rounded-full shrink-0"
-                            style={{ backgroundColor: event.color }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-sm truncate">{event.title}</div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {format(startDate, "MMM d")} •{" "}
-                              {event.is_all_day ? "All Day" : format(startDate, "h:mm a")}
-                            </div>
-                            {event.location && (
-                              <div className="text-xs text-muted-foreground mt-1 truncate">
-                                📍 {event.location}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {getUpcomingEvents().length === 0 && (
-                    <div className="text-sm text-muted-foreground text-center py-4">
-                      No upcoming events
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          {/* Header */}
-          <div className="py-6 px-4 sm:px-6 md:px-8 border-b bg-gradient-to-r from-background/80 to-background backdrop-blur-sm sticky top-0 z-20">
+          <div className="py-6 px-8 md:py-8">
             <div className="max-w-7xl mx-auto">
-              <div className="flex items-start justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl backdrop-blur-sm">
-                    <CalendarIcon className="h-6 w-6 text-primary" />
+              {/* Header */}
+              <div className="mb-8 animate-fade-in">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-primary/10 rounded-xl">
+                      <CalendarIcon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
+                      <p className="text-sm md:text-base text-muted-foreground mt-1">
+                        Manage your schedule and events
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
-                    <p className="text-sm md:text-base text-muted-foreground mt-1">
-                      Manage your schedule
-                    </p>
-                  </div>
+                  <Button
+                    onClick={() => handleNewEvent()}
+                    className="shrink-0 h-10 md:h-11 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    <span className="hidden sm:inline">New Event</span>
+                    <span className="sm:hidden">New</span>
+                  </Button>
                 </div>
-                <Button
-                  onClick={() => handleNewEvent()}
-                  className="shrink-0 h-10 md:h-11 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">New Event</span>
-                  <span className="sm:hidden">New</span>
-                </Button>
-              </div>
 
-              {/* Event Type Filters */}
-              <div className="mb-4">
+                {/* Event Type Filters */}
+                <div className="mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
                 <div className="flex items-center gap-2 mb-2">
                   <Filter className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">Filter by type:</span>
@@ -701,85 +647,86 @@ const Calendar = () => {
                 </ToggleGroup>
               </div>
 
-              <Card className="shadow-lg bg-gradient-to-r from-card/80 to-card backdrop-blur-sm border-primary/10">
-                <CardContent className="p-4 space-y-4">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handlePrevious}
-                        className="h-10 w-10 touch-manipulation hover:bg-primary/10"
+                {/* Navigation and Views */}
+                <Card className="shadow-lg bg-card/50 backdrop-blur-sm border hover:shadow-xl transition-all animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  <CardContent className="p-4 sm:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handlePrevious}
+                          className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleToday}
+                          className="h-10 px-4 hover:bg-primary/10 hover:scale-105 transition-all"
+                        >
+                          Today
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={handleNext}
+                          className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <Tabs
+                        value={view}
+                        onValueChange={(v) => setView(v as any)}
+                        className="flex-1"
                       >
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={handleToday}
-                        className="h-10 px-4 touch-manipulation hover:bg-primary/10"
-                      >
-                        Today
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={handleNext}
-                        className="h-10 w-10 touch-manipulation hover:bg-primary/10"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                        <TabsList className="grid grid-cols-3 w-full h-10">
+                          <TabsTrigger value="day" className="text-xs sm:text-sm">
+                            Day
+                          </TabsTrigger>
+                          <TabsTrigger value="week" className="text-xs sm:text-sm">
+                            Week
+                          </TabsTrigger>
+                          <TabsTrigger value="month" className="text-xs sm:text-sm">
+                            Month
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
                     </div>
 
-                    <Tabs
-                      value={view}
-                      onValueChange={(v) => setView(v as any)}
-                      className="flex-1"
-                    >
-                      <TabsList className="grid grid-cols-3 w-full h-10">
-                        <TabsTrigger value="day" className="text-xs sm:text-sm">
-                          Day
-                        </TabsTrigger>
-                        <TabsTrigger value="week" className="text-xs sm:text-sm">
-                          Week
-                        </TabsTrigger>
-                        <TabsTrigger value="month" className="text-xs sm:text-sm">
-                          Month
-                        </TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-                  </div>
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs sm:text-sm px-3 py-1.5 font-medium"
+                      >
+                        {view === "month" && format(currentDate, "MMMM yyyy")}
+                        {view === "week" &&
+                          format(currentDate, "MMM d") +
+                            " - " +
+                            format(
+                              addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
+                              "MMM d, yyyy"
+                            )}
+                        {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Week {getWeek(currentDate, { weekStartsOn: 0 })}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-                  <div className="flex items-center justify-between">
-                    <Badge
-                      variant="secondary"
-                      className="text-xs sm:text-sm px-3 py-1.5 font-medium"
-                    >
-                      {view === "month" && format(currentDate, "MMMM yyyy")}
-                      {view === "week" &&
-                        format(currentDate, "MMM d") +
-                          " - " +
-                          format(
-                            addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
-                            "MMM d, yyyy"
-                          )}
-                      {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      Week {getWeek(currentDate, { weekStartsOn: 0 })}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Calendar Views */}
+              <div className="mt-6 animate-fade-in" style={{ animationDelay: '300ms' }}>
+                {view === "week" && renderWeekView()}
+                {view === "day" && renderDayView()}
+                {view === "month" && renderMonthView()}
+              </div>
             </div>
           </div>
-
-          {/* Calendar Views */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
-            {view === "week" && renderWeekView()}
-            {view === "day" && renderDayView()}
-            {view === "month" && renderMonthView()}
-          </div>
-        </div>
         </div>
 
         <EventDetailSheet
