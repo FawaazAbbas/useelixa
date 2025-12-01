@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plug, CheckCircle2, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { GOOGLE_BUNDLES } from "@/config/googleBundles";
 import { DemoBanner } from "@/components/DemoBanner";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 
@@ -18,7 +19,100 @@ interface ConnectionStatus {
   bundleType?: string;
   accountEmail?: string;
   accountLabel?: string;
+  id?: string;
 }
+
+const CREDENTIAL_INFO: Record<string, {
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  color: string;
+  logo: string;
+  companyName: string;
+}> = {
+  notionApi: {
+    name: 'Notion Workspace',
+    description: 'Connect your Notion workspace for document management and collaboration',
+    category: 'Productivity',
+    icon: '📝',
+    color: 'bg-gray-800',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png',
+    companyName: 'Notion',
+  },
+  slackOAuth2Api: {
+    name: 'Slack Workspace',
+    description: 'Connect your Slack workspace for team communication and notifications',
+    category: 'Communication',
+    icon: '💬',
+    color: 'bg-purple-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg',
+    companyName: 'Slack',
+  },
+  microsoftOAuth2Api: {
+    name: 'Microsoft 365',
+    description: 'Access Outlook, OneDrive, Teams, and other Microsoft services',
+    category: 'Productivity',
+    icon: '🪟',
+    color: 'bg-blue-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg',
+    companyName: 'Microsoft',
+  },
+  calendlyApi: {
+    name: 'Calendly',
+    description: 'Schedule and manage meetings with Calendly integration',
+    category: 'Scheduling',
+    icon: '📅',
+    color: 'bg-blue-500',
+    logo: 'https://images.g2crowd.com/uploads/product/image/social_landscape/social_landscape_7024293ac1af0ca3fd0fa0e081eb9127/calendly.png',
+    companyName: 'Calendly',
+  },
+  mailchimpOAuth2Api: {
+    name: 'Mailchimp',
+    description: 'Connect Mailchimp for email marketing and campaign management',
+    category: 'Marketing',
+    icon: '🐵',
+    color: 'bg-yellow-500',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Mailchimp_Logo.svg/320px-Mailchimp_Logo.svg.png',
+    companyName: 'Mailchimp',
+  },
+  shopifyOAuth2Api: {
+    name: 'Shopify Store',
+    description: 'Connect your Shopify store for e-commerce automation',
+    category: 'E-commerce',
+    icon: '🛍️',
+    color: 'bg-green-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg',
+    companyName: 'Shopify',
+  },
+  metaBusinessApi: {
+    name: 'Meta Business Suite',
+    description: 'Connect Facebook and Instagram for social media management',
+    category: 'Social Media',
+    icon: '📱',
+    color: 'bg-blue-500',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg',
+    companyName: 'Meta',
+  },
+  twilioApi: {
+    name: 'Twilio',
+    description: 'Connect Twilio for SMS, voice, and messaging automation',
+    category: 'Communication',
+    icon: '📞',
+    color: 'bg-red-600',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Twilio-logo-red.svg',
+    companyName: 'Twilio',
+  },
+  typeformOAuth2Api: {
+    name: 'Typeform',
+    description: 'Connect Typeform for form and survey automation',
+    category: 'Forms',
+    icon: '📋',
+    color: 'bg-gray-900',
+    logo: 'https://images.ctfassets.net/rvt0uslu5yqp/4MaLXdXZUmGKIq4emw64q0/63b67b6d65cd8c9e11a2d6a0df4e3ed7/typeform-logo-symbol.svg',
+    companyName: 'Typeform',
+  },
+};
 
 export default function Connections() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,28 +120,6 @@ export default function Connections() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedProvider, setSelectedProvider] = useState<string>('all');
   const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const [integrations, setIntegrations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchIntegrations = async () => {
-      const { data, error } = await supabase
-        .from('integrations')
-        .select('*')
-        .order('display_order');
-      
-      if (error) {
-        console.error('Error fetching integrations:', error);
-        setLoading(false);
-        return;
-      }
-      
-      setIntegrations(data || []);
-      setLoading(false);
-    };
-
-    fetchIntegrations();
-  }, []);
 
   const connections: ConnectionStatus[] = [
     {
@@ -57,6 +129,7 @@ export default function Connections() {
       bundleType: "email_workspace",
       accountEmail: "demo@example.com",
       accountLabel: "Work Account",
+      id: "conn-1",
     },
     {
       type: "notionApi",
@@ -64,6 +137,7 @@ export default function Connections() {
       lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       accountEmail: "demo@example.com",
       accountLabel: "Main Workspace",
+      id: "conn-2",
     },
     {
       type: "slackOAuth2Api",
@@ -71,6 +145,7 @@ export default function Connections() {
       lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
       accountEmail: "demo@company.slack.com",
       accountLabel: "Company Workspace",
+      id: "conn-3",
     },
   ];
 
@@ -79,38 +154,40 @@ export default function Connections() {
   };
 
   const handleDisconnect = () => {
-    setWaitlistOpen(true);
+    toast.error("Disconnect feature disabled in demo mode");
   };
 
-  const categories = ['all', ...new Set(integrations.map(integration => integration.category))];
+  const categories = ['all', ...new Set(Object.values(CREDENTIAL_INFO).map(info => info.category))];
 
-  const allConnectionItems = integrations.map(integration => {
-    const isGoogleBundle = integration.is_google_bundle;
-    const credentialType = isGoogleBundle 
-      ? 'googleOAuth2Api' 
-      : integration.credential_type;
-    
-    const matchingConnections = connections.filter(
-      c => c.type === credentialType && 
-           (!isGoogleBundle || c.bundleType === integration.bundle_type)
-    );
-
-    return {
-      type: integration.credential_type,
-      isGoogleBundle: integration.is_google_bundle,
-      credentials: matchingConnections,
-      info: {
-        name: integration.name,
-        description: integration.description,
-        category: integration.category,
-        icon: integration.icon,
-        color: integration.color,
-        logo: integration.logo_url,
-        companyName: integration.company_name,
-      },
-      connection: matchingConnections.length > 0 ? matchingConnections[0] : undefined,
-    };
-  });
+  const allConnectionItems = [
+    ...Object.values(GOOGLE_BUNDLES).map(bundle => {
+      const bundleCredentials = connections.filter(
+        c => c.type === 'googleOAuth2Api' && c.bundleType === bundle.id
+      );
+      return {
+        type: `google_${bundle.id}`,
+        isGoogleBundle: true,
+        bundle,
+        credentials: bundleCredentials,
+        info: {
+          name: bundle.serviceName,
+          description: bundle.description,
+          category: 'Productivity',
+          icon: bundle.icon,
+          color: bundle.color,
+          logo: bundle.logo,
+          companyName: bundle.companyName,
+        },
+        connection: bundleCredentials.length > 0 ? bundleCredentials[0] : undefined,
+      };
+    }),
+    ...Object.entries(CREDENTIAL_INFO).map(([type, info]) => ({
+      type,
+      isGoogleBundle: false,
+      info,
+      connection: connections.find(c => c.type === type && !c.bundleType),
+    })),
+  ];
 
   const filteredConnections = allConnectionItems.filter((item) => {
     const matchesSearch = 
@@ -139,19 +216,6 @@ export default function Connections() {
     item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection
   ).length;
   const availableCount = allConnectionItems.length - connectedCount;
-
-  if (loading) {
-    return (
-      <div className="flex-1 w-full overflow-y-auto">
-        <DemoBanner />
-        <div className="container mx-auto py-8 px-4 max-w-7xl">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-muted-foreground">Loading connections...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 w-full overflow-y-auto">

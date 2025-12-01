@@ -982,57 +982,6 @@ export type Database = {
           },
         ]
       }
-      integrations: {
-        Row: {
-          bundle_type: string | null
-          category: string
-          color: string | null
-          company_name: string
-          created_at: string | null
-          credential_type: string
-          description: string | null
-          display_order: number | null
-          icon: string | null
-          id: string
-          is_google_bundle: boolean | null
-          logo_url: string
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          bundle_type?: string | null
-          category: string
-          color?: string | null
-          company_name: string
-          created_at?: string | null
-          credential_type: string
-          description?: string | null
-          display_order?: number | null
-          icon?: string | null
-          id?: string
-          is_google_bundle?: boolean | null
-          logo_url: string
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          bundle_type?: string | null
-          category?: string
-          color?: string | null
-          company_name?: string
-          created_at?: string | null
-          credential_type?: string
-          description?: string | null
-          display_order?: number | null
-          icon?: string | null
-          id?: string
-          is_google_bundle?: boolean | null
-          logo_url?: string
-          name?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       messages: {
         Row: {
           agent_id: string | null
