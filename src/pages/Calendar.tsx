@@ -215,7 +215,7 @@ const Calendar = () => {
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
     return (
-      <div className="overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
+      <div className="w-full overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
         <div className="border-b bg-gradient-to-r from-muted/30 to-muted/50 backdrop-blur-sm">
           <div className="grid grid-cols-8 min-h-[60px]">
             <div className="border-r" />
@@ -242,7 +242,7 @@ const Calendar = () => {
         </div>
 
         <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
-          <div className="grid grid-cols-8 relative max-w-full">
+          <div className="grid grid-cols-8 relative w-full">
             <div className="border-r bg-gradient-to-b from-muted/20 to-muted/30">
               {hours.map((hour) => (
                 <div
@@ -327,7 +327,7 @@ const Calendar = () => {
     const dayEvents = getEventsForDay(currentDate);
 
     return (
-      <div className="overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
+      <div className="w-full overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
         <div className="border-b bg-gradient-to-r from-muted/30 to-muted/50 backdrop-blur-sm p-4">
           <h2 className="text-xl font-bold">
             {format(currentDate, "EEEE, MMMM d, yyyy")}
@@ -335,7 +335,7 @@ const Calendar = () => {
         </div>
 
         <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
-          <div className="flex relative max-w-full">
+          <div className="flex relative w-full">
             <div className="w-20 shrink-0 border-r bg-gradient-to-b from-muted/20 to-muted/30">
               {hours.map((hour) => (
                 <div
@@ -421,8 +421,8 @@ const Calendar = () => {
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <div className="overflow-auto min-h-[600px]">
-        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden shadow-sm max-w-full">
+      <div className="w-full overflow-auto min-h-[600px]">
+        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden shadow-sm w-full">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div
               key={day}
@@ -563,7 +563,7 @@ const Calendar = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-background to-muted/20">
+      <div className="flex flex-col flex-1 w-full h-full overflow-hidden bg-gradient-to-b from-background to-muted/20">
         <DemoBanner />
 
         <div className="flex-1 overflow-y-auto">
