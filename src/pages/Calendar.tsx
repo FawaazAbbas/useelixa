@@ -36,10 +36,9 @@ const Calendar = () => {
   });
 
   return (
-    <>
+    <div className="flex-1 w-full overflow-y-auto">
       <DemoBanner />
-      <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-background pb-16 md:pb-0">
+      <div className="flex flex-col h-full overflow-hidden bg-background pb-16 md:pb-0">
           <div className="border-b border-border px-4 md:px-6 py-3 md:py-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
@@ -148,8 +147,7 @@ const Calendar = () => {
             </div>
           </div>
         </div>
-      </PullToRefresh>
-    </>
+    </div>
   );
 };
 

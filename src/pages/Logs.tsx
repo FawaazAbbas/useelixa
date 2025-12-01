@@ -66,10 +66,9 @@ const Logs = () => {
   });
 
   return (
-    <>
+    <div className="flex-1 w-full overflow-y-auto">
       <DemoBanner />
-      <PullToRefresh onRefresh={handleRefresh} className="flex-1">
-        <div className="p-4 md:p-6 pb-20 md:pb-6 h-full">
+      <div className="p-4 md:p-6 pb-20 md:pb-6">
           <div className="mb-4 md:mb-6">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">Activity Logs</h1>
             <p className="text-muted-foreground text-sm md:text-base">
@@ -173,8 +172,7 @@ const Logs = () => {
             </ScrollArea>
           )}
         </div>
-      </PullToRefresh>
-    </>
+    </div>
   );
 };
 
