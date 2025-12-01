@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,14 @@ import { MessageSelectionBar } from "@/components/MessageSelectionBar";
 import { NewChatDialog } from "@/components/NewChatDialog";
 import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 import { DemoBanner } from "@/components/DemoBanner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const agents = [
   { id: "1", name: "customer-support-pro", status: "online", type: "individual" },
@@ -538,13 +546,75 @@ const Workspace = () => {
       <div className={`${isMobile ? 'hidden' : 'w-64'} bg-gradient-to-b from-chat-sidebar to-chat-sidebar/95 backdrop-blur-xl border-r border-chat-border/50 flex flex-col shadow-xl`}>
         {/* Workspace Header */}
         <div className="p-4 border-b border-chat-border/50 bg-gradient-to-r from-primary/10 to-accent/10">
-          <button className="flex items-center justify-between w-full hover:bg-white/10 rounded-lg px-3 py-2 transition-all duration-300 hover:scale-[1.02]">
-            <div>
-              <div className="font-bold text-white">My Workspace</div>
-              <div className="text-xs text-primary/80 font-medium">Premium Plan</div>
-            </div>
-            <ChevronDown className="h-4 w-4 text-primary" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center justify-between w-full hover:bg-white/10 rounded-lg px-3 py-2 transition-all duration-300 hover:scale-[1.02]">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 backdrop-blur-sm flex items-center justify-center">
+                    <Building2 className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-white">My Workspace</div>
+                    <div className="text-xs text-primary/80 font-medium">Premium Plan</div>
+                  </div>
+                </div>
+                <ChevronDown className="h-4 w-4 text-primary" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-72 bg-popover/95 backdrop-blur-xl border-chat-border z-50">
+              <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold uppercase">
+                Your Workspaces
+              </DropdownMenuLabel>
+              <DropdownMenuItem className="flex items-center gap-3 py-3 cursor-pointer bg-primary/10">
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">My Workspace</div>
+                  <div className="text-xs text-muted-foreground">Premium Plan • Personal</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="flex items-center gap-3 py-3 cursor-pointer"
+                onClick={() => toast({ title: "Demo Mode", description: "Workspace switching not available in demo" })}
+              >
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-5 w-5 text-blue-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">Team Workspace</div>
+                  <div className="text-xs text-muted-foreground">Pro Plan • 3 members</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="flex items-center gap-3 py-3 cursor-pointer"
+                onClick={() => toast({ title: "Demo Mode", description: "Workspace switching not available in demo" })}
+              >
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-5 w-5 text-green-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold">Client Projects</div>
+                  <div className="text-xs text-muted-foreground">Enterprise • 5 members</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="flex items-center gap-2 py-2 cursor-pointer"
+                onClick={() => toast({ title: "Demo Mode", description: "Workspace creation not available in demo" })}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="text-sm font-medium">Create New Workspace</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                className="flex items-center gap-2 py-2 cursor-pointer"
+                onClick={() => toast({ title: "Demo Mode", description: "Settings not available in demo" })}
+              >
+                <Settings className="h-4 w-4" />
+                <span className="text-sm font-medium">Workspace Settings</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Search */}
