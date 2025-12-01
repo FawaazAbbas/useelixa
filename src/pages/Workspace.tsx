@@ -158,6 +158,7 @@ const Workspace = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [showCallingDisabled, setShowCallingDisabled] = useState(false);
   const [processingAgent, setProcessingAgent] = useState<string | null>(null);
   const [delegationStatus, setDelegationStatus] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -213,6 +214,11 @@ const Workspace = () => {
     if (selectedChat?.id) {
       fetchMessages(selectedChat.id);
       
+      // Default to "about" tab when opening a direct chat
+      if (selectedChat.type === 'direct') {
+        setRightSidebarTab("about");
+      }
+      
       // Subscribe to new messages for real-time delegation tracking
       const messageSubscription = supabase
         .channel(`messages:${selectedChat.id}`)
@@ -262,10 +268,10 @@ const Workspace = () => {
     }
   }, [selectedChat, fetchMessages]);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom when messages change or chat is selected
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, selectedChat, brianMessages, showBrian]);
 
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
@@ -440,6 +446,10 @@ const Workspace = () => {
     if (chat?.id) {
       fetchMessages(chat.id);
     }
+    // Scroll to bottom when selecting chat
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleCreateGroup = () => {
@@ -484,11 +494,11 @@ const Workspace = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
       {/* Demo banner */}
       {isDemoMode && <DemoBanner />}
       
-      <div className="flex-1 flex overflow-hidden bg-background">
+      <div className="flex-1 flex overflow-hidden">
       {/* Group Chat Dialog */}
       <GroupChatDialog
         open={showGroupDialog}
@@ -525,15 +535,15 @@ const Workspace = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <div className={`${isMobile ? 'hidden' : 'w-64'} bg-chat-sidebar border-r border-chat-border flex flex-col`}>
+      <div className={`${isMobile ? 'hidden' : 'w-64'} bg-gradient-to-b from-chat-sidebar to-chat-sidebar/95 backdrop-blur-xl border-r border-chat-border/50 flex flex-col shadow-xl`}>
         {/* Workspace Header */}
-        <div className="p-4 border-b border-chat-border">
-          <button className="flex items-center justify-between w-full hover:bg-muted/50 rounded px-3 py-2 transition-colors">
+        <div className="p-4 border-b border-chat-border/50 bg-gradient-to-r from-primary/10 to-accent/10">
+          <button className="flex items-center justify-between w-full hover:bg-white/10 rounded-lg px-3 py-2 transition-all duration-300 hover:scale-[1.02]">
             <div>
               <div className="font-bold text-white">My Workspace</div>
-              <div className="text-xs text-muted-foreground">Premium Plan</div>
+              <div className="text-xs text-primary/80 font-medium">Premium Plan</div>
             </div>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-primary" />
           </button>
         </div>
 
@@ -543,7 +553,7 @@ const Workspace = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search conversations..."
-              className="pl-9 bg-muted/50 border-0"
+              className="pl-9 bg-white/5 border-0 focus:bg-white/10 transition-colors backdrop-blur-sm"
             />
           </div>
         </div>
@@ -689,14 +699,14 @@ const Workspace = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setShowVoiceCall(true)}
-                  title="Start voice call with Brian"
-                >
-                  <Phone className="h-4 w-4" />
-                </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setShowCallingDisabled(true)}
+                title="Voice calling"
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -759,7 +769,7 @@ const Workspace = () => {
                             <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
                           </Avatar>
                         )}
-                        <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
+                         <div className={`flex-1 ${isUserMessage ? "flex flex-col items-end" : ""}`}>
                           <div className={`flex items-center gap-2 mb-1 ${isUserMessage ? "flex-row-reverse" : ""}`}>
                             <span className="text-sm font-semibold">
                               {isUserMessage ? "You" : "Brian"}
@@ -767,13 +777,13 @@ const Workspace = () => {
                           </div>
                           <div className="space-y-2">
                             <div
-                              className={`inline-block px-4 py-2 rounded-lg max-w-[85%] ${
+                              className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                                 isUserMessage
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-muted"
+                                  ? "bg-primary/90 text-primary-foreground"
+                                  : "bg-muted/80"
                               }`}
                             >
-                              <div className={`text-sm prose prose-sm max-w-none ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                              <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                   {msg.content}
                                 </ReactMarkdown>
@@ -990,11 +1000,6 @@ const Workspace = () => {
                     <div>
                       <div className="font-semibold">{selectedChat.agent?.name}</div>
                       <div className="text-xs text-muted-foreground">online</div>
-                      {selectedChat.agent?.short_description && (
-                        <div className="text-xs text-muted-foreground mt-0.5 max-w-xs truncate">
-                          {selectedChat.agent.short_description}
-                        </div>
-                      )}
                     </div>
                   </>
                 )}
@@ -1017,8 +1022,8 @@ const Workspace = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => setShowVoiceCall(true)}
-                title="Start voice call"
+                onClick={() => setShowCallingDisabled(true)}
+                title="Voice calling"
               >
                 <Phone className="h-4 w-4" />
               </Button>
@@ -1110,25 +1115,19 @@ const Workspace = () => {
                       </div>
                       <div className="space-y-2">
                         <div
-                          className={`inline-block px-4 py-2 rounded-lg max-w-[85%] ${
+                          className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                             isUserMessage
-                              ? "bg-primary text-primary-foreground"
+                              ? "bg-primary/90 text-primary-foreground"
                               : msg.error_message
                               ? "bg-destructive/10 border border-destructive"
-                              : "bg-muted"
+                              : "bg-muted/80"
                           }`}
                         >
-                          {isUserMessage ? (
-                            <div className="text-sm whitespace-pre-wrap break-words">
+                          <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
                               {msg.content}
-                            </div>
-                          ) : (
-                            <div className={`text-sm prose prose-sm max-w-none ${isMobile ? 'break-words' : ''} dark:prose-invert`}>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {msg.content}
-                              </ReactMarkdown>
-                            </div>
-                          )}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                         {msg.metadata?.files && (
                           <div className="max-w-[85%]">
@@ -1460,7 +1459,7 @@ const Workspace = () => {
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
       {(selectedChat || showBrian) && (
-        <div className="hidden lg:block w-80 border-l bg-muted/30 overflow-hidden">
+        <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="p-4 pb-0">
             <TabsList className={`grid w-full ${showBrian ? 'grid-cols-5' : 'grid-cols-7'}`}>
@@ -1676,24 +1675,22 @@ const Workspace = () => {
       </div>
       )}
 
-      {/* Voice Call Dialog */}
-      {showBrian ? (
-        <VoiceCallDialog
-          open={showVoiceCall}
-          onClose={() => setShowVoiceCall(false)}
-          agentName="Brian"
-          agentInstructions="You are Brian, ELIXA's Chief Operating Officer AI. You are a decisive, action-oriented COO who helps users manage their workspace efficiently."
-          voice="alloy"
-        />
-      ) : selectedChat?.type === 'direct' && (
-        <VoiceCallDialog
-          open={showVoiceCall}
-          onClose={() => setShowVoiceCall(false)}
-          agentName={selectedChat.custom_name || selectedChat.agent?.name || 'Agent'}
-          agentInstructions={selectedChat.agent?.ai_instructions}
-          voice="alloy"
-        />
-      )}
+      {/* Calling Disabled Dialog */}
+      <AlertDialog open={showCallingDisabled} onOpenChange={setShowCallingDisabled}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Voice Calling Coming Soon</AlertDialogTitle>
+            <AlertDialogDescription>
+              Voice calling functionality is currently under development and will be available soon. Stay tuned for updates!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setShowCallingDisabled(false)}>
+              Got it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Message Selection Bar */}
       {isSelectionMode && (
