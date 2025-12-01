@@ -23,7 +23,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Gmail, Calendar, Drive, Docs, Sheets, Slides, Forms, Apps Script',
     icon: '📧',
     color: 'bg-blue-500',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg',
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GmailLogo.webp`,
     companyName: 'Google',
     serviceName: 'Email & Workspace',
     scopes: [
@@ -64,7 +64,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Google Analytics, YouTube Analytics (read-only), Search Console',
     icon: '📊',
     color: 'bg-purple-500',
-    logo: 'https://www.gstatic.com/analytics-suite/header/suite/v2/ic_analytics.svg',
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GoogleAnalyticsLogo.png`,
     companyName: 'Google',
     serviceName: 'Analytics & Reporting',
     scopes: [
@@ -80,7 +80,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'BigQuery (read-only), Cloud Storage, Datastore, Logging, Monitoring (read-only)',
     icon: '☁️',
     color: 'bg-orange-500',
-    logo: 'https://www.gstatic.com/images/branding/product/1x/google_cloud_512dp.png',
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GoogleCloudLogo.png`,
     companyName: 'Google',
     serviceName: 'Cloud & Data',
     scopes: [
@@ -97,7 +97,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Firebase (read-only access)',
     icon: '🔥',
     color: 'bg-yellow-500',
-    logo: 'https://www.gstatic.com/mobilesdk/160503_mobilesdk/logo/2x/firebase_96dp.png',
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/FirebaseLogo.jpg`,
     companyName: 'Google',
     serviceName: 'Firebase & Apps',
     scopes: [
@@ -110,7 +110,7 @@ export const GOOGLE_BUNDLES: Record<string, GoogleBundle> = {
     description: 'Play Games, Play Developer Reporting',
     icon: '🤖',
     color: 'bg-green-600',
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg',
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AndroidLogo.png`,
     companyName: 'Google',
     serviceName: 'Android & Play',
     scopes: [

@@ -40,7 +40,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "📝",
     color: "bg-gray-800",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/NotionLogo.png`,
     companyName: "Notion",
   },
   slackOAuth2Api: {
@@ -49,7 +49,7 @@ const CREDENTIAL_INFO: Record<
     category: "Communication",
     icon: "💬",
     color: "bg-purple-600",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Slack_icon_2019.svg",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/SlackLogo.png`,
     companyName: "Slack",
   },
   microsoftOAuth2Api: {
@@ -58,7 +58,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "🪟",
     color: "bg-blue-600",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/MicrosoftLogo.webp`,
     companyName: "Microsoft",
   },
   calendlyApi: {
@@ -76,7 +76,7 @@ const CREDENTIAL_INFO: Record<
     category: "Marketing",
     icon: "🐵",
     color: "bg-yellow-500",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Mailchimp_Logo.svg/320px-Mailchimp_Logo.svg.png",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/mailchimp.png`,
     companyName: "Mailchimp",
   },
   shopifyOAuth2Api: {
@@ -85,7 +85,7 @@ const CREDENTIAL_INFO: Record<
     category: "E-commerce",
     icon: "🛍️",
     color: "bg-green-600",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopify_logo_2018.svg",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/ShopifyLogo.png`,
     companyName: "Shopify",
   },
   metaBusinessApi: {
@@ -94,7 +94,7 @@ const CREDENTIAL_INFO: Record<
     category: "Social Media",
     icon: "📱",
     color: "bg-blue-500",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/MetaLogo.png`,
     companyName: "Meta",
   },
   twilioApi: {
@@ -103,7 +103,7 @@ const CREDENTIAL_INFO: Record<
     category: "Communication",
     icon: "📞",
     color: "bg-red-600",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Twilio-logo-red.svg",
+    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/TwilioLogo.png`,
     companyName: "Twilio",
   },
   typeformOAuth2Api: {
@@ -310,11 +310,11 @@ export default function Connections() {
                   <CardHeader>
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 p-1">
                           <img
                             src={item.info.logo}
                             alt={item.info.companyName}
-                            className="w-8 h-8 object-contain"
+                            className="w-full h-full object-contain"
                             onError={(e) => {
                               (e.target as HTMLImageElement).style.display = "none";
                             }}
