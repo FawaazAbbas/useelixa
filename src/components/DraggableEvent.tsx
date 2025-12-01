@@ -7,9 +7,10 @@ interface DraggableEventProps {
   children: ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
-export const DraggableEvent = ({ id, children, className = "", style }: DraggableEventProps) => {
+export const DraggableEvent = ({ id, children, className = "", style, onClick }: DraggableEventProps) => {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id,
   });
@@ -19,10 +20,11 @@ export const DraggableEvent = ({ id, children, className = "", style }: Draggabl
       ref={setNodeRef}
       className={`${className} ${isDragging ? "opacity-50" : ""} group relative cursor-move`}
       style={style}
+      onClick={onClick}
       {...attributes}
       {...listeners}
     >
-      <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+      <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
         <GripVertical className="h-3 w-3 text-white/70" />
       </div>
       {children}

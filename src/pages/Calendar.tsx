@@ -275,15 +275,11 @@ const Calendar = () => {
                             <DraggableEvent
                               key={event.id}
                               id={event.id}
+                              onClick={() => handleEventClick(event)}
                               className="w-full text-left rounded px-2 py-1 text-white text-xs font-medium hover:opacity-90 transition-opacity truncate"
                               style={{ backgroundColor: event.color }}
                             >
-                              <button
-                                onClick={() => handleEventClick(event)}
-                                className="w-full text-left truncate"
-                              >
-                                {event.title}
-                              </button>
+                              <span className="truncate">{event.title}</span>
                             </DraggableEvent>
                           ))}
                         </div>
@@ -332,7 +328,6 @@ const Calendar = () => {
                         {/* Events positioned absolutely */}
                         {timedEvents.map((event, eventIndex) => {
                           const { top, height } = getEventPosition(event);
-                          // Simple overlap detection - events at same time offset slightly
                           const overlappingEvents = timedEvents.filter((e, i) => {
                             if (i >= eventIndex) return false;
                             const { top: otherTop, height: otherHeight } = getEventPosition(e);
@@ -348,6 +343,7 @@ const Calendar = () => {
                             <DraggableEvent
                               key={event.id}
                               id={event.id}
+                              onClick={() => handleEventClick(event)}
                               className="absolute rounded px-1.5 py-1 text-white text-xs font-medium hover:opacity-90 hover:z-10 transition-all overflow-hidden shadow-sm"
                               style={{
                                 top: `${top}px`,
@@ -357,17 +353,12 @@ const Calendar = () => {
                                 backgroundColor: event.color,
                               }}
                             >
-                              <button
-                                onClick={() => handleEventClick(event)}
-                                className="w-full h-full text-left"
-                              >
-                                <div className="truncate font-semibold">{event.title}</div>
-                                {height > 30 && (
-                                  <div className="text-[10px] opacity-90">
-                                    {format(new Date(event.start_time), "h:mm a")}
-                                  </div>
-                                )}
-                              </button>
+                              <div className="truncate font-semibold">{event.title}</div>
+                              {height > 30 && (
+                                <div className="text-[10px] opacity-90">
+                                  {format(new Date(event.start_time), "h:mm a")}
+                                </div>
+                              )}
                             </DraggableEvent>
                           );
                         })}
@@ -429,21 +420,25 @@ const Calendar = () => {
                       setCurrentDate(day);
                       setView("day");
                     }}
-                    className="w-full text-left"
+                    className="w-full text-left mb-2"
                   >
-                    <div className={`text-sm font-semibold mb-1 ${dayIsToday ? "text-primary" : ""}`}>
+                    <div className={`text-sm font-semibold ${dayIsToday ? "text-primary" : ""}`}>
                       {format(day, "d")}
                     </div>
                   </button>
-                  <div className="space-y-1">
+                  <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
                     {events.slice(0, 3).map((event) => (
                       <DraggableEvent
                         key={event.id}
                         id={event.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEventClick(event);
+                        }}
                         className="text-[10px] truncate rounded px-1 py-0.5 text-white"
                         style={{ backgroundColor: event.color }}
                       >
-                        <div className="truncate">{event.title}</div>
+                        <span className="truncate">{event.title}</span>
                       </DraggableEvent>
                     ))}
                     {events.length > 3 && (
@@ -524,27 +519,23 @@ const Calendar = () => {
                             <DraggableEvent
                               key={event.id}
                               id={event.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEventClick(event);
+                              }}
                               className="w-full text-left p-3 rounded-lg hover:scale-[1.02] transition-transform shadow-sm"
                               style={{ borderLeftColor: event.color, borderLeftWidth: "4px", borderStyle: "solid", backgroundColor: "hsl(var(--accent))" }}
                             >
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEventClick(event);
-                                }}
-                                className="w-full text-left"
-                              >
-                                <div className="font-medium">{event.title}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
-                                </div>
-                                {event.location && (
-                                  <div className="text-sm text-muted-foreground mt-1">📍 {event.location}</div>
-                                )}
-                                {event.description && (
-                                  <div className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</div>
-                                )}
-                              </button>
+                              <div className="font-medium">{event.title}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
+                              </div>
+                              {event.location && (
+                                <div className="text-sm text-muted-foreground mt-1">📍 {event.location}</div>
+                              )}
+                              {event.description && (
+                                <div className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</div>
+                              )}
                             </DraggableEvent>
                           ))}
                         </div>
