@@ -112,7 +112,7 @@ const CREDENTIAL_INFO: Record<
     category: "Forms",
     icon: "📋",
     color: "bg-gray-900",
-    logo: "https://drive.google.com/file/d/1EQvQBPbYd7WV1-lEW5EhAH7_OT0qBF59/view?usp=sharing",
+    logo: "http://drive.google.com/file/d/1EQvQBPbYd7WV1-lEW5EhAH7_OT0qBF59/view",
     companyName: "Typeform",
   },
 };
