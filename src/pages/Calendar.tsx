@@ -702,79 +702,81 @@ const Calendar = () => {
                 </div>
 
                 {/* Navigation and Views */}
-                <Card className="shadow-lg bg-card/50 backdrop-blur-sm border hover:shadow-xl transition-all animate-fade-in" style={{ animationDelay: '200ms' }}>
-                  <CardContent className="p-4 sm:p-6 space-y-4">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handlePrevious}
-                          className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
+                <div className="mb-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
+                  <Card className="shadow-lg bg-card/50 backdrop-blur-sm border hover:shadow-xl transition-all">
+                    <CardContent className="p-4 sm:p-6 space-y-4">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handlePrevious}
+                            className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={handleToday}
+                            className="h-10 px-4 hover:bg-primary/10 hover:scale-105 transition-all"
+                          >
+                            Today
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={handleNext}
+                            className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <Tabs
+                          value={view}
+                          onValueChange={(v) => setView(v as any)}
+                          className="flex-1"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={handleToday}
-                          className="h-10 px-4 hover:bg-primary/10 hover:scale-105 transition-all"
-                        >
-                          Today
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={handleNext}
-                          className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+                          <TabsList className="grid grid-cols-3 w-full h-10">
+                            <TabsTrigger value="day" className="text-xs sm:text-sm">
+                              Day
+                            </TabsTrigger>
+                            <TabsTrigger value="week" className="text-xs sm:text-sm">
+                              Week
+                            </TabsTrigger>
+                            <TabsTrigger value="month" className="text-xs sm:text-sm">
+                              Month
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
                       </div>
 
-                      <Tabs
-                        value={view}
-                        onValueChange={(v) => setView(v as any)}
-                        className="flex-1"
-                      >
-                        <TabsList className="grid grid-cols-3 w-full h-10">
-                          <TabsTrigger value="day" className="text-xs sm:text-sm">
-                            Day
-                          </TabsTrigger>
-                          <TabsTrigger value="week" className="text-xs sm:text-sm">
-                            Week
-                          </TabsTrigger>
-                          <TabsTrigger value="month" className="text-xs sm:text-sm">
-                            Month
-                          </TabsTrigger>
-                        </TabsList>
-                      </Tabs>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Badge
-                        variant="secondary"
-                        className="text-xs sm:text-sm px-3 py-1.5 font-medium"
-                      >
-                        {view === "month" && format(currentDate, "MMMM yyyy")}
-                        {view === "week" &&
-                          format(currentDate, "MMM d") +
-                            " - " +
-                            format(
-                              addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
-                              "MMM d, yyyy"
-                            )}
-                        {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        Week {getWeek(currentDate, { weekStartsOn: 0 })}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs sm:text-sm px-3 py-1.5 font-medium"
+                        >
+                          {view === "month" && format(currentDate, "MMMM yyyy")}
+                          {view === "week" &&
+                            format(currentDate, "MMM d") +
+                              " - " +
+                              format(
+                                addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
+                                "MMM d, yyyy"
+                              )}
+                          {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          Week {getWeek(currentDate, { weekStartsOn: 0 })}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
               {/* Calendar Views */}
-              <div className="mt-6 animate-fade-in" style={{ animationDelay: '300ms' }}>
+              <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
                 {view === "week" && renderWeekView()}
                 {view === "day" && renderDayView()}
                 {view === "month" && renderMonthView()}
