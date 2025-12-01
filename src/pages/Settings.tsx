@@ -58,8 +58,8 @@ const Settings = () => {
 
           <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
             <TabsList className="w-full grid grid-cols-2 h-auto">
-              <TabsTrigger value="profile" className="text-xs md:text-sm">Profile</TabsTrigger>
-              <TabsTrigger value="security" className="text-xs md:text-sm">Security</TabsTrigger>
+              <TabsTrigger value="profile" className="text-xs md:text-sm py-3 touch-manipulation">Profile</TabsTrigger>
+              <TabsTrigger value="security" className="text-xs md:text-sm py-3 touch-manipulation">Security</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
@@ -75,31 +75,33 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" value={mockProfile.email} disabled />
-                    <p className="text-sm text-muted-foreground">
+                    <Label htmlFor="email" className="text-sm">Email</Label>
+                    <Input id="email" value={mockProfile.email} disabled className="h-11" />
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Email cannot be changed
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="displayName">Display Name</Label>
+                    <Label htmlFor="displayName" className="text-sm">Display Name</Label>
                     <Input
                       id="displayName"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="Enter your display name"
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="bio">Bio</Label>
+                    <Label htmlFor="bio" className="text-sm">Bio</Label>
                     <Input
                       id="bio"
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       placeholder="Tell us about yourself"
+                      className="h-11"
                     />
                   </div>
-                  <Button onClick={handleUpdateProfile}>
+                  <Button onClick={handleUpdateProfile} className="w-full sm:w-auto h-11 touch-manipulation">
                     Save Changes
                   </Button>
                 </CardContent>
@@ -119,24 +121,26 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
+                    <Label htmlFor="newPassword" className="text-sm">New Password</Label>
                     <Input
                       id="newPassword"
                       type="password"
                       placeholder="Enter new password"
                       disabled
+                      className="h-11"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm">Confirm New Password</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
                       placeholder="Confirm new password"
                       disabled
+                      className="h-11"
                     />
                   </div>
-                  <Button onClick={handleChangePassword}>
+                  <Button onClick={handleChangePassword} className="w-full sm:w-auto h-11 touch-manipulation">
                     Update Password
                   </Button>
                 </CardContent>
