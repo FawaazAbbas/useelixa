@@ -33,15 +33,15 @@ export default function KnowledgeBase() {
   return (
     <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="container mx-auto py-4 md:py-8 px-4 pb-20 md:pb-8">
-        <div className="mb-6 md:mb-8">
+      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
+        <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-primary/10 rounded-lg">
               <FileText className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-4xl font-bold">Knowledge Base</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-3xl md:text-4xl font-bold">Knowledge Base</h1>
+              <p className="text-sm md:text-base text-muted-foreground">
                 {articles.length} articles • {documents.length} documents
               </p>
             </div>

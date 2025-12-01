@@ -34,21 +34,26 @@ const Settings = () => {
       
       <div className="flex-1 overflow-auto pb-20 md:pb-0">
         <DemoBanner />
-        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in">
+        <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto animate-fade-in">
           <Button 
             variant="ghost" 
-            className="gap-2 mb-4 md:mb-6"
+            className="gap-2 mb-6"
             onClick={() => navigate("/workspace")}
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
 
-          <div className="flex items-center gap-3 mb-6 md:mb-8">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <User className="h-6 w-6 text-primary" />
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <User className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold">Settings</h1>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold">Settings</h1>
+            <p className="text-muted-foreground text-sm md:text-base">
+              Manage your account preferences
+            </p>
           </div>
 
           <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">

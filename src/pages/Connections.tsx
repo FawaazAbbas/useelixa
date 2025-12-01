@@ -221,21 +221,21 @@ export default function Connections() {
   return (
     <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
-        <div className="max-w-7xl mx-auto space-y-6">
+      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
+        <div className="space-y-6">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Plug className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold mb-1">Connections</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className="text-3xl md:text-4xl font-bold mb-1">Connections</h1>
+                <p className="text-sm md:text-base text-muted-foreground">
                   {connectedCount} connected • {availableCount} available
                 </p>
               </div>
             </div>
-            <p className="text-muted-foreground">Connect your tools and services to enable powerful automations</p>
+            <p className="text-muted-foreground text-sm md:text-base">Connect your tools and services to enable powerful automations</p>
 
             <Card className="shadow-sm">
               <CardContent className="p-4">
