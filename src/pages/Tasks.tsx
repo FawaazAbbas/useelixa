@@ -10,13 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
-import { TaskCreationModeDialog } from "@/components/TaskCreationModeDialog";
-import { BrianChatDialog } from "@/components/BrianChatDialog";
-import { ManualTaskDialog } from "@/components/ManualTaskDialog";
-import { TaskDetailDialog } from "@/components/TaskDetailDialog";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { DemoBanner } from "@/components/DemoBanner";
+import { mockTasks, MockTask } from "@/data/mockTasks";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,32 +23,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: string | null;
-  priority: string | null;
-  due_date: string | null;
-  is_asap: boolean | null;
-  automation_count: number | null;
-  completed_automation_count: number | null;
-  created_at: string;
-}
-
 const Tasks = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState<MockTask[]>(mockTasks);
   const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
-  
-  // Dialog states
-  const [showCreationModeDialog, setShowCreationModeDialog] = useState(false);
-  const [showBrianChat, setShowBrianChat] = useState(false);
-  const [showManualTask, setShowManualTask] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   
   // Filter states
@@ -63,108 +36,26 @@ const Tasks = () => {
   const [sortBy, setSortBy] = useState<string>("created_at");
   const [activeTab, setActiveTab] = useState<string>("all");
 
-  useEffect(() => {
-    if (user) {
-      fetchTasks();
-      
-      // Subscribe to real-time updates
-      const channel = supabase
-        .channel("tasks-changes")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "tasks",
-            filter: `user_id=eq.${user.id}`,
-          },
-          () => {
-            fetchTasks();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user]);
-
-  const fetchTasks = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      let query = supabase
-        .from("tasks")
-        .select("*")
-        .eq("user_id", user.id);
-
-      // Apply sorting
-      const [sortField, sortOrder] = sortBy.split("-");
-      query = query.order(sortField, { ascending: sortOrder === "asc" });
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setTasks(data || []);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load tasks",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const toggleTaskComplete = (taskId: string, currentStatus: string | null) => {
+    setTasks(tasks.map(task => 
+      task.id === taskId 
+        ? { ...task, status: currentStatus === "completed" ? "pending" : "completed" }
+        : task
+    ));
+    toast({
+      title: "Demo Mode",
+      description: "Task status updated (changes won't be saved)",
+    });
   };
 
-  const toggleTaskComplete = async (taskId: string, currentStatus: string | null) => {
-    const newStatus = currentStatus === "completed" ? "pending" : "completed";
-    const completed_at = newStatus === "completed" ? new Date().toISOString() : null;
-
-    const { error } = await supabase
-      .from("tasks")
-      .update({ status: newStatus, completed_at })
-      .eq("id", taskId);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update task status",
-        variant: "destructive",
-      });
-    } else {
-      fetchTasks();
-      toast({
-        title: "Success",
-        description: `Task marked as ${newStatus}`,
-      });
-    }
-  };
-
-  const confirmDeleteTask = async () => {
+  const confirmDeleteTask = () => {
     if (!taskToDelete) return;
-
-    const { error } = await supabase
-      .from("tasks")
-      .delete()
-      .eq("id", taskToDelete);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete task",
-        variant: "destructive",
-      });
-    } else {
-      fetchTasks();
-      toast({
-        title: "Success",
-        description: "Task deleted successfully",
-      });
-    }
+    
+    setTasks(tasks.filter(task => task.id !== taskToDelete));
+    toast({
+      title: "Demo Mode",
+      description: "Task removed (changes won't be saved)",
+    });
     
     setTaskToDelete(null);
     setSwipedTaskId(null);
@@ -183,26 +74,7 @@ const Tasks = () => {
     }
   };
 
-  const handleTaskCreated = () => {
-    fetchTasks();
-    setShowBrianChat(false);
-    setShowManualTask(false);
-  };
-
-  const handleSelectCreationMode = (mode: "brian" | "manual") => {
-    if (mode === "brian") {
-      setShowBrianChat(true);
-    } else {
-      setShowManualTask(true);
-    }
-  };
-
-  const openTaskDetail = (task: Task) => {
-    setSelectedTask(task);
-    setShowTaskDetail(true);
-  };
-
-  const filterTasks = (tasksToFilter: Task[]) => {
+  const filterTasks = (tasksToFilter: MockTask[]) => {
     return tasksToFilter.filter(task => {
       // Search filter
       const matchesSearch = searchQuery === "" || 
@@ -225,7 +97,7 @@ const Tasks = () => {
     });
   };
 
-  const TaskCard = ({ task }: { task: Task }) => {
+  const TaskCard = ({ task }: { task: MockTask }) => {
     const handlers = useSwipeable({
       onSwipedLeft: () => setSwipedTaskId(task.id),
       onSwipedRight: () => setSwipedTaskId(null),
@@ -238,7 +110,6 @@ const Tasks = () => {
           className={`cursor-pointer hover:bg-accent/50 transition-all ${
             swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0"
           }`}
-          onClick={() => openTaskDetail(task)}
         >
           <CardContent className="p-4 md:p-6">
             <div className="flex items-start gap-3 md:gap-4">
@@ -313,13 +184,14 @@ const Tasks = () => {
 
   return (
     <div className="flex-1 w-full overflow-y-auto">
+      <DemoBanner />
       <div className="p-4 md:p-8 pb-20 md:pb-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
           <div className="flex items-center gap-3">
             <CheckSquare className="h-6 w-6 md:h-8 md:w-8 text-primary" />
             <h1 className="text-2xl md:text-3xl font-bold">Tasks</h1>
           </div>
-          <Button onClick={() => setShowCreationModeDialog(true)} className="w-full sm:w-auto">
+          <Button onClick={() => toast({ title: "Demo Mode", description: "Task creation disabled in demo" })} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -383,9 +255,7 @@ const Tasks = () => {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-0">
-            {loading ? (
-              <LoadingSkeleton count={3} />
-            ) : filteredTasks.length === 0 ? (
+            {filteredTasks.length === 0 ? (
               <EmptyState
                 icon="📋"
                 title={searchQuery || statusFilter !== "all" || priorityFilter !== "all" ? "No tasks found" : "No tasks yet"}
@@ -396,7 +266,7 @@ const Tasks = () => {
                 }
                 action={{
                   label: "Create Task",
-                  onClick: () => setShowCreationModeDialog(true),
+                  onClick: () => toast({ title: "Demo Mode", description: "Task creation disabled in demo" }),
                 }}
               />
             ) : (
@@ -409,37 +279,6 @@ const Tasks = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Dialogs */}
-      <TaskCreationModeDialog
-        open={showCreationModeDialog}
-        onOpenChange={setShowCreationModeDialog}
-        onSelectMode={handleSelectCreationMode}
-      />
-
-      <BrianChatDialog
-        open={showBrianChat}
-        onOpenChange={setShowBrianChat}
-        onTaskCreated={handleTaskCreated}
-      />
-
-      <ManualTaskDialog
-        open={showManualTask}
-        onOpenChange={setShowManualTask}
-        onTaskCreated={handleTaskCreated}
-      />
-
-      <TaskDetailDialog
-        task={selectedTask}
-        open={showTaskDetail}
-        onOpenChange={(open) => {
-          setShowTaskDetail(open);
-          if (!open) {
-            setSelectedTask(null);
-            fetchTasks(); // Refresh after editing
-          }
-        }}
-      />
 
       <AlertDialog open={!!taskToDelete} onOpenChange={() => setTaskToDelete(null)}>
         <AlertDialogContent>
