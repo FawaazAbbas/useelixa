@@ -16,7 +16,7 @@ const Publish = () => {
             className="gap-2 text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Marketplace</span>
+            <span className="hidden sm:inline">Back to AI Talent Pool</span>
             <span className="sm:hidden">Back</span>
           </Button>
         </div>
@@ -76,8 +76,8 @@ const Publish = () => {
               </div>
             </div>
 
-            <Button size="lg" onClick={() => navigate("/marketplace")} className="mt-6">
-              Explore Marketplace Instead
+            <Button size="lg" onClick={() => navigate("/talent-pool")} className="mt-6">
+              Explore AI Talent Pool
             </Button>
           </CardContent>
         </Card>

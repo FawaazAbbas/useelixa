@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Marketplace from "./pages/Marketplace";
 import TalentPool from "./pages/TalentPool";
 import TalentPoolCharts from "./pages/TalentPoolCharts";
 import CategoryPage from "./pages/CategoryPage";
@@ -36,8 +35,10 @@ const App = () => (
         <MobileRedirect />
         <FloatingWaitlistButton />
         <Routes>
-          <Route path="/" element={<Marketplace />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/" element={<TalentPool />} />
+          <Route path="/talent-pool" element={<TalentPool />} />
+          <Route path="/talent-pool/charts" element={<TalentPoolCharts />} />
+          <Route path="/talent-pool/category/:slug" element={<CategoryPage />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/publish" element={<Publish />} />

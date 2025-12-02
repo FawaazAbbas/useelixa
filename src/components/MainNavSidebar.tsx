@@ -34,7 +34,7 @@ export const MainNavSidebar = () => {
       const { signOut } = useAuth();
       await signOut();
     }
-    navigate("/marketplace");
+    navigate("/talent-pool");
   };
 
   const getUserInitials = () => {

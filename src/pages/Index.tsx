@@ -35,8 +35,8 @@ const Index = () => {
               Start Working
               <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate("/marketplace")} className="text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 w-full sm:w-auto">
-              Explore Agents
+            <Button size="lg" variant="outline" onClick={() => navigate("/talent-pool")} className="text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 w-full sm:w-auto">
+              Browse AI Talent Pool
             </Button>
           </div>
         </div>
@@ -103,7 +103,7 @@ const Index = () => {
               <div>
                 <h3 className="text-xl font-semibold mb-2">Add Specialists</h3>
                 <p className="text-muted-foreground">
-                  Browse the marketplace. Install agents for data analysis, email management, content creation—whatever you need.
+                  Browse the AI Talent Pool. Install agents for data analysis, email management, content creation—whatever you need.
                 </p>
               </div>
             </div>

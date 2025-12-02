@@ -90,8 +90,8 @@ export default function OAuthCallback() {
             <XCircle className="h-16 w-16 mx-auto mb-4 text-destructive" />
             <h2 className="text-2xl font-semibold mb-2 text-destructive">Authentication Failed</h2>
             <p className="text-muted-foreground mb-4">{message}</p>
-            <Button onClick={() => navigate('/marketplace')}>
-              Return to Marketplace
+            <Button onClick={() => navigate('/talent-pool')}>
+              Return to AI Talent Pool
             </Button>
           </>
         )}

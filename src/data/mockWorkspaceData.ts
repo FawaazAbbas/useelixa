@@ -1,6 +1,6 @@
 import { mockAgents } from './mockAgents';
 
-// Mock installed agents (subset of marketplace agents)
+// Mock installed agents (subset of AI Talent Pool agents)
 export const mockInstalledAgents = [
   mockAgents[0], // Customer Support Pro
   mockAgents[1], // Content Creator AI
