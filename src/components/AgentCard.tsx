@@ -25,44 +25,47 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
   };
 
   return (
-    <Card 
-      className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-gradient-to-br from-card to-card/80 border-border/40 backdrop-blur-sm relative"
+    <div 
+      className="group cursor-pointer transition-all duration-300 hover:scale-105 animate-fade-in"
       onClick={handleClick}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      <CardContent className="relative p-0">
-        {/* Agent Icon */}
-        <div className="p-6 pb-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/20 flex items-center justify-center text-3xl shadow-md group-hover:shadow-xl transition-shadow transform group-hover:scale-105 duration-300">
+      <div className="relative overflow-hidden rounded-2xl">
+        {/* Glassmorphic card */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-white/40 dark:from-white/10 dark:via-white/5 dark:to-white/5 backdrop-blur-xl border border-white/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-accent/0 opacity-0 group-hover:from-primary/20 group-hover:to-accent/20 group-hover:opacity-100 transition-all duration-500" />
+        
+        <div className="relative p-4 space-y-3">
+          {/* Agent Icon */}
+          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-accent/30 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg group-hover:shadow-xl transition-all transform group-hover:scale-110 duration-300 border border-white/30">
             {agent.image_url ? (
-              <img src={agent.image_url} alt={agent.name} className="w-full h-full object-cover rounded-2xl" />
+              <img src={agent.image_url} alt={agent.name} className="w-full h-full object-cover rounded-xl" />
             ) : (
               <span className="font-bold bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent">
                 {agent.name.charAt(0).toUpperCase()}
               </span>
             )}
           </div>
-        </div>
 
-        {/* Agent Info */}
-        <div className="px-6 pb-6 space-y-2">
-          <h3 className="font-semibold text-base line-clamp-1 group-hover:text-primary transition-colors">
-            {agent.name}
-          </h3>
-          
-          <p className="text-sm text-muted-foreground/80 line-clamp-2">
-            {agent.description}
-          </p>
+          {/* Agent Info */}
+          <div className="space-y-1.5">
+            <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
+              {agent.name}
+            </h3>
+            
+            <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">
+              {agent.description}
+            </p>
 
-          {/* Rating */}
-          <div className="flex items-center gap-1.5 pt-1">
-            <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium text-muted-foreground">
-              {agent.rating.toFixed(1)}
-            </span>
+            {/* Rating */}
+            <div className="flex items-center gap-1 pt-0.5">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-medium text-muted-foreground">
+                {agent.rating.toFixed(1)}
+              </span>
+            </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
