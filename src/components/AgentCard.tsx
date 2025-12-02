@@ -8,9 +8,9 @@ interface Agent {
   id: string;
   name: string;
   description: string;
-  price: number;
   rating: number;
   total_reviews: number;
+  total_installs?: number;
   category: string;
   image_url: string;
   workflow_json?: any;
@@ -88,12 +88,9 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
             <span className="text-sm font-semibold">{agent.rating}</span>
             <span className="text-xs text-muted-foreground">({agent.total_reviews})</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ${agent.price}
-            </span>
-            <span className="text-xs text-muted-foreground">/mo</span>
-          </div>
+          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 font-bold">
+            FREE
+          </Badge>
         </div>
         
         {/* Hover action buttons */}

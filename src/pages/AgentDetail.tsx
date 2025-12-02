@@ -206,10 +206,10 @@ const AgentDetail = () => {
           <Button 
             variant="ghost" 
             className="gap-2 text-sm"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/talent-pool")}
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back to Marketplace</span>
+            <span className="hidden sm:inline">Back to AI Talent Pool</span>
             <span className="sm:hidden">Back</span>
           </Button>
         </div>
@@ -265,7 +265,7 @@ const AgentDetail = () => {
                       disabled={installing}
                     >
                       {installing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Install Agent
+                      Add to Workspace
                     </Button>
                   )}
                 </div>
@@ -340,15 +340,20 @@ const AgentDetail = () => {
           </div>
 
           <div className="space-y-4 md:space-y-6">
-            <Card>
+            <Card className="border-2 border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
               <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Pricing</CardTitle>
+                <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-green-500" />
+                  Free Forever
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 md:space-y-4">
-                  <div className="text-2xl md:text-3xl font-bold">${agent.price || 0}/mo</div>
-                  <p className="text-xs md:text-sm text-muted-foreground">
-                    Free to install with flexible pricing
+                <div className="space-y-3">
+                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 font-bold text-lg px-4 py-2">
+                    100% FREE
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    This agent is completely free to add to your workspace. No hidden costs, no subscriptions.
                   </p>
                 </div>
               </CardContent>
