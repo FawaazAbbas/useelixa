@@ -122,61 +122,69 @@ const TalentPool = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Clean navbar */}
-      <nav className="border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-50">
+      {/* Premium navbar with gradient accent */}
+      <nav className="border-b border-border/20 bg-gradient-to-r from-background via-background to-primary/5 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <img 
               src="/elixa-logo.png" 
               alt="ELIXA" 
-              className="h-8 w-auto object-contain cursor-pointer" 
+              className="h-8 w-auto object-contain cursor-pointer hover:scale-105 transition-transform" 
               onClick={() => navigate("/")}
             />
             <div className="hidden md:flex gap-6">
-              <button className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              <button className="text-sm font-semibold text-foreground hover:text-primary transition-colors relative group">
                 Discover
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
               </button>
               <button 
                 onClick={() => navigate("/talent-pool/charts")}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors relative group"
               >
                 Charts
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
               </button>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button onClick={() => navigate("/workspace")} variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Button onClick={() => navigate("/workspace")} variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-primary/10">
               Workspace
             </Button>
-            <Button onClick={() => navigate("/auth")} size="sm">
+            <Button onClick={() => navigate("/auth")} size="sm" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow">
               Sign In
             </Button>
           </div>
         </div>
       </nav>
 
-      {/* Hero section - App Store style */}
-      <section className="bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          <div className="max-w-2xl space-y-4">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+      {/* Hero section - Premium gradient style */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
+          <div className="max-w-2xl space-y-6">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
               AI Talent Pool
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-xl text-muted-foreground/90">
               Discover AI agents for every task
             </p>
           </div>
           
-          {/* Search bar */}
-          <div className="mt-8 max-w-2xl">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input 
-                placeholder="Search agents..." 
-                className="pl-12 pr-4 h-12 text-base bg-muted/50 border-0 focus-visible:ring-1"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+          {/* Enhanced search bar */}
+          <div className="mt-10 max-w-2xl">
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-accent/50 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-300" />
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
+                <Input 
+                  placeholder="Search agents..." 
+                  className="pl-12 pr-4 h-14 text-base bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -205,23 +213,25 @@ const TalentPool = () => {
               </div>
             )}
 
-            {/* Categories Section */}
+            {/* Categories Section - Enhanced */}
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Categories</h2>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/talent-pool/charts")}>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold">Categories</h2>
+                <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 hover:bg-primary/10">
                   See All <ChevronRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {mockCategories.slice(0, 10).map((category) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+                {mockCategories.slice(0, 10).map((category, index) => (
                   <Card
                     key={category.name}
-                    className="cursor-pointer hover:shadow-md transition-shadow group"
+                    className="cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 group border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm overflow-hidden animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => setSelectedCategory(category.name)}
                   >
-                    <CardContent className="p-6 text-center space-y-3">
-                      <div className="text-3xl">{category.icon}</div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <CardContent className="relative p-6 text-center space-y-3">
+                      <div className="text-4xl transform group-hover:scale-110 transition-transform">{category.icon}</div>
                       <div>
                         <div className="font-semibold text-sm group-hover:text-primary transition-colors">
                           {category.name}
@@ -233,14 +243,16 @@ const TalentPool = () => {
               </div>
             </div>
 
-            {/* Popular Agents */}
+            {/* Popular Agents - Enhanced */}
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Popular Agents</h2>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold">Popular Agents</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {agents.slice(0, 10).map((agent) => (
-                  <AgentCard key={agent.id} agent={agent} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+                {agents.slice(0, 10).map((agent, index) => (
+                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                    <AgentCard agent={agent} />
+                  </div>
                 ))}
               </div>
             </div>
