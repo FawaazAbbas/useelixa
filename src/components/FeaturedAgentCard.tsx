@@ -1,85 +1,70 @@
-import { Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { MockAgent } from "@/data/mockAgents";
+
+interface FeaturedAgent {
+  id: string;
+  name: string;
+  description: string;
+  rating: number;
+  totalReviews?: number;
+  category: string;
+  image_url?: string;
+}
 
 interface FeaturedAgentCardProps {
-  agent: MockAgent;
+  agent: FeaturedAgent;
 }
 
 export const FeaturedAgentCard = ({ agent }: FeaturedAgentCardProps) => {
   const navigate = useNavigate();
-  
-  const initial = agent.name.charAt(0).toUpperCase();
-  
+
+  const handleClick = () => {
+    navigate(`/agent/${agent.id}`);
+  };
+
   return (
     <Card 
-      className="group relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-500 cursor-pointer hover:shadow-2xl hover:shadow-primary/20 animate-fade-in bg-gradient-to-br from-card via-card to-primary/5"
-      onClick={() => navigate(`/agent/${agent.id}`)}
+      className="group cursor-pointer hover:shadow-xl transition-all duration-200 overflow-hidden bg-card border-border/50"
+      onClick={handleClick}
     >
-      <div className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500" 
-           style={{ backgroundImage: `linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--accent) / 0.1))` }} />
-      
-      <CardContent className="relative p-8">
-        <div className="flex items-start gap-6">
-          {/* Large Avatar */}
-          <div className={`relative flex-shrink-0 w-24 h-24 rounded-2xl bg-gradient-to-br ${agent.gradient || 'from-primary to-accent'} flex items-center justify-center text-4xl font-bold text-white shadow-lg group-hover:scale-110 transition-transform duration-500 group-hover:shadow-2xl group-hover:shadow-primary/50`}>
-            {initial}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent" />
+      <CardContent className="p-0">
+        {/* Hero Image */}
+        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-accent/10 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center text-6xl">
+            {agent.image_url ? (
+              <img src={agent.image_url} alt={agent.name} className="w-full h-full object-cover" />
+            ) : (
+              agent.name.charAt(0).toUpperCase()
+            )}
           </div>
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4 mb-3">
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold mb-2 group-hover:text-primary transition-colors">
-                  {agent.name}
-                </h3>
-                <Badge variant="secondary" className="mb-2">
-                  {agent.category}
-                </Badge>
-              </div>
-              
-              {agent.badge && (
-                <Badge className="bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 px-3 py-1 animate-glow-pulse">
-                  {agent.badge}
-                </Badge>
-              )}
-            </div>
+        </div>
+
+        {/* Agent Details */}
+        <div className="p-6 space-y-3">
+          <div className="space-y-2">
+            <h3 className="font-bold text-xl line-clamp-1">
+              {agent.name}
+            </h3>
             
-            <p className="text-muted-foreground mb-4 line-clamp-2">
+            <p className="text-sm text-muted-foreground line-clamp-2">
               {agent.description}
             </p>
-            
-            {/* Capabilities */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {agent.capabilities?.slice(0, 4).map((capability, idx) => (
-                <Badge key={idx} variant="outline" className="text-xs">
-                  {capability}
-                </Badge>
-              ))}
-            </div>
-            
-            {/* Stats */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{agent.rating}</span>
-                  <span className="text-sm text-muted-foreground">
-                    ({agent.total_reviews.toLocaleString()})
-                  </span>
-                </div>
-                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 font-bold text-lg px-4 py-1">
-                  FREE
-                </Badge>
-              </div>
-              
-              <Button size="lg" className="group-hover:scale-105 transition-transform">
-                Add to Workspace
-              </Button>
-            </div>
+          </div>
+
+          {/* Category */}
+          <Badge variant="secondary" className="text-xs">
+            {agent.category}
+          </Badge>
+
+          {/* Stats */}
+          <div className="flex items-center gap-1 pt-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-medium">{agent.rating.toFixed(1)}</span>
+            <span className="text-sm text-muted-foreground">
+              • {agent.totalReviews?.toLocaleString() || '0'} reviews
+            </span>
           </div>
         </div>
       </CardContent>
