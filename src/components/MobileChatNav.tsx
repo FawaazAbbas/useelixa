@@ -56,7 +56,7 @@ export const MobileChatNav = ({ agents, groupChats, selectedChat, onSelectChat }
         </div>
 
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/marketplace')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/talent-pool')}>
             <Store className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon">
@@ -125,12 +125,12 @@ export const MobileChatNav = ({ agents, groupChats, selectedChat, onSelectChat }
                     variant="ghost"
                     className="w-full justify-start"
                     onClick={() => {
-                      navigate('/marketplace');
+                      navigate('/talent-pool');
                       setOpen(false);
                     }}
                   >
                     <Store className="h-4 w-4 mr-2" />
-                    Marketplace
+                    AI Talent Pool
                   </Button>
                 </div>
               </div>

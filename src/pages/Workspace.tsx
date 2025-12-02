@@ -683,9 +683,9 @@ const Workspace = () => {
               ) : chats.filter(c => c.type === 'direct').length === 0 ? (
                 <div className="px-2 py-4 text-center">
                   <p className="text-xs text-muted-foreground mb-2">No agents installed</p>
-                  <Button size="sm" variant="outline" onClick={() => navigate('/marketplace')}>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/talent-pool')}>
                     <Store className="h-3 w-3 mr-1" />
-                    Browse Marketplace
+                    Browse AI Talent Pool
                   </Button>
                 </div>
               ) : (
@@ -1405,7 +1405,7 @@ const Workspace = () => {
         onOpenChange={setShowNewChatDialog}
         onCreateDirect={() => {
           // For now just refresh chats - direct chats are auto-created
-          toast({ title: 'Install an agent from the Marketplace to start a direct chat' });
+          toast({ title: 'Install an agent from the AI Talent Pool to start a direct chat' });
         }}
         onCreateGroup={() => {
           setShowNewChatDialog(false);

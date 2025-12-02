@@ -226,7 +226,7 @@ export const GroupChatDialog = ({
               </div>
             ) : availableAgents.length === 0 ? (
               <p className="text-sm text-muted-foreground py-4 text-center">
-                No agents installed. Install agents from the marketplace first.
+                No agents installed. Install agents from the AI Talent Pool first.
               </p>
             ) : (
               <ScrollArea className="h-48 border rounded-md p-2">

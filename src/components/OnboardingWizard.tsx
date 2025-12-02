@@ -73,7 +73,7 @@ export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) =>
                 <div>
                   <h4 className="font-semibold mb-1">Add Specialists</h4>
                   <p className="text-sm text-muted-foreground">
-                    Browse the marketplace and install agents for tasks you need help with.
+                    Browse the AI Talent Pool and install agents for tasks you need help with.
                   </p>
                 </div>
               </div>
@@ -168,14 +168,14 @@ export const OnboardingWizard = ({ open, onComplete }: OnboardingWizardProps) =>
               </button>
 
               <button
-                onClick={() => handleComplete('/marketplace')}
+                onClick={() => handleComplete('/talent-pool')}
                 className="p-4 border-2 rounded-lg hover:border-primary hover:bg-accent/50 transition-colors text-left group"
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold mb-1 group-hover:text-primary">Browse Agents</h4>
                     <p className="text-sm text-muted-foreground">
-                      Explore the marketplace and add specialists
+                      Explore the AI Talent Pool and add specialists
                     </p>
                   </div>
                   <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary" />

@@ -17,16 +17,16 @@ export const DemoBanner = () => {
               Demo Mode - Exploring Elixa's capabilities
             </p>
             <p className="text-xs text-muted-foreground">
-              Changes won't be saved • Real agents available in Marketplace
+              Changes won't be saved • Real agents available in AI Talent Pool
             </p>
           </div>
         </div>
         <Button 
           size="sm" 
-          onClick={() => navigate("/marketplace")}
+          onClick={() => navigate("/talent-pool")}
           className="whitespace-nowrap"
         >
-          View Marketplace
+          View AI Talent Pool
         </Button>
       </div>
     </div>
