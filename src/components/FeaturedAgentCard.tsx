@@ -71,13 +71,13 @@ export const FeaturedAgentCard = ({ agent }: FeaturedAgentCardProps) => {
                     ({agent.total_reviews.toLocaleString()})
                   </span>
                 </div>
-                <div className="text-2xl font-bold text-primary">
-                  ${agent.price}/mo
-                </div>
+                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 font-bold text-lg px-4 py-1">
+                  FREE
+                </Badge>
               </div>
               
               <Button size="lg" className="group-hover:scale-105 transition-transform">
-                Install Now
+                Add to Workspace
               </Button>
             </div>
           </div>
