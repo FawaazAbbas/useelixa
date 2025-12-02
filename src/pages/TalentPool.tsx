@@ -121,9 +121,9 @@ const TalentPool = () => {
   const featuredAgents = useMockData ? getFeaturedAgents() : [];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Premium navbar with gradient accent */}
-      <nav className="border-b border-border/20 bg-gradient-to-r from-background via-background to-primary/5 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/5 to-background">
+      {/* Glassmorphic navbar */}
+      <nav className="border-b border-white/10 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <img 
@@ -147,43 +147,60 @@ const TalentPool = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button onClick={() => navigate("/workspace")} variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-primary/10">
+            <Button onClick={() => navigate("/workspace")} variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-white/10 backdrop-blur-sm">
               Workspace
             </Button>
-            <Button onClick={() => navigate("/auth")} size="sm" className="shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-shadow">
+            <Button onClick={() => navigate("/auth")} size="sm" className="bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all backdrop-blur-sm">
               Sign In
             </Button>
           </div>
         </div>
       </nav>
 
-      {/* Hero section - Premium gradient style */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+      {/* Hero section - Search-first with glassmorphic design */}
+      <section className="relative overflow-hidden py-16 sm:py-20 md:py-24">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 -left-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 -right-40 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
-          <div className="max-w-2xl space-y-6">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-6 mb-12">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight">
               AI Talent Pool
             </h1>
-            <p className="text-xl text-muted-foreground/90">
-              Discover AI agents for every task
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover and connect with AI agents tailored to your needs
             </p>
           </div>
           
-          {/* Enhanced search bar */}
-          <div className="mt-10 max-w-2xl">
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-accent/50 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-300" />
+          {/* Glassmorphic search card */}
+          <div className="relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-accent/30 to-primary/30 rounded-2xl blur-xl opacity-50" />
+            <div className="relative bg-background/60 backdrop-blur-2xl rounded-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)] p-8">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground/60" />
+                <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-muted-foreground/60" />
                 <Input 
-                  placeholder="Search agents..." 
-                  className="pl-12 pr-4 h-14 text-base bg-background/80 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
+                  placeholder="Search for AI agents..." 
+                  className="pl-16 pr-6 h-16 text-lg bg-white/50 dark:bg-black/20 backdrop-blur-sm border-white/30 rounded-xl shadow-inner focus-visible:ring-2 focus-visible:ring-primary/50 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+              </div>
+              
+              {/* Quick filter chips */}
+              <div className="flex flex-wrap gap-2 mt-6">
+                <span className="text-sm text-muted-foreground mr-2">Popular:</span>
+                {categories.slice(0, 5).map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className="px-4 py-2 text-sm font-medium rounded-full bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/80 dark:hover:bg-white/20 hover:border-white/50 transition-all hover:scale-105"
+                  >
+                    {category}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -193,17 +210,17 @@ const TalentPool = () => {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!searchQuery && !selectedCategory ? (
-          <div className="space-y-12">
-            {/* Featured Section */}
+          <div className="space-y-16">
+            {/* Featured Section - Large hero cards */}
             {featuredAgents.length > 0 && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Featured</h2>
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Featured Agents</h2>
                 </div>
                 <ScrollArea className="w-full whitespace-nowrap">
-                  <div className="flex gap-6 pb-4">
+                  <div className="flex gap-8 pb-4">
                     {featuredAgents.map((agent) => (
-                      <div key={agent.id} className="w-[400px] flex-shrink-0">
+                      <div key={agent.id} className="w-[500px] flex-shrink-0">
                         <FeaturedAgentCard agent={agent as any} />
                       </div>
                     ))}
@@ -213,44 +230,48 @@ const TalentPool = () => {
               </div>
             )}
 
-            {/* Categories Section - Enhanced */}
+            {/* Browse by Category */}
             <div>
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold">Categories</h2>
-                <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80 hover:bg-primary/10">
-                  See All <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Browse by Category</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-                {mockCategories.slice(0, 10).map((category, index) => (
-                  <Card
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                {mockCategories.slice(0, 12).map((category, index) => (
+                  <button
                     key={category.name}
-                    className="cursor-pointer hover:shadow-xl hover:scale-105 transition-all duration-300 group border-border/50 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm overflow-hidden animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => setSelectedCategory(category.name)}
+                    className="group relative overflow-hidden rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 animate-fade-in"
+                    style={{ animationDelay: `${index * 30}ms` }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <CardContent className="relative p-6 text-center space-y-3">
-                      <div className="text-4xl transform group-hover:scale-110 transition-transform">{category.icon}</div>
-                      <div>
-                        <div className="font-semibold text-sm group-hover:text-primary transition-colors">
-                          {category.name}
-                        </div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-white/40 dark:from-white/10 dark:via-white/5 dark:to-white/5 backdrop-blur-xl border border-white/20" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-accent/0 opacity-0 group-hover:from-primary/20 group-hover:to-accent/20 group-hover:opacity-100 transition-all duration-300" />
+                    <div className="relative space-y-3">
+                      <div className="text-4xl group-hover:scale-110 transition-transform">{category.icon}</div>
+                      <div className="font-semibold text-sm group-hover:text-primary transition-colors">
+                        {category.name}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
 
-            {/* Popular Agents - Enhanced */}
+            {/* All Agents - Compact grid */}
             <div>
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold">Popular Agents</h2>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">All Agents</h2>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" className="text-sm bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/70 dark:hover:bg-white/10">
+                    Most Popular
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-sm bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/70 dark:hover:bg-white/10">
+                    Highest Rated
+                  </Button>
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-                {agents.slice(0, 10).map((agent, index) => (
-                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                {agents.slice(0, 24).map((agent, index) => (
+                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 20}ms` }}>
                     <AgentCard agent={agent} />
                   </div>
                 ))}
@@ -259,40 +280,54 @@ const TalentPool = () => {
           </div>
         ) : (
           <div>
-            {/* Results Header */}
-            <div className="mb-8">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory(null);
-                }}
-                className="mb-4"
-              >
-                <ChevronRight className="h-4 w-4 rotate-180 mr-1" /> Back
-              </Button>
-              <h2 className="text-3xl font-bold mb-2">
-                {searchQuery ? `"${searchQuery}"` : selectedCategory}
-              </h2>
-              <p className="text-muted-foreground">
-                {filteredAgents.length} {filteredAgents.length === 1 ? 'agent' : 'agents'}
-              </p>
+            {/* Results Header - Glassmorphic */}
+            <div className="relative mb-8">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl opacity-30" />
+              <div className="relative bg-white/50 dark:bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/20 p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)]">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory(null);
+                  }}
+                  className="mb-4 hover:bg-white/50 dark:hover:bg-white/10"
+                >
+                  <ChevronRight className="h-4 w-4 rotate-180 mr-1" /> Back to Browse
+                </Button>
+                <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                  {searchQuery ? `Search: "${searchQuery}"` : selectedCategory}
+                </h2>
+                <p className="text-muted-foreground">
+                  {filteredAgents.length} {filteredAgents.length === 1 ? 'agent' : 'agents'} found
+                </p>
+              </div>
             </div>
 
             {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <div className="text-center py-20">
+                <div className="relative w-16 h-16 mx-auto">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-md opacity-50 animate-pulse" />
+                  <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-white/20 border-t-primary"></div>
+                </div>
               </div>
             ) : filteredAgents.length === 0 ? (
               <div className="text-center py-20 px-4">
-                <h3 className="text-2xl font-bold mb-2">No Results</h3>
-                <p className="text-muted-foreground mb-6">
-                  {searchQuery ? `No agents match "${searchQuery}"` : "No agents in this category"}
-                </p>
-                <Button onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}>
-                  Browse All Agents
-                </Button>
+                <div className="relative max-w-md mx-auto">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl opacity-30" />
+                  <div className="relative bg-white/50 dark:bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/20 p-12 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)]">
+                    <h3 className="text-2xl font-bold mb-2">No Results</h3>
+                    <p className="text-muted-foreground mb-6">
+                      {searchQuery ? `No agents match "${searchQuery}"` : "No agents in this category"}
+                    </p>
+                    <Button 
+                      onClick={() => { setSearchQuery(""); setSelectedCategory(null); }}
+                      className="bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20"
+                    >
+                      Browse All Agents
+                    </Button>
+                  </div>
+                </div>
               </div>
             ) : (
               <InfiniteScroll
@@ -301,16 +336,19 @@ const TalentPool = () => {
                 hasMore={hasMore}
                 loader={
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <div className="relative w-12 h-12 mx-auto">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-md opacity-50 animate-pulse" />
+                      <div className="relative animate-spin rounded-full h-12 w-12 border-4 border-white/20 border-t-primary"></div>
+                    </div>
                   </div>
                 }
                 endMessage={
                   <p className="text-center py-8 text-muted-foreground">
-                    {filteredAgents.length} agents
+                    Showing all {filteredAgents.length} agents
                   </p>
                 }
               >
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {displayedAgents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}
