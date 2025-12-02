@@ -7,6 +7,7 @@ import { StaffPickCard } from "@/components/StaffPickCard";
 import { TrendingAgentRow } from "@/components/TrendingAgentRow";
 import { CategoryShowcaseCard } from "@/components/CategoryShowcaseCard";
 import { CollectionCard } from "@/components/CollectionCard";
+import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -410,6 +411,8 @@ const TalentPool = () => {
           </>
         )}
       </div>
+
+      <TalentPoolFooter />
     </div>
   );
 };
