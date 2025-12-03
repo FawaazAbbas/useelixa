@@ -137,16 +137,26 @@ export const mockAgents: MockAgent[] = [
 
   {
     id: "mock-3",
-    name: "Data Analyst Pro",
-    description: "Advanced analytics and insights from your business data with predictive modeling",
+    name: "Customer Support Overmind AI",
+    description:
+      "A superhuman customer experience manager that handles tickets, calls, refunds, returns, sentiment, and operations with flawless precision.",
     rating: 4.9,
     total_reviews: 654,
     total_installs: 5432,
-    category: "Analytics",
+    category: "Customer Support",
     image_url: "/elixa-logo.png",
     featured: true,
     badge: "Trending",
-    capabilities: ["Predictive Analytics", "Data Visualization", "Reports", "Forecasting"],
+    capabilities: [
+      "Omnichannel Support",
+      "Voice Call Handling",
+      "Instant Refunds & Returns",
+      "Sentiment Analysis",
+      "Policy Enforcement",
+      "Churn Prevention",
+      "Automated Workflows",
+      "Real-Time Insights",
+    ],
     gradient: "from-green-500 to-teal-600",
     trendingRank: 3,
     screenshots: [
@@ -157,13 +167,19 @@ export const mockAgents: MockAgent[] = [
       {
         version: "3.0.0",
         date: "2024-01-22",
-        changes: ["New predictive models", "Enhanced visualizations", "Faster processing"],
+        changes: [
+          "Full voice call support added",
+          "New sentiment prediction engine",
+          "Automated refund & replacement actions",
+          "Smarter routing for escalations",
+        ],
       },
     ],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-11", "mock-8", "mock-4"],
     lastUpdated: "2024-01-22",
   },
+
   {
     id: "mock-4",
     name: "Sales Assistant",
