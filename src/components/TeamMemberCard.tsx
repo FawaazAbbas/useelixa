@@ -28,11 +28,9 @@ export const TeamMemberCard = ({
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-2 px-3 py-1.5 rounded hover:bg-muted/50 transition-colors",
+        "w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors",
         isSelected && "bg-muted/30",
-        isIndented && "pl-6",
-        member.isManager && "border-l-2 border-blue-500",
-        !member.isManager && isIndented && "border-l-2 border-orange-500"
+        isIndented && "pl-5"
       )}
       onClick={onSelect}
     >
@@ -43,7 +41,7 @@ export const TeamMemberCard = ({
           statusColors[member.status]
         )} />
       </div>
-      <span className="text-[0.75rem] truncate text-white">{member.name}</span>
+      <span className="text-sm truncate text-white">{member.name}</span>
     </button>
   );
 };

@@ -44,7 +44,7 @@ export const TeamSection = ({
             <Button
               variant="ghost"
               className={cn(
-                "flex-1 justify-start h-8 py-1 px-3 hover:bg-muted/50",
+                "flex-1 justify-start h-8 py-1 px-2 hover:bg-muted/50",
                 isOpen && "bg-muted/30"
               )}
             >
@@ -53,9 +53,9 @@ export const TeamSection = ({
                   "h-3 w-3 text-muted-foreground transition-transform duration-200",
                   !isOpen && "-rotate-90"
                 )} />
-                <Icon className="h-3.5 w-3.5 text-white" />
-                <span className="text-[0.85rem] font-medium text-white">{team.name.replace(' Team', '')}</span>
-                <span className="text-[10px] text-white/60 ml-auto">({onlineCount})</span>
+                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium text-white">{team.name.replace(' Team', '')}</span>
+                <span className="text-[10px] text-muted-foreground/60 ml-auto">({onlineCount})</span>
               </div>
             </Button>
           </CollapsibleTrigger>
