@@ -54,8 +54,8 @@ export const TeamSection = ({
                   !isOpen && "-rotate-90"
                 )} />
                 <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs font-medium text-white">{team.name}</span>
-                <span className="text-[10px] text-muted-foreground/60 ml-auto">{onlineCount} online</span>
+                <span className="text-xs font-medium text-white">{team.name.replace(' Team', '')}</span>
+                <span className="text-[10px] text-muted-foreground/60 ml-auto">({onlineCount})</span>
               </div>
             </Button>
           </CollapsibleTrigger>
@@ -81,6 +81,7 @@ export const TeamSection = ({
             team={team}
             isSelected={selectedMemberId === team.manager.id}
             onSelect={() => onSelectMember(team.manager.id)}
+            isIndented={false}
           />
 
           {/* Workers */}
@@ -91,6 +92,7 @@ export const TeamSection = ({
               team={team}
               isSelected={selectedMemberId === member.id}
               onSelect={() => onSelectMember(member.id)}
+              isIndented={true}
             />
           ))}
         </CollapsibleContent>
