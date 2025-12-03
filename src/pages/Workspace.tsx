@@ -720,7 +720,7 @@ const Workspace = () => {
             }`}
             style={{ 
               borderRadius: 'calc(var(--radius) - 2px)',
-              border: '4px solid white',
+              border: '3px solid hsl(var(--primary))',
               padding: '1em 0.5em'
             }}
           >
