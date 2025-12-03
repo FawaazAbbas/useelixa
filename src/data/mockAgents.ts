@@ -8,7 +8,7 @@ export interface MockAgent {
   category: string;
   image_url: string;
   featured?: boolean;
-  badge?: 'Popular' | 'New' | 'AI-Powered' | 'Trending';
+  badge?: "Popular" | "New" | "AI-Powered" | "Trending";
   capabilities?: string[];
   gradient?: string;
   staffPick?: boolean;
@@ -23,31 +23,53 @@ export interface MockAgent {
 export const mockAgents: MockAgent[] = [
   {
     id: "mock-1",
-    name: "Customer Support Pro",
-    description: "AI-powered 24/7 customer support with sentiment analysis and multi-language capabilities",
+    name: "Marketing Manager AI",
+    description:
+      "A full-stack marketing operator that runs paid ads, email, SEO, creative strategy, forecasting, and reporting — your complete automated marketing department.",
     rating: 4.9,
-    total_reviews: 1247,
-    total_installs: 8543,
-    category: "Customer Service",
+    total_reviews: 2274,
+    total_installs: 15432,
+    category: "Marketing & Growth",
     image_url: "/elixa-logo.png",
     featured: true,
-    badge: "Popular",
-    capabilities: ["24/7 Support", "Multi-language", "Ticket Routing", "Sentiment Analysis"],
-    gradient: "from-blue-500 to-purple-600",
+    badge: "Founder Favourite",
+    capabilities: [
+      "Paid Ads Management",
+      "Creative Brief Generation",
+      "SEO Content Planning",
+      "Email & CRM Automation",
+      "A/B Testing & CRO",
+      "Competitor Analysis",
+      "Weekly Reporting",
+      "Forecasting",
+    ],
+    gradient: "from-rose-500 to-orange-600",
     staffPick: true,
     trendingRank: 1,
     screenshots: [
       "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&h=600&fit=crop",
     ],
     changelog: [
-      { version: "2.1.0", date: "2024-01-20", changes: ["Added sentiment analysis", "Improved response accuracy", "New multi-language support"] },
-      { version: "2.0.0", date: "2024-01-05", changes: ["Major UI overhaul", "Enhanced ticket routing", "Performance improvements"] }
+      {
+        version: "3.2.0",
+        date: "2024-12-01",
+        changes: [
+          "Added predictive budget allocation",
+          "Improved Meta + TikTok ad optimisation",
+          "New competitor pricing monitor integration",
+        ],
+      },
+      {
+        version: "3.0.0",
+        date: "2024-11-12",
+        changes: ["Major intelligence upgrade", "New creative generator engine", "Enhanced SEO clustering tools"],
+      },
     ],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-2", "mock-5", "mock-6"],
-    lastUpdated: "2024-01-20"
+    lastUpdated: "2024-12-01",
   },
   {
     id: "mock-2",
@@ -66,14 +88,18 @@ export const mockAgents: MockAgent[] = [
     trendingRank: 2,
     screenshots: [
       "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&h=600&fit=crop",
     ],
     changelog: [
-      { version: "1.5.0", date: "2024-01-18", changes: ["Added SEO optimization", "Improved content quality", "New brand voice learning"] }
+      {
+        version: "1.5.0",
+        date: "2024-01-18",
+        changes: ["Added SEO optimization", "Improved content quality", "New brand voice learning"],
+      },
     ],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-5", "mock-6", "mock-1"],
-    lastUpdated: "2024-01-18"
+    lastUpdated: "2024-01-18",
   },
   {
     id: "mock-3",
@@ -91,14 +117,18 @@ export const mockAgents: MockAgent[] = [
     trendingRank: 3,
     screenshots: [
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
     ],
     changelog: [
-      { version: "3.0.0", date: "2024-01-22", changes: ["New predictive models", "Enhanced visualizations", "Faster processing"] }
+      {
+        version: "3.0.0",
+        date: "2024-01-22",
+        changes: ["New predictive models", "Enhanced visualizations", "Faster processing"],
+      },
     ],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-11", "mock-8", "mock-4"],
-    lastUpdated: "2024-01-22"
+    lastUpdated: "2024-01-22",
   },
   {
     id: "mock-4",
@@ -116,7 +146,7 @@ export const mockAgents: MockAgent[] = [
     screenshots: ["https://images.unsplash.com/photo-1560472355-536de3962603?w=800&h=600&fit=crop"],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-1", "mock-5"],
-    lastUpdated: "2024-01-15"
+    lastUpdated: "2024-01-15",
   },
   {
     id: "mock-5",
@@ -133,7 +163,7 @@ export const mockAgents: MockAgent[] = [
     screenshots: ["https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=600&fit=crop"],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-2", "mock-6"],
-    lastUpdated: "2024-01-19"
+    lastUpdated: "2024-01-19",
   },
   {
     id: "mock-6",
@@ -151,7 +181,7 @@ export const mockAgents: MockAgent[] = [
     screenshots: ["https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&h=600&fit=crop"],
     publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
     relatedAgentIds: ["mock-2", "mock-5"],
-    lastUpdated: "2024-01-21"
+    lastUpdated: "2024-01-21",
   },
   {
     id: "mock-7",
@@ -163,7 +193,7 @@ export const mockAgents: MockAgent[] = [
     category: "HR",
     image_url: "/elixa-logo.png",
     capabilities: ["Resume Screening", "Interview Scheduling", "Candidate Tracking", "Job Posting"],
-    gradient: "from-cyan-500 to-blue-600"
+    gradient: "from-cyan-500 to-blue-600",
   },
   {
     id: "mock-8",
@@ -176,7 +206,7 @@ export const mockAgents: MockAgent[] = [
     image_url: "/elixa-logo.png",
     badge: "Trending",
     capabilities: ["Expense Tracking", "Invoice Management", "Financial Reports", "Budget Planning"],
-    gradient: "from-emerald-500 to-green-600"
+    gradient: "from-emerald-500 to-green-600",
   },
   {
     id: "mock-9",
@@ -188,7 +218,7 @@ export const mockAgents: MockAgent[] = [
     category: "Productivity",
     image_url: "/elixa-logo.png",
     capabilities: ["Task Management", "Team Coordination", "Timeline Tracking", "Resource Planning"],
-    gradient: "from-violet-500 to-purple-600"
+    gradient: "from-violet-500 to-purple-600",
   },
   {
     id: "mock-10",
@@ -201,7 +231,7 @@ export const mockAgents: MockAgent[] = [
     image_url: "/elixa-logo.png",
     badge: "New",
     capabilities: ["Contract Drafting", "Document Review", "Compliance Checking", "Legal Research"],
-    gradient: "from-slate-500 to-gray-600"
+    gradient: "from-slate-500 to-gray-600",
   },
   {
     id: "mock-11",
@@ -213,7 +243,7 @@ export const mockAgents: MockAgent[] = [
     category: "Research",
     image_url: "/elixa-logo.png",
     capabilities: ["Market Research", "Competitive Analysis", "Trend Reports", "Data Gathering"],
-    gradient: "from-sky-500 to-blue-600"
+    gradient: "from-sky-500 to-blue-600",
   },
   {
     id: "mock-12",
@@ -226,13 +256,13 @@ export const mockAgents: MockAgent[] = [
     image_url: "/elixa-logo.png",
     badge: "AI-Powered",
     capabilities: ["CI/CD Automation", "Infrastructure Monitoring", "Log Analysis", "Deployment"],
-    gradient: "from-amber-500 to-orange-600"
-  }
+    gradient: "from-amber-500 to-orange-600",
+  },
 ];
 
 // Helper to get featured agents
-export const getFeaturedAgents = () => mockAgents.filter(agent => agent.featured);
+export const getFeaturedAgents = () => mockAgents.filter((agent) => agent.featured);
 
 // Helper to get agents by category
-export const getAgentsByCategory = (category: string) => 
-  category ? mockAgents.filter(agent => agent.category === category) : mockAgents;
+export const getAgentsByCategory = (category: string) =>
+  category ? mockAgents.filter((agent) => agent.category === category) : mockAgents;
