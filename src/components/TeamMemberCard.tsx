@@ -7,12 +7,14 @@ interface TeamMemberCardProps {
   team: Team;
   isSelected: boolean;
   onSelect: () => void;
+  isIndented?: boolean;
 }
 
 export const TeamMemberCard = ({ 
   member, 
   isSelected, 
   onSelect,
+  isIndented = false,
 }: TeamMemberCardProps) => {
   const statusColors = {
     online: "bg-green-500",
@@ -27,7 +29,8 @@ export const TeamMemberCard = ({
     <button
       className={cn(
         "w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors",
-        isSelected && "bg-muted"
+        isSelected && "bg-muted/30",
+        isIndented && "pl-5"
       )}
       onClick={onSelect}
     >
@@ -39,11 +42,6 @@ export const TeamMemberCard = ({
         )} />
       </div>
       <span className="text-sm truncate text-white">{member.name}</span>
-      {member.isManager && (
-        <span className="text-[9px] px-1 py-0.5 rounded bg-blue-500/20 text-blue-500 font-medium ml-auto">
-          HEAD
-        </span>
-      )}
     </button>
   );
 };
