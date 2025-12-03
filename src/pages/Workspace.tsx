@@ -711,8 +711,8 @@ const Workspace = () => {
         </div>
 
         {/* Brian Section - ALWAYS VISIBLE */}
-        <div className="px-3 py-2">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
+        <div className="px-2 py-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1 px-1">
             <Sparkles className="h-3 w-3" />
             Brian
           </h3>
