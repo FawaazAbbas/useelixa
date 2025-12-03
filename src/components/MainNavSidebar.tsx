@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Users, Plug, BookOpen, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug, BookOpen, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -79,7 +79,7 @@ export const MainNavSidebar = () => {
           activeClassName="bg-accent active"
           style={{ position: 'relative', zIndex: 50 }}
         >
-          <Users className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
+          <Store className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
           <span 
             className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-lg border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 ease-out whitespace-nowrap" 
             style={{ zIndex: 999999, position: 'absolute' }}
