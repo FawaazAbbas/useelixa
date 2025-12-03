@@ -38,6 +38,9 @@ import { MessageSelectionBar } from "@/components/MessageSelectionBar";
 import { NewChatDialog } from "@/components/NewChatDialog";
 import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 import { DemoBanner } from "@/components/DemoBanner";
+import { TeamsSidebar } from "@/components/TeamsSidebar";
+import { getTeamMemberById } from "@/data/mockTeams";
+import { mockTeamMemberMessages } from "@/data/mockTeamMessages";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -176,6 +179,8 @@ const Workspace = () => {
   const [selectedMessageIds, setSelectedMessageIds] = useState<Set<string>>(new Set());
   const [selectedBrianIndices, setSelectedBrianIndices] = useState<Set<number>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedTeamMemberId, setSelectedTeamMemberId] = useState<string | null>(null);
+  const [teamMemberMessages, setTeamMemberMessages] = useState<any[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -463,10 +468,30 @@ const Workspace = () => {
   const handleSelectChat = (chat: any) => {
     setSelectedChat(chat);
     setShowBrian(false);
+    setSelectedTeamMemberId(null);
     if (chat?.id) {
       fetchMessages(chat.id);
     }
     // Scroll to bottom when selecting chat
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleSelectTeamMember = (memberId: string) => {
+    setSelectedTeamMemberId(memberId);
+    setShowBrian(false);
+    setSelectedChat(null);
+    
+    // Load mock messages for this team member
+    const memberData = mockTeamMemberMessages[memberId];
+    if (memberData) {
+      setTeamMemberMessages(memberData.messages);
+    } else {
+      setTeamMemberMessages([]);
+    }
+    
+    // Scroll to bottom
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -532,24 +557,13 @@ const Workspace = () => {
       {/* Mobile Navigation */}
       {isMobile && (
         <MobileChatNav
-          agents={chats.filter(c => c.type === 'direct').map(c => ({
-            id: c.id,
-            name: c.agent?.name || 'Agent',
-            status: 'online',
-            type: 'individual'
-          }))}
-          groupChats={chats.filter(c => c.type === 'group').map(c => ({
-            id: c.id,
-            name: c.name || 'Group',
-            members: c.agents?.map(a => a.name) || [],
-            memberCount: c.agents?.length || 0,
-            type: 'group',
-            lastActivity: formatDistanceToNow(new Date(c.last_activity), { addSuffix: true })
-          }))}
-          selectedChat={selectedChat?.id}
-          onSelectChat={(chatId, type) => {
-            const chat = chats.find(c => c.id === chatId);
-            if (chat) handleSelectChat(chat);
+          selectedMemberId={selectedTeamMemberId}
+          onSelectMember={handleSelectTeamMember}
+          showBrian={showBrian}
+          onSelectBrian={() => {
+            setShowBrian(true);
+            setSelectedChat(null);
+            setSelectedTeamMemberId(null);
           }}
         />
       )}
@@ -669,101 +683,12 @@ const Workspace = () => {
 
         <Separator className="my-2" />
 
-        {/* Direct Messages */}
-        <div className="flex-1 overflow-auto">
-          <div className="px-3 py-2">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase">Direct Messages</h3>
-            </div>
-            <div className="space-y-1">
-              {chatLoading ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : chats.filter(c => c.type === 'direct').length === 0 ? (
-                <div className="px-2 py-4 text-center">
-                  <p className="text-xs text-muted-foreground mb-2">No agents installed</p>
-                  <Button size="sm" variant="outline" onClick={() => navigate('/talent-pool')}>
-                    <Store className="h-3 w-3 mr-1" />
-                    Browse AI Talent Pool
-                  </Button>
-                </div>
-              ) : (
-                chats.filter(c => c.type === 'direct').map((chat) => (
-                   <button
-                     key={chat.id}
-                     onClick={() => handleSelectChat(chat)}
-                     className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                       selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
-                     }`}
-                   >
-                     <div className="relative">
-                       {(() => {
-                         const colors = getAgentColor(chat.agent?.category || 'General');
-                         return (
-                           <div className={`h-6 w-6 rounded-full ${colors.bg} flex items-center justify-center`}>
-                             <Bot className={`h-4 w-4 ${colors.icon}`} />
-                           </div>
-                         );
-                       })()}
-                       <div className="absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background bg-green-500" />
-                     </div>
-                     <span className="text-sm truncate text-white">{chat.agent?.name}</span>
-                   </button>
-                ))
-              )}
-            </div>
-          </div>
-
-          <Separator className="my-2" />
-
-          {/* Group Chats */}
-          <div className="px-3 py-2">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase">Group Chats</h3>
-            </div>
-            <div className="space-y-1">
-              {chats.filter(c => c.type === 'group').length === 0 ? (
-                <div className="px-2 py-3 text-center">
-                  <p className="text-xs text-muted-foreground">No group chats</p>
-                </div>
-              ) : (
-                chats.filter(c => c.type === 'group').map((chat) => (
-                  <button
-                    key={chat.id}
-                    onClick={() => handleSelectChat(chat)}
-                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 transition-colors ${
-                      selectedChat?.id === chat.id && !showBrian ? "bg-muted/50" : ""
-                    }`}
-                  >
-                    <div className="relative">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      {(chat.unread_count || 0) > 0 && (
-                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-bold text-white flex items-center justify-center">
-                          {chat.unread_count}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="text-sm truncate text-white">{chat.name}</div>
-                      <div className="text-xs text-muted-foreground">{chat.agents?.length || 0} agents</div>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Create New Button */}
-        <div className="p-3 border-t border-chat-border">
-          <Button 
-            className="w-full" 
-            onClick={() => setShowNewChatDialog(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Conversation
-          </Button>
+        {/* Teams Sidebar */}
+        <div className="flex-1 overflow-hidden">
+          <TeamsSidebar
+            selectedMemberId={selectedTeamMemberId}
+            onSelectMember={handleSelectTeamMember}
+          />
         </div>
 
       </div>
@@ -1054,6 +979,134 @@ const Workspace = () => {
                 </div>
               </div>
             </div>
+          </>
+        ) : selectedTeamMemberId ? (
+          <>
+            {/* Team Member Chat Header */}
+            {(() => {
+              const memberInfo = getTeamMemberById(selectedTeamMemberId);
+              if (!memberInfo) return null;
+              const { member, team } = memberInfo;
+              return (
+                <>
+                  <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${team.gradient}`}>
+                        <Bot className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">{member.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {team.name} • {member.role}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowCallingDisabled(true)}
+                        title="Voice calling"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowSettings(true)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Team Member Messages */}
+                  <ScrollArea className={`flex-1 p-4 ${isMobile ? 'pb-20' : ''}`}>
+                    <div className="space-y-4 max-w-4xl mx-auto">
+                      {teamMemberMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-3">
+                          <Bot className="h-12 w-12 text-muted-foreground" />
+                          <p className="text-muted-foreground">Start a conversation with {member.name}</p>
+                        </div>
+                      ) : (
+                        teamMemberMessages.map((msg) => {
+                          const isUserMessage = msg.user_id !== null;
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}
+                            >
+                              {!isUserMessage && (
+                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${team.gradient}`}>
+                                  <Bot className="h-5 w-5 text-white" />
+                                </div>
+                              )}
+                              <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                                <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
+                                  <span className="font-semibold">
+                                    {isUserMessage ? "You" : member.name}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(msg.created_at).toLocaleTimeString()}
+                                  </span>
+                                </div>
+                                <div
+                                  className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                                    isUserMessage
+                                      ? "bg-primary/90 text-primary-foreground"
+                                      : "bg-muted/80"
+                                  }`}
+                                >
+                                  <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                      {msg.content}
+                                    </ReactMarkdown>
+                                  </div>
+                                </div>
+                              </div>
+                              {isUserMessage && (
+                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                  <AvatarFallback>U</AvatarFallback>
+                                </Avatar>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
+
+                  {/* Team Member Input */}
+                  <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+                    <div className="flex gap-2 max-w-4xl mx-auto">
+                      <Input
+                        placeholder={`Message ${member.name}...`}
+                        className="flex-1"
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            toast({
+                              title: "Demo Mode",
+                              description: "Sending messages is simulated in demo mode.",
+                            });
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={() => {
+                          toast({
+                            title: "Demo Mode",
+                            description: "Sending messages is simulated in demo mode.",
+                          });
+                        }}
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </>
         ) : (
           <>

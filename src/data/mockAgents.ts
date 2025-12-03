@@ -32,7 +32,7 @@ export const mockAgents: MockAgent[] = [
     category: "Marketing & Growth",
     image_url: "/elixa-logo.png",
     featured: true,
-    badge: "Founder Favourite",
+    badge: "Popular",
     capabilities: [
       "Paid Ads Management",
       "Creative Brief Generation",
