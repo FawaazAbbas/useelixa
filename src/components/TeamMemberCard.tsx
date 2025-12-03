@@ -22,8 +22,8 @@ export const TeamMemberCard = ({
     offline: "bg-gray-400"
   };
 
-  // Purple for managers (HEAD), orange for workers
-  const iconColor = member.isManager ? "text-purple-500" : "text-orange-500";
+  // Blue for managers (HEAD), orange for workers
+  const iconColor = member.isManager ? "text-blue-500" : "text-orange-500";
 
   return (
     <button
