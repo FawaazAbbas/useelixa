@@ -39,8 +39,9 @@ import { NewChatDialog } from "@/components/NewChatDialog";
 import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 import { DemoBanner } from "@/components/DemoBanner";
 import { TeamsSidebar } from "@/components/TeamsSidebar";
-import { getTeamMemberById, mockTeams } from "@/data/mockTeams";
+import { getTeamMemberById, mockTeams, getTeamOnlineCount } from "@/data/mockTeams";
 import { mockTeamMemberMessages, mockTeamGroupMessages } from "@/data/mockTeamMessages";
+import { getTeamGroupData, getFileIcon, formatRelativeTime } from "@/data/mockTeamGroupData";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1817,12 +1818,12 @@ const Workspace = () => {
       )}
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
-      {(selectedChat || showBrian || selectedTeamMemberId) && (
+      {(selectedChat || showBrian || selectedTeamMemberId || selectedTeamGroupId) && (
         <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="px-4 pt-4 pb-2">
-            <TabsList className={`w-full ${showBrian || selectedTeamMemberId ? 'grid grid-cols-4' : 'grid grid-cols-5'}`}>
-              {!showBrian && !selectedTeamMemberId && (
+            <TabsList className={`w-full ${showBrian || selectedTeamMemberId || selectedTeamGroupId ? 'grid grid-cols-4' : 'grid grid-cols-5'}`}>
+              {!showBrian && !selectedTeamMemberId && !selectedTeamGroupId && (
                 <>
                   <TabsTrigger value="about" className="text-xs flex items-center justify-center">
                     <Info className="h-4 w-4" />
@@ -1832,7 +1833,7 @@ const Workspace = () => {
                   </TabsTrigger>
                 </>
               )}
-              {(showBrian || selectedTeamMemberId) && (
+              {(showBrian || selectedTeamMemberId || selectedTeamGroupId) && (
                 <TabsTrigger value="about" className="text-xs flex items-center justify-center">
                   <Info className="h-4 w-4" />
                 </TabsTrigger>
@@ -1849,7 +1850,7 @@ const Workspace = () => {
             </TabsList>
           </div>
 
-          {!showBrian && !selectedTeamMemberId && (
+          {!showBrian && !selectedTeamMemberId && !selectedTeamGroupId && (
             <>
               <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
                 {selectedChat?.agent ? (
@@ -2013,6 +2014,81 @@ const Workspace = () => {
             );
           })()}
 
+          {selectedTeamGroupId && (() => {
+            const teamData = getTeamGroupData(selectedTeamGroupId);
+            if (!teamData) return null;
+            const { team } = teamData;
+            const onlineCount = getTeamOnlineCount(team);
+            return (
+              <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`h-12 w-12 rounded-full flex items-center justify-center`} style={{ background: team.gradient }}>
+                    <Users className="h-7 w-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">{team.name}</h3>
+                    <p className="text-sm text-muted-foreground">{team.members.length + 1} members · {onlineCount} online</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-base font-semibold mb-2">Description</h4>
+                  <p className="text-muted-foreground">{team.description}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-base font-semibold mb-3">Team Members</h4>
+                  <div className="space-y-2">
+                    {/* Manager */}
+                    <button
+                      onClick={() => {
+                        setSelectedTeamGroupId(null);
+                        setSelectedTeamMemberId(team.manager.id);
+                      }}
+                      className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <Bot className="h-4 w-4 text-blue-500" />
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-medium">{team.manager.name}</p>
+                        <p className="text-xs text-muted-foreground">{team.manager.role}</p>
+                      </div>
+                      <div className={`h-2 w-2 rounded-full ${
+                        team.manager.status === 'online' ? 'bg-green-500' : 
+                        team.manager.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                      }`} />
+                    </button>
+                    
+                    {/* Workers */}
+                    {team.members.map((member) => (
+                      <button
+                        key={member.id}
+                        onClick={() => {
+                          setSelectedTeamGroupId(null);
+                          setSelectedTeamMemberId(member.id);
+                        }}
+                        className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="h-8 w-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                          <Bot className="h-4 w-4 text-orange-500" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-medium">{member.name}</p>
+                          <p className="text-xs text-muted-foreground">{member.role}</p>
+                        </div>
+                        <div className={`h-2 w-2 rounded-full ${
+                          member.status === 'online' ? 'bg-green-500' : 
+                          member.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            );
+          })()}
+
           <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
             {showBrian ? (
               <div className="h-full overflow-auto p-4">
@@ -2064,7 +2140,53 @@ const Workspace = () => {
                   </div>
                 </div>
               </div>
-            ) : selectedChat && selectedChat.type === 'direct' ? (
+            ) : selectedTeamGroupId ? (() => {
+              const teamData = getTeamGroupData(selectedTeamGroupId);
+              if (!teamData) return null;
+              const { team, files } = teamData;
+              return (
+                <div className="h-full overflow-auto p-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">{team.name} Files</h3>
+                      <p className="text-sm text-muted-foreground mb-4">Shared files for the entire team</p>
+                    </div>
+                    
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                      <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium mb-1">Upload Files</p>
+                      <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold">Team Files ({files.length})</h4>
+                      {files.length > 0 ? (
+                        <div className="space-y-2">
+                          {files.map((file) => (
+                            <Card key={file.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
+                              <CardContent className="p-3 flex items-center gap-3">
+                                <span className="text-xl">{getFileIcon(file.type)}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{file.name}</p>
+                                  <p className="text-xs text-muted-foreground">{file.size} · {file.uploadedBy}</p>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{formatRelativeTime(file.uploadedAt)}</span>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      ) : (
+                        <Card>
+                          <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                            No files uploaded yet
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })() : selectedChat && selectedChat.type === 'direct' ? (
               <AgentFilesPanel
                 agentInstallationId={selectedChat.agent_installation_id}
                 workspaceId={workspaceId || ''}
@@ -2091,7 +2213,47 @@ const Workspace = () => {
                 <h3 className="font-semibold mb-4">Team Member Memories</h3>
                 <p className="text-sm text-muted-foreground mb-4">Memories and preferences for this team member</p>
               </div>
-            ) : selectedChat ? (
+            ) : selectedTeamGroupId ? (() => {
+              const teamData = getTeamGroupData(selectedTeamGroupId);
+              if (!teamData) return null;
+              const { team, memories } = teamData;
+              return (
+                <div className="h-full overflow-auto p-4 space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">{team.name} Memories</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Team-level preferences and shared context</p>
+                  </div>
+                  
+                  {memories.length > 0 ? (
+                    <div className="space-y-3">
+                      {memories.map((memory) => (
+                        <Card key={memory.id}>
+                          <CardContent className="p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="outline" className="text-xs">{memory.category}</Badge>
+                                  <span className="text-xs text-muted-foreground">{formatRelativeTime(memory.updatedAt)}</span>
+                                </div>
+                                <p className="text-sm font-medium">{memory.key}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{memory.value}</p>
+                                <p className="text-xs text-muted-foreground mt-2">Added by {memory.createdBy}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                        No team memories yet
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              );
+            })() : selectedChat ? (
               <ChatMemoriesPanel
                 chatId={selectedChat.id}
                 workspaceId={workspaceId || ''}
@@ -2115,7 +2277,65 @@ const Workspace = () => {
                 <h3 className="font-semibold mb-4">Chat History</h3>
                 <p className="text-sm text-muted-foreground">Activity history with this team member</p>
               </div>
-            ) : selectedChat ? (
+            ) : selectedTeamGroupId ? (() => {
+              const teamData = getTeamGroupData(selectedTeamGroupId);
+              if (!teamData) return null;
+              const { team, activity } = teamData;
+              const getActivityIcon = (type: string) => {
+                switch (type) {
+                  case 'milestone': return '🎯';
+                  case 'decision': return '✅';
+                  case 'task': return '📋';
+                  case 'discussion': return '💬';
+                  default: return '📝';
+                }
+              };
+              const getActivityColor = (type: string) => {
+                switch (type) {
+                  case 'milestone': return 'text-green-600 dark:text-green-400';
+                  case 'decision': return 'text-blue-600 dark:text-blue-400';
+                  case 'task': return 'text-orange-600 dark:text-orange-400';
+                  case 'discussion': return 'text-purple-600 dark:text-purple-400';
+                  default: return 'text-muted-foreground';
+                }
+              };
+              return (
+                <div className="h-full overflow-auto p-4 space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">{team.name} Activity</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Recent team collaboration and decisions</p>
+                  </div>
+                  
+                  {activity.length > 0 ? (
+                    <div className="space-y-3">
+                      {activity.map((item) => (
+                        <Card key={item.id}>
+                          <CardContent className="p-3">
+                            <div className="flex items-start gap-3">
+                              <span className="text-lg">{getActivityIcon(item.type)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`text-sm font-medium ${getActivityColor(item.type)}`}>{item.action}</span>
+                                  <span className="text-xs text-muted-foreground">· {formatRelativeTime(item.timestamp)}</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                <p className="text-xs text-muted-foreground mt-2">by {item.performedBy}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                        No team activity yet
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              );
+            })() : selectedChat ? (
               <div className="h-full overflow-auto p-4">
                 <h3 className="font-semibold mb-4">Automation History</h3>
                 <AutomationHistoryDashboard 
