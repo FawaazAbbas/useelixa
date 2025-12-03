@@ -327,8 +327,6 @@ export const mockDirectChats = {
       },
     ],
   },
-};
-
   "mock-2": {
     // Content Creator AI
     name: "Content Creator AI",
