@@ -39,7 +39,7 @@ import { NewChatDialog } from "@/components/NewChatDialog";
 import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 import { DemoBanner } from "@/components/DemoBanner";
 import { TeamsSidebar } from "@/components/TeamsSidebar";
-import { getTeamMemberById } from "@/data/mockTeams";
+import { getTeamMemberById, mockTeams } from "@/data/mockTeams";
 import { mockTeamMemberMessages } from "@/data/mockTeamMessages";
 import {
   DropdownMenu,
@@ -181,6 +181,8 @@ const Workspace = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedTeamMemberId, setSelectedTeamMemberId] = useState<string | null>(null);
   const [teamMemberMessages, setTeamMemberMessages] = useState<any[]>([]);
+  const [selectedTeamGroupId, setSelectedTeamGroupId] = useState<string | null>(null);
+  const [teamGroupMessages, setTeamGroupMessages] = useState<any[]>([]);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -482,6 +484,7 @@ const Workspace = () => {
     setSelectedTeamMemberId(memberId);
     setShowBrian(false);
     setSelectedChat(null);
+    setSelectedTeamGroupId(null);
     setRightSidebarTab("about");
     
     // Load mock messages for this team member
@@ -491,6 +494,58 @@ const Workspace = () => {
     } else {
       setTeamMemberMessages([]);
     }
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleSelectTeamGroup = (teamId: string) => {
+    setSelectedTeamGroupId(teamId);
+    setSelectedTeamMemberId(null);
+    setShowBrian(false);
+    setSelectedChat(null);
+    setRightSidebarTab("about");
+    
+    // Load mock group messages
+    const mockGroupMessages = [
+      {
+        id: "g1",
+        content: "Good morning team! Let's sync on our priorities for today.",
+        user_id: null,
+        agent_id: "manager",
+        sender_name: "Team Lead",
+        isManager: true,
+        created_at: new Date(Date.now() - 3600000).toISOString(),
+      },
+      {
+        id: "g2",
+        content: "I've completed the analysis you requested. Ready to share findings.",
+        user_id: null,
+        agent_id: "member-1",
+        sender_name: "Team Member",
+        isManager: false,
+        created_at: new Date(Date.now() - 3500000).toISOString(),
+      },
+      {
+        id: "g3",
+        content: "What's the status on this?",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3400000).toISOString(),
+      },
+      {
+        id: "g4",
+        content: "We're on track! I'll have the full report ready by end of day. The team is making great progress on all fronts.",
+        user_id: null,
+        agent_id: "manager",
+        sender_name: "Team Lead",
+        isManager: true,
+        created_at: new Date(Date.now() - 3300000).toISOString(),
+      },
+    ];
+    setTeamGroupMessages(mockGroupMessages);
     
     // Scroll to bottom
     setTimeout(() => {
@@ -697,6 +752,8 @@ const Workspace = () => {
             selectedMemberId={selectedTeamMemberId}
             onSelectMember={handleSelectTeamMember}
             collapseAll={showBrian}
+            selectedTeamGroupId={selectedTeamGroupId}
+            onSelectTeamGroup={handleSelectTeamGroup}
           />
         </div>
 
@@ -1122,6 +1179,161 @@ const Workspace = () => {
                         </Button>
                         <Input
                           placeholder={`Message ${member.name}...`}
+                          className="flex-1"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              toast({
+                                title: "Demo Mode",
+                                description: "Sending messages is simulated in demo mode.",
+                              });
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={() => {
+                            toast({
+                              title: "Demo Mode",
+                              description: "Sending messages is simulated in demo mode.",
+                            });
+                          }}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </>
+        ) : selectedTeamGroupId ? (
+          <>
+            {/* Team Group Chat */}
+            {(() => {
+              const team = mockTeams.find((t: any) => t.id === selectedTeamGroupId);
+              if (!team) return null;
+              return (
+                <>
+                  <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-semibold">{team.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {team.members.length + 1} members • Group chat
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowCallingDisabled(true)}
+                        title="Voice calling"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="lg:hidden"
+                        onClick={() => setShowAutomations(!showAutomations)}
+                      >
+                        <LayoutList className="h-4 w-4" />
+                        <span className="ml-2">Panels</span>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowSettings(true)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Team Group Messages */}
+                  <ScrollArea className={`flex-1 p-4 ${isMobile ? 'pb-20' : ''}`}>
+                    <div className="space-y-4 max-w-4xl mx-auto">
+                      {teamGroupMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-3">
+                          <Users className="h-12 w-12 text-muted-foreground" />
+                          <p className="text-muted-foreground">Start a conversation with {team.name}</p>
+                        </div>
+                      ) : (
+                        teamGroupMessages.map((msg) => {
+                          const isUserMessage = msg.user_id !== null;
+                          const msgIconColor = msg.isManager ? "text-blue-500" : "text-orange-500";
+                          const msgBgColor = msg.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
+                          return (
+                            <div
+                              key={msg.id}
+                              className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}
+                            >
+                              {!isUserMessage && (
+                                <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
+                                  <Bot className={`h-6 w-6 ${msgIconColor}`} />
+                                </div>
+                              )}
+                              <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                                <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
+                                  <span className="font-semibold">
+                                    {isUserMessage ? "You" : msg.sender_name}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(msg.created_at).toLocaleTimeString()}
+                                  </span>
+                                </div>
+                                <div
+                                  className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
+                                    isUserMessage
+                                      ? "bg-primary/90 text-primary-foreground"
+                                      : "bg-muted/80"
+                                  }`}
+                                >
+                                  <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                      {msg.content}
+                                    </ReactMarkdown>
+                                  </div>
+                                </div>
+                              </div>
+                              {isUserMessage && (
+                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                  <AvatarFallback>U</AvatarFallback>
+                                </Avatar>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
+
+                  {/* Team Group Input */}
+                  <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+                    <div className="space-y-2 max-w-4xl mx-auto">
+                      <div className="flex gap-2">
+                        <input
+                          type="file"
+                          id="team-group-file-upload"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileSelect}
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => document.getElementById('team-group-file-upload')?.click()}
+                          className={isMobile ? 'h-10 w-10' : ''}
+                        >
+                          <Paperclip className="h-4 w-4" />
+                        </Button>
+                        <Input
+                          placeholder={`Message ${team.name}...`}
                           className="flex-1"
                           onKeyPress={(e) => {
                             if (e.key === "Enter") {
