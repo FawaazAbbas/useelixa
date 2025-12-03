@@ -64,7 +64,7 @@ export const TeamSection = ({
             <div className="relative">
               <MessageSquare className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-[0.75rem] truncate text-white">Group Chat</span>
+            <span className="text-[0.75rem] truncate text-white">{team.name.replace(' Team', '')} Team Chat</span>
           </button>
 
           {/* Manager */}
