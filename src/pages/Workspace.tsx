@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Store, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload } from "lucide-react";
 import { getAgentColor } from '@/utils/agentColors';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -713,22 +713,6 @@ const Workspace = () => {
               className="pl-9 bg-white/5 border-0 focus:bg-white/10 transition-colors backdrop-blur-sm"
             />
           </div>
-        </div>
-
-        {/* AI Talent Pool Link */}
-        <div className="px-2 py-2">
-          <button
-            onClick={() => navigate('/talent-pool')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 bg-gradient-to-r from-purple-600/20 to-pink-500/20 hover:from-purple-600/40 hover:to-pink-500/40 border border-purple-500/30"
-          >
-            <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-purple-500/30">
-              <Store className="h-4 w-4 text-purple-300" />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-white">AI Talent Pool</span>
-              <span className="text-[10px] text-white/60">Browse agents</span>
-            </div>
-          </button>
         </div>
 
         {/* Brian Section - ALWAYS VISIBLE */}

@@ -30,9 +30,14 @@ export const TeamSection = ({
   const totalMemberCount = team.members.length + 1; // +1 for manager
   const [showWaitlist, setShowWaitlist] = useState(false);
 
-  const handleMemberClick = (memberId: string) => {
-    // Show waitlist dialog instead of opening chat
-    setShowWaitlist(true);
+  const handleMemberClick = (memberId: string, isManager: boolean) => {
+    if (isManager) {
+      // Allow managers to be clicked - open their chat
+      onSelectMember(memberId);
+    } else {
+      // Show waitlist dialog for workers
+      setShowWaitlist(true);
+    }
   };
 
   return (
@@ -83,7 +88,7 @@ export const TeamSection = ({
               member={team.manager}
               team={team}
               isSelected={selectedMemberId === team.manager.id}
-              onSelect={() => handleMemberClick(team.manager.id)}
+              onSelect={() => handleMemberClick(team.manager.id, true)}
               isIndented={false}
             />
 
@@ -94,7 +99,7 @@ export const TeamSection = ({
                 member={member}
                 team={team}
                 isSelected={selectedMemberId === member.id}
-                onSelect={() => handleMemberClick(member.id)}
+                onSelect={() => handleMemberClick(member.id, false)}
                 isIndented={true}
               />
             ))}
