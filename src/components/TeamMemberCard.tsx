@@ -1,6 +1,6 @@
+import { Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TeamMember, Team } from "@/data/mockTeams";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface TeamMemberCardProps {
   member: TeamMember;
@@ -20,10 +20,9 @@ export const TeamMemberCard = ({
     offline: "bg-gray-400"
   };
 
-  // Get initials from name
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
+  // Blue for managers (HEAD), orange for workers
+  const iconColor = member.isManager ? "text-blue-500" : "text-orange-500";
+  const bgColor = member.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
 
   return (
     <button
@@ -34,19 +33,17 @@ export const TeamMemberCard = ({
       onClick={onSelect}
     >
       <div className="relative">
-        <Avatar className="h-6 w-6">
-          <AvatarFallback className="bg-muted text-xs">
-            {getInitials(member.name)}
-          </AvatarFallback>
-        </Avatar>
+        <div className={cn("h-6 w-6 rounded-full flex items-center justify-center", bgColor)}>
+          <Bot className={cn("h-3.5 w-3.5", iconColor)} />
+        </div>
         <div className={cn(
           "absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background",
           statusColors[member.status]
         )} />
       </div>
-      <span className="text-sm truncate">{member.name}</span>
+      <span className="text-sm truncate text-foreground">{member.name}</span>
       {member.isManager && (
-        <span className="text-[9px] px-1 py-0.5 rounded bg-primary/20 text-primary font-medium ml-auto">
+        <span className="text-[9px] px-1 py-0.5 rounded bg-blue-500/20 text-blue-500 font-medium ml-auto">
           HEAD
         </span>
       )}

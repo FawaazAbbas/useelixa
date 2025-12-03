@@ -482,6 +482,7 @@ const Workspace = () => {
     setSelectedTeamMemberId(memberId);
     setShowBrian(false);
     setSelectedChat(null);
+    setRightSidebarTab("about");
     
     // Load mock messages for this team member
     const memberData = mockTeamMemberMessages[memberId];
@@ -993,13 +994,15 @@ const Workspace = () => {
               const memberInfo = getTeamMemberById(selectedTeamMemberId);
               if (!memberInfo) return null;
               const { member, team } = memberInfo;
-              const colors = getAgentColor(team.name.includes('Marketing') ? 'Marketing' : team.name.includes('Customer') ? 'Customer Service' : team.name.includes('Finance') ? 'Finance' : 'Operations');
+              // Blue for managers (HEAD), orange for workers
+              const iconColor = member.isManager ? "text-blue-500" : "text-orange-500";
+              const bgColor = member.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
               return (
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center`}>
-                        <Bot className={`h-6 w-6 ${colors.icon}`} />
+                      <div className={`h-10 w-10 rounded-full ${bgColor} flex items-center justify-center`}>
+                        <Bot className={`h-6 w-6 ${iconColor}`} />
                       </div>
                       <div>
                         <div className="font-semibold">{member.name}</div>
@@ -1016,6 +1019,15 @@ const Workspace = () => {
                         title="Voice calling"
                       >
                         <Phone className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="lg:hidden"
+                        onClick={() => setShowAutomations(!showAutomations)}
+                      >
+                        <LayoutList className="h-4 w-4" />
+                        <span className="ml-2">Panels</span>
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -1038,15 +1050,17 @@ const Workspace = () => {
                       ) : (
                         teamMemberMessages.map((msg) => {
                           const isUserMessage = msg.user_id !== null;
-                          const colors = getAgentColor(team.name.includes('Marketing') ? 'Marketing' : team.name.includes('Customer') ? 'Customer Service' : team.name.includes('Finance') ? 'Finance' : 'Operations');
+                          // Blue for managers, orange for workers
+                          const msgIconColor = member.isManager ? "text-blue-500" : "text-orange-500";
+                          const msgBgColor = member.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
                           return (
                             <div
                               key={msg.id}
                               className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}
                             >
                               {!isUserMessage && (
-                                <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
-                                  <Bot className={`h-6 w-6 ${colors.icon}`} />
+                                <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
+                                  <Bot className={`h-6 w-6 ${msgIconColor}`} />
                                 </div>
                               )}
                               <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
@@ -1087,29 +1101,46 @@ const Workspace = () => {
 
                   {/* Team Member Input */}
                   <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
-                    <div className="flex gap-2 max-w-4xl mx-auto">
-                      <Input
-                        placeholder={`Message ${member.name}...`}
-                        className="flex-1"
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
+                    <div className="space-y-2 max-w-4xl mx-auto">
+                      <div className="flex gap-2">
+                        <input
+                          type="file"
+                          id="team-member-file-upload"
+                          multiple
+                          className="hidden"
+                          onChange={handleFileSelect}
+                        />
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => document.getElementById('team-member-file-upload')?.click()}
+                          className={isMobile ? 'h-10 w-10' : ''}
+                        >
+                          <Paperclip className="h-4 w-4" />
+                        </Button>
+                        <Input
+                          placeholder={`Message ${member.name}...`}
+                          className="flex-1"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              toast({
+                                title: "Demo Mode",
+                                description: "Sending messages is simulated in demo mode.",
+                              });
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={() => {
                             toast({
                               title: "Demo Mode",
                               description: "Sending messages is simulated in demo mode.",
                             });
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={() => {
-                          toast({
-                            title: "Demo Mode",
-                            description: "Sending messages is simulated in demo mode.",
-                          });
-                        }}
-                      >
-                        <Send className="h-4 w-4" />
-                      </Button>
+                          }}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </>
@@ -1580,12 +1611,12 @@ const Workspace = () => {
       )}
 
       {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
-      {(selectedChat || showBrian) && (
+      {(selectedChat || showBrian || selectedTeamMemberId) && (
         <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="px-4 pt-4 pb-2">
-            <TabsList className={`w-full ${showBrian ? 'grid grid-cols-4' : 'grid grid-cols-5'}`}>
-              {!showBrian && (
+            <TabsList className={`w-full ${showBrian || selectedTeamMemberId ? 'grid grid-cols-4' : 'grid grid-cols-5'}`}>
+              {!showBrian && !selectedTeamMemberId && (
                 <>
                   <TabsTrigger value="about" className="text-xs flex items-center justify-center">
                     <Info className="h-4 w-4" />
@@ -1595,7 +1626,7 @@ const Workspace = () => {
                   </TabsTrigger>
                 </>
               )}
-              {showBrian && (
+              {(showBrian || selectedTeamMemberId) && (
                 <TabsTrigger value="about" className="text-xs flex items-center justify-center">
                   <Info className="h-4 w-4" />
                 </TabsTrigger>
@@ -1612,7 +1643,7 @@ const Workspace = () => {
             </TabsList>
           </div>
 
-          {!showBrian && (
+          {!showBrian && !selectedTeamMemberId && (
             <>
               <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
                 {selectedChat?.agent ? (
@@ -1714,6 +1745,68 @@ const Workspace = () => {
             </TabsContent>
           )}
 
+          {selectedTeamMemberId && (() => {
+            const memberInfo = getTeamMemberById(selectedTeamMemberId);
+            if (!memberInfo) return null;
+            const { member, team } = memberInfo;
+            const iconColor = member.isManager ? "text-blue-500" : "text-orange-500";
+            const bgColor = member.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
+            return (
+              <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`h-12 w-12 rounded-full ${bgColor} flex items-center justify-center`}>
+                    <Bot className={`h-7 w-7 ${iconColor}`} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">{member.name}</h3>
+                    <p className="text-sm text-muted-foreground">{member.role}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-base font-semibold mb-2">Team</h4>
+                  <p className="text-muted-foreground">{team.name}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-base font-semibold mb-2">Specialty</h4>
+                  <p className="text-muted-foreground">{member.specialty}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-base font-semibold mb-3">Capabilities</h4>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground">Specialized in {member.specialty.toLowerCase()}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                      <span className="text-sm text-muted-foreground">Member of {team.name}</span>
+                    </li>
+                    {member.isManager && (
+                      <li className="flex items-start gap-2">
+                        <CheckSquare className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground">Department head with team leadership responsibilities</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="text-base font-semibold mb-2">Status</h4>
+                  <div className="flex items-center gap-2">
+                    <div className={`h-2.5 w-2.5 rounded-full ${
+                      member.status === 'online' ? 'bg-green-500' : 
+                      member.status === 'busy' ? 'bg-yellow-500' : 'bg-gray-400'
+                    }`} />
+                    <span className="text-sm text-muted-foreground capitalize">{member.status}</span>
+                  </div>
+                </div>
+              </TabsContent>
+            );
+          })()}
+
           <TabsContent value="files" className="flex-1 m-0 overflow-hidden">
             {showBrian ? (
               <div className="h-full overflow-auto p-4">
@@ -1721,6 +1814,31 @@ const Workspace = () => {
                   <div>
                     <h3 className="font-semibold mb-2">Brian's Files</h3>
                     <p className="text-sm text-muted-foreground mb-4">Upload workspace-level files that Brian can access and reference</p>
+                  </div>
+                  
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                    <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm font-medium mb-1">Upload Files</p>
+                    <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
+                    <p className="text-xs text-muted-foreground mt-2">Supports PDF, DOC, TXT, CSV, and more</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">Recent Files</h4>
+                    <Card>
+                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                        No files uploaded yet
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            ) : selectedTeamMemberId ? (
+              <div className="h-full overflow-auto p-4">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Team Member Files</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Upload files for this team member to access</p>
                   </div>
                   
                   <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
@@ -1762,6 +1880,11 @@ const Workspace = () => {
                 <h3 className="font-semibold mb-4">Brian's Memories</h3>
                 <p className="text-sm text-muted-foreground mb-4">Workspace-level memories and preferences</p>
               </div>
+            ) : selectedTeamMemberId ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Team Member Memories</h3>
+                <p className="text-sm text-muted-foreground mb-4">Memories and preferences for this team member</p>
+              </div>
             ) : selectedChat ? (
               <ChatMemoriesPanel
                 chatId={selectedChat.id}
@@ -1780,6 +1903,11 @@ const Workspace = () => {
               <div className="h-full overflow-auto p-4">
                 <h3 className="font-semibold mb-4">Brian's History</h3>
                 <p className="text-sm text-muted-foreground">All workspace-level activity coordinated by Brian</p>
+              </div>
+            ) : selectedTeamMemberId ? (
+              <div className="h-full overflow-auto p-4">
+                <h3 className="font-semibold mb-4">Chat History</h3>
+                <p className="text-sm text-muted-foreground">Activity history with this team member</p>
               </div>
             ) : selectedChat ? (
               <div className="h-full overflow-auto p-4">
