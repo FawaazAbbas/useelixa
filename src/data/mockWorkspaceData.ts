@@ -39,49 +39,296 @@ export const mockBrianMessages = [
 // Mock direct chat messages for each agent
 export const mockDirectChats = {
   "mock-1": {
-    // Customer Support Pro
-    name: "Customer Support Pro",
+    name: "Marketing Manager AI",
     messages: [
+      // 1
       {
-        id: "cs-1",
+        id: "mm-1",
         content:
-          "Hello! I'm **Customer Support Pro**, your 24/7 support specialist. I can help you:\n\n- Check and respond to customer tickets\n- Analyze customer sentiment\n- Route urgent issues\n- Generate support reports\n\nWhat would you like me to help with today?",
+          "Good morning Liam! I'm **Marketing Manager AI**, your full-stack marketing operator. I can optimise paid ads, SEO, email, creative, CRO, and competitor tracking. What do you want to start with today?",
         user_id: null,
         agent_id: "mock-1",
-        created_at: new Date(Date.now() - 3600000 * 2).toISOString(), // 2 hours ago
+        created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
       },
+
+      // 2
       {
-        id: "cs-2",
-        content: "Show me the latest customer tickets",
+        id: "mm-2",
+        content: "Morning. Give me a full performance overview from yesterday.",
         user_id: "demo-user",
         agent_id: null,
-        created_at: new Date(Date.now() - 3600000 * 2 + 120000).toISOString(), // 2 hours ago + 2 min
+        created_at: new Date(Date.now() - 3600000 * 3 + 60000).toISOString(),
       },
+
+      // 3
       {
-        id: "cs-3",
+        id: "mm-3",
         content:
-          'Here are your **5 most recent tickets**:\n\n### 🔴 High Priority\n**Ticket #234** - Login Issue\n*"Can\'t access my account after password reset"*\n⏱️ 15 minutes ago\n\n**Ticket #237** - Payment Failed\n*"Credit card declined during checkout"*\n⏱️ 45 minutes ago\n\n### 🟡 Medium Priority\n**Ticket #236** - Billing Question\n*"Need invoice for last month"*\n⏱️ 1 hour ago\n\n### 🟢 Low Priority\n**Ticket #235** - Feature Request\n*"Can you add dark mode?"*\n⏱️ 2 hours ago\n\n**Ticket #238** - General Inquiry\n*"How do I export my data?"*\n⏱️ 3 hours ago\n\nWould you like me to:\n1. Draft responses for urgent tickets\n2. Analyze customer sentiment trends\n3. Generate a support performance report',
+          "Here’s your **Daily Marketing Snapshot**:\n\n### 📊 Paid Ads\n- CPA down 8.4%\n- iPhone 13 campaign ROAS: **3.4**\n- Pixel 7 ads underperformed — recommend pausing\n\n### ✉️ Email\n- Automation flows: **£7.1K**\n- Campaign CTR: **3.3%**\n\n### 🔍 SEO\n- “Best Refurb iPhone Deals” moved from position 12 → **8**\n\n### 🎯 Recommendation\nFocus today: **iPhone 13 funnel revamp**. Want me to build the plan?",
         user_id: null,
         agent_id: "mock-1",
-        created_at: new Date(Date.now() - 3600000 * 2 + 125000).toISOString(),
+        created_at: new Date(Date.now() - 3600000 * 3 + 80000).toISOString(),
       },
+
+      // 4
       {
-        id: "cs-4",
-        content: "Draft responses for the high priority tickets",
+        id: "mm-4",
+        content: "Yeah send me the funnel revamp plan.",
         user_id: "demo-user",
         agent_id: null,
-        created_at: new Date(Date.now() - 3600000 * 2 + 180000).toISOString(),
+        created_at: new Date(Date.now() - 3600000 * 3 + 130000).toISOString(),
       },
+
+      // 5
       {
-        id: "cs-5",
+        id: "mm-5",
         content:
-          "Perfect! Here are **empathetic, solution-focused responses**:\n\n---\n\n### Ticket #234 - Login Issue\n\n*Hi [Customer Name],*\n\n*I'm sorry you're having trouble accessing your account. I understand how frustrating this can be.*\n\n*I've just reset your login session on our end. Please try these steps:*\n1. *Clear your browser cache*\n2. *Try logging in with your email*\n3. *Click \"Forgot Password\" if needed*\n\n*If you're still stuck, I'm here to help 24/7. You can also call our support line at [number].*\n\n*- Customer Support Pro*\n\n---\n\n### Ticket #237 - Payment Failed\n\n*Hi [Customer Name],*\n\n*Thank you for reaching out! I can help resolve this payment issue right away.*\n\n*The decline could be due to:*\n- *Card expiration or insufficient funds*\n- *Security hold from your bank*\n- *Billing address mismatch*\n\n*I've generated a secure payment link that you can try: [link]*\n\n*Alternatively, you can update your payment method in your account settings. I'm standing by if you need assistance!*\n\n*- Customer Support Pro*\n\n---\n\nShall I send these responses or would you like me to adjust anything?",
+          "Here’s the **iPhone 13 Funnel Upgrade Plan**:\n\n1. New landing page structure\n2. Ad creative refresh (3 variations)\n3. Updated email automation for buyers\n4. TikTok/UGC push\n\nWant me to begin drafting the landing page outline?",
         user_id: null,
         agent_id: "mock-1",
-        created_at: new Date(Date.now() - 3600000 * 2 + 185000).toISOString(),
+        created_at: new Date(Date.now() - 3600000 * 3 + 150000).toISOString(),
+      },
+
+      // 6
+      {
+        id: "mm-6",
+        content: "Do it.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 200000).toISOString(),
+      },
+
+      // 7
+      {
+        id: "mm-7",
+        content:
+          "**Landing Page Outline Ready:**\n\n### Hero\n- *“The Smart Way to Buy an iPhone 13”*\n- Warranty badges\n\n### Grades Explained\n- A / B / C sections\n\n### Storage Options\n- Price comparison table\n\n### Reviews + Warranty\n\nShall I generate the full copy?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 230000).toISOString(),
+      },
+
+      // 8
+      {
+        id: "mm-8",
+        content: "Yeah generate the copy.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 290000).toISOString(),
+      },
+
+      // 9
+      {
+        id: "mm-9",
+        content:
+          "Copy generated. Here's the top section:\n\n### *“Premium iPhone 13. Refurbished Right.”*\nBetter prices. Better warranty. Better for the planet.\n\nWant the full page exported into sections?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 310000).toISOString(),
+      },
+
+      // 10
+      {
+        id: "mm-10",
+        content: "Send me the full page in sections.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 360000).toISOString(),
+      },
+
+      // 11
+      {
+        id: "mm-11",
+        content:
+          "Exporting now. Section 1:\n\n### 🔥 Why Upgrade to an iPhone 13?\nPerfect balance of performance, battery life, and price — now even better refurbished.\n\nReady for Section 2?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 400000).toISOString(),
+      },
+
+      // 12
+      {
+        id: "mm-12",
+        content: "Send it.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 420000).toISOString(),
+      },
+
+      // 13
+      {
+        id: "mm-13",
+        content:
+          "Section 2:\n\n### 📦 Grading That Makes Sense\n- **Grade A:** Like new\n- **Grade B:** Excellent value\n- **Grade C:** Best price\n\nWant Section 3?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 450000).toISOString(),
+      },
+
+      // 14
+      {
+        id: "mm-14",
+        content: "Yes.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 470000).toISOString(),
+      },
+
+      // 15
+      {
+        id: "mm-15",
+        content:
+          "Section 3:\n\n### 🔋 Battery Health Guarantee\nEvery iPhone 13 ships with **88%+ battery**, or it's replaced.\n\nSection 4 ready?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 495000).toISOString(),
+      },
+
+      // 16
+      {
+        id: "mm-16",
+        content: "Send it.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 520000).toISOString(),
+      },
+
+      // 17
+      {
+        id: "mm-17",
+        content:
+          "Section 4:\n\n### 💬 Real Reviews\nShowcase recent 5-star reviews specifically mentioning iPhone 13 performance.\n\nSection 5?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 550000).toISOString(),
+      },
+
+      // 18
+      {
+        id: "mm-18",
+        content: "Yeah go on.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 580000).toISOString(),
+      },
+
+      // 19
+      {
+        id: "mm-19",
+        content:
+          "Section 5:\n\n### 🛡️ 12-Month Baduss Warranty\nBuy refurbished with total confidence.\n\nWant the summary footer?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 610000).toISOString(),
+      },
+
+      // 20
+      {
+        id: "mm-20",
+        content: "Yes finish it.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 640000).toISOString(),
+      },
+
+      // 21
+      {
+        id: "mm-21",
+        content:
+          "Final section:\n\n### 🎉 Ready to Upgrade?\nChoose your grade, pick your storage, and enjoy premium tech for less.\n\nLanding page complete. Want me to generate the full Figma layout next?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 670000).toISOString(),
+      },
+
+      // 22
+      {
+        id: "mm-22",
+        content: "Not yet. Give me 3 angles for new iPhone 13 ads.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 700000).toISOString(),
+      },
+
+      // 23
+      {
+        id: "mm-23",
+        content:
+          "Here are **3 new ad angles**:\n\n### 1️⃣ Price First\n*“Why pay £779? Get the same performance for £389.”*\n\n### 2️⃣ Performance\n*“Looks new. Works like new. Costs way less.”*\n\n### 3️⃣ Sustainability\n*“One iPhone saved = 82kg less CO₂.”*\n\nWant scripts or static concepts?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 735000).toISOString(),
+      },
+
+      // 24
+      {
+        id: "mm-24",
+        content: "Give me scripts.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 760000).toISOString(),
+      },
+
+      // 25
+      {
+        id: "mm-25",
+        content:
+          "**3 TikTok/UGC Scripts:**\n\n### Script A — Price Reveal\nQuick unboxing → Battery health → Price reveal → Warranty badge.\n\n### Script B — Side-by-Side\nNew vs Refurb side comparison → “Spot the difference?” → Savings.\n\n### Script C — Founder Trust\nFounder explaining refurb guarantees + trust signals.\n\nWhich one should I prioritise producing visuals for?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 785000).toISOString(),
+      },
+
+      // 26
+      {
+        id: "mm-26",
+        content: "Do Script B first.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 810000).toISOString(),
+      },
+
+      // 27
+      {
+        id: "mm-27",
+        content:
+          "On it. I’ll prepare:\n- Shot list\n- Captions\n- Hook variations\n- CTA overlays\n\nExpect visuals ready in ~20 minutes. Want me to also generate ad copy variations?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 840000).toISOString(),
+      },
+
+      // 28
+      {
+        id: "mm-28",
+        content: "Yeah give me copy too.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 870000).toISOString(),
+      },
+
+      // 29
+      {
+        id: "mm-29",
+        content:
+          "**Copy Variations:**\n\n### Hook\n- “Why buy new?”\n- “Same performance. Half the price.”\n- “Refurbished done right.”\n\n### Body\n- Quality-checked, warranty-backed, sustainably sourced.\n- Battery health guaranteed.\n\n### CTA\n- Shop Smart\n- Upgrade for Less\n\nNeed anything else for this campaign?",
+        user_id: null,
+        agent_id: "mock-1",
+        created_at: new Date(Date.now() - 3600000 * 3 + 900000).toISOString(),
+      },
+
+      // 30
+      {
+        id: "mm-30",
+        content: "That’s good. Start assembling everything.",
+        user_id: "demo-user",
+        agent_id: null,
+        created_at: new Date(Date.now() - 3600000 * 3 + 930000).toISOString(),
       },
     ],
   },
+};
+
   "mock-2": {
     // Content Creator AI
     name: "Content Creator AI",
