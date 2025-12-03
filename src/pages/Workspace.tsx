@@ -40,7 +40,7 @@ import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 import { DemoBanner } from "@/components/DemoBanner";
 import { TeamsSidebar } from "@/components/TeamsSidebar";
 import { getTeamMemberById, mockTeams } from "@/data/mockTeams";
-import { mockTeamMemberMessages } from "@/data/mockTeamMessages";
+import { mockTeamMemberMessages, mockTeamGroupMessages } from "@/data/mockTeamMessages";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -508,44 +508,34 @@ const Workspace = () => {
     setSelectedChat(null);
     setRightSidebarTab("about");
     
-    // Load mock group messages
-    const mockGroupMessages = [
-      {
-        id: "g1",
-        content: "Good morning team! Let's sync on our priorities for today.",
-        user_id: null,
-        agent_id: "manager",
-        sender_name: "Team Lead",
-        isManager: true,
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-      },
-      {
-        id: "g2",
-        content: "I've completed the analysis you requested. Ready to share findings.",
-        user_id: null,
-        agent_id: "member-1",
-        sender_name: "Team Member",
-        isManager: false,
-        created_at: new Date(Date.now() - 3500000).toISOString(),
-      },
-      {
-        id: "g3",
-        content: "What's the status on this?",
-        user_id: "demo-user",
-        agent_id: null,
-        created_at: new Date(Date.now() - 3400000).toISOString(),
-      },
-      {
-        id: "g4",
-        content: "We're on track! I'll have the full report ready by end of day. The team is making great progress on all fronts.",
-        user_id: null,
-        agent_id: "manager",
-        sender_name: "Team Lead",
-        isManager: true,
-        created_at: new Date(Date.now() - 3300000).toISOString(),
-      },
-    ];
-    setTeamGroupMessages(mockGroupMessages);
+    // Get team key for mock data lookup
+    const team = mockTeams.find((t: any) => t.id === teamId);
+    if (team) {
+      // Map team ID to mock data key
+      const teamKeyMap: Record<string, string> = {
+        'marketing': 'marketing',
+        'product': 'product',
+        'customer-service': 'customer-service',
+        'finance': 'finance',
+        'development': 'development',
+        'creative': 'creative',
+        'legal': 'legal',
+      };
+      const teamKey = teamKeyMap[teamId] || teamId;
+      const groupMessages = mockTeamGroupMessages[teamKey];
+      if (groupMessages) {
+        // Map messages to include isManager flag based on agent_id
+        const messagesWithManagerFlag = groupMessages.messages.map(msg => ({
+          ...msg,
+          isManager: msg.agent_id?.includes('director') || msg.agent_id?.includes('lead') || msg.agent_id?.includes('cs-director') || msg.agent_id === 'marketing-director' || msg.agent_id === 'product-director' || msg.agent_id === 'finance-director' || msg.agent_id === 'tech-lead' || msg.agent_id === 'creative-director' || msg.agent_id === 'legal-director',
+        }));
+        setTeamGroupMessages(messagesWithManagerFlag);
+      } else {
+        setTeamGroupMessages([]);
+      }
+    } else {
+      setTeamGroupMessages([]);
+    }
     
     // Scroll to bottom
     setTimeout(() => {
@@ -721,12 +711,14 @@ const Workspace = () => {
               setShowBrian(true);
               setSelectedChat(null);
               setSelectedTeamMemberId(null);
+              setSelectedTeamGroupId(null);
             }}
-            className={`w-full flex items-center gap-2 px-3 py-1 h-8 rounded transition-colors ${
+            className={`w-full flex items-center gap-2 px-3 py-1 h-8 transition-colors ${
               showBrian 
                 ? "bg-primary" 
                 : "hover:bg-primary/80"
             }`}
+            style={{ borderRadius: 'calc(var(--radius) - 2px)' }}
           >
             <Avatar className="h-5 w-5 bg-gradient-to-br from-purple-600 to-blue-500">
               <AvatarFallback className="text-white text-[10px] font-bold">B</AvatarFallback>

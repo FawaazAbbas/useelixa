@@ -56,9 +56,10 @@ export const TeamSection = ({
           {/* Group Chat Option */}
           <button
             className={cn(
-              "w-full flex items-center gap-2 px-3 py-1 h-8 rounded transition-colors",
+              "w-full flex items-center gap-2 px-3 py-1 h-8 transition-colors",
               isGroupChatSelected ? "bg-[hsl(210_17%_96%/0.3)]" : "hover:bg-[hsl(210_17%_96%/0.5)]"
             )}
+            style={{ borderRadius: 'calc(var(--radius) - 2px)' }}
             onClick={onSelectGroupChat}
           >
             <div className="relative">
