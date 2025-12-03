@@ -72,8 +72,8 @@ export const mockAgents: MockAgent[] = [
     lastUpdated: "2024-12-01",
   },
   {
-    id: "ppmai-ultra",
-    name: "Product & Pricing Manager AI",
+    id: "mock-2",
+    name: "Product & Pricing Manager",
     description:
       "A god-tier autonomous operator that controls your entire product catalog, dynamic pricing engine, profitability model, and demand forecasting with precision no human team can match. Runs merchandising, inventory intelligence, SKU strategy, and market competitiveness at superhuman speed.",
     rating: 4.9,
