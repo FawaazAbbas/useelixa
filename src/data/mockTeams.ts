@@ -52,22 +52,6 @@ export const mockTeams: Team[] = [
         specialty: "Meta, TikTok, LinkedIn Ads",
       },
       {
-        id: "graphic-designer-marketing",
-        name: "Graphic Designer",
-        role: "Visual Design",
-        isManager: false,
-        status: "busy",
-        specialty: "Ad Creatives, Brand Assets",
-      },
-      {
-        id: "motion-graphics-designer",
-        name: "Motion Graphics Designer",
-        role: "Video & Animation",
-        isManager: false,
-        status: "offline",
-        specialty: "Video Ads, Animations",
-      },
-      {
         id: "content-writer",
         name: "Content Writer",
         role: "Copywriting",
