@@ -71,11 +71,11 @@ export const MainNavSidebar = () => {
       </nav>
 
       {/* AI Talent Pool - Separated */}
-      <div className="w-full px-2" style={{ position: 'relative', zIndex: 50 }}>
-        <div className="h-px bg-border mb-4" />
+      <div className="flex flex-col items-center" style={{ position: 'relative', zIndex: 50 }}>
+        <div className="w-12 h-px bg-border mb-4" />
         <NavLink
           to="/talent-pool"
-          className="group relative flex items-center justify-center p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 w-full"
+          className="group relative p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105"
           activeClassName="bg-accent active"
           style={{ position: 'relative', zIndex: 50 }}
         >
