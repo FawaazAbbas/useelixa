@@ -22,6 +22,7 @@ export const mockTeams: Team[] = [
   {
     id: "team-marketing",
     name: "Marketing Team",
+    icon: "",
     color: "rose",
     gradient: "from-rose-500 to-orange-500",
     description: "Drives brand awareness, customer acquisition, and revenue growth",
