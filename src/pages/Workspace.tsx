@@ -683,8 +683,14 @@ const Workspace = () => {
 
         <Separator className="my-2" />
 
-        {/* Teams Sidebar */}
-        <div className="flex-1 overflow-hidden">
+        {/* Teams Section */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-3 py-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              Teams
+            </h3>
+          </div>
           <TeamsSidebar
             selectedMemberId={selectedTeamMemberId}
             onSelectMember={handleSelectTeamMember}
@@ -987,17 +993,18 @@ const Workspace = () => {
               const memberInfo = getTeamMemberById(selectedTeamMemberId);
               if (!memberInfo) return null;
               const { member, team } = memberInfo;
+              const colors = getAgentColor(team.name.includes('Marketing') ? 'Marketing' : team.name.includes('Customer') ? 'Customer Service' : team.name.includes('Finance') ? 'Finance' : 'Operations');
               return (
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center bg-gradient-to-br ${team.gradient}`}>
-                        <Bot className="h-5 w-5 text-white" />
+                      <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center`}>
+                        <Bot className={`h-6 w-6 ${colors.icon}`} />
                       </div>
                       <div>
                         <div className="font-semibold">{member.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {team.name} • {member.role}
+                          {member.status === 'online' ? 'online' : member.status}
                         </div>
                       </div>
                     </div>
@@ -1031,14 +1038,15 @@ const Workspace = () => {
                       ) : (
                         teamMemberMessages.map((msg) => {
                           const isUserMessage = msg.user_id !== null;
+                          const colors = getAgentColor(team.name.includes('Marketing') ? 'Marketing' : team.name.includes('Customer') ? 'Customer Service' : team.name.includes('Finance') ? 'Finance' : 'Operations');
                           return (
                             <div
                               key={msg.id}
                               className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}
                             >
                               {!isUserMessage && (
-                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${team.gradient}`}>
-                                  <Bot className="h-5 w-5 text-white" />
+                                <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                                  <Bot className={`h-6 w-6 ${colors.icon}`} />
                                 </div>
                               )}
                               <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>

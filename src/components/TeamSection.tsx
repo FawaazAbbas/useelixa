@@ -34,80 +34,65 @@ export const TeamSection = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const Icon = iconMap[team.icon] || Users;
   const onlineCount = getTeamOnlineCount(team);
-  const totalMembers = team.members.length + 1; // +1 for manager
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {/* Team Header */}
         <div className="flex items-center gap-1 group">
           <CollapsibleTrigger asChild>
             <Button
               variant="ghost"
               className={cn(
-                "flex-1 justify-start h-auto py-2.5 px-3 hover:bg-white/5",
-                isOpen && "bg-white/5"
+                "flex-1 justify-start h-8 py-1 px-2 hover:bg-muted/50",
+                isOpen && "bg-muted/30"
               )}
             >
-              <div className="flex items-center gap-3 w-full">
-                <div className={cn(
-                  "h-8 w-8 rounded-lg flex items-center justify-center",
-                  `bg-gradient-to-br ${team.gradient}`
-                )}>
-                  <Icon className="h-4 w-4 text-white" />
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="text-sm font-semibold">{team.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {totalMembers} members · {onlineCount} online
-                  </div>
-                </div>
+              <div className="flex items-center gap-2 w-full">
                 <ChevronDown className={cn(
-                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
-                  isOpen && "rotate-180"
+                  "h-3 w-3 text-muted-foreground transition-transform duration-200",
+                  !isOpen && "-rotate-90"
                 )} />
+                <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">{team.name}</span>
+                <span className="text-[10px] text-muted-foreground/60 ml-auto">{onlineCount} online</span>
               </div>
             </Button>
           </CollapsibleTrigger>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/10"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-muted/50"
             onClick={(e) => {
               e.stopPropagation();
               onChatWithTeam(team.id);
             }}
             title={`Chat with ${team.name}`}
           >
-            <MessageSquare className="h-3.5 w-3.5" />
+            <MessageSquare className="h-3 w-3" />
           </Button>
         </div>
 
         {/* Team Members */}
-        <CollapsibleContent className="space-y-0.5 pl-2">
-          {/* Manager (prominent) */}
-          <div className="mb-1">
-            <TeamMemberCard
-              member={team.manager}
-              team={team}
-              isSelected={selectedMemberId === team.manager.id}
-              onSelect={() => onSelectMember(team.manager.id)}
-            />
-          </div>
+        <CollapsibleContent className="space-y-0.5 pl-3">
+          {/* Manager */}
+          <TeamMemberCard
+            member={team.manager}
+            team={team}
+            isSelected={selectedMemberId === team.manager.id}
+            onSelect={() => onSelectMember(team.manager.id)}
+          />
 
-          {/* Workers (compact list) */}
-          <div className="border-l-2 border-white/10 ml-4 pl-2 space-y-0.5">
-            {team.members.map((member) => (
-              <TeamMemberCard
-                key={member.id}
-                member={member}
-                team={team}
-                isSelected={selectedMemberId === member.id}
-                onSelect={() => onSelectMember(member.id)}
-                compact
-              />
-            ))}
-          </div>
+          {/* Workers */}
+          {team.members.map((member) => (
+            <TeamMemberCard
+              key={member.id}
+              member={member}
+              team={team}
+              isSelected={selectedMemberId === member.id}
+              onSelect={() => onSelectMember(member.id)}
+            />
+          ))}
         </CollapsibleContent>
       </div>
     </Collapsible>
