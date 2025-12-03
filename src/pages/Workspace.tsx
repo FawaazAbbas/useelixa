@@ -184,8 +184,10 @@ const Workspace = () => {
   const [teamMemberMessages, setTeamMemberMessages] = useState<any[]>([]);
   const [selectedTeamGroupId, setSelectedTeamGroupId] = useState<string | null>(null);
   const [teamGroupMessages, setTeamGroupMessages] = useState<any[]>([]);
+  const [sidebarSearch, setSidebarSearch] = useState("");
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const brianMessagesEndRef = useRef<HTMLDivElement>(null);
   
   // Brian chat hook
   const { 
@@ -288,18 +290,28 @@ const Workspace = () => {
   // Scroll to bottom when messages change or chat is selected
   useEffect(() => {
     // Use instant scroll for initial load, smooth for new messages
-    const behavior = messages.length === 0 || brianMessages.length === 0 ? 'auto' : 'smooth';
+    const behavior = messages.length === 0 ? 'auto' : 'smooth';
     messagesEndRef.current?.scrollIntoView({ behavior });
-  }, [messages, selectedChat, brianMessages, showBrian]);
+  }, [messages, selectedChat]);
+
+  // Scroll Brian chat to bottom when messages load or Brian is selected
+  useEffect(() => {
+    if (showBrian && brianMessages.length > 0) {
+      // Use a short delay to ensure DOM has updated
+      setTimeout(() => {
+        brianMessagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 50);
+    }
+  }, [brianMessages, showBrian, brianLoading]);
 
   // Scroll to bottom immediately when selecting a chat
   useEffect(() => {
-    if (selectedChat?.id || showBrian) {
+    if (selectedChat?.id) {
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
       }, 100);
     }
-  }, [selectedChat?.id, showBrian]);
+  }, [selectedChat?.id]);
 
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
@@ -695,14 +707,32 @@ const Workspace = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search conversations..."
+              placeholder="Search teams & chats..."
+              value={sidebarSearch}
+              onChange={(e) => setSidebarSearch(e.target.value)}
               className="pl-9 bg-white/5 border-0 focus:bg-white/10 transition-colors backdrop-blur-sm"
             />
           </div>
         </div>
 
+        {/* AI Talent Pool Link */}
+        <div className="px-2 py-2">
+          <button
+            onClick={() => navigate('/talent-pool')}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 bg-gradient-to-r from-purple-600/20 to-pink-500/20 hover:from-purple-600/40 hover:to-pink-500/40 border border-purple-500/30"
+          >
+            <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-purple-500/30">
+              <Store className="h-4 w-4 text-purple-300" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-white">AI Talent Pool</span>
+              <span className="text-[10px] text-white/60">Browse agents</span>
+            </div>
+          </button>
+        </div>
+
         {/* Brian Section - ALWAYS VISIBLE */}
-        <div className="px-2 py-3">
+        <div className="px-2 py-2">
           <button
             onClick={() => {
               setShowBrian(true);
@@ -747,6 +777,7 @@ const Workspace = () => {
             collapseAll={showBrian}
             selectedTeamGroupId={selectedTeamGroupId}
             onSelectTeamGroup={handleSelectTeamGroup}
+            searchQuery={sidebarSearch}
           />
         </div>
 
@@ -897,6 +928,7 @@ const Workspace = () => {
                     </div>
                   </div>
                 )}
+                <div ref={brianMessagesEndRef} />
               </div>
             </ScrollArea>
 
