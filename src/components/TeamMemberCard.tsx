@@ -28,10 +28,11 @@ export const TeamMemberCard = ({
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-2 px-3 py-1 h-8 rounded transition-colors",
+        "w-full flex items-center gap-2 px-3 py-1 h-8 transition-colors",
         isSelected ? "bg-[hsl(210_17%_96%/0.3)]" : "hover:bg-[hsl(210_17%_96%/0.5)]",
         isIndented && "pl-6"
       )}
+      style={{ borderRadius: 'calc(var(--radius) - 2px)' }}
       onClick={onSelect}
     >
       <div className="relative">
