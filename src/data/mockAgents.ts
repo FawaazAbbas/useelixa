@@ -137,7 +137,7 @@ export const mockAgents: MockAgent[] = [
 
   {
     id: "mock-3",
-    name: "Customer Support Overmind AI",
+    name: "Customer Service Manager",
     description:
       "A superhuman customer experience manager that handles tickets, calls, refunds, returns, sentiment, and operations with flawless precision.",
     rating: 4.9,
