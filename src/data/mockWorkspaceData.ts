@@ -45,13 +45,11 @@ export const mockDirectChats = {
       {
         id: "mm-1",
         content:
-          "Good morning Liam! I'm **Marketing Manager AI**, your full-stack marketing operator. I can optimise paid ads, SEO, email, creative, CRO, and competitor tracking. What do you want to start with today?",
+          "Good morning, Liam. I'm Marketing Manager AI. I can review performance data, optimise campaigns, generate creative direction, and structure your funnel strategy. How would you like to begin today?",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
       },
-
-      // 2
       {
         id: "mm-2",
         content: "Morning. Give me a full performance overview from yesterday.",
@@ -59,18 +57,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 60000).toISOString(),
       },
-
-      // 3
       {
         id: "mm-3",
         content:
-          "Here’s your **Daily Marketing Snapshot**:\n\n### 📊 Paid Ads\n- CPA down 8.4%\n- iPhone 13 campaign ROAS: **3.4**\n- Pixel 7 ads underperformed — recommend pausing\n\n### ✉️ Email\n- Automation flows: **£7.1K**\n- Campaign CTR: **3.3%**\n\n### 🔍 SEO\n- “Best Refurb iPhone Deals” moved from position 12 → **8**\n\n### 🎯 Recommendation\nFocus today: **iPhone 13 funnel revamp**. Want me to build the plan?",
+          "Here is the performance breakdown for the last 24 hours:\n\n**Paid Ads**\n- CPA decreased by 8.4% day-over-day\n- iPhone 13 campaign delivered ROAS of 3.4\n- Pixel 7 campaigns underperformed; recommended to pause\n\n**Email**\n- Automation flows produced £7.1k\n- Campaign click-through rate was 3.3%, marginally above segment baseline\n\n**SEO**\n- ‘Best Refurb iPhone Deals’ moved from position 12 to 8\n\nPrimary opportunity today: improve the iPhone 13 conversion funnel. I can prepare a detailed plan if you want.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 80000).toISOString(),
       },
-
-      // 4
       {
         id: "mm-4",
         content: "Yeah send me the funnel revamp plan.",
@@ -78,18 +72,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 130000).toISOString(),
       },
-
-      // 5
       {
         id: "mm-5",
         content:
-          "Here’s the **iPhone 13 Funnel Upgrade Plan**:\n\n1. New landing page structure\n2. Ad creative refresh (3 variations)\n3. Updated email automation for buyers\n4. TikTok/UGC push\n\nWant me to begin drafting the landing page outline?",
+          "Here is the proposed structure for the iPhone 13 funnel upgrade:\n\n1. Redesign landing page with clearer value hierarchy\n2. Refresh ad creative set to align messaging with performance trends\n3. Update post-purchase and cart abandonment flows for this SKU\n4. Community/UGC push for authenticity\n\nIf approved, I will begin drafting the landing page outline next.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 150000).toISOString(),
       },
-
-      // 6
       {
         id: "mm-6",
         content: "Do it.",
@@ -97,18 +87,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 200000).toISOString(),
       },
-
-      // 7
       {
         id: "mm-7",
         content:
-          "**Landing Page Outline Ready:**\n\n### Hero\n- *“The Smart Way to Buy an iPhone 13”*\n- Warranty badges\n\n### Grades Explained\n- A / B / C sections\n\n### Storage Options\n- Price comparison table\n\n### Reviews + Warranty\n\nShall I generate the full copy?",
+          "The outline is ready:\n\n**Hero Section** — concise value statement, trust indicators\n**Grade Breakdown** — clear distinctions between A, B, and C\n**Storage Comparison** — structured pricing table\n**Warranty + Reviews** — social proof consolidation\n\nI can develop full page copy if you want to move forward.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 230000).toISOString(),
       },
-
-      // 8
       {
         id: "mm-8",
         content: "Yeah generate the copy.",
@@ -116,18 +102,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 290000).toISOString(),
       },
-
-      // 9
       {
         id: "mm-9",
         content:
-          "Copy generated. Here's the top section:\n\n### *“Premium iPhone 13. Refurbished Right.”*\nBetter prices. Better warranty. Better for the planet.\n\nWant the full page exported into sections?",
+          "Copy is drafted. Here is the opening segment:\n\n**“Premium iPhone 13. Refurbished Properly.”**\nConsistent performance, verified quality, and a significantly lower price point.\n\nI can export the full page into structured sections if needed.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 310000).toISOString(),
       },
-
-      // 10
       {
         id: "mm-10",
         content: "Send me the full page in sections.",
@@ -135,18 +117,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 360000).toISOString(),
       },
-
-      // 11
       {
         id: "mm-11",
         content:
-          "Exporting now. Section 1:\n\n### 🔥 Why Upgrade to an iPhone 13?\nPerfect balance of performance, battery life, and price — now even better refurbished.\n\nReady for Section 2?",
+          "Section 1:\n\n**Why the iPhone 13 is the optimal choice**\nBalanced performance, strong battery life, and excellent resale value. This model is currently the most efficient upgrade pathway for the majority of buyers.\n\nReady for Section 2.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 400000).toISOString(),
       },
-
-      // 12
       {
         id: "mm-12",
         content: "Send it.",
@@ -154,18 +132,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 420000).toISOString(),
       },
-
-      // 13
       {
         id: "mm-13",
         content:
-          "Section 2:\n\n### 📦 Grading That Makes Sense\n- **Grade A:** Like new\n- **Grade B:** Excellent value\n- **Grade C:** Best price\n\nWant Section 3?",
+          "Section 2:\n\n**Grading Breakdown**\n- Grade A: Near-new with minimal cosmetic variance\n- Grade B: Excellent condition with minor signs of use\n- Grade C: Best budget option while maintaining core performance\n\nReady for Section 3.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 450000).toISOString(),
       },
-
-      // 14
       {
         id: "mm-14",
         content: "Yes.",
@@ -173,18 +147,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 470000).toISOString(),
       },
-
-      // 15
       {
         id: "mm-15",
         content:
-          "Section 3:\n\n### 🔋 Battery Health Guarantee\nEvery iPhone 13 ships with **88%+ battery**, or it's replaced.\n\nSection 4 ready?",
+          "Section 3:\n\n**Battery Health Guarantee**\nAll iPhone 13 units ship with a minimum of 88% battery health. Units failing this threshold undergo replacement prior to listing.\n\nSection 4 is ready.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 495000).toISOString(),
       },
-
-      // 16
       {
         id: "mm-16",
         content: "Send it.",
@@ -192,18 +162,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 520000).toISOString(),
       },
-
-      // 17
       {
         id: "mm-17",
         content:
-          "Section 4:\n\n### 💬 Real Reviews\nShowcase recent 5-star reviews specifically mentioning iPhone 13 performance.\n\nSection 5?",
+          "Section 4:\n\n**Customer Feedback Consolidation**\nHighlight recent high-quality reviews specifically addressing the iPhone 13’s battery performance, camera quality, and physical condition.\n\nSection 5 available.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 550000).toISOString(),
       },
-
-      // 18
       {
         id: "mm-18",
         content: "Yeah go on.",
@@ -211,18 +177,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 580000).toISOString(),
       },
-
-      // 19
       {
         id: "mm-19",
         content:
-          "Section 5:\n\n### 🛡️ 12-Month Baduss Warranty\nBuy refurbished with total confidence.\n\nWant the summary footer?",
+          "Section 5:\n\n**12-Month Warranty Commitment**\nPosition the warranty as a differentiator — fewer competitors match a full-year guarantee on refurbished hardware.\n\nI can complete the final summary section next.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 610000).toISOString(),
       },
-
-      // 20
       {
         id: "mm-20",
         content: "Yes finish it.",
@@ -230,18 +192,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 640000).toISOString(),
       },
-
-      // 21
       {
         id: "mm-21",
         content:
-          "Final section:\n\n### 🎉 Ready to Upgrade?\nChoose your grade, pick your storage, and enjoy premium tech for less.\n\nLanding page complete. Want me to generate the full Figma layout next?",
+          "Final Section:\n\n**Final Action Step**\nEncourage buyers to select grade and storage based on their intended usage patterns. Reinforce warranty, inspection, and battery health as core value propositions.\n\nLanding page structure is complete. I can begin drafting Figma-ready layouts when required.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 670000).toISOString(),
       },
-
-      // 22
       {
         id: "mm-22",
         content: "Not yet. Give me 3 angles for new iPhone 13 ads.",
@@ -249,18 +207,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 700000).toISOString(),
       },
-
-      // 23
       {
         id: "mm-23",
         content:
-          "Here are **3 new ad angles**:\n\n### 1️⃣ Price First\n*“Why pay £779? Get the same performance for £389.”*\n\n### 2️⃣ Performance\n*“Looks new. Works like new. Costs way less.”*\n\n### 3️⃣ Sustainability\n*“One iPhone saved = 82kg less CO₂.”*\n\nWant scripts or static concepts?",
+          "Three strategic angles based on current consumer behaviour:\n\n**1. Cost Efficiency** — Emphasise value relative to new retail pricing.\n**2. Performance Parity** — Demonstrate functional equivalence with new units.\n**3. Sustainability** — Focus on reduced environmental impact from refurbishment.\n\nI can expand these into scripts or static creative concepts.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 735000).toISOString(),
       },
-
-      // 24
       {
         id: "mm-24",
         content: "Give me scripts.",
@@ -268,18 +222,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 760000).toISOString(),
       },
-
-      // 25
       {
         id: "mm-25",
         content:
-          "**3 TikTok/UGC Scripts:**\n\n### Script A — Price Reveal\nQuick unboxing → Battery health → Price reveal → Warranty badge.\n\n### Script B — Side-by-Side\nNew vs Refurb side comparison → “Spot the difference?” → Savings.\n\n### Script C — Founder Trust\nFounder explaining refurb guarantees + trust signals.\n\nWhich one should I prioritise producing visuals for?",
+          "Drafting three short-form script structures:\n\n**Script A — Cost Breakdown**\nShow real pricing vs new retail, emphasise quality checks.\n\n**Script B — Side-by-Side Comparison**\nDemonstrate negligible visible difference between refurb and new.\n\n**Script C — Trust and Process Transparency**\nExplain refurbishment steps, testing, and warranty in a concise sequence.\n\nWhich script should I prioritise for visual assembly?",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 785000).toISOString(),
       },
-
-      // 26
       {
         id: "mm-26",
         content: "Do Script B first.",
@@ -287,18 +237,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 810000).toISOString(),
       },
-
-      // 27
       {
         id: "mm-27",
         content:
-          "On it. I’ll prepare:\n- Shot list\n- Captions\n- Hook variations\n- CTA overlays\n\nExpect visuals ready in ~20 minutes. Want me to also generate ad copy variations?",
+          "Understood. I’ll prepare the shot list, caption variations, and on-screen messaging for Script B. Expected completion shortly. Do you want accompanying headline and body copy variants as well?",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 840000).toISOString(),
       },
-
-      // 28
       {
         id: "mm-28",
         content: "Yeah give me copy too.",
@@ -306,18 +252,14 @@ export const mockDirectChats = {
         agent_id: null,
         created_at: new Date(Date.now() - 3600000 * 3 + 870000).toISOString(),
       },
-
-      // 29
       {
         id: "mm-29",
         content:
-          "**Copy Variations:**\n\n### Hook\n- “Why buy new?”\n- “Same performance. Half the price.”\n- “Refurbished done right.”\n\n### Body\n- Quality-checked, warranty-backed, sustainably sourced.\n- Battery health guaranteed.\n\n### CTA\n- Shop Smart\n- Upgrade for Less\n\nNeed anything else for this campaign?",
+          "Copy variations are ready:\n\n**Headline Options**\n- ‘Why buy new?’\n- ‘Same performance. Lower cost.’\n- ‘Refurbished done properly.’\n\n**Body Options**\n- Quality-checked, warranty-backed, and ready for immediate dispatch.\n- Battery health guaranteed on every device.\n\n**CTA Options**\n- Shop Smart\n- Compare Grades\n- Upgrade for Less\n\nInform me if you want more variants.",
         user_id: null,
         agent_id: "mock-1",
         created_at: new Date(Date.now() - 3600000 * 3 + 900000).toISOString(),
       },
-
-      // 30
       {
         id: "mm-30",
         content: "That’s good. Start assembling everything.",
