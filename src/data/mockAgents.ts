@@ -90,7 +90,7 @@ export const mockAgents: MockAgent[] = [
       "Inventory Forecasting",
       "Product Description Enhancements",
     ],
-    gradient: "from-blue-600 to-cyan-500",
+    gradient: "from-purple-500 to-pink-600",
     staffPick: true,
     trendingRank: 4,
     screenshots: [
