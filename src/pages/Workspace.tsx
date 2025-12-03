@@ -713,12 +713,12 @@ const Workspace = () => {
               setSelectedTeamMemberId(null);
               setSelectedTeamGroupId(null);
             }}
-            className={`w-full flex items-center gap-2 transition-colors ${
+            className={`w-full flex items-center gap-2 px-3 py-1 h-8 transition-colors ${
               showBrian 
                 ? "bg-primary" 
                 : "hover:bg-primary/80"
             }`}
-            style={{ borderRadius: 'calc(var(--radius) - 2px)', border: '2px solid white', padding: '1.5em 0.5em' }}
+            style={{ borderRadius: 'calc(var(--radius) - 2px)' }}
           >
             <Avatar className="h-5 w-5 bg-gradient-to-br from-purple-600 to-blue-500">
               <AvatarFallback className="text-white text-[10px] font-bold">B</AvatarFallback>
