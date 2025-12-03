@@ -711,22 +711,22 @@ const Workspace = () => {
             }}
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${
               showBrian 
-                ? "bg-gradient-to-r from-purple-600 to-violet-500 shadow-lg shadow-purple-500/30" 
-                : "bg-gradient-to-r from-purple-600/20 to-violet-500/20 hover:from-purple-600/40 hover:to-violet-500/40 border border-purple-500/30"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-500 shadow-lg shadow-blue-500/30" 
+                : "bg-gradient-to-r from-blue-600/20 to-cyan-500/20 hover:from-blue-600/40 hover:to-cyan-500/40 border border-blue-500/30"
             }`}
           >
             <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
               showBrian 
                 ? "bg-white/20" 
-                : "bg-purple-500/30"
+                : "bg-blue-500/30"
             }`}>
-              <Bot className="h-5 w-5 text-purple-300" />
+              <Bot className="h-5 w-5 text-blue-300" />
             </div>
             <div className="flex flex-col items-start">
               <span className="text-sm font-semibold text-white">Brian</span>
               <span className="text-[10px] text-white/60">AI COO</span>
             </div>
-            <Sparkles className="h-4 w-4 text-purple-300 ml-auto" />
+            <Sparkles className="h-4 w-4 text-blue-300 ml-auto" />
           </button>
         </div>
 
