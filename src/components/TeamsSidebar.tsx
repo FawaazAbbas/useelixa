@@ -1,16 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { mockTeams, Team } from "@/data/mockTeams";
+import { mockTeams } from "@/data/mockTeams";
 import { TeamSection } from "./TeamSection";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send, Bot, Users } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface TeamsSidebarProps {
   selectedMemberId: string | null;
   onSelectMember: (memberId: string) => void;
+  collapseAll?: boolean;
 }
 
 interface TeamMessage {
@@ -55,40 +51,72 @@ const mockTeamChatResponses: Record<string, TeamMessage[]> = {
   ],
 };
 
-export const TeamsSidebar = ({ selectedMemberId, onSelectMember }: TeamsSidebarProps) => {
-  const [teamChatOpen, setTeamChatOpen] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [teamMessages, setTeamMessages] = useState<TeamMessage[]>([]);
-  const [teamChatInput, setTeamChatInput] = useState("");
+export const TeamsSidebar = ({ selectedMemberId, onSelectMember, collapseAll }: TeamsSidebarProps) => {
+  const [openTeamIds, setOpenTeamIds] = useState<Set<string>>(new Set([mockTeams[0]?.id]));
+  const [activeTeamChatId, setActiveTeamChatId] = useState<string | null>(null);
+  const [teamMessages, setTeamMessages] = useState<Record<string, TeamMessage[]>>({});
+  const [teamChatInputs, setTeamChatInputs] = useState<Record<string, string>>({});
+
+  // Collapse all teams when collapseAll becomes true
+  useEffect(() => {
+    if (collapseAll) {
+      setOpenTeamIds(new Set());
+      setActiveTeamChatId(null);
+    }
+  }, [collapseAll]);
+
+  const handleToggleTeam = (teamId: string, isOpen: boolean) => {
+    setOpenTeamIds(prev => {
+      const newSet = new Set(prev);
+      if (isOpen) {
+        newSet.add(teamId);
+      } else {
+        newSet.delete(teamId);
+      }
+      return newSet;
+    });
+  };
 
   const handleChatWithTeam = (teamId: string) => {
-    const team = mockTeams.find(t => t.id === teamId);
-    if (team) {
-      setSelectedTeam(team);
-      // Get mock messages based on team id
-      const baseId = teamId.split('-')[0];
-      setTeamMessages(mockTeamChatResponses[baseId] || mockTeamChatResponses["marketing"]);
-      setTeamChatOpen(true);
+    if (activeTeamChatId === teamId) {
+      setActiveTeamChatId(null);
+    } else {
+      setActiveTeamChatId(teamId);
+      // Initialize messages for this team if not already loaded
+      if (!teamMessages[teamId]) {
+        const baseId = teamId.split('-')[0];
+        setTeamMessages(prev => ({
+          ...prev,
+          [teamId]: mockTeamChatResponses[baseId] || mockTeamChatResponses["marketing"]
+        }));
+      }
     }
   };
 
-  const handleSendTeamMessage = () => {
-    if (!teamChatInput.trim() || !selectedTeam) return;
+  const handleSendTeamMessage = (teamId: string) => {
+    const input = teamChatInputs[teamId]?.trim();
+    if (!input) return;
+    
+    const team = mockTeams.find(t => t.id === teamId);
+    if (!team) return;
     
     const newMessage: TeamMessage = {
       id: Date.now().toString(),
       sender: "You",
-      content: teamChatInput,
+      content: input,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isUser: true,
     };
     
-    setTeamMessages(prev => [...prev, newMessage]);
-    setTeamChatInput("");
+    setTeamMessages(prev => ({
+      ...prev,
+      [teamId]: [...(prev[teamId] || []), newMessage]
+    }));
+    setTeamChatInputs(prev => ({ ...prev, [teamId]: "" }));
 
     // Simulate team response
     setTimeout(() => {
-      const responder = selectedTeam.manager;
+      const responder = team.manager;
       const response: TeamMessage = {
         id: (Date.now() + 1).toString(),
         sender: responder.name,
@@ -97,96 +125,33 @@ export const TeamsSidebar = ({ selectedMemberId, onSelectMember }: TeamsSidebarP
         isUser: false,
         isManager: true,
       };
-      setTeamMessages(prev => [...prev, response]);
+      setTeamMessages(prev => ({
+        ...prev,
+        [teamId]: [...(prev[teamId] || []), response]
+      }));
     }, 1000);
   };
 
   return (
-    <>
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {mockTeams.map((team, index) => (
-            <TeamSection
-              key={team.id}
-              team={team}
-              selectedMemberId={selectedMemberId}
-              onSelectMember={onSelectMember}
-              onChatWithTeam={handleChatWithTeam}
-              defaultOpen={index === 0}
-            />
-          ))}
-        </div>
-      </ScrollArea>
-
-      {/* Team Group Chat Dialog */}
-      <Dialog open={teamChatOpen} onOpenChange={setTeamChatOpen}>
-        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0">
-          <DialogHeader className="px-4 py-3 border-b">
-            <DialogTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              {selectedTeam?.name}
-              <span className="text-xs text-muted-foreground font-normal">
-                ({(selectedTeam?.members.length || 0) + 1} members)
-              </span>
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {teamMessages.map((msg) => (
-              <div
-                key={msg.id}
-                className={cn(
-                  "flex gap-2",
-                  msg.isUser && "flex-row-reverse"
-                )}
-              >
-                {!msg.isUser && (
-                  <div className="flex-shrink-0">
-                    <Bot className={cn(
-                      "h-6 w-6",
-                      msg.isManager ? "text-blue-500" : "text-orange-500"
-                    )} />
-                  </div>
-                )}
-                <div className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-2",
-                  msg.isUser 
-                    ? "bg-primary text-primary-foreground" 
-                    : "bg-muted"
-                )}>
-                  {!msg.isUser && (
-                    <p className="text-xs font-medium text-muted-foreground mb-1">
-                      {msg.sender}
-                    </p>
-                  )}
-                  <p className="text-sm">{msg.content}</p>
-                  <p className={cn(
-                    "text-[10px] mt-1",
-                    msg.isUser ? "text-primary-foreground/70" : "text-muted-foreground"
-                  )}>
-                    {msg.timestamp}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t p-4">
-            <div className="flex gap-2">
-              <Input
-                value={teamChatInput}
-                onChange={(e) => setTeamChatInput(e.target.value)}
-                placeholder={`Message ${selectedTeam?.name}...`}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendTeamMessage()}
-                className="flex-1"
-              />
-              <Button onClick={handleSendTeamMessage} size="icon">
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <ScrollArea className="flex-1">
+      <div className="p-2 space-y-1">
+        {mockTeams.map((team) => (
+          <TeamSection
+            key={team.id}
+            team={team}
+            selectedMemberId={selectedMemberId}
+            onSelectMember={onSelectMember}
+            onChatWithTeam={handleChatWithTeam}
+            isOpen={openTeamIds.has(team.id)}
+            onOpenChange={(isOpen) => handleToggleTeam(team.id, isOpen)}
+            showGroupChat={activeTeamChatId === team.id}
+            groupChatMessages={teamMessages[team.id] || []}
+            groupChatInput={teamChatInputs[team.id] || ""}
+            onGroupChatInputChange={(value) => setTeamChatInputs(prev => ({ ...prev, [team.id]: value }))}
+            onSendGroupMessage={() => handleSendTeamMessage(team.id)}
+          />
+        ))}
+      </div>
+    </ScrollArea>
   );
 };
