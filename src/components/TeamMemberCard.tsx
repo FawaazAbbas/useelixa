@@ -28,8 +28,8 @@ export const TeamMemberCard = ({
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-2 px-3 py-1.5 rounded hover:bg-muted/50 transition-colors",
-        isSelected && "bg-muted/30",
+        "w-full flex items-center gap-2 px-3 py-1.5 rounded hover:bg-[hsl(210_17%_96%/0.5)] transition-colors",
+        isSelected && "bg-[hsl(210_17%_96%/0.3)]",
         isIndented && "pl-6"
       )}
       onClick={onSelect}
