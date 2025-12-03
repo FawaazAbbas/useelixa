@@ -73,34 +73,50 @@ export const mockAgents: MockAgent[] = [
   },
   {
     id: "mock-2",
-    name: "Content Creator AI",
-    description: "Generate engaging content for blogs, social media, and marketing campaigns",
-    rating: 4.8,
-    total_reviews: 892,
-    total_installs: 6234,
-    category: "Marketing",
-    image_url: "/elixa-logo.png",
-    featured: true,
-    badge: "AI-Powered",
-    capabilities: ["Blog Posts", "Social Media", "SEO Optimization", "Brand Voice"],
-    gradient: "from-purple-500 to-pink-600",
-    staffPick: true,
-    trendingRank: 2,
-    screenshots: [
-      "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&h=600&fit=crop",
-    ],
-    changelog: [
-      {
-        version: "1.5.0",
-        date: "2024-01-18",
-        changes: ["Added SEO optimization", "Improved content quality", "New brand voice learning"],
-      },
-    ],
-    publisher: { name: "ELIXA Team", avatar: "ET", verified: true },
-    relatedAgentIds: ["mock-5", "mock-6", "mock-1"],
-    lastUpdated: "2024-01-18",
+    name: "Product & Pricing Manager AI",
+  description: "Automate product catalog management, competitive pricing, and SKU profitability analysis.",
+  rating: 4.9,
+  total_reviews: 1043,
+  total_installs: 7120,
+  category: "Ecommerce",
+  image_url: "/elixa-logo.png",
+  featured: true,
+  badge: "AI-Powered",
+  capabilities: [
+    "Dynamic Pricing",
+    "Competitor Scanning",
+    "Catalog Optimization",
+    "SKU Profitability Analysis",
+    "Inventory Forecasting",
+    "Product Description Enhancements",
+  ],
+  gradient: "from-blue-600 to-cyan-500",
+  staffPick: true,
+  trendingRank: 4,
+  screenshots: [
+    "https://images.unsplash.com/photo-1556745757-8d76bdb6984b?w=800&h=600&fit=crop",
+    "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&h=600&fit=crop"
+  ],
+  changelog: [
+    {
+      version: "2.1.0",
+      date: "2024-11-28",
+      changes: [
+        "Improved competitor price matching",
+        "New SKU margin analyzer",
+        "Faster catalog cleanup engine",
+        "New inventory forecasting model"
+      ],
+    },
+  ],
+  publisher: { 
+    name: "ELIXA Team", 
+    avatar: "ET", 
+    verified: true 
   },
+  relatedAgentIds: ["mock-1", "mock-6", "mock-7"],
+  lastUpdated: "2024-11-28",
+}
   {
     id: "mock-3",
     name: "Data Analyst Pro",
