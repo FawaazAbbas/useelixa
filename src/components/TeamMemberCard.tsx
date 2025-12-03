@@ -22,7 +22,6 @@ export const TeamMemberCard = ({
 
   // Blue for managers (HEAD), orange for workers
   const iconColor = member.isManager ? "text-blue-500" : "text-orange-500";
-  const bgColor = member.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
 
   return (
     <button
@@ -33,15 +32,13 @@ export const TeamMemberCard = ({
       onClick={onSelect}
     >
       <div className="relative">
-        <div className={cn("h-6 w-6 rounded-full flex items-center justify-center", bgColor)}>
-          <Bot className={cn("h-3.5 w-3.5", iconColor)} />
-        </div>
+        <Bot className={cn("h-4 w-4", iconColor)} />
         <div className={cn(
-          "absolute bottom-0 right-0 h-2 w-2 rounded-full border border-background",
+          "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background",
           statusColors[member.status]
         )} />
       </div>
-      <span className="text-sm truncate text-foreground">{member.name}</span>
+      <span className="text-sm truncate text-white">{member.name}</span>
       {member.isManager && (
         <span className="text-[9px] px-1 py-0.5 rounded bg-blue-500/20 text-blue-500 font-medium ml-auto">
           HEAD

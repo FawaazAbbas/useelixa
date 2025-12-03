@@ -54,7 +54,7 @@ export const TeamSection = ({
                   !isOpen && "-rotate-90"
                 )} />
                 <Icon className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">{team.name}</span>
+                <span className="text-xs font-medium text-white">{team.name}</span>
                 <span className="text-[10px] text-muted-foreground/60 ml-auto">{onlineCount} online</span>
               </div>
             </Button>
@@ -74,7 +74,7 @@ export const TeamSection = ({
         </div>
 
         {/* Team Members */}
-        <CollapsibleContent className="space-y-0.5 pl-3">
+        <CollapsibleContent className="space-y-0.5">
           {/* Manager */}
           <TeamMemberCard
             member={team.manager}
