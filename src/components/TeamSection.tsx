@@ -1,42 +1,51 @@
-import { useState } from "react";
-import { ChevronDown, Users, MessageSquare, Megaphone, Package, Headphones, DollarSign, Code, Palette, Shield } from "lucide-react";
+import { ChevronDown, MessageSquare, Send, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { Team, getTeamOnlineCount } from "@/data/mockTeams";
 import { TeamMemberCard } from "./TeamMemberCard";
+
+interface TeamMessage {
+  id: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+  isUser: boolean;
+  isManager?: boolean;
+}
 
 interface TeamSectionProps {
   team: Team;
   selectedMemberId: string | null;
   onSelectMember: (memberId: string) => void;
   onChatWithTeam: (teamId: string) => void;
-  defaultOpen?: boolean;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  showGroupChat: boolean;
+  groupChatMessages: TeamMessage[];
+  groupChatInput: string;
+  onGroupChatInputChange: (value: string) => void;
+  onSendGroupMessage: () => void;
 }
-
-const iconMap: Record<string, any> = {
-  Megaphone,
-  Package,
-  Headphones,
-  DollarSign,
-  Code,
-  Palette,
-  Shield
-};
 
 export const TeamSection = ({
   team,
   selectedMemberId,
   onSelectMember,
   onChatWithTeam,
-  defaultOpen = false
+  isOpen,
+  onOpenChange,
+  showGroupChat,
+  groupChatMessages,
+  groupChatInput,
+  onGroupChatInputChange,
+  onSendGroupMessage,
 }: TeamSectionProps) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  const Icon = iconMap[team.icon] || Users;
   const onlineCount = getTeamOnlineCount(team);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={onOpenChange}>
       <div className="space-y-0.5">
         {/* Team Header */}
         <div className="flex items-center gap-1 group">
@@ -74,6 +83,55 @@ export const TeamSection = ({
 
         {/* Team Members */}
         <CollapsibleContent className="space-y-0.5">
+          {/* Group Chat Section */}
+          {showGroupChat && (
+            <div className="mx-2 mb-2 mt-1 bg-muted/30 rounded-lg overflow-hidden">
+              <div className="max-h-48 overflow-y-auto p-2 space-y-2">
+                {groupChatMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      "flex gap-2",
+                      msg.isUser && "flex-row-reverse"
+                    )}
+                  >
+                    {!msg.isUser && (
+                      <Bot className={cn(
+                        "h-4 w-4 flex-shrink-0",
+                        msg.isManager ? "text-blue-500" : "text-orange-500"
+                      )} />
+                    )}
+                    <div className={cn(
+                      "max-w-[85%] rounded-lg px-2 py-1",
+                      msg.isUser 
+                        ? "bg-primary text-primary-foreground" 
+                        : "bg-background/50"
+                    )}>
+                      {!msg.isUser && (
+                        <p className="text-[10px] font-medium text-muted-foreground">
+                          {msg.sender}
+                        </p>
+                      )}
+                      <p className="text-xs">{msg.content}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-border/50 p-2 flex gap-1">
+                <Input
+                  value={groupChatInput}
+                  onChange={(e) => onGroupChatInputChange(e.target.value)}
+                  placeholder="Message team..."
+                  onKeyDown={(e) => e.key === 'Enter' && onSendGroupMessage()}
+                  className="flex-1 h-7 text-xs"
+                />
+                <Button onClick={onSendGroupMessage} size="icon" className="h-7 w-7">
+                  <Send className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Manager */}
           <TeamMemberCard
             member={team.manager}
