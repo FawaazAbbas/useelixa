@@ -722,19 +722,17 @@ const Workspace = () => {
               setSelectedChat(null);
               setSelectedTeamMemberId(null);
             }}
-            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors ${
+            className={`w-full flex items-center gap-2 px-3 py-1 h-8 rounded transition-colors ${
               showBrian 
-                ? "bg-primary text-primary-foreground" 
-                : "hover:bg-muted/50"
+                ? "bg-primary" 
+                : "hover:bg-primary/80"
             }`}
           >
-            <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500">
-              <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
+            <Avatar className="h-5 w-5 bg-gradient-to-br from-purple-600 to-blue-500">
+              <AvatarFallback className="text-white text-[10px] font-bold">B</AvatarFallback>
             </Avatar>
-            <div className="flex-1 text-left">
-              <div className="text-sm font-medium text-white">Brian</div>
-              <div className={`text-xs ${showBrian ? "text-white/70" : "text-muted-foreground"}`}>Your AI COO</div>
-            </div>
+            <span className="text-[0.85rem] font-medium text-white">Brian</span>
+            <span className="text-[10px] text-white/60 ml-auto">AI COO</span>
           </button>
         </div>
 
