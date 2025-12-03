@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Users, Plug, BookOpen, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -44,20 +44,10 @@ export const MainNavSidebar = () => {
 
   return (
     <div className="h-screen w-20 bg-background border-r border-border flex flex-col items-center py-6 gap-6">
-      {/* Logo - Links to AI Talent Pool */}
-      <NavLink
-        to="/talent-pool"
-        className="h-10 w-auto flex-shrink-0 transition-all duration-300 hover:scale-110 hover:rotate-6 cursor-pointer group relative"
-        style={{ position: 'relative', zIndex: 50 }}
-      >
+      {/* Logo */}
+      <div className="h-10 w-auto flex-shrink-0 transition-all duration-300 hover:scale-110 hover:rotate-6 cursor-pointer">
         <img src="/elixa-logo.png" alt="ELIXA" className="w-full h-full object-contain drop-shadow-lg hover:drop-shadow-2xl transition-all duration-300" />
-        <span 
-          className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-lg border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 ease-out whitespace-nowrap" 
-          style={{ zIndex: 999999, position: 'absolute' }}
-        >
-          AI Talent Pool
-        </span>
-      </NavLink>
+      </div>
 
       {/* Navigation Items */}
       <nav className="flex flex-col gap-2 flex-1" style={{ position: 'relative', zIndex: 50 }}>
@@ -80,9 +70,23 @@ export const MainNavSidebar = () => {
         ))}
       </nav>
 
-      {/* Separator before user profile */}
-      <div className="w-full px-2">
-        <div className="h-px bg-border" />
+      {/* AI Talent Pool - Separated */}
+      <div className="w-full px-2" style={{ position: 'relative', zIndex: 50 }}>
+        <div className="h-px bg-border mb-4" />
+        <NavLink
+          to="/talent-pool"
+          className="group relative flex items-center justify-center p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 w-full"
+          activeClassName="bg-accent active"
+          style={{ position: 'relative', zIndex: 50 }}
+        >
+          <Users className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
+          <span 
+            className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-lg border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 ease-out whitespace-nowrap" 
+            style={{ zIndex: 999999, position: 'absolute' }}
+          >
+            AI Talent Pool
+          </span>
+        </NavLink>
       </div>
 
       {/* User Profile */}
