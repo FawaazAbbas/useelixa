@@ -701,11 +701,7 @@ const Workspace = () => {
         </div>
 
         {/* Brian Section - ALWAYS VISIBLE */}
-        <div className="px-2 py-2">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1 px-1">
-            <Sparkles className="h-3 w-3" />
-            Brian
-          </h3>
+        <div className="px-2 py-3">
           <button
             onClick={() => {
               setShowBrian(true);
@@ -713,22 +709,24 @@ const Workspace = () => {
               setSelectedTeamMemberId(null);
               setSelectedTeamGroupId(null);
             }}
-            className={`w-full flex items-center gap-2 transition-colors ${
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${
               showBrian 
-                ? "bg-primary" 
-                : "hover:bg-primary/80"
+                ? "bg-gradient-to-r from-purple-600 to-violet-500 shadow-lg shadow-purple-500/30" 
+                : "bg-gradient-to-r from-purple-600/20 to-violet-500/20 hover:from-purple-600/40 hover:to-violet-500/40 border border-purple-500/30"
             }`}
-            style={{ 
-              borderRadius: 'calc(var(--radius) - 2px)',
-              border: '3px solid hsl(var(--muted-foreground))',
-              padding: '1em 0.5em'
-            }}
           >
-            <Avatar className="h-5 w-5 bg-gradient-to-br from-purple-600 to-blue-500">
-              <AvatarFallback className="text-white text-[10px] font-bold">B</AvatarFallback>
-            </Avatar>
-            <span className="text-[0.85rem] font-medium text-white">Brian</span>
-            <span className="text-[10px] text-white/60 ml-auto">AI COO</span>
+            <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
+              showBrian 
+                ? "bg-white/20" 
+                : "bg-purple-500/30"
+            }`}>
+              <Bot className="h-5 w-5 text-purple-300" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-white">Brian</span>
+              <span className="text-[10px] text-white/60">AI COO</span>
+            </div>
+            <Sparkles className="h-4 w-4 text-purple-300 ml-auto" />
           </button>
         </div>
 
