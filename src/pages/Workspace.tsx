@@ -40,6 +40,7 @@ import { GroupParticipantsDialog } from "@/components/GroupParticipantsDialog";
 import { DemoBanner } from "@/components/DemoBanner";
 import { TeamsSidebar } from "@/components/TeamsSidebar";
 import { getTeamMemberById, mockTeams, getTeamOnlineCount } from "@/data/mockTeams";
+import { AddAgentToWorkspaceDialog } from "@/components/AddAgentToWorkspaceDialog";
 import { mockTeamMemberMessages, mockTeamGroupMessages } from "@/data/mockTeamMessages";
 import { getTeamGroupData, getFileIcon, formatRelativeTime } from "@/data/mockTeamGroupData";
 import {
@@ -185,6 +186,7 @@ const Workspace = () => {
   const [selectedTeamGroupId, setSelectedTeamGroupId] = useState<string | null>(null);
   const [teamGroupMessages, setTeamGroupMessages] = useState<any[]>([]);
   const [sidebarSearch, setSidebarSearch] = useState("");
+  const [showAddAgentDialog, setShowAddAgentDialog] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const brianMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -749,11 +751,20 @@ const Workspace = () => {
 
         {/* Teams Section */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 py-2">
+          <div className="px-4 py-2 flex items-center justify-between">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
               <Users className="h-3.5 w-3.5" />
               Teams
             </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAddAgentDialog(true)}
+              className="h-7 px-2 text-xs text-slate-400 hover:text-slate-100 hover:bg-slate-700/50"
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" />
+              Add Agent
+            </Button>
           </div>
           <TeamsSidebar
             selectedMemberId={selectedTeamMemberId}
@@ -2415,6 +2426,12 @@ const Workspace = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Add Agent Dialog */}
+      <AddAgentToWorkspaceDialog
+        open={showAddAgentDialog}
+        onOpenChange={setShowAddAgentDialog}
+      />
       </div>
     </div>
   );
