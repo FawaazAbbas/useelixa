@@ -272,7 +272,7 @@ export default function KnowledgeBase() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-60 min-w-60 max-w-60 border-r bg-card/50 backdrop-blur-sm">
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0">
           <div className="p-3 border-b">
             <Button 
               className="w-full h-9 gap-2" 

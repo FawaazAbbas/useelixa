@@ -256,7 +256,7 @@ export default function Connections() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-60 min-w-60 max-w-60 border-r bg-card/50 backdrop-blur-sm">
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0">
           <ScrollArea className="flex-1 w-full">
             <div className="py-3 pl-3 pr-4 w-full max-w-full overflow-hidden">
               {/* Status Filters */}
