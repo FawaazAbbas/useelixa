@@ -15,6 +15,7 @@ import { TaskCreationModeDialog } from "@/components/TaskCreationModeDialog";
 import { BrianChatDialog } from "@/components/BrianChatDialog";
 import { ManualTaskDialog } from "@/components/ManualTaskDialog";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
+import { SidebarActionButton } from "@/components/SidebarActionButton";
 import { mockTasks, MockTask } from "@/data/mockTasks";
 import { cn } from "@/lib/utils";
 import {
@@ -498,14 +499,9 @@ const Tasks = () => {
             <ScrollArea className="flex-1">
               {/* Create Button */}
               <div className="p-4">
-                <Button 
-                  onClick={() => setShowCreationModeDialog(true)} 
-                  className="w-full gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
-                  size="lg"
-                >
-                  <Plus className="h-5 w-5" />
+                <SidebarActionButton onClick={() => setShowCreationModeDialog(true)} icon={Plus}>
                   New Task
-                </Button>
+                </SidebarActionButton>
               </div>
 
               {/* Quick Filters */}
