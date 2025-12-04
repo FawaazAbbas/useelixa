@@ -28,21 +28,21 @@ export const TeamMemberCard = ({
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-2 px-3 py-1 h-8 transition-colors",
-        isSelected ? "bg-[hsl(210_17%_96%/0.3)]" : "hover:bg-[hsl(210_17%_96%/0.5)]",
-        isIndented && "pl-6"
+        "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md mx-1",
+        isSelected ? "bg-slate-700/70" : "hover:bg-slate-800/70",
+        isIndented && "pl-7"
       )}
-      style={{ borderRadius: 'calc(var(--radius) - 2px)' }}
+      style={{ width: 'calc(100% - 8px)' }}
       onClick={onSelect}
     >
       <div className="relative">
         <Bot className={cn("h-4 w-4", iconColor)} />
         <div className={cn(
-          "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-background",
+          "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-slate-900",
           statusColors[member.status]
         )} />
       </div>
-      <span className="text-[0.75rem] truncate text-white">{member.name}</span>
+      <span className="text-[13px] truncate text-slate-300">{member.name}</span>
     </button>
   );
 };

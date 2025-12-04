@@ -80,7 +80,7 @@ export const TeamsSidebar = ({
           />
         ))}
         {filteredTeams.length === 0 && searchQuery.trim() && (
-          <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+          <div className="px-4 py-6 text-center text-sm text-slate-500">
             No teams or agents found
           </div>
         )}
