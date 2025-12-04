@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
-import { CheckSquare, Plus, Trash2, Zap, Search, Filter, Calendar } from "lucide-react";
+import { useState } from "react";
+import { CheckSquare, Plus, Trash2, Zap, Search, Filter, Calendar, ChevronLeft, ChevronRight, List, LayoutGrid, Clock } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
+import { format, isToday, isTomorrow, isPast, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/EmptyState";
 import { DemoBanner } from "@/components/DemoBanner";
@@ -16,6 +17,7 @@ import { BrianChatDialog } from "@/components/BrianChatDialog";
 import { ManualTaskDialog } from "@/components/ManualTaskDialog";
 import { TaskDetailDialog } from "@/components/TaskDetailDialog";
 import { mockTasks, MockTask } from "@/data/mockTasks";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +34,8 @@ const Tasks = () => {
   const [tasks, setTasks] = useState<MockTask[]>(mockTasks);
   const [swipedTaskId, setSwipedTaskId] = useState<string | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<"list" | "board">("list");
   
   // Dialog states
   const [showCreationModeDialog, setShowCreationModeDialog] = useState(false);
@@ -45,7 +49,6 @@ const Tasks = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("created_at");
-  const [activeTab, setActiveTab] = useState<string>("all");
 
   const toggleTaskComplete = (taskId: string, currentStatus: string | null) => {
     setTasks(tasks.map(task => 
@@ -74,14 +77,10 @@ const Tasks = () => {
 
   const getPriorityBadgeColor = (priority: string | null) => {
     switch (priority) {
-      case "high":
-        return "destructive";
-      case "medium":
-        return "default";
-      case "low":
-        return "secondary";
-      default:
-        return "outline";
+      case "high": return "destructive";
+      case "medium": return "default";
+      case "low": return "secondary";
+      default: return "outline";
     }
   };
 
@@ -109,25 +108,91 @@ const Tasks = () => {
 
   const filterTasks = (tasksToFilter: MockTask[]) => {
     return tasksToFilter.filter(task => {
-      // Search filter
       const matchesSearch = searchQuery === "" || 
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      // Status filter
       const matchesStatus = statusFilter === "all" || task.status === statusFilter;
-
-      // Priority filter
       const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
-
-      // Tab filter
-      let matchesTab = true;
-      if (activeTab === "active") matchesTab = task.status === "pending";
-      else if (activeTab === "completed") matchesTab = task.status === "completed";
-      else if (activeTab === "asap") matchesTab = task.is_asap === true;
-
-      return matchesSearch && matchesStatus && matchesPriority && matchesTab;
+      return matchesSearch && matchesStatus && matchesPriority;
     });
+  };
+
+  const getTasksForDay = (day: Date) => {
+    return tasks.filter((task) => task.due_date && isSameDay(new Date(task.due_date), day));
+  };
+
+  const getUpcomingTasks = () => {
+    return [...tasks]
+      .filter(task => task.status === "pending" && task.due_date)
+      .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
+      .slice(0, 5);
+  };
+
+  const getTaskStats = () => {
+    const total = tasks.length;
+    const pending = tasks.filter(t => t.status === "pending").length;
+    const completed = tasks.filter(t => t.status === "completed").length;
+    const asap = tasks.filter(t => t.is_asap).length;
+    const overdue = tasks.filter(t => t.status === "pending" && t.due_date && isPast(new Date(t.due_date))).length;
+    return { total, pending, completed, asap, overdue };
+  };
+
+  const stats = getTaskStats();
+
+  // Mini Calendar Component
+  const MiniCalendar = () => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const firstDayOfMonth = monthStart.getDay();
+    const paddingDays = Array.from({ length: firstDayOfMonth }, () => null);
+    const allDays = [...paddingDays, ...monthDays];
+
+    return (
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-semibold">{format(currentDate, "MMMM yyyy")}</span>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+              <ChevronLeft className="h-3 w-3" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+              <ChevronRight className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-7 gap-0.5 mb-1">
+          {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
+            <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">{day}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {allDays.map((day, index) => {
+            if (!day) return <div key={`empty-${index}`} className="h-7" />;
+            const dayIsToday = isToday(day);
+            const dayIsSelected = isSameDay(day, currentDate);
+            const hasTasks = getTasksForDay(day).length > 0;
+
+            return (
+              <button
+                key={day.toISOString()}
+                onClick={() => setCurrentDate(day)}
+                className={cn(
+                  "h-7 w-7 rounded-full text-xs flex items-center justify-center relative transition-all hover:bg-accent",
+                  dayIsSelected && "bg-primary text-primary-foreground hover:bg-primary",
+                  dayIsToday && !dayIsSelected && "bg-primary/20 text-primary font-bold"
+                )}
+              >
+                {format(day, "d")}
+                {hasTasks && !dayIsSelected && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const TaskCard = ({ task }: { task: MockTask }) => {
@@ -142,19 +207,16 @@ const Tasks = () => {
     return (
       <div className="relative overflow-hidden animate-fade-in" {...handlers}>
         <Card
-          className={`group cursor-pointer transition-all duration-300 hover:shadow-lg border-l-4 ${
-            swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0"
-          } ${
-            task.priority === "high" 
-              ? "border-l-red-500" 
-              : task.priority === "medium" 
-              ? "border-l-yellow-500" 
-              : "border-l-green-500"
-          } ${isCompleted ? "opacity-60" : ""}`}
+          className={cn(
+            "group cursor-pointer transition-all duration-300 hover:shadow-lg border-l-4",
+            swipedTaskId === task.id ? "-translate-x-20" : "translate-x-0",
+            task.priority === "high" ? "border-l-red-500" : task.priority === "medium" ? "border-l-yellow-500" : "border-l-green-500",
+            isCompleted && "opacity-60"
+          )}
           onClick={() => openTaskDetail(task)}
         >
-          <CardContent className="p-5 md:p-6">
-            <div className="flex items-start gap-4">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
               <Checkbox
                 checked={isCompleted}
                 onCheckedChange={() => toggleTaskComplete(task.id, task.status)}
@@ -162,60 +224,53 @@ const Tasks = () => {
                 className="mt-1 transition-transform hover:scale-110"
               />
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex-1">
-                    <h3 className={`font-semibold text-base transition-all ${
-                      isCompleted 
-                        ? "line-through text-muted-foreground" 
-                        : "text-foreground group-hover:text-primary"
-                    }`}>
-                      {task.title}
-                    </h3>
-                  </div>
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h3 className={cn(
+                    "font-medium text-sm transition-all",
+                    isCompleted ? "line-through text-muted-foreground" : "text-foreground group-hover:text-primary"
+                  )}>
+                    {task.title}
+                  </h3>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge variant={getPriorityBadgeColor(task.priority)} className="hidden md:flex">
+                    <Badge variant={getPriorityBadgeColor(task.priority)} className="text-[10px] px-1.5 py-0">
                       {task.priority}
                     </Badge>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive h-8 w-8 hidden md:flex"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive h-6 w-6 hidden md:flex"
                       onClick={(e) => {
                         e.stopPropagation();
                         setTaskToDelete(task.id);
                       }}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
                 {task.description && (
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-muted-foreground mb-2 line-clamp-1">
                     {task.description}
                   </p>
                 )}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {task.is_asap && (
-                    <Badge variant="destructive" className="gap-1 animate-pulse">
-                      <Zap className="h-3 w-3" />
+                    <Badge variant="destructive" className="gap-1 text-[10px] px-1.5 py-0 animate-pulse">
+                      <Zap className="h-2.5 w-2.5" />
                       ASAP
                     </Badge>
                   )}
                   {task.due_date && (
-                    <Badge variant="outline" className="gap-1">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(task.due_date).toLocaleDateString()}
+                    <Badge variant="outline" className="gap-1 text-[10px] px-1.5 py-0">
+                      <Calendar className="h-2.5 w-2.5" />
+                      {format(new Date(task.due_date), "MMM d")}
                     </Badge>
                   )}
                   {task.automation_count && task.automation_count > 0 && (
-                    <Badge variant="secondary" className="gap-1">
-                      <span className="font-medium">{task.completed_automation_count}/{task.automation_count}</span>
-                      <span className="text-muted-foreground">automations</span>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {task.completed_automation_count}/{task.automation_count} automations
                     </Badge>
                   )}
-                  <Badge variant="outline" className="md:hidden">
-                    {task.priority}
-                  </Badge>
                 </div>
               </div>
             </div>
@@ -225,13 +280,13 @@ const Tasks = () => {
           <Button
             variant="destructive"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full shadow-lg animate-scale-in"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full shadow-lg animate-scale-in"
             onClick={(e) => {
               e.stopPropagation();
               setTaskToDelete(task.id);
             }}
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         )}
       </div>
@@ -241,150 +296,206 @@ const Tasks = () => {
   const filteredTasks = filterTasks(tasks);
 
   return (
-    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2 animate-fade-in">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <CheckSquare className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold">Tasks</h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
-              </p>
-            </div>
+      
+      {/* Top Navigation Bar */}
+      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
+        <div className="flex items-center justify-between px-4 py-3 gap-4">
+          {/* Left: Logo */}
+          <div className="flex items-center gap-2">
+            <CheckSquare className="h-6 w-6 text-primary" />
+            <span className="font-bold text-2xl hidden sm:inline">Tasks</span>
           </div>
-          <p className="text-muted-foreground text-sm md:text-base">
-            Manage and delegate work to your AI team
-          </p>
-        </div>
 
-        {/* New Task Button */}
-        <div className="mb-6">
-          <Button 
-            onClick={() => setShowCreationModeDialog(true)} 
-            className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow"
-            size="lg"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            New Task
-          </Button>
+          {/* Right: View Toggles */}
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+            <Button
+              variant={view === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("list")}
+              className="h-7 px-2.5 gap-1"
+            >
+              <List className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">List</span>
+            </Button>
+            <Button
+              variant={view === "board" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("board")}
+              className="h-7 px-2.5 gap-1"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">Board</span>
+            </Button>
+          </div>
         </div>
+      </div>
 
-        {/* Filters & Search */}
-        <Card className="mb-6 shadow-sm">
-          <CardContent className="p-4 md:p-6">
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search tasks by title or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-11"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-10">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priorities</SelectItem>
-                    <SelectItem value="high">High Priority</SelectItem>
-                    <SelectItem value="medium">Medium Priority</SelectItem>
-                    <SelectItem value="low">Low Priority</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="created_at-desc">Newest First</SelectItem>
-                    <SelectItem value="created_at-asc">Oldest First</SelectItem>
-                    <SelectItem value="due_date-asc">Due Date</SelectItem>
-                    <SelectItem value="priority-desc">Priority</SelectItem>
-                  </SelectContent>
-                </Select>
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden w-full">
+        {/* Sidebar */}
+        <div className="hidden lg:flex flex-col w-64 border-r bg-card/50 shrink-0 overflow-hidden">
+          <ScrollArea className="flex-1">
+            {/* Create Button */}
+            <div className="p-4">
+              <Button 
+                onClick={() => setShowCreationModeDialog(true)} 
+                className="w-full shadow-md hover:shadow-lg transition-all gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New Task
+              </Button>
+            </div>
+
+            {/* Mini Calendar */}
+            <MiniCalendar />
+
+            {/* Task Stats */}
+            <div className="px-4 pb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Overview</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                  <span className="text-sm text-muted-foreground">Pending</span>
+                  <Badge variant="outline">{stats.pending}</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                  <span className="text-sm text-muted-foreground">Completed</span>
+                  <Badge variant="secondary">{stats.completed}</Badge>
+                </div>
+                {stats.overdue > 0 && (
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-destructive/10">
+                    <span className="text-sm text-destructive">Overdue</span>
+                    <Badge variant="destructive">{stats.overdue}</Badge>
+                  </div>
+                )}
+                {stats.asap > 0 && (
+                  <div className="flex items-center justify-between p-2 rounded-lg bg-orange-500/10">
+                    <span className="text-sm text-orange-600 dark:text-orange-400">ASAP</span>
+                    <Badge className="bg-orange-500">{stats.asap}</Badge>
+                  </div>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6 h-12 bg-muted/50">
-            <TabsTrigger value="all" className="data-[state=active]:bg-background data-[state=active]:shadow">
-              All
-              <Badge variant="secondary" className="ml-2 text-xs">
-                {tasks.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="active" className="data-[state=active]:bg-background data-[state=active]:shadow">
-              Active
-              <Badge variant="secondary" className="ml-2 text-xs">
-                {tasks.filter(t => t.status === "pending").length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-background data-[state=active]:shadow">
-              Completed
-              <Badge variant="secondary" className="ml-2 text-xs">
-                {tasks.filter(t => t.status === "completed").length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="asap" className="data-[state=active]:bg-background data-[state=active]:shadow">
-              ASAP
-              <Badge variant="destructive" className="ml-2 text-xs">
-                {tasks.filter(t => t.is_asap).length}
-              </Badge>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={activeTab} className="mt-0">
-            {filteredTasks.length === 0 ? (
-              <Card className="border-dashed">
-                <CardContent className="py-12">
-                  <EmptyState
-                    icon="📋"
-                    title={searchQuery || statusFilter !== "all" || priorityFilter !== "all" ? "No tasks found" : "No tasks yet"}
-                    description={
-                      searchQuery || statusFilter !== "all" || priorityFilter !== "all"
-                        ? "Try adjusting your filters or search terms"
-                        : "Create your first task to start organizing your work with AI-powered automations"
-                    }
-                    action={{
-                      label: "Create Task",
-                      onClick: () => setShowCreationModeDialog(true),
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-3">
-                {filteredTasks.map((task, index) => (
-                  <div key={task.id} style={{ animationDelay: `${index * 50}ms` }}>
-                    <TaskCard task={task} />
+            {/* Upcoming Tasks */}
+            <div className="px-4 py-2 border-t">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Upcoming</h3>
+              <div className="space-y-2">
+                {getUpcomingTasks().map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={() => openTaskDetail(task)}
+                    className={cn(
+                      "p-2 rounded-lg cursor-pointer transition-all hover:bg-accent/50 border-l-2",
+                      task.priority === "high" ? "border-l-red-500" : task.priority === "medium" ? "border-l-yellow-500" : "border-l-green-500"
+                    )}
+                  >
+                    <div className="text-sm font-medium truncate">{task.title}</div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-1">
+                      <Clock className="h-2.5 w-2.5" />
+                      {task.due_date && (
+                        isToday(new Date(task.due_date)) ? "Today" :
+                        isTomorrow(new Date(task.due_date)) ? "Tomorrow" :
+                        format(new Date(task.due_date), "MMM d")
+                      )}
+                    </div>
                   </div>
                 ))}
+                {getUpcomingTasks().length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">No upcoming tasks</p>
+                )}
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Filter Controls */}
+          <div className="flex items-center justify-between gap-4 px-4 py-3 border-b bg-card/30">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-[200px] max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[130px] h-9">
+                  <Filter className="h-3.5 w-3.5 mr-2" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[130px] h-9 hidden sm:flex">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
+            </div>
+          </div>
+
+          {/* Task List */}
+          <ScrollArea className="flex-1">
+            <div className="p-4">
+              {/* Mobile Create Button */}
+              <div className="lg:hidden mb-4">
+                <Button 
+                  onClick={() => setShowCreationModeDialog(true)} 
+                  className="w-full shadow-md hover:shadow-lg transition-all gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Task
+                </Button>
+              </div>
+
+              {filteredTasks.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="py-12">
+                    <EmptyState
+                      icon="📋"
+                      title={searchQuery || statusFilter !== "all" || priorityFilter !== "all" ? "No tasks found" : "No tasks yet"}
+                      description={
+                        searchQuery || statusFilter !== "all" || priorityFilter !== "all"
+                          ? "Try adjusting your filters or search terms"
+                          : "Create your first task to start organizing your work with AI-powered automations"
+                      }
+                      action={{
+                        label: "Create Task",
+                        onClick: () => setShowCreationModeDialog(true),
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-2">
+                  {filteredTasks.map((task, index) => (
+                    <div key={task.id} style={{ animationDelay: `${index * 50}ms` }}>
+                      <TaskCard task={task} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Dialogs */}
