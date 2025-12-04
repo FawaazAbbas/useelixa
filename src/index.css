@@ -356,4 +356,13 @@ All colors MUST be HSL.
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Collapsible chevron rotation */
+  [data-state="closed"] .collapsible-chevron {
+    transform: rotate(-90deg);
+  }
+  
+  [data-state="open"] .collapsible-chevron {
+    transform: rotate(0deg);
+  }
 }
