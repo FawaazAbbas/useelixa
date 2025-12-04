@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -1345,29 +1345,57 @@ const Workspace = () => {
                           <p className="text-muted-foreground">Start a conversation with {team.name}</p>
                         </div>
                       ) : (
-                        teamGroupMessages.map((msg) => {
+                        teamGroupMessages.map((msg, index) => {
                           const isUserMessage = msg.user_id !== null;
                           const msgIconColor = msg.isManager ? "text-blue-500" : "text-orange-500";
                           const msgBgColor = msg.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
+                          const msgDate = new Date(msg.created_at);
+                          const msgHour = msgDate.getHours();
+                          
+                          // Check if we need a session separator
+                          let showSeparator = false;
+                          let separatorText = "";
+                          if (index === 0) {
+                            showSeparator = true;
+                            separatorText = msgHour < 12 ? "Morning Session" : msgHour < 17 ? "Afternoon Session" : "Evening Session";
+                          } else {
+                            const prevDate = new Date(teamGroupMessages[index - 1].created_at);
+                            const prevHour = prevDate.getHours();
+                            // Show separator when crossing session boundaries (12PM or 5PM)
+                            if ((prevHour < 12 && msgHour >= 12) || (prevHour < 17 && msgHour >= 17 && prevHour >= 12)) {
+                              showSeparator = true;
+                              separatorText = msgHour < 17 ? "Afternoon Session" : "Evening Session";
+                            }
+                          }
+                          
                           return (
-                            <div
-                              key={msg.id}
-                              className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}
-                            >
-                              {!isUserMessage && (
-                                <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
-                                  <Bot className={`h-6 w-6 ${msgIconColor}`} />
+                            <div key={msg.id}>
+                              {showSeparator && (
+                                <div className="flex items-center gap-4 my-6">
+                                  <div className="flex-1 h-px bg-border" />
+                                  <div className="flex items-center gap-2 px-4 py-1.5 bg-muted/60 rounded-full border border-border/50">
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      {format(msgDate, "d MMM yyyy")} • {separatorText}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
-                                <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
-                                  <span className="font-semibold">
-                                    {isUserMessage ? "You" : msg.sender_name}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(msg.created_at).toLocaleTimeString()}
-                                  </span>
-                                </div>
+                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
+                                {!isUserMessage && (
+                                  <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
+                                    <Bot className={`h-6 w-6 ${msgIconColor}`} />
+                                  </div>
+                                )}
+                                <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                                  <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
+                                    <span className="font-semibold">
+                                      {isUserMessage ? "You" : msg.sender_name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {format(msgDate, "d MMM, h:mm a")}
+                                    </span>
+                                  </div>
                                 <div
                                   className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                                     isUserMessage
@@ -1404,6 +1432,7 @@ const Workspace = () => {
                                   <AvatarFallback>U</AvatarFallback>
                                 </Avatar>
                               )}
+                            </div>
                             </div>
                           );
                         })
