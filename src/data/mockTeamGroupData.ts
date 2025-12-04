@@ -1,6 +1,25 @@
 import { mockTeams } from "./mockTeams";
-
 import { marketingChatFiles } from './mockMarketingChatData';
+import {
+  customerServiceChatFiles,
+  customerServiceMemories,
+  customerServiceActivity,
+  financeChatFiles,
+  financeMemories,
+  financeActivity,
+  developmentChatFiles,
+  developmentMemories,
+  developmentActivity,
+  creativeChatFiles,
+  creativeMemories,
+  creativeActivity,
+  legalChatFiles,
+  legalMemories,
+  legalActivity,
+  productChatFiles,
+  productMemories,
+  productActivity,
+} from './mockAllTeamChatsData';
 
 // Mock files for team group chats
 export const mockTeamFiles: Record<string, Array<{
@@ -12,38 +31,12 @@ export const mockTeamFiles: Record<string, Array<{
   uploadedAt: string;
 }>> = {
   "marketing": marketingChatFiles,
-  "product": [
-    { id: "pf-1", name: "Product Roadmap Q4.pdf", type: "pdf", size: "1.8 MB", uploadedBy: "Product Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "pf-2", name: "Competitor Pricing Analysis.xlsx", type: "xlsx", size: "892 KB", uploadedBy: "Competitive Pricing Analyst", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "pf-3", name: "SKU Inventory List.csv", type: "csv", size: "2.1 MB", uploadedBy: "Product Listing Manager", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-  ],
-  "customer-service": [
-    { id: "cf-1", name: "Support Playbook.pdf", type: "pdf", size: "3.2 MB", uploadedBy: "Customer Service Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "cf-2", name: "FAQ Templates.docx", type: "docx", size: "245 KB", uploadedBy: "Customer Support Rep", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "cf-3", name: "Weekly CSAT Report.xlsx", type: "xlsx", size: "412 KB", uploadedBy: "QA Specialist", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-  ],
-  "finance": [
-    { id: "ff-1", name: "Monthly P&L Report.xlsx", type: "xlsx", size: "1.4 MB", uploadedBy: "Finance Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "ff-2", name: "Q4 Forecast Model.xlsx", type: "xlsx", size: "2.8 MB", uploadedBy: "FP&A Analyst", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "ff-3", name: "Revenue Dashboard Config.json", type: "json", size: "12 KB", uploadedBy: "Revenue Ops Analyst", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-  ],
-  "development": [
-    { id: "df-1", name: "Technical Architecture.pdf", type: "pdf", size: "4.2 MB", uploadedBy: "Tech Lead", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "df-2", name: "API Documentation.md", type: "md", size: "156 KB", uploadedBy: "Tech Integrations Specialist", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "df-3", name: "Sprint Backlog.csv", type: "csv", size: "89 KB", uploadedBy: "Tech Lead", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-    { id: "df-4", name: "UX Wireframes.fig", type: "fig", size: "12.4 MB", uploadedBy: "UX/UI Designer", uploadedAt: new Date(Date.now() - 345600000).toISOString() },
-  ],
-  "creative": [
-    { id: "crf-1", name: "Brand Assets Pack.zip", type: "zip", size: "48.2 MB", uploadedBy: "Creative Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "crf-2", name: "Video Templates.zip", type: "zip", size: "124 MB", uploadedBy: "Video Producer", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "crf-3", name: "Social Templates.psd", type: "psd", size: "34.6 MB", uploadedBy: "Graphic Designer", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-  ],
-  "legal": [
-    { id: "lf-1", name: "Terms of Service.pdf", type: "pdf", size: "892 KB", uploadedBy: "Legal Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "lf-2", name: "Privacy Policy.pdf", type: "pdf", size: "645 KB", uploadedBy: "Compliance Officer", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "lf-3", name: "Contract Templates.zip", type: "zip", size: "2.4 MB", uploadedBy: "Legal Assistant", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-    { id: "lf-4", name: "Fraud Prevention Guidelines.pdf", type: "pdf", size: "1.2 MB", uploadedBy: "Fraud Detection Specialist", uploadedAt: new Date(Date.now() - 345600000).toISOString() },
-  ],
+  "product": productChatFiles,
+  "customer-service": customerServiceChatFiles,
+  "finance": financeChatFiles,
+  "development": developmentChatFiles,
+  "creative": creativeChatFiles,
+  "legal": legalChatFiles,
 };
 
 // Mock memories for team group chats
@@ -59,41 +52,13 @@ export const mockTeamMemories: Record<string, Array<{
     { id: "mm-1", key: "Campaign Messaging Framework", value: "Truth. Performance. Reborn. - Drop any lines that feel too discount-y. We're premium refurb.", category: "Strategy", createdBy: "Marketing Director", updatedAt: "2025-04-12T10:26:00.000Z" },
     { id: "mm-2", key: "Brand Positioning", value: "We are the anti-inflation tech brand. We sell truth.", category: "Brand", createdBy: "Liam", updatedAt: "2025-04-12T10:20:00.000Z" },
     { id: "mm-3", key: "MacBook Hook", value: "Performance + Savings angle: 'You don't need the new one, the M1 is a monster.'", category: "Creative", createdBy: "Liam", updatedAt: "2025-04-12T10:10:00.000Z" },
-    { id: "mm-4", key: "Approved Headlines", value: "#1: 'The M1 Didn't Get Slower, Only Cheaper.' #3: 'MacBook Air M1: Peak Value. Reborn.' Rotate both.", category: "Ads", createdBy: "Liam", updatedAt: "2025-04-12T10:24:00.000Z" },
-    { id: "mm-5", key: "Email Messaging Priority", value: "Quality first, price second. Hero line: 'Your Next MacBook, Reborn to Perform.' Put savings further down, not up front.", category: "Email", createdBy: "Liam", updatedAt: "2025-04-12T10:16:00.000Z" },
-    { id: "mm-6", key: "Approved Script", value: "Before you spend over £1,000 on a laptop… remember this. The M1 is still one of the fastest chips Apple ever made. Tech Reborn brings it back to life, at a price that finally makes sense.", category: "Creative", createdBy: "Content Writer", updatedAt: "2025-04-12T10:50:00.000Z" },
-    { id: "mm-7", key: "Influencer Strategy", value: "10 creators with hook: 'I tested a refurbished MacBook so you don't have to.' CTA: Tech Reborn by Baduss", category: "Influencer", createdBy: "Social Media Manager", updatedAt: "2025-04-12T10:46:00.000Z" },
-    { id: "mm-8", key: "Email Segmentation", value: "4 segments: Laptop intenders, High-value visitors, Viewed MacBook but didn't buy, Existing customers with older MacBooks", category: "Email", createdBy: "Email Marketing Specialist", updatedAt: "2025-04-12T10:52:00.000Z" },
-    { id: "mm-9", key: "Video CTA", value: "End line for all videos: 'Stop overpaying for the same performance.'", category: "Creative", createdBy: "Liam", updatedAt: "2025-04-12T10:30:00.000Z" },
-    { id: "mm-10", key: "FAQ Topics", value: "1. Is M1 still good in 2025? 2. Why choose refurbished over new? 3. What testing does Baduss Tech perform? 4. Battery Health Guarantee", category: "SEO", createdBy: "SEO Specialist", updatedAt: "2025-04-12T10:40:00.000Z" },
-    { id: "mm-11", key: "Performance Record Day", value: "April 12, 2025: Revenue £132,870 (+24% vs last Tuesday), MacBook sales up 41% vs all of yesterday", category: "Metrics", createdBy: "Marketing Director", updatedAt: "2025-04-12T15:00:00.000Z" },
-    { id: "mm-12", key: "Top Performing Ad", value: "'Before you spend £1,000…' → CTR 5.3%, CPA £10.90. Budget reallocated 70% to winners.", category: "Ads", createdBy: "PPC Specialist", updatedAt: "2025-04-12T15:04:00.000Z" },
   ],
-  "product": [
-    { id: "pm-1", key: "Pricing Strategy", value: "15-20% below market for Grade A, 25-30% for Grade B", category: "Pricing", createdBy: "Competitive Pricing Analyst", updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "pm-2", key: "Quality Grading", value: "Grade A: Like new, Grade B: Minor cosmetic wear, Grade C: Functional with visible wear", category: "Product", createdBy: "Product Director", updatedAt: new Date(Date.now() - 172800000).toISOString() },
-  ],
-  "customer-service": [
-    { id: "cm-1", key: "Response Time SLA", value: "First response within 4 hours during business hours", category: "SLA", createdBy: "Customer Service Director", updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "cm-2", key: "Escalation Process", value: "Complex issues escalate to Director after 2 failed resolution attempts", category: "Process", createdBy: "Customer Service Director", updatedAt: new Date(Date.now() - 172800000).toISOString() },
-  ],
-  "finance": [
-    { id: "fm-1", key: "Budget Review", value: "Monthly budget review on the last Friday of each month", category: "Schedule", createdBy: "Finance Director", updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "fm-2", key: "Approval Thresholds", value: "Director approval required for expenses over £5,000", category: "Process", createdBy: "Finance Director", updatedAt: new Date(Date.now() - 172800000).toISOString() },
-  ],
-  "development": [
-    { id: "dm-1", key: "Sprint Length", value: "2-week sprints with planning on Monday", category: "Process", createdBy: "Tech Lead", updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "dm-2", key: "Code Review Policy", value: "All PRs require at least one approval before merge", category: "Process", createdBy: "Tech Lead", updatedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "dm-3", key: "Tech Stack", value: "Shopify Plus, React, Node.js, PostgreSQL", category: "Technical", createdBy: "Tech Lead", updatedAt: new Date(Date.now() - 259200000).toISOString() },
-  ],
-  "creative": [
-    { id: "crm-1", key: "Brand Colors", value: "Primary: #2563EB, Secondary: #10B981, Accent: #F59E0B", category: "Brand", createdBy: "Creative Director", updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "crm-2", key: "Asset Naming Convention", value: "[Campaign]_[Format]_[Size]_[Version] e.g., BF24_Banner_1200x628_v2", category: "Process", createdBy: "Graphic Designer", updatedAt: new Date(Date.now() - 172800000).toISOString() },
-  ],
-  "legal": [
-    { id: "lm-1", key: "Contract Review SLA", value: "Standard contracts within 3 business days, complex within 5", category: "SLA", createdBy: "Legal Director", updatedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "lm-2", key: "Compliance Check", value: "Quarterly compliance audit on first week of each quarter", category: "Schedule", createdBy: "Compliance Officer", updatedAt: new Date(Date.now() - 172800000).toISOString() },
-  ],
+  "product": productMemories,
+  "customer-service": customerServiceMemories,
+  "finance": financeMemories,
+  "development": developmentMemories,
+  "creative": creativeMemories,
+  "legal": legalMemories,
 };
 
 // Mock activity history for team group chats
