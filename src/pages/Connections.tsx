@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { Plug, CheckCircle2, Search } from "lucide-react";
+import { Plug, CheckCircle2, Search, Filter, LayoutGrid, Link2, Unplug } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { GOOGLE_BUNDLES } from "@/config/googleBundles";
 import { DemoBanner } from "@/components/DemoBanner";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
+import { cn } from "@/lib/utils";
 
 interface ConnectionStatus {
   type: string;
@@ -121,7 +122,6 @@ export default function Connections() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   const connections: ConnectionStatus[] = [
@@ -160,8 +160,6 @@ export default function Connections() {
     toast.error("Disconnect feature disabled in demo mode");
   };
 
-  const categories = ["all", ...new Set(Object.values(CREDENTIAL_INFO).map((info) => info.category))];
-
   const allConnectionItems = [
     ...Object.values(GOOGLE_BUNDLES).map((bundle) => {
       const bundleCredentials = connections.filter((c) => c.type === "googleOAuth2Api" && c.bundleType === bundle.id);
@@ -190,6 +188,26 @@ export default function Connections() {
     })),
   ];
 
+  // Get unique categories
+  const categories = Array.from(new Set(allConnectionItems.map((item) => item.info.category)));
+
+  // Category counts
+  const categoryCounts = categories.reduce((acc, cat) => {
+    acc[cat] = allConnectionItems.filter((item) => item.info.category === cat).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Stats
+  const stats = {
+    total: allConnectionItems.length,
+    connected: allConnectionItems.filter((item) =>
+      item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection
+    ).length,
+    available: allConnectionItems.filter((item) =>
+      item.isGoogleBundle ? (item as any).credentials?.length === 0 : !item.connection
+    ).length,
+  };
+
   const filteredConnections = allConnectionItems.filter((item) => {
     const matchesSearch =
       item.info.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -203,159 +221,242 @@ export default function Connections() {
     const matchesStatus =
       selectedStatus === "all" ||
       (selectedStatus === "connected" && isConnected) ||
-      (selectedStatus === "not-connected" && !isConnected);
+      (selectedStatus === "available" && !isConnected);
 
-    const matchesProvider =
-      selectedProvider === "all" ||
-      (selectedProvider === "google" && item.isGoogleBundle) ||
-      (selectedProvider === "third-party" && !item.isGoogleBundle);
-
-    return matchesSearch && matchesCategory && matchesStatus && matchesProvider;
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const connectedCount = allConnectionItems.filter((item) =>
-    item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection,
-  ).length;
-  const availableCount = allConnectionItems.length - connectedCount;
+  const statusButtons = [
+    { key: "all", label: "All", count: stats.total, icon: LayoutGrid },
+    { key: "connected", label: "Connected", count: stats.connected, icon: Link2, color: "text-green-500" },
+    { key: "available", label: "Available", count: stats.available, icon: Unplug, color: "text-muted-foreground" },
+  ];
 
   return (
-    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 bg-gradient-to-b from-background to-muted/20">
       <DemoBanner />
-      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
-        <div className="space-y-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Plug className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-1">Connections</h1>
-                <p className="text-sm md:text-base text-muted-foreground">
-                  {connectedCount} connected • {availableCount} available
-                </p>
-              </div>
-            </div>
-            <p className="text-muted-foreground text-sm md:text-base">Connect your tools and services to enable powerful automations</p>
-
-            <Card className="shadow-sm">
-              <CardContent className="p-3 sm:p-4">
-                <div className="space-y-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search connections..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-10"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                      <SelectTrigger className="w-full h-10 touch-manipulation">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="connected">Connected</SelectItem>
-                        <SelectItem value="not-connected">Not Connected</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                      <SelectTrigger className="w-full h-10 touch-manipulation">
-                        <SelectValue placeholder="Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {categories
-                          .filter((c) => c !== "all")
-                          .map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                      <SelectTrigger className="w-full h-10 touch-manipulation">
-                        <SelectValue placeholder="Provider" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Providers</SelectItem>
-                        <SelectItem value="google">Google</SelectItem>
-                        <SelectItem value="third-party">Third-Party</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      
+      {/* Top Navigation Bar */}
+      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
+        <div className="flex items-center justify-between px-4 py-3 gap-4">
+          <div className="flex items-center gap-2">
+            <Plug className="h-6 w-6 text-primary" />
+            <span className="font-bold text-2xl hidden sm:inline">Connections</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredConnections.map((item) => {
-              const isConnected = item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection;
-
-              return (
-                <Card
-                  key={item.type}
-                  className={`hover:shadow-xl hover:scale-[1.02] transition-all duration-200 animate-fade-in ${isConnected ? "ring-2 ring-green-500/20" : ""}`}
-                  style={{ animationDelay: `${filteredConnections.indexOf(item) * 30}ms` }}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 p-1">
-                          <img
-                            src={item.info.logo}
-                            alt={item.info.companyName}
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = "none";
-                            }}
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <CardTitle className="text-base leading-tight">{item.info.name}</CardTitle>
-                          <p className="text-xs text-muted-foreground">by {item.info.companyName}</p>
-                        </div>
-                      </div>
-                      {isConnected && <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />}
-                    </div>
-                    <CardDescription className="text-sm">{item.info.description}</CardDescription>
-                    <div className="flex gap-2 mt-3">
-                      <Badge variant="outline" className="text-xs">
-                        {item.info.category}
-                      </Badge>
-                      {isConnected && (
-                        <Badge variant="default" className="text-xs bg-green-500">
-                          Connected
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {isConnected ? (
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground mb-2">{item.connection?.accountEmail}</p>
-                        <Button variant="outline" size="sm" className="w-full" onClick={handleDisconnect}>
-                          Disconnect
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button variant="default" size="sm" className="w-full" onClick={handleConnect}>
-                        <Plug className="h-4 w-4 mr-2" />
-                        Connect
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs gap-1">
+              <CheckCircle2 className="h-3 w-3 text-green-500" />
+              {stats.connected} connected
+            </Badge>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <aside className="hidden md:flex flex-col w-60 min-w-60 max-w-60 border-r bg-card/50 backdrop-blur-sm">
+          <ScrollArea className="flex-1 w-full">
+            <div className="py-3 pl-3 pr-4 w-full max-w-full overflow-hidden">
+              {/* Status Filters */}
+              <div className="mb-4">
+                <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                  <Filter className="h-3 w-3 shrink-0" />
+                  By Status
+                </h3>
+                <div className="space-y-0.5 w-full">
+                  {statusButtons.map((btn) => (
+                    <button
+                      key={btn.key}
+                      className={cn(
+                        "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                        selectedStatus === btn.key 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => setSelectedStatus(btn.key)}
+                    >
+                      <span className="flex items-center gap-1.5 truncate">
+                        <btn.icon className={cn("h-3 w-3 shrink-0", selectedStatus !== btn.key && btn.color)} />
+                        <span className="truncate">{btn.label}</span>
+                      </span>
+                      <span className={cn(
+                        "text-[10px] tabular-nums shrink-0 ml-2",
+                        selectedStatus === btn.key ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {btn.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category Filters */}
+              <div>
+                <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                  <LayoutGrid className="h-3 w-3 shrink-0" />
+                  By Category
+                </h3>
+                <div className="space-y-0.5 w-full">
+                  <button
+                    className={cn(
+                      "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                      selectedCategory === "all" 
+                        ? "bg-primary text-primary-foreground" 
+                        : "hover:bg-muted/50"
+                    )}
+                    onClick={() => setSelectedCategory("all")}
+                  >
+                    <span className="truncate flex-1 text-left">All Categories</span>
+                    <span className={cn(
+                      "text-[10px] tabular-nums shrink-0 ml-2",
+                      selectedCategory === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
+                    )}>
+                      {stats.total}
+                    </span>
+                  </button>
+                  {categories.map((cat) => (
+                    <button
+                      key={cat}
+                      className={cn(
+                        "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                        selectedCategory === cat 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => setSelectedCategory(selectedCategory === cat ? "all" : cat)}
+                    >
+                      <span className="truncate flex-1 text-left min-w-0">{cat}</span>
+                      <span className={cn(
+                        "text-[10px] tabular-nums shrink-0 ml-2",
+                        selectedCategory === cat ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {categoryCounts[cat]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Search Bar */}
+          <div className="p-4 border-b bg-card/30">
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search connections..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+          </div>
+
+          {/* Mobile Filters */}
+          <div className="md:hidden p-3 border-b flex gap-2 overflow-x-auto">
+            {statusButtons.map((btn) => (
+              <Button
+                key={btn.key}
+                variant={selectedStatus === btn.key ? "secondary" : "outline"}
+                size="sm"
+                className="shrink-0 h-8 text-xs gap-1"
+                onClick={() => setSelectedStatus(btn.key)}
+              >
+                <btn.icon className={cn("h-3 w-3", selectedStatus !== btn.key && btn.color)} />
+                {btn.label}
+                <Badge variant="secondary" className="ml-1 text-[10px] px-1">{btn.count}</Badge>
+              </Button>
+            ))}
+          </div>
+
+          {/* Content Grid */}
+          <ScrollArea className="flex-1">
+            <div className="p-4">
+              {filteredConnections.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Plug className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-lg font-medium mb-2">No connections found</p>
+                    <p className="text-sm text-muted-foreground">
+                      {searchQuery ? "No connections match your search" : "Try adjusting your filters"}
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredConnections.map((item, idx) => {
+                    const isConnected = item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection;
+
+                    return (
+                      <Card
+                        key={item.type}
+                        className={cn(
+                          "transition-all hover:shadow-xl hover:scale-[1.01] hover:z-10 animate-fade-in border-l-4",
+                          isConnected ? "border-l-green-500" : "border-l-muted"
+                        )}
+                        style={{ animationDelay: `${idx * 30}ms` }}
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 p-1.5">
+                                <img
+                                  src={item.info.logo}
+                                  alt={item.info.companyName}
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = "none";
+                                  }}
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <CardTitle className="text-sm leading-tight">{item.info.name}</CardTitle>
+                                <p className="text-[11px] text-muted-foreground">by {item.info.companyName}</p>
+                              </div>
+                            </div>
+                            {isConnected && <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-0 space-y-3">
+                          <CardDescription className="text-xs line-clamp-2">{item.info.description}</CardDescription>
+                          <div className="flex flex-wrap gap-1.5">
+                            <Badge variant="outline" className="text-[10px] px-1.5">
+                              {item.info.category}
+                            </Badge>
+                            {isConnected && (
+                              <Badge className="text-[10px] px-1.5 bg-green-500">
+                                Connected
+                              </Badge>
+                            )}
+                          </div>
+                          {isConnected ? (
+                            <div className="space-y-2">
+                              <p className="text-[11px] text-muted-foreground truncate">{item.connection?.accountEmail}</p>
+                              <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={handleDisconnect}>
+                                <Unplug className="h-3 w-3 mr-1.5" />
+                                Disconnect
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button variant="default" size="sm" className="w-full h-8 text-xs" onClick={handleConnect}>
+                              <Plug className="h-3 w-3 mr-1.5" />
+                              Connect
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </main>
       </div>
 
       <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
