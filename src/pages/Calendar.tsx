@@ -1,20 +1,19 @@
 import { useState } from "react";
-import { format, addDays, subDays, isToday, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getWeek, startOfYear } from "date-fns";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Filter } from "lucide-react";
+import { format, addDays, subDays, isToday, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getWeek } from "date-fns";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, LayoutGrid, List, CalendarDays } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from "@dnd-kit/core";
 import { mockCalendarEvents, MockCalendarEvent } from "@/data/mockCalendarEvents";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import EventDetailSheet from "@/components/EventDetailSheet";
 import CreateEventDialog from "@/components/CreateEventDialog";
 import { DraggableEvent } from "@/components/DraggableEvent";
 import { DroppableTimeSlot } from "@/components/DroppableTimeSlot";
 import { DemoBanner } from "@/components/DemoBanner";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const Calendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -24,23 +23,13 @@ const Calendar = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [createEventDate, setCreateEventDate] = useState<Date | undefined>(undefined);
-  const [miniCalDate, setMiniCalDate] = useState(new Date());
-  const [eventTypeFilters, setEventTypeFilters] = useState<string[]>(["meeting", "call", "task", "reminder", "personal"]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const hours = Array.from({ length: 24 }, (_, i) => i); // Full 24 hours
+  const hours = Array.from({ length: 24 }, (_, i) => i);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 8,
-      },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } })
   );
 
   const handlePrevious = () => {
@@ -60,21 +49,16 @@ const Calendar = () => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
-    
     if (over && active.id !== over.id) {
       toast.info("Event rescheduling is disabled in demo mode");
     }
   };
 
-  const handleDragStart = (event: any) => {
-    setActiveId(event.active.id);
-  };
+  const handleDragStart = (event: any) => setActiveId(event.active.id);
 
   const handleNewEvent = (date?: Date, hour?: number) => {
     const eventDate = date ? new Date(date) : new Date();
-    if (hour !== undefined) {
-      eventDate.setHours(hour, 0, 0, 0);
-    }
+    if (hour !== undefined) eventDate.setHours(hour, 0, 0, 0);
     setCreateEventDate(eventDate);
     setCreateDialogOpen(true);
   };
@@ -87,173 +71,118 @@ const Calendar = () => {
   };
 
   const getEventsForDay = (day: Date) => {
-    return mockCalendarEvents.filter((event) => {
-      const matchesDate = isSameDay(new Date(event.start_time), day);
-      const matchesFilter = eventTypeFilters.includes(event.type);
-      return matchesDate && matchesFilter;
-    });
+    return mockCalendarEvents.filter((event) => isSameDay(new Date(event.start_time), day));
   };
 
   const getUpcomingEvents = () => {
     return [...mockCalendarEvents]
-      .filter(event => eventTypeFilters.includes(event.type))
       .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
       .filter(event => new Date(event.start_time) >= new Date())
       .slice(0, 5);
   };
 
-  const getEventTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      meeting: "hsl(var(--chart-1))",
-      call: "hsl(var(--chart-2))",
-      task: "hsl(var(--chart-3))",
-      reminder: "hsl(var(--chart-4))",
-      personal: "hsl(var(--chart-5))",
-    };
-    return colors[type] || "hsl(var(--primary))";
+  const getDateRangeLabel = () => {
+    if (view === "month") return format(currentDate, "MMMM yyyy");
+    if (view === "week") {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      return `${format(weekStart, "MMM d")} - ${format(addDays(weekStart, 6), "MMM d, yyyy")}`;
+    }
+    return format(currentDate, "EEEE, MMMM d, yyyy");
   };
 
-  const getEventTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      meeting: "Meeting",
-      call: "Call",
-      task: "Task",
-      reminder: "Reminder",
-      personal: "Personal",
-    };
-    return labels[type] || type;
-  };
-
-  // Mini Calendar
-  const renderMiniCalendar = () => {
-    const monthStart = startOfMonth(miniCalDate);
-    const monthEnd = endOfMonth(miniCalDate);
+  // Mini Calendar Component
+  const MiniCalendar = () => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
     const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
     const firstDayOfMonth = monthStart.getDay();
     const paddingDays = Array.from({ length: firstDayOfMonth }, () => null);
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <Card className="shadow-sm bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">
-              {format(miniCalDate, "MMMM yyyy")}
-            </CardTitle>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setMiniCalDate(subMonths(miniCalDate, 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setMiniCalDate(addMonths(miniCalDate, 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-semibold">{format(currentDate, "MMMM yyyy")}</span>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+              <ChevronLeft className="h-3 w-3" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+              <ChevronRight className="h-3 w-3" />
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="pb-4">
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
-              <div key={i} className="text-center text-xs font-medium text-muted-foreground">
-                {day}
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {allDays.map((day, index) => {
-              if (!day)
-                return <div key={`empty-${index}`} className="h-8" />;
+        </div>
+        <div className="grid grid-cols-7 gap-0.5 mb-1">
+          {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
+            <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">{day}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {allDays.map((day, index) => {
+            if (!day) return <div key={`empty-${index}`} className="h-7" />;
+            const dayIsToday = isToday(day);
+            const dayIsSelected = isSameDay(day, currentDate);
+            const hasEvents = getEventsForDay(day).length > 0;
 
-              const dayIsToday = isToday(day);
-              const dayIsSelected = isSameDay(day, currentDate);
-              const hasEvents = getEventsForDay(day).length > 0;
-
-              return (
-                <Button
-                  key={day.toISOString()}
-                  variant={dayIsSelected ? "default" : dayIsToday ? "secondary" : "ghost"}
-                  className={`h-8 w-full p-0 text-xs hover:scale-110 transition-all ${
-                    dayIsSelected ? "font-bold" : ""
-                  }`}
-                  onClick={() => {
-                    setCurrentDate(day);
-                    setView("day");
-                  }}
-                >
-                  <div className="relative">
-                    {format(day, "d")}
-                    {hasEvents && (
-                      <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-                    )}
-                  </div>
-                </Button>
-              );
-            })}
-          </div>
-          <div className="mt-3 pt-3 border-t">
-            <div className="text-xs text-muted-foreground text-center">
-              Week {getWeek(currentDate, { weekStartsOn: 0 })} of {format(currentDate, "yyyy")}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            return (
+              <button
+                key={day.toISOString()}
+                onClick={() => { setCurrentDate(day); setView("day"); }}
+                className={cn(
+                  "h-7 w-7 rounded-full text-xs flex items-center justify-center relative transition-all hover:bg-accent",
+                  dayIsSelected && "bg-primary text-primary-foreground hover:bg-primary",
+                  dayIsToday && !dayIsSelected && "bg-primary/20 text-primary font-bold"
+                )}
+              >
+                {format(day, "d")}
+                {hasEvents && !dayIsSelected && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     );
   };
 
   // Week View
-  const renderWeekView = () => {
+  const WeekView = () => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
     return (
-      <div className="w-full overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
-        <div className="border-b bg-gradient-to-r from-muted/30 to-muted/50 backdrop-blur-sm">
-          <div className="grid grid-cols-8 min-h-[60px]">
-            <div className="border-r" />
-            {weekDays.map((day) => (
-              <div
-                key={day.toISOString()}
-                className={`border-r p-2 text-center transition-colors ${
-                  isToday(day) ? "bg-primary/10" : ""
-                }`}
-              >
-                <div className="text-xs text-muted-foreground uppercase font-medium">
-                  {format(day, "EEE")}
-                </div>
-                <div
-                  className={`text-xl font-bold mt-1 ${
-                    isToday(day) ? "text-primary" : ""
-                  }`}
-                >
-                  {format(day, "d")}
-                </div>
+      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden">
+        <div className="grid grid-cols-8 border-b bg-muted/30">
+          <div className="p-2 border-r" />
+          {weekDays.map((day) => (
+            <div
+              key={day.toISOString()}
+              className={cn(
+                "p-2 text-center border-r last:border-r-0",
+                isToday(day) && "bg-primary/10"
+              )}
+            >
+              <div className="text-xs text-muted-foreground uppercase">{format(day, "EEE")}</div>
+              <div className={cn(
+                "text-lg font-semibold mt-0.5",
+                isToday(day) && "text-primary"
+              )}>
+                {format(day, "d")}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
 
-        <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
-          <div className="grid grid-cols-8 relative w-full">
-            <div className="border-r bg-gradient-to-b from-muted/20 to-muted/30">
+        <ScrollArea className="flex-1">
+          <div className="grid grid-cols-8">
+            <div className="border-r">
               {hours.map((hour) => (
-                <div
-                  key={hour}
-                  className="h-[60px] border-b px-2 py-1 text-xs text-muted-foreground text-right font-medium"
-                >
-                  {format(new Date().setHours(hour, 0), "h a")}
+                <div key={hour} className="h-14 border-b px-2 text-[10px] text-muted-foreground text-right pt-1">
+                  {format(new Date().setHours(hour, 0), "ha")}
                 </div>
               ))}
             </div>
-
             {weekDays.map((day) => {
               const dayEvents = getEventsForDay(day);
               return (
@@ -261,54 +190,33 @@ const Calendar = () => {
                   key={day.toISOString()}
                   id={`day-${day.toISOString()}`}
                   data={{ day }}
-                  className={`border-r relative ${
-                    isToday(day) ? "bg-primary/5" : ""
-                  }`}
+                  className={cn("border-r last:border-r-0 relative", isToday(day) && "bg-primary/5")}
                 >
                   {hours.map((hour) => (
-                    <div 
-                      key={hour} 
-                      className="h-[60px] border-b hover:bg-accent/30 transition-colors cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNewEvent(day, hour);
-                      }}
+                    <div
+                      key={hour}
+                      className="h-14 border-b hover:bg-accent/20 cursor-pointer transition-colors"
+                      onClick={(e) => { e.stopPropagation(); handleNewEvent(day, hour); }}
                     />
                   ))}
-
-              {dayEvents.map((event, idx) => {
+                  {dayEvents.map((event) => {
                     const startDate = new Date(event.start_time);
                     const endDate = new Date(event.end_time);
-                    const startHour = startDate.getHours();
-                    const startMinute = startDate.getMinutes();
-                    const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60); // in minutes
-                    const topPosition = event.is_all_day 
-                      ? 10 
-                      : (startHour * 60) + startMinute + (idx * 3);
-                    const height = event.is_all_day ? 40 : Math.max(duration, 30);
-                    
+                    const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
+                    const topPosition = event.is_all_day ? 4 : (startDate.getHours() * 56) + (startDate.getMinutes() / 60 * 56);
+                    const height = event.is_all_day ? 24 : Math.max((duration / 60) * 56, 24);
+
                     return (
                       <DraggableEvent
                         key={event.id}
                         id={event.id}
-                        className="absolute left-1 right-1 rounded-lg p-2 text-xs shadow-md border border-white/20 backdrop-blur-sm animate-fade-in overflow-hidden"
-                        style={{
-                          top: `${topPosition}px`,
-                          height: `${height}px`,
-                          backgroundColor: event.color,
-                          color: "black",
-                          zIndex: 10,
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventClick(event);
-                        }}
+                        className="absolute left-0.5 right-0.5 rounded px-1.5 py-0.5 text-[10px] shadow-sm overflow-hidden cursor-pointer"
+                        style={{ top: `${topPosition}px`, height: `${height}px`, backgroundColor: event.color, color: "#000", zIndex: 10 }}
+                        onClick={(e) => { e.stopPropagation(); handleEventClick(event); }}
                       >
-                        <div className="font-semibold truncate">{event.title}</div>
-                        {!event.is_all_day && (
-                          <div className="text-[10px] opacity-70 mt-0.5">
-                            {format(startDate, "h:mm a")}
-                          </div>
+                        <div className="font-medium truncate">{event.title}</div>
+                        {height > 30 && !event.is_all_day && (
+                          <div className="opacity-70">{format(startDate, "h:mma")}</div>
                         )}
                       </DraggableEvent>
                     );
@@ -323,83 +231,51 @@ const Calendar = () => {
   };
 
   // Day View
-  const renderDayView = () => {
+  const DayView = () => {
     const dayEvents = getEventsForDay(currentDate);
 
     return (
-      <div className="w-full overflow-hidden flex flex-col rounded-lg border shadow-sm bg-card min-h-[600px]">
-        <div className="border-b bg-gradient-to-r from-muted/30 to-muted/50 backdrop-blur-sm p-4">
-          <h2 className="text-xl font-bold">
-            {format(currentDate, "EEEE, MMMM d, yyyy")}
-          </h2>
+      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden">
+        <div className="p-4 border-b bg-muted/30">
+          <h2 className="text-lg font-semibold">{format(currentDate, "EEEE, MMMM d")}</h2>
         </div>
 
-        <ScrollArea className="flex-1 h-[calc(100vh-400px)]">
-          <div className="flex relative w-full">
-            <div className="w-20 shrink-0 border-r bg-gradient-to-b from-muted/20 to-muted/30">
+        <ScrollArea className="flex-1">
+          <div className="flex">
+            <div className="w-16 shrink-0 border-r">
               {hours.map((hour) => (
-                <div
-                  key={hour}
-                  className="h-[80px] border-b px-2 py-1 text-sm text-muted-foreground text-right font-medium"
-                >
-                  {format(new Date().setHours(hour, 0), "h a")}
+                <div key={hour} className="h-16 border-b px-2 text-xs text-muted-foreground text-right pt-1">
+                  {format(new Date().setHours(hour, 0), "ha")}
                 </div>
               ))}
             </div>
 
-            <DroppableTimeSlot
-              id={`day-${currentDate.toISOString()}`}
-              data={{ day: currentDate }}
-              className="flex-1 relative"
-            >
+            <DroppableTimeSlot id={`day-${currentDate.toISOString()}`} data={{ day: currentDate }} className="flex-1 relative">
               {hours.map((hour) => (
-                <div 
-                  key={hour} 
-                  className="h-[80px] border-b hover:bg-accent/30 transition-colors cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNewEvent(currentDate, hour);
-                  }}
+                <div
+                  key={hour}
+                  className="h-16 border-b hover:bg-accent/20 cursor-pointer transition-colors"
+                  onClick={(e) => { e.stopPropagation(); handleNewEvent(currentDate, hour); }}
                 />
               ))}
-
-              {dayEvents.map((event, idx) => {
+              {dayEvents.map((event) => {
                 const startDate = new Date(event.start_time);
                 const endDate = new Date(event.end_time);
-                const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60); // in minutes
-                const topPosition = event.is_all_day
-                  ? 10
-                  : (startDate.getHours() * 80) + (startDate.getMinutes() / 60 * 80) + 10;
-                const height = event.is_all_day ? 60 : Math.max((duration / 60) * 80, 60);
+                const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
+                const topPosition = event.is_all_day ? 8 : (startDate.getHours() * 64) + (startDate.getMinutes() / 60 * 64);
+                const height = event.is_all_day ? 48 : Math.max((duration / 60) * 64, 48);
 
                 return (
                   <DraggableEvent
                     key={event.id}
                     id={event.id}
-                    className="absolute left-2 right-2 rounded-lg p-3 border-l-4 shadow-lg backdrop-blur-sm animate-fade-in overflow-hidden"
-                    style={{
-                      top: `${topPosition}px`,
-                      height: `${height}px`,
-                      borderLeftColor: event.color,
-                      backgroundColor: "hsl(var(--card))",
-                      animationDelay: `${idx * 50}ms`,
-                      zIndex: 10,
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEventClick(event);
-                    }}
+                    className="absolute left-2 right-2 rounded-lg p-2 border-l-4 shadow-sm cursor-pointer bg-card"
+                    style={{ top: `${topPosition}px`, height: `${height}px`, borderLeftColor: event.color, zIndex: 10 }}
+                    onClick={(e) => { e.stopPropagation(); handleEventClick(event); }}
                   >
-                    <div className="font-semibold">{event.title}</div>
+                    <div className="font-medium text-sm">{event.title}</div>
                     {!event.is_all_day && (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        {format(startDate, "h:mm a")} - {format(endDate, "h:mm a")}
-                      </div>
-                    )}
-                    {event.location && (
-                      <div className="text-xs text-muted-foreground mt-1 truncate">
-                        📍 {event.location}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{format(startDate, "h:mm a")} - {format(endDate, "h:mm a")}</div>
                     )}
                   </DraggableEvent>
                 );
@@ -412,7 +288,7 @@ const Calendar = () => {
   };
 
   // Month View
-  const renderMonthView = () => {
+  const MonthView = () => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
@@ -421,25 +297,15 @@ const Calendar = () => {
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <div className="w-full overflow-auto min-h-[600px]">
-        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden shadow-sm w-full">
+      <div className="flex-1 border rounded-lg bg-card overflow-hidden">
+        <div className="grid grid-cols-7 border-b bg-muted/30">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div
-              key={day}
-              className="bg-gradient-to-b from-muted/50 to-muted/30 p-3 text-center text-sm font-bold backdrop-blur-sm"
-            >
-              {day}
-            </div>
+            <div key={day} className="p-2 text-center text-sm font-medium border-r last:border-r-0">{day}</div>
           ))}
-
+        </div>
+        <div className="grid grid-cols-7 auto-rows-fr" style={{ minHeight: "calc(100% - 40px)" }}>
           {allDays.map((day, index) => {
-            if (!day)
-              return (
-                <div
-                  key={`empty-${index}`}
-                  className="bg-muted/20 min-h-[100px] md:min-h-[120px]"
-                />
-              );
+            if (!day) return <div key={`empty-${index}`} className="border-b border-r bg-muted/10 min-h-24" />;
 
             const events = getEventsForDay(day);
             const dayIsToday = isToday(day);
@@ -448,42 +314,30 @@ const Calendar = () => {
               <div
                 key={day.toISOString()}
                 onClick={() => handleNewEvent(day)}
-                className={`bg-card min-h-[100px] md:min-h-[120px] p-2 cursor-pointer hover:bg-accent/5 transition-colors ${
-                  dayIsToday
-                    ? "ring-2 ring-primary ring-inset bg-primary/5"
-                    : ""
-                }`}
+                className={cn(
+                  "border-b border-r p-1.5 cursor-pointer hover:bg-accent/10 transition-colors min-h-24",
+                  dayIsToday && "bg-primary/5"
+                )}
               >
-                <div
-                  className={`text-sm font-bold mb-2 ${
-                    dayIsToday
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  }`}
-                >
+                <div className={cn(
+                  "text-sm font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full",
+                  dayIsToday && "bg-primary text-primary-foreground"
+                )}>
                   {format(day, "d")}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {events.slice(0, 3).map((event) => (
                     <div
                       key={event.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEventClick(event);
-                      }}
-                      className="text-[10px] md:text-xs rounded px-1.5 py-0.5 truncate cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-200 shadow-sm border border-white/20"
-                      style={{
-                        backgroundColor: event.color,
-                        color: "black",
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handleEventClick(event); }}
+                      className="text-[10px] rounded px-1 py-0.5 truncate cursor-pointer hover:opacity-80"
+                      style={{ backgroundColor: event.color, color: "#000" }}
                     >
                       {event.title}
                     </div>
                   ))}
                   {events.length > 3 && (
-                    <div className="text-[10px] text-muted-foreground pl-1.5 font-medium">
-                      +{events.length - 3} more
-                    </div>
+                    <div className="text-[10px] text-muted-foreground px-1">+{events.length - 3} more</div>
                   )}
                 </div>
               </div>
@@ -494,321 +348,134 @@ const Calendar = () => {
     );
   };
 
-  // Agenda View
-  const renderAgendaView = () => {
-    const upcomingEvents = [...mockCalendarEvents]
-      .sort(
-        (a, b) =>
-          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-      )
-      .slice(0, 20);
-
-    return (
-      <ScrollArea className="flex-1 w-full h-[calc(100vh-400px)]">
-        <div className="space-y-3 w-full">
-          {upcomingEvents.map((event, idx) => {
-            const startDate = new Date(event.start_time);
-            return (
-              <Card
-                key={event.id}
-                className="w-full cursor-pointer hover:shadow-xl hover:scale-[1.01] transition-all duration-200 border-l-4 animate-fade-in bg-gradient-to-r from-card to-card/80 backdrop-blur-sm"
-                onClick={() => handleEventClick(event)}
-                style={{
-                  borderLeftColor: event.color,
-                  animationDelay: `${idx * 30}ms`,
-                }}
-              >
-                <CardContent className="p-4 flex gap-4 items-center">
-                  <div
-                    className="w-1 h-12 rounded-full"
-                    style={{ backgroundColor: event.color }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold truncate">{event.title}</div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      {format(startDate, "EEE, MMM d")} •{" "}
-                      {event.is_all_day
-                        ? "All Day"
-                        : format(startDate, "h:mm a")}
-                    </div>
-                    {event.location && (
-                      <div className="text-xs text-muted-foreground mt-1 truncate">
-                        📍 {event.location}
-                      </div>
-                    )}
-                  </div>
-                  <Badge
-                    variant="secondary"
-                    className="text-xs shrink-0"
-                    style={{
-                      backgroundColor: event.color + "20",
-                      color: event.color,
-                      borderColor: event.color + "40",
-                    }}
-                  >
-                    {getEventTypeLabel(event.type)}
-                  </Badge>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </ScrollArea>
-    );
-  };
-
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="flex flex-col flex-1 w-full h-full overflow-hidden bg-gradient-to-b from-background to-muted/20">
-        <div className="flex-1 overflow-y-auto">
-          <DemoBanner />
-          <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2 animate-fade-in">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <CalendarIcon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
-                  <p className="text-sm md:text-base text-muted-foreground">
-                    {mockCalendarEvents.length} events
-                  </p>
-                </div>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20">
+        <DemoBanner />
+        
+        {/* Top Navigation Bar */}
+        <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
+          <div className="flex items-center justify-between px-4 py-3 gap-4">
+            {/* Left: Logo + New Event */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-primary" />
+                <span className="font-semibold text-lg hidden sm:inline">Calendar</span>
               </div>
-              <p className="text-muted-foreground text-sm md:text-base">
-                Manage your schedule and events
-              </p>
-            </div>
-
-            {/* New Event Button */}
-            <div className="mb-6">
-              <Button
-                onClick={() => handleNewEvent()}
-                className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow"
-                size="lg"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                New Event
+              <Button onClick={() => handleNewEvent()} size="sm" className="gap-1.5">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Event</span>
               </Button>
             </div>
 
-                {/* Event Type Filters */}
-                <div className="mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Filter by type:</span>
-                  </div>
-                  <ToggleGroup
-                    type="multiple"
-                    value={eventTypeFilters}
-                    onValueChange={(value) => {
-                      if (value.length > 0) {
-                        setEventTypeFilters(value);
-                      }
-                    }}
-                    className="justify-start flex-wrap gap-2"
-                  >
-                    <ToggleGroupItem
-                      value="meeting"
-                      aria-label="Toggle meetings"
-                      className="data-[state=on]:bg-chart-1/20 data-[state=on]:text-chart-1 data-[state=on]:border-2 data-[state=on]:border-chart-1 data-[state=off]:border-0"
-                    >
-                      Meeting
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="call"
-                      aria-label="Toggle calls"
-                      className="data-[state=on]:bg-chart-2/20 data-[state=on]:text-chart-2 data-[state=on]:border-2 data-[state=on]:border-chart-2 data-[state=off]:border-0"
-                    >
-                      Call
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="task"
-                      aria-label="Toggle tasks"
-                      className="data-[state=on]:bg-chart-3/20 data-[state=on]:text-chart-3 data-[state=on]:border-2 data-[state=on]:border-chart-3 data-[state=off]:border-0"
-                    >
-                      Task
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="reminder"
-                      aria-label="Toggle reminders"
-                      className="data-[state=on]:bg-chart-4/20 data-[state=on]:text-chart-4 data-[state=on]:border-2 data-[state=on]:border-chart-4 data-[state=off]:border-0"
-                    >
-                      Reminder
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="personal"
-                      aria-label="Toggle personal"
-                      className="data-[state=on]:bg-chart-5/20 data-[state=on]:text-chart-5 data-[state=on]:border-2 data-[state=on]:border-chart-5 data-[state=off]:border-0"
-                    >
-                      Personal
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-
-                {/* Mini Calendar and Upcoming Events */}
-                <div className="grid lg:grid-cols-2 gap-6 mb-6 animate-fade-in" style={{ animationDelay: '150ms' }}>
-                  {/* Mini Calendar */}
-                  {renderMiniCalendar()}
-
-                  {/* Upcoming Events */}
-                  <Card className="shadow-sm bg-card/50 backdrop-blur-sm hover:shadow-xl transition-all">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base font-semibold">Upcoming Events</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ScrollArea className="h-[320px]">
-                        <div className="space-y-2">
-                          {getUpcomingEvents().map((event, idx) => {
-                            const startDate = new Date(event.start_time);
-                            return (
-                              <div
-                                key={event.id}
-                                onClick={() => handleEventClick(event)}
-                                className="p-3 rounded-lg border border-border/50 hover:bg-accent/50 cursor-pointer transition-all hover:scale-[1.02] animate-fade-in"
-                                style={{ animationDelay: `${idx * 50}ms` }}
-                              >
-                                <div className="flex items-start gap-3">
-                                  <div
-                                    className="w-1 h-12 rounded-full shrink-0"
-                                    style={{ backgroundColor: event.color }}
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-sm truncate">{event.title}</div>
-                                    <div className="text-xs text-muted-foreground mt-1">
-                                      {format(startDate, "MMM d")} •{" "}
-                                      {event.is_all_day ? "All Day" : format(startDate, "h:mm a")}
-                                    </div>
-                                    {event.location && (
-                                      <div className="text-xs text-muted-foreground mt-1 truncate">
-                                        📍 {event.location}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {getUpcomingEvents().length === 0 && (
-                            <div className="text-sm text-muted-foreground text-center py-8">
-                              No upcoming events
-                            </div>
-                          )}
-                        </div>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Navigation and Views */}
-                <div className="mb-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                  <Card className="shadow-lg bg-card/50 backdrop-blur-sm border hover:shadow-xl transition-all">
-                    <CardContent className="p-4 sm:p-6 space-y-4">
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handlePrevious}
-                            className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
-                          >
-                            <ChevronLeft className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={handleToday}
-                            className="h-10 px-4 hover:bg-primary/10 hover:scale-105 transition-all"
-                          >
-                            Today
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={handleNext}
-                            className="h-10 w-10 hover:bg-primary/10 hover:scale-105 transition-all"
-                          >
-                            <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        <Tabs
-                          value={view}
-                          onValueChange={(v) => setView(v as any)}
-                          className="flex-1"
-                        >
-                          <TabsList className="grid grid-cols-3 w-full h-10">
-                            <TabsTrigger value="day" className="text-xs sm:text-sm">
-                              Day
-                            </TabsTrigger>
-                            <TabsTrigger value="week" className="text-xs sm:text-sm">
-                              Week
-                            </TabsTrigger>
-                            <TabsTrigger value="month" className="text-xs sm:text-sm">
-                              Month
-                            </TabsTrigger>
-                          </TabsList>
-                        </Tabs>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <Badge
-                          variant="secondary"
-                          className="text-xs sm:text-sm px-3 py-1.5 font-medium"
-                        >
-                          {view === "month" && format(currentDate, "MMMM yyyy")}
-                          {view === "week" &&
-                            format(currentDate, "MMM d") +
-                              " - " +
-                              format(
-                                addDays(startOfWeek(currentDate, { weekStartsOn: 0 }), 6),
-                                "MMM d, yyyy"
-                              )}
-                          {view === "day" && format(currentDate, "EEEE, MMMM d, yyyy")}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          Week {getWeek(currentDate, { weekStartsOn: 0 })}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-              {/* Calendar Views */}
-              <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-                {view === "week" && renderWeekView()}
-                {view === "day" && renderDayView()}
-                {view === "month" && renderMonthView()}
+            {/* Center: Navigation */}
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevious}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleToday} className="px-3 h-8">Today</Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNext}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <div className="text-sm font-medium min-w-[180px] text-center hidden md:block">
+                {getDateRangeLabel()}
               </div>
+            </div>
+
+            {/* Right: View Toggles */}
+            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+              <Button
+                variant={view === "day" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("day")}
+                className="h-7 px-2.5 gap-1"
+              >
+                <List className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">Day</span>
+              </Button>
+              <Button
+                variant={view === "week" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("week")}
+                className="h-7 px-2.5 gap-1"
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">Week</span>
+              </Button>
+              <Button
+                variant={view === "month" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setView("month")}
+                className="h-7 px-2.5 gap-1"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">Month</span>
+              </Button>
+            </div>
+          </div>
+          
+          {/* Mobile date display */}
+          <div className="md:hidden px-4 pb-2 text-center">
+            <Badge variant="secondary" className="text-xs">{getDateRangeLabel()}</Badge>
           </div>
         </div>
 
-        <EventDetailSheet
-          event={selectedEvent}
-          open={detailSheetOpen}
-          onOpenChange={setDetailSheetOpen}
-        />
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar */}
+          <div className={cn(
+            "hidden lg:flex flex-col w-64 border-r bg-card/50 shrink-0 transition-all",
+            !sidebarOpen && "w-0 overflow-hidden"
+          )}>
+            <MiniCalendar />
+            
+            <div className="flex-1 border-t">
+              <div className="p-4">
+                <h3 className="text-sm font-semibold mb-3">Upcoming</h3>
+                <div className="space-y-2">
+                  {getUpcomingEvents().map((event) => {
+                    const startDate = new Date(event.start_time);
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={() => handleEventClick(event)}
+                        className="p-2 rounded-lg border hover:bg-accent/50 cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="w-1 h-8 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: event.color }} />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium truncate">{event.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {format(startDate, "MMM d")} · {event.is_all_day ? "All day" : format(startDate, "h:mma")}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {getUpcomingEvents().length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">No upcoming events</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <CreateEventDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          initialDate={createEventDate}
-        />
+          {/* Calendar View */}
+          <div className="flex-1 p-4 overflow-hidden flex flex-col">
+            {view === "week" && <WeekView />}
+            {view === "day" && <DayView />}
+            {view === "month" && <MonthView />}
+          </div>
+        </div>
+
+        <EventDetailSheet event={selectedEvent} open={detailSheetOpen} onOpenChange={setDetailSheetOpen} />
+        <CreateEventDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} initialDate={createEventDate} />
 
         <DragOverlay>
           {activeEvent && (
-            <div
-              className="rounded-lg p-2 text-xs shadow-xl border border-white/20 backdrop-blur-sm opacity-90"
-              style={{
-                backgroundColor: activeEvent.color,
-                color: "black",
-              }}
-            >
-              <div className="font-semibold">{activeEvent.title}</div>
+            <div className="rounded px-2 py-1 text-xs shadow-lg" style={{ backgroundColor: activeEvent.color, color: "#000" }}>
+              <div className="font-medium">{activeEvent.title}</div>
             </div>
           )}
         </DragOverlay>
