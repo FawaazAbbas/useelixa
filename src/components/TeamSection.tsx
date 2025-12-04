@@ -43,44 +43,56 @@ export const TeamSection = ({
   return (
     <>
       <Collapsible open={isOpen} onOpenChange={onOpenChange}>
-        <div className="space-y-0.5">
+        <div className="space-y-1 px-2">
           {/* Team Header */}
           <div className="flex items-center gap-1 group">
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex-1 justify-start h-9 py-1.5 px-3 hover:bg-slate-700/50",
-                  isOpen && "bg-slate-800"
+                  "flex-1 justify-start h-10 py-2 px-3 rounded-xl transition-all duration-200",
+                  isOpen 
+                    ? "bg-white/[0.06] border border-white/[0.08]" 
+                    : "hover:bg-white/[0.04] border border-transparent"
                 )}
               >
-                <div className="flex items-center gap-2 w-full">
+                <div className="flex items-center gap-2.5 w-full">
                   <ChevronDown className={cn(
-                    "h-3.5 w-3.5 text-slate-400 transition-transform duration-200",
+                    "h-3.5 w-3.5 text-white/40 transition-transform duration-200",
                     !isOpen && "-rotate-90"
                   )} />
-                  <span className="text-[13px] font-medium text-slate-200">{team.name.replace(' Team', '')}</span>
-                  <span className="text-[11px] text-slate-500 ml-auto">({totalMemberCount})</span>
+                  <span className="text-[13px] font-medium text-white/80">{team.name.replace(' Team', '')}</span>
+                  <span className="text-[11px] text-white/30 ml-auto font-medium">({totalMemberCount})</span>
                 </div>
               </Button>
             </CollapsibleTrigger>
           </div>
 
           {/* Team Members */}
-          <CollapsibleContent className="space-y-0.5">
+          <CollapsibleContent className="space-y-1 pl-2">
             {/* Group Chat Option */}
             <button
               className={cn(
-                "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md mx-1",
-                isGroupChatSelected ? "bg-slate-700/70" : "hover:bg-slate-800/70"
+                "w-full flex items-center gap-2.5 px-3 py-2.5 h-10 transition-all duration-200 rounded-lg group",
+                isGroupChatSelected 
+                  ? "bg-primary/20 border border-primary/30" 
+                  : "hover:bg-white/[0.04] border border-transparent"
               )}
-              style={{ width: 'calc(100% - 8px)' }}
               onClick={onSelectGroupChat}
             >
-              <div className="relative">
-                <MessageSquare className="h-4 w-4 text-primary" />
+              <div className={cn(
+                "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
+                isGroupChatSelected ? "bg-primary/30" : "bg-white/[0.06]"
+              )}>
+                <MessageSquare className={cn(
+                  "h-3.5 w-3.5",
+                  isGroupChatSelected ? "text-primary" : "text-white/50"
+                )} />
               </div>
-              <span className="text-[13px] text-slate-300">{team.name.replace(' Team', '')} Team Chat</span>
+              <span className={cn(
+                "text-[13px] transition-colors",
+                isGroupChatSelected ? "text-white/90" : "text-white/60 group-hover:text-white/80"
+              )}>{team.name.replace(' Team', '')} Chat</span>
             </button>
 
             {/* Manager */}
