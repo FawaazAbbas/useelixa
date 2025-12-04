@@ -272,139 +272,153 @@ export default function KnowledgeBase() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm">
-          <div className="p-4">
+        <aside className="hidden md:flex flex-col w-60 border-r bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="p-3 border-b">
             <Button 
-              className="w-full justify-start gap-2" 
+              className="w-full h-9 gap-2" 
               onClick={() => view === "articles" ? setShowCreateArticle(true) : setShowUploadDocument(true)}
             >
               {view === "articles" ? (
                 <>
-                  <Plus className="h-4 w-4" />
-                  New Article
+                  <Plus className="h-4 w-4 shrink-0" />
+                  <span>New Article</span>
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4" />
-                  Upload Document
+                  <Upload className="h-4 w-4 shrink-0" />
+                  <span>Upload Document</span>
                 </>
               )}
             </Button>
           </div>
 
-          <ScrollArea className="flex-1 px-2">
-            {view === "articles" ? (
-              <>
-                {/* Category Filters */}
-                <div className="px-2 mb-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Tag className="h-3 w-3" />
-                    By Category
-                  </h3>
-                  <div className="space-y-0.5">
-                    <Button
-                      variant={categoryFilter === "all" ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "w-full justify-between h-8 px-2 text-xs",
-                        categoryFilter === "all" && "bg-primary/10"
-                      )}
-                      onClick={() => setCategoryFilter("all")}
-                    >
-                      <span>All Categories</span>
-                      <Badge variant="secondary" className="text-[10px] px-1.5 h-4">
-                        {stats.totalArticles}
-                      </Badge>
-                    </Button>
-                    {categories.map((cat) => (
-                      <Button
-                        key={cat}
-                        variant={categoryFilter === cat ? "secondary" : "ghost"}
-                        size="sm"
+          <ScrollArea className="flex-1">
+            <div className="p-3">
+              {view === "articles" ? (
+                <>
+                  {/* Category Filters */}
+                  <div className="mb-4">
+                    <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                      <Tag className="h-3 w-3 shrink-0" />
+                      Categories
+                    </h3>
+                    <div className="space-y-0.5">
+                      <button
                         className={cn(
-                          "w-full justify-between h-8 px-2 text-xs",
-                          categoryFilter === cat && "bg-primary/10"
+                          "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                          categoryFilter === "all" 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-muted/50"
                         )}
-                        onClick={() => setCategoryFilter(categoryFilter === cat ? "all" : cat)}
+                        onClick={() => setCategoryFilter("all")}
                       >
-                        <span className="truncate">{cat}</span>
-                        <Badge variant="secondary" className="text-[10px] px-1.5 h-4 ml-1">
-                          {categoryCounts[cat]}
-                        </Badge>
-                      </Button>
-                    ))}
+                        <span className="truncate">All</span>
+                        <span className={cn(
+                          "text-[10px] tabular-nums shrink-0 ml-2",
+                          categoryFilter === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
+                        )}>
+                          {stats.totalArticles}
+                        </span>
+                      </button>
+                      {categories.map((cat) => (
+                        <button
+                          key={cat}
+                          className={cn(
+                            "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                            categoryFilter === cat 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-muted/50"
+                          )}
+                          onClick={() => setCategoryFilter(categoryFilter === cat ? "all" : cat)}
+                        >
+                          <span className="truncate text-left flex-1 min-w-0">{cat}</span>
+                          <span className={cn(
+                            "text-[10px] tabular-nums shrink-0 ml-2",
+                            categoryFilter === cat ? "text-primary-foreground/80" : "text-muted-foreground"
+                          )}>
+                            {categoryCounts[cat]}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Recent Articles */}
-                <div className="px-2 mb-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <Clock className="h-3 w-3" />
-                    Recently Updated
-                  </h3>
-                  <div className="space-y-1">
-                    {recentArticles.map((article) => (
-                      <div
-                        key={article.id}
-                        className={cn(
-                          "p-2 rounded-md cursor-pointer transition-colors hover:bg-muted/50 border-l-2",
-                          categoryColors[article.category || ""] || "border-l-gray-500"
-                        )}
-                        onClick={() => handleArticleClick(article)}
-                      >
-                        <p className="text-xs font-medium truncate">{article.title}</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          {format(new Date(article.updated_at), "MMM d")}
-                        </p>
-                      </div>
-                    ))}
+                  {/* Recent Articles */}
+                  <div>
+                    <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                      <Clock className="h-3 w-3 shrink-0" />
+                      Recent
+                    </h3>
+                    <div className="space-y-1">
+                      {recentArticles.map((article) => (
+                        <div
+                          key={article.id}
+                          className={cn(
+                            "p-2 rounded-md cursor-pointer transition-colors hover:bg-muted/50 border-l-2",
+                            categoryColors[article.category || ""] || "border-l-gray-500"
+                          )}
+                          onClick={() => handleArticleClick(article)}
+                        >
+                          <p className="text-xs font-medium truncate">{article.title}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {format(new Date(article.updated_at), "MMM d")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Folder Filters */}
-                <div className="px-2 mb-4">
-                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                    <FolderOpen className="h-3 w-3" />
-                    By Folder
-                  </h3>
-                  <div className="space-y-0.5">
-                    <Button
-                      variant={selectedFolder === "all" ? "secondary" : "ghost"}
-                      size="sm"
-                      className={cn(
-                        "w-full justify-between h-8 px-2 text-xs",
-                        selectedFolder === "all" && "bg-primary/10"
-                      )}
-                      onClick={() => setSelectedFolder("all")}
-                    >
-                      <span>All Folders</span>
-                      <Badge variant="secondary" className="text-[10px] px-1.5 h-4">
-                        {stats.totalDocuments}
-                      </Badge>
-                    </Button>
-                    {folders.map((folder) => (
-                      <Button
-                        key={folder}
-                        variant={selectedFolder === folder ? "secondary" : "ghost"}
-                        size="sm"
+                </>
+              ) : (
+                <>
+                  {/* Folder Filters */}
+                  <div>
+                    <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                      <FolderOpen className="h-3 w-3 shrink-0" />
+                      Folders
+                    </h3>
+                    <div className="space-y-0.5">
+                      <button
                         className={cn(
-                          "w-full justify-between h-8 px-2 text-xs",
-                          selectedFolder === folder && "bg-primary/10"
+                          "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                          selectedFolder === "all" 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-muted/50"
                         )}
-                        onClick={() => setSelectedFolder(selectedFolder === folder ? "all" : folder)}
+                        onClick={() => setSelectedFolder("all")}
                       >
-                        <span className="truncate">{folder}</span>
-                        <Badge variant="secondary" className="text-[10px] px-1.5 h-4 ml-1">
-                          {folderCounts[folder]}
-                        </Badge>
-                      </Button>
-                    ))}
+                        <span className="truncate">All</span>
+                        <span className={cn(
+                          "text-[10px] tabular-nums shrink-0 ml-2",
+                          selectedFolder === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
+                        )}>
+                          {stats.totalDocuments}
+                        </span>
+                      </button>
+                      {folders.map((folder) => (
+                        <button
+                          key={folder}
+                          className={cn(
+                            "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                            selectedFolder === folder 
+                              ? "bg-primary text-primary-foreground" 
+                              : "hover:bg-muted/50"
+                          )}
+                          onClick={() => setSelectedFolder(selectedFolder === folder ? "all" : folder)}
+                        >
+                          <span className="truncate text-left flex-1 min-w-0">{folder}</span>
+                          <span className={cn(
+                            "text-[10px] tabular-nums shrink-0 ml-2",
+                            selectedFolder === folder ? "text-primary-foreground/80" : "text-muted-foreground"
+                          )}>
+                            {folderCounts[folder]}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </ScrollArea>
         </aside>
 
