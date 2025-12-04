@@ -413,52 +413,49 @@ const Calendar = () => {
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden w-full">
           {/* Sidebar */}
-          <div className={cn(
-            "hidden lg:flex flex-col w-64 border-r bg-card/50 shrink-0 transition-all overflow-hidden",
+          <aside className={cn(
+            "hidden lg:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0 transition-all",
             !sidebarOpen && "w-0 overflow-hidden"
           )}>
-            <ScrollArea className="flex-1">
-              {/* Create Button */}
-              <div className="p-4">
-                <SidebarActionButton onClick={() => handleNewEvent()} icon={Plus}>
-                  Create
-                </SidebarActionButton>
-              </div>
-              
-              <MiniCalendar />
-              
-              <div className="border-t">
-                <div className="p-4">
-                  <h3 className="text-sm font-semibold mb-3">Upcoming</h3>
-                  <div className="space-y-2">
-                    {getUpcomingEvents().map((event) => {
-                      const startDate = new Date(event.start_time);
-                      return (
-                        <div
-                          key={event.id}
-                          onClick={() => handleEventClick(event)}
-                          className="p-2 rounded-lg border hover:bg-accent/50 cursor-pointer transition-colors"
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className="w-1 h-8 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: event.color }} />
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-medium truncate">{event.title}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {format(startDate, "MMM d")} · {event.is_all_day ? "All day" : format(startDate, "h:mma")}
-                              </div>
+            <div className="p-4">
+              <SidebarActionButton onClick={() => handleNewEvent()} icon={Plus}>
+                Create
+              </SidebarActionButton>
+            </div>
+            
+            <MiniCalendar />
+            
+            <ScrollArea className="flex-1 w-full">
+              <div className="py-3 pl-3 pr-4 w-full max-w-full overflow-hidden border-t">
+                <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Upcoming</h3>
+                <div className="space-y-1 w-full">
+                  {getUpcomingEvents().map((event) => {
+                    const startDate = new Date(event.start_time);
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={() => handleEventClick(event)}
+                        className="p-2 rounded-md hover:bg-accent/50 cursor-pointer transition-colors w-full max-w-full overflow-hidden"
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="w-1 h-8 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: event.color }} />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-medium truncate">{event.title}</div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {format(startDate, "MMM d")} · {event.is_all_day ? "All day" : format(startDate, "h:mma")}
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                    {getUpcomingEvents().length === 0 && (
-                      <p className="text-xs text-muted-foreground text-center py-4">No upcoming events</p>
-                    )}
-                  </div>
+                      </div>
+                    );
+                  })}
+                  {getUpcomingEvents().length === 0 && (
+                    <p className="text-xs text-muted-foreground text-center py-4">No upcoming events</p>
+                  )}
                 </div>
               </div>
             </ScrollArea>
-          </div>
+          </aside>
 
           {/* Calendar View */}
           <div className="flex-1 p-4 overflow-hidden flex flex-col min-w-0 w-full">
