@@ -356,16 +356,10 @@ const Calendar = () => {
         {/* Top Navigation Bar */}
         <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
           <div className="flex items-center justify-between px-4 py-3 gap-4">
-            {/* Left: Logo + New Event */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-primary" />
-                <span className="font-semibold text-lg hidden sm:inline">Calendar</span>
-              </div>
-              <Button onClick={() => handleNewEvent()} size="sm" className="gap-1.5">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New Event</span>
-              </Button>
+            {/* Left: Logo */}
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-lg hidden sm:inline">Calendar</span>
             </div>
 
             {/* Center: Navigation */}
@@ -468,6 +462,15 @@ const Calendar = () => {
             {view === "month" && <MonthView />}
           </div>
         </div>
+
+        {/* Floating Action Button */}
+        <Button
+          onClick={() => handleNewEvent()}
+          className="fixed bottom-20 right-6 md:bottom-8 md:right-8 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 z-30 bg-primary hover:bg-primary/90"
+          size="icon"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
 
         <EventDetailSheet event={selectedEvent} open={detailSheetOpen} onOpenChange={setDetailSheetOpen} />
         <CreateEventDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} initialDate={createEventDate} />
