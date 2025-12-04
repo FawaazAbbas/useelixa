@@ -2320,7 +2320,7 @@ const Workspace = () => {
                       <h4 className="text-sm font-semibold">Team Files ({files.length})</h4>
                       {files.length > 0 ? (
                         <div className="space-y-2">
-                          {files.map((file) => (
+                          {[...files].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()).map((file) => (
                             <Card 
                               key={file.id} 
                               className="hover:bg-muted/50 transition-colors cursor-pointer"
