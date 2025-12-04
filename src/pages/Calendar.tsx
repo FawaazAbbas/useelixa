@@ -568,29 +568,35 @@ const Calendar = () => {
 
         <div className="flex-1 overflow-y-auto">
           <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto">
-              {/* Header */}
-              <div className="mb-8 animate-fade-in">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-primary/10 rounded-xl">
-                      <CalendarIcon className="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                      <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
-                      <p className="text-sm md:text-base text-muted-foreground mt-1">
-                        Manage your schedule and events
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => handleNewEvent()}
-                    className="shrink-0 h-10 md:h-11 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">New Event</span>
-                    <span className="sm:hidden">New</span>
-                  </Button>
+            {/* Header */}
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-2 animate-fade-in">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <CalendarIcon className="h-6 w-6 text-primary" />
                 </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold">Calendar</h1>
+                  <p className="text-sm md:text-base text-muted-foreground">
+                    {mockCalendarEvents.length} events
+                  </p>
+                </div>
+              </div>
+              <p className="text-muted-foreground text-sm md:text-base">
+                Manage your schedule and events
+              </p>
+            </div>
+
+            {/* New Event Button */}
+            <div className="mb-6">
+              <Button
+                onClick={() => handleNewEvent()}
+                className="w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow"
+                size="lg"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Event
+              </Button>
+            </div>
 
                 {/* Event Type Filters */}
                 <div className="mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
@@ -772,7 +778,6 @@ const Calendar = () => {
                     </CardContent>
                   </Card>
                 </div>
-              </div>
 
               {/* Calendar Views */}
               <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
@@ -780,8 +785,8 @@ const Calendar = () => {
                 {view === "day" && renderDayView()}
                 {view === "month" && renderMonthView()}
               </div>
-            </div>
           </div>
+        </div>
 
         <EventDetailSheet
           event={selectedEvent}
