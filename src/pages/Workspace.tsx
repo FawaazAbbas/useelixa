@@ -29,6 +29,7 @@ import { ChatLogsPanel } from "@/components/ChatLogsPanel";
 import { VoiceCallDialog } from "@/components/VoiceCallDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
+import { FilePreviewDialog } from "@/components/chat/FilePreviewDialog";
 import { AutomationHistoryDashboard } from "@/components/AutomationHistoryDashboard";
 import { useToast } from "@/hooks/use-toast";
 import { useBrianChat } from "@/hooks/useBrianChat";
@@ -196,6 +197,8 @@ const Workspace = () => {
   const [directorsOpen, setDirectorsOpen] = useState(true);
   const [agentsOpen, setAgentsOpen] = useState(false);
   const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState<{ name: string; type: string; size: number; uploadedBy?: string; uploadedAt?: string } | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const brianMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -1411,7 +1414,20 @@ const Workspace = () => {
                                 {msg.files && msg.files.length > 0 && (
                                   <div className="mt-2 space-y-2">
                                     {msg.files.map((file, idx) => (
-                                      <div key={idx} className="flex items-center gap-3 px-3 py-2 bg-muted/60 rounded-lg border border-border/50 max-w-[300px]">
+                                      <button
+                                        key={idx}
+                                        onClick={() => {
+                                          setPreviewFile({
+                                            name: file.name,
+                                            type: file.type,
+                                            size: file.size,
+                                            uploadedBy: msg.sender_name,
+                                            uploadedAt: msg.created_at,
+                                          });
+                                          setFilePreviewOpen(true);
+                                        }}
+                                        className="flex items-center gap-3 px-3 py-2 bg-muted/60 rounded-lg border border-border/50 max-w-[300px] hover:bg-muted/80 hover:border-primary/30 transition-all cursor-pointer text-left w-full"
+                                      >
                                         <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
                                           <FileText className="h-4 w-4 text-primary" />
                                         </div>
@@ -1419,10 +1435,10 @@ const Workspace = () => {
                                           <p className="text-xs font-medium truncate">{file.name}</p>
                                           <p className="text-[10px] text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
                                         </div>
-                                        <Button size="icon" variant="ghost" className="h-7 w-7 flex-shrink-0">
-                                          <Download className="h-3.5 w-3.5" />
-                                        </Button>
-                                      </div>
+                                        <div className="h-7 w-7 flex-shrink-0 flex items-center justify-center">
+                                          <Download className="h-3.5 w-3.5 text-muted-foreground" />
+                                        </div>
+                                      </button>
                                     ))}
                                   </div>
                                 )}
@@ -2542,6 +2558,15 @@ const Workspace = () => {
 
       {/* Waitlist Dialog */}
       <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+
+      {/* File Preview Dialog */}
+      <FilePreviewDialog
+        open={filePreviewOpen}
+        onOpenChange={setFilePreviewOpen}
+        file={previewFile}
+        uploadedBy={previewFile?.uploadedBy}
+        uploadedAt={previewFile?.uploadedAt}
+      />
       </div>
     </div>
   );
