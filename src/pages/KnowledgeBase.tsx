@@ -272,7 +272,7 @@ export default function KnowledgeBase() {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden md:flex flex-col w-60 border-r bg-card/50 backdrop-blur-sm overflow-hidden">
+        <aside className="hidden md:flex flex-col w-60 min-w-60 max-w-60 border-r bg-card/50 backdrop-blur-sm">
           <div className="p-3 border-b">
             <Button 
               className="w-full h-9 gap-2" 
@@ -292,8 +292,8 @@ export default function KnowledgeBase() {
             </Button>
           </div>
 
-          <ScrollArea className="flex-1">
-            <div className="p-3">
+          <ScrollArea className="flex-1 w-full">
+            <div className="p-3 w-full max-w-full overflow-hidden">
               {view === "articles" ? (
                 <>
                   {/* Category Filters */}
@@ -302,17 +302,17 @@ export default function KnowledgeBase() {
                       <Tag className="h-3 w-3 shrink-0" />
                       Categories
                     </h3>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 w-full">
                       <button
                         className={cn(
-                          "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                          "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
                           categoryFilter === "all" 
                             ? "bg-primary text-primary-foreground" 
                             : "hover:bg-muted/50"
                         )}
                         onClick={() => setCategoryFilter("all")}
                       >
-                        <span className="truncate">All</span>
+                        <span className="truncate flex-1 text-left">All</span>
                         <span className={cn(
                           "text-[10px] tabular-nums shrink-0 ml-2",
                           categoryFilter === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
@@ -324,14 +324,14 @@ export default function KnowledgeBase() {
                         <button
                           key={cat}
                           className={cn(
-                            "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                            "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
                             categoryFilter === cat 
                               ? "bg-primary text-primary-foreground" 
                               : "hover:bg-muted/50"
                           )}
                           onClick={() => setCategoryFilter(categoryFilter === cat ? "all" : cat)}
                         >
-                          <span className="truncate text-left flex-1 min-w-0">{cat}</span>
+                          <span className="truncate flex-1 text-left min-w-0">{cat}</span>
                           <span className={cn(
                             "text-[10px] tabular-nums shrink-0 ml-2",
                             categoryFilter === cat ? "text-primary-foreground/80" : "text-muted-foreground"
@@ -376,17 +376,17 @@ export default function KnowledgeBase() {
                       <FolderOpen className="h-3 w-3 shrink-0" />
                       Folders
                     </h3>
-                    <div className="space-y-0.5">
+                    <div className="space-y-0.5 w-full">
                       <button
                         className={cn(
-                          "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                          "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
                           selectedFolder === "all" 
                             ? "bg-primary text-primary-foreground" 
                             : "hover:bg-muted/50"
                         )}
                         onClick={() => setSelectedFolder("all")}
                       >
-                        <span className="truncate">All</span>
+                        <span className="truncate flex-1 text-left">All</span>
                         <span className={cn(
                           "text-[10px] tabular-nums shrink-0 ml-2",
                           selectedFolder === "all" ? "text-primary-foreground/80" : "text-muted-foreground"
@@ -398,14 +398,14 @@ export default function KnowledgeBase() {
                         <button
                           key={folder}
                           className={cn(
-                            "w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors",
+                            "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
                             selectedFolder === folder 
                               ? "bg-primary text-primary-foreground" 
                               : "hover:bg-muted/50"
                           )}
                           onClick={() => setSelectedFolder(selectedFolder === folder ? "all" : folder)}
                         >
-                          <span className="truncate text-left flex-1 min-w-0">{folder}</span>
+                          <span className="truncate flex-1 text-left min-w-0">{folder}</span>
                           <span className={cn(
                             "text-[10px] tabular-nums shrink-0 ml-2",
                             selectedFolder === folder ? "text-primary-foreground/80" : "text-muted-foreground"
