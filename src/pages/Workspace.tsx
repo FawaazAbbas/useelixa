@@ -535,15 +535,15 @@ const Workspace = () => {
     // Get team key for mock data lookup
     const team = mockTeams.find((t: any) => t.id === teamId);
     if (team) {
-      // Map team ID to mock data key
+      // Map team ID to mock data key (team IDs in mockTeams are like "team-marketing")
       const teamKeyMap: Record<string, string> = {
-        'marketing': 'marketing',
-        'product': 'product',
-        'customer-service': 'customer-service',
-        'finance': 'finance',
-        'development': 'development',
-        'creative': 'creative',
-        'legal': 'legal',
+        'team-marketing': 'marketing',
+        'team-product': 'product',
+        'team-customer-service': 'customer-service',
+        'team-finance': 'finance',
+        'team-development': 'development',
+        'team-creative': 'creative',
+        'team-legal': 'legal',
       };
       const teamKey = teamKeyMap[teamId] || teamId;
       const groupMessages = mockTeamGroupMessages[teamKey];
