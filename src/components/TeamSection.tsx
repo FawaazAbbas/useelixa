@@ -50,17 +50,17 @@ export const TeamSection = ({
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex-1 justify-start h-8 py-1 px-3 hover:bg-primary/80",
-                  isOpen && "bg-primary"
+                  "flex-1 justify-start h-9 py-1.5 px-3 hover:bg-slate-700/50",
+                  isOpen && "bg-slate-800"
                 )}
               >
                 <div className="flex items-center gap-2 w-full">
                   <ChevronDown className={cn(
-                    "h-3 w-3 text-white transition-transform duration-200",
+                    "h-3.5 w-3.5 text-slate-400 transition-transform duration-200",
                     !isOpen && "-rotate-90"
                   )} />
-                  <span className="text-[0.85rem] font-medium text-white">{team.name.replace(' Team', '')}</span>
-                  <span className="text-[10px] text-white/60 ml-auto">({totalMemberCount})</span>
+                  <span className="text-[13px] font-medium text-slate-200">{team.name.replace(' Team', '')}</span>
+                  <span className="text-[11px] text-slate-500 ml-auto">({totalMemberCount})</span>
                 </div>
               </Button>
             </CollapsibleTrigger>
@@ -71,16 +71,16 @@ export const TeamSection = ({
             {/* Group Chat Option */}
             <button
               className={cn(
-                "w-full flex items-center gap-2 px-3 py-1 h-8 transition-colors",
-                isGroupChatSelected ? "bg-[hsl(210_17%_96%/0.3)]" : "hover:bg-[hsl(210_17%_96%/0.5)]"
+                "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md mx-1",
+                isGroupChatSelected ? "bg-slate-700/70" : "hover:bg-slate-800/70"
               )}
-              style={{ borderRadius: 'calc(var(--radius) - 2px)' }}
+              style={{ width: 'calc(100% - 8px)' }}
               onClick={onSelectGroupChat}
             >
               <div className="relative">
                 <MessageSquare className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-[0.75rem] truncate text-white">{team.name.replace(' Team', '')} Team Chat</span>
+              <span className="text-[13px] text-slate-300">{team.name.replace(' Team', '')} Team Chat</span>
             </button>
 
             {/* Manager */}
