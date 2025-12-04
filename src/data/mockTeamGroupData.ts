@@ -179,11 +179,23 @@ export const getTeamGroupData = (teamId: string) => {
   const team = mockTeams.find(t => t.id === teamId);
   if (!team) return null;
   
+  // Map team ID to data key (team IDs are like "team-marketing", data keys are "marketing")
+  const teamKeyMap: Record<string, string> = {
+    'team-marketing': 'marketing',
+    'team-product': 'product',
+    'team-customer-service': 'customer-service',
+    'team-finance': 'finance',
+    'team-development': 'development',
+    'team-creative': 'creative',
+    'team-legal': 'legal',
+  };
+  const dataKey = teamKeyMap[teamId] || teamId;
+  
   return {
     team,
-    files: mockTeamFiles[teamId] || [],
-    memories: mockTeamMemories[teamId] || [],
-    activity: mockTeamActivity[teamId] || [],
+    files: mockTeamFiles[dataKey] || [],
+    memories: mockTeamMemories[dataKey] || [],
+    activity: mockTeamActivity[dataKey] || [],
   };
 };
 
