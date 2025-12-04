@@ -564,9 +564,8 @@ const Calendar = () => {
       onDragEnd={handleDragEnd}
     >
       <div className="flex flex-col flex-1 w-full h-full overflow-hidden bg-gradient-to-b from-background to-muted/20">
-        <DemoBanner />
-
         <div className="flex-1 overflow-y-auto">
+          <DemoBanner />
           <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-6">
