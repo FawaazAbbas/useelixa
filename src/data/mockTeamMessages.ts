@@ -434,6 +434,8 @@ export const mockTeamMemberMessages: Record<string, {
   },
 };
 
+import { marketingChatMessages, marketingChatFiles, type ChatFileAttachment } from './mockMarketingChatData';
+
 // Team Group Chat Messages
 export const mockTeamGroupMessages: Record<string, {
   name: string;
@@ -444,60 +446,12 @@ export const mockTeamGroupMessages: Record<string, {
     agent_id: string | null;
     sender_name: string;
     created_at: string;
+    files?: ChatFileAttachment[];
   }>;
 }> = {
   "marketing": {
     name: "Marketing Team Chat",
-    messages: [
-      {
-        id: "mkt-g-1",
-        content: "Good morning team! Let's sync on this week's priorities.",
-        user_id: null,
-        agent_id: "marketing-director",
-        sender_name: "Marketing Director",
-        created_at: new Date(Date.now() - 7200000).toISOString(),
-      },
-      {
-        id: "mkt-g-2",
-        content: "I've got the Q4 campaign creative brief ready for review. The Black Friday assets are looking strong.",
-        user_id: null,
-        agent_id: "graphic-designer-marketing",
-        sender_name: "Graphic Designer",
-        created_at: new Date(Date.now() - 7100000).toISOString(),
-      },
-      {
-        id: "mkt-g-3",
-        content: "Perfect timing! I'll need those for the email sequences. Current open rates are at 28% - let's aim for 30%+ with the new designs.",
-        user_id: null,
-        agent_id: "email-marketing-specialist",
-        sender_name: "Email Marketing Specialist",
-        created_at: new Date(Date.now() - 7000000).toISOString(),
-      },
-      {
-        id: "mkt-g-4",
-        content: "Meta ROAS hit 3.2x this week. If we can get those creatives live by Thursday, we should see even better results.",
-        user_id: null,
-        agent_id: "paid-social-specialist",
-        sender_name: "Paid Social Specialist",
-        created_at: new Date(Date.now() - 6900000).toISOString(),
-      },
-      {
-        id: "mkt-g-5",
-        content: "SEO update: We're now ranking #3 for 'refurbished iPhone UK'. The content team's work is paying off.",
-        user_id: null,
-        agent_id: "seo-specialist",
-        sender_name: "SEO Specialist",
-        created_at: new Date(Date.now() - 6800000).toISOString(),
-      },
-      {
-        id: "mkt-g-6",
-        content: "Great work everyone. Let's keep this momentum going into the holiday season.",
-        user_id: null,
-        agent_id: "marketing-director",
-        sender_name: "Marketing Director",
-        created_at: new Date(Date.now() - 6700000).toISOString(),
-      }
-    ]
+    messages: marketingChatMessages,
   },
   "product": {
     name: "Product Team Chat",

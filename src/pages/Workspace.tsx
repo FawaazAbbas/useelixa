@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload, Download } from "lucide-react";
 import { getAgentColor } from '@/utils/agentColors';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -1375,12 +1375,29 @@ const Workspace = () => {
                                       : "bg-muted/80"
                                   }`}
                                 >
-                                  <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {msg.content}
-                                    </ReactMarkdown>
-                                  </div>
+                                  <div 
+                                    className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                                    dangerouslySetInnerHTML={{ __html: msg.content }}
+                                  />
                                 </div>
+                                {msg.files && msg.files.length > 0 && (
+                                  <div className="mt-2 space-y-2">
+                                    {msg.files.map((file, idx) => (
+                                      <div key={idx} className="flex items-center gap-3 px-3 py-2 bg-muted/60 rounded-lg border border-border/50 max-w-[300px]">
+                                        <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                          <FileText className="h-4 w-4 text-primary" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-medium truncate">{file.name}</p>
+                                          <p className="text-[10px] text-muted-foreground">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                                        </div>
+                                        <Button size="icon" variant="ghost" className="h-7 w-7 flex-shrink-0">
+                                          <Download className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                               {isUserMessage && (
                                 <Avatar className="h-10 w-10 flex-shrink-0">

@@ -1,5 +1,7 @@
 import { mockTeams } from "./mockTeams";
 
+import { marketingChatFiles } from './mockMarketingChatData';
+
 // Mock files for team group chats
 export const mockTeamFiles: Record<string, Array<{
   id: string;
@@ -9,12 +11,7 @@ export const mockTeamFiles: Record<string, Array<{
   uploadedBy: string;
   uploadedAt: string;
 }>> = {
-  "marketing": [
-    { id: "mf-1", name: "Q4 Campaign Strategy.pdf", type: "pdf", size: "2.4 MB", uploadedBy: "Marketing Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
-    { id: "mf-2", name: "Brand Guidelines 2024.pdf", type: "pdf", size: "8.1 MB", uploadedBy: "Creative Director", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
-    { id: "mf-3", name: "Social Media Calendar.xlsx", type: "xlsx", size: "156 KB", uploadedBy: "Social Media Manager", uploadedAt: new Date(Date.now() - 259200000).toISOString() },
-    { id: "mf-4", name: "Ad Performance Report.xlsx", type: "xlsx", size: "324 KB", uploadedBy: "PPC Specialist", uploadedAt: new Date(Date.now() - 345600000).toISOString() },
-  ],
+  "marketing": marketingChatFiles,
   "product": [
     { id: "pf-1", name: "Product Roadmap Q4.pdf", type: "pdf", size: "1.8 MB", uploadedBy: "Product Director", uploadedAt: new Date(Date.now() - 86400000).toISOString() },
     { id: "pf-2", name: "Competitor Pricing Analysis.xlsx", type: "xlsx", size: "892 KB", uploadedBy: "Competitive Pricing Analyst", uploadedAt: new Date(Date.now() - 172800000).toISOString() },
