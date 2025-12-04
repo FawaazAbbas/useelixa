@@ -152,9 +152,9 @@ const Calendar = () => {
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
     return (
-      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden w-full">
-        <div className="grid grid-cols-8 border-b bg-muted/30">
-          <div className="p-2 border-r" />
+      <div className="h-full flex flex-col border rounded-lg bg-card overflow-hidden">
+        <div className="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b bg-muted/30 shrink-0">
+          <div className="border-r" />
           {weekDays.map((day) => (
             <div
               key={day.toISOString()}
@@ -175,7 +175,7 @@ const Calendar = () => {
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="grid grid-cols-8">
+          <div className="grid grid-cols-[3.5rem_repeat(7,1fr)] min-h-[1344px]">
             <div className="border-r">
               {hours.map((hour) => (
                 <div key={hour} className="h-14 border-b px-2 text-[10px] text-muted-foreground text-right pt-1">
@@ -235,13 +235,13 @@ const Calendar = () => {
     const dayEvents = getEventsForDay(currentDate);
 
     return (
-      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden w-full">
-        <div className="p-4 border-b bg-muted/30">
+      <div className="h-full flex flex-col border rounded-lg bg-card overflow-hidden">
+        <div className="p-4 border-b bg-muted/30 shrink-0">
           <h2 className="text-lg font-semibold">{format(currentDate, "EEEE, MMMM d")}</h2>
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="flex">
+          <div className="flex min-h-[1536px]">
             <div className="w-16 shrink-0 border-r">
               {hours.map((hour) => (
                 <div key={hour} className="h-16 border-b px-2 text-xs text-muted-foreground text-right pt-1">
@@ -250,7 +250,7 @@ const Calendar = () => {
               ))}
             </div>
 
-            <DroppableTimeSlot id={`day-${currentDate.toISOString()}`} data={{ day: currentDate }} className="flex-1 relative">
+            <DroppableTimeSlot id={`day-${currentDate.toISOString()}`} data={{ day: currentDate }} className="flex-1 relative min-w-0">
               {hours.map((hour) => (
                 <div
                   key={hour}
@@ -297,15 +297,15 @@ const Calendar = () => {
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <div className="flex-1 border rounded-lg bg-card overflow-hidden w-full">
-        <div className="grid grid-cols-7 border-b bg-muted/30">
+      <div className="h-full flex flex-col border rounded-lg bg-card overflow-hidden">
+        <div className="grid grid-cols-7 border-b bg-muted/30 shrink-0">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day} className="p-2 text-center text-sm font-medium border-r last:border-r-0">{day}</div>
           ))}
         </div>
-        <div className="grid grid-cols-7 auto-rows-fr" style={{ minHeight: "calc(100% - 40px)" }}>
+        <div className="flex-1 grid grid-cols-7 auto-rows-fr">
           {allDays.map((day, index) => {
-            if (!day) return <div key={`empty-${index}`} className="border-b border-r bg-muted/10 min-h-24" />;
+            if (!day) return <div key={`empty-${index}`} className="border-b border-r bg-muted/10" />;
 
             const events = getEventsForDay(day);
             const dayIsToday = isToday(day);
@@ -315,7 +315,7 @@ const Calendar = () => {
                 key={day.toISOString()}
                 onClick={() => handleNewEvent(day)}
                 className={cn(
-                  "border-b border-r p-1.5 cursor-pointer hover:bg-accent/10 transition-colors min-h-24",
+                  "border-b border-r p-1.5 cursor-pointer hover:bg-accent/10 transition-colors overflow-hidden",
                   dayIsToday && "bg-primary/5"
                 )}
               >
@@ -462,7 +462,7 @@ const Calendar = () => {
           </div>
 
           {/* Calendar View */}
-          <div className="flex-1 p-4 overflow-hidden flex flex-col min-w-0 w-full">
+          <div className="flex-1 p-4 overflow-hidden flex flex-col min-w-0">
             {view === "week" && <WeekView />}
             {view === "day" && <DayView />}
             {view === "month" && <MonthView />}
