@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockAgents, MockAgent } from "@/data/mockAgents";
-import { useToast } from "@/hooks/use-toast";
 import { getAgentColor } from "@/utils/agentColors";
+import { WaitlistDialog } from "./WaitlistDialog";
 
 interface AddAgentToWorkspaceDialogProps {
   open: boolean;
@@ -33,7 +33,7 @@ export const AddAgentToWorkspaceDialog = ({
 }: AddAgentToWorkspaceDialogProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const { toast } = useToast();
+  const [showWaitlist, setShowWaitlist] = useState(false);
 
   const filteredAgents = useMemo(() => {
     return mockAgents.filter((agent) => {
@@ -47,11 +47,8 @@ export const AddAgentToWorkspaceDialog = ({
   }, [searchQuery, selectedCategory]);
 
   const handleAddAgent = (agent: MockAgent) => {
-    toast({
-      title: "Demo Mode",
-      description: `${agent.name} would be added to your workspace. Changes won't be saved.`,
-    });
     onOpenChange(false);
+    setShowWaitlist(true);
   };
 
   const uniqueCategories = useMemo(() => {
@@ -60,6 +57,7 @@ export const AddAgentToWorkspaceDialog = ({
   }, []);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] p-0 gap-0 bg-slate-900 border-slate-700">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-slate-700/50">
@@ -191,5 +189,8 @@ export const AddAgentToWorkspaceDialog = ({
         </div>
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlist} onOpenChange={setShowWaitlist} />
+    </>
   );
 };
