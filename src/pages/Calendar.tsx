@@ -358,8 +358,8 @@ const Calendar = () => {
           <div className="flex items-center justify-between px-4 py-3 gap-4">
             {/* Left: Logo */}
             <div className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-lg hidden sm:inline">Calendar</span>
+              <CalendarIcon className="h-6 w-6 text-primary" />
+              <span className="font-bold text-2xl hidden sm:inline">Calendar</span>
             </div>
 
             {/* Right: View Toggles */}
@@ -465,7 +465,7 @@ const Calendar = () => {
                   Today
                 </Button>
               </div>
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-lg font-medium text-muted-foreground">
                 {getDateRangeLabel()}
               </h2>
             </div>
