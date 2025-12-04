@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Activity, CheckCircle, XCircle, AlertCircle, Clock, Zap, ArrowRight, FileText, Bot, Search, Filter, Calendar } from "lucide-react";
+import { Activity, CheckCircle, XCircle, AlertCircle, Clock, Zap, ArrowRight, FileText, Bot, Search, Filter, Calendar, Users, UserCircle, FolderKanban } from "lucide-react";
 import { getAgentColor } from "@/utils/agentColors";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,15 +11,18 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format, formatDistanceToNow } from "date-fns";
 import { DemoBanner } from "@/components/DemoBanner";
-import { mockActivityLogs, type MockActivityLog } from "@/data/mockLogs";
+import { combinedActivityLogs, activityStats } from "@/data/mockCombinedActivityLogs";
+import { type MockActivityLog } from "@/data/mockLogs";
 import { cn } from "@/lib/utils";
 
 type ActivityLog = MockActivityLog;
 
 const Logs = () => {
-  const [logs] = useState<ActivityLog[]>(mockActivityLogs);
+  const [logs] = useState<ActivityLog[]>(combinedActivityLogs);
   const [statusFilter, setStatusFilter] = useState("all");
   const [agentFilter, setAgentFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
 
@@ -39,14 +42,20 @@ const Logs = () => {
   const filteredLogs = logs.filter((log) => {
     const matchesStatus = statusFilter === "all" || log.status === statusFilter;
     const matchesAgent = agentFilter === "all" || log.agent?.name === agentFilter;
-    if (!matchesStatus || !matchesAgent) return false;
+    const matchesSource = sourceFilter === "all" || 
+      (sourceFilter === "teams" && log.trigger_source.includes("Team Chat")) ||
+      (sourceFilter === "directors" && log.trigger_source.includes("Direct Chat"));
+    const matchesType = typeFilter === "all" || log.entity_type === typeFilter;
+    
+    if (!matchesStatus || !matchesAgent || !matchesSource || !matchesType) return false;
     
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
         log.action.toLowerCase().includes(query) ||
         log.metadata?.description?.toLowerCase().includes(query) ||
-        log.agent?.name?.toLowerCase().includes(query)
+        log.agent?.name?.toLowerCase().includes(query) ||
+        log.trigger_source?.toLowerCase().includes(query)
       );
     }
     return true;
@@ -58,6 +67,16 @@ const Logs = () => {
     success: logs.filter(l => l.status === "success").length,
     failed: logs.filter(l => l.status === "failed").length,
     pending: logs.filter(l => l.status === "pending").length,
+    teams: logs.filter(l => l.trigger_source.includes("Team Chat")).length,
+    directors: logs.filter(l => l.trigger_source.includes("Direct Chat")).length,
+  };
+
+  // Type stats
+  const typeStats = {
+    file_upload: logs.filter(l => l.entity_type === "file_upload").length,
+    decision: logs.filter(l => l.entity_type === "decision").length,
+    milestone: logs.filter(l => l.entity_type === "milestone").length,
+    task: logs.filter(l => l.entity_type === "task").length,
   };
 
   // Get unique agents
@@ -74,6 +93,20 @@ const Logs = () => {
     { key: "success", label: "Success", count: stats.success, icon: CheckCircle, color: "text-green-500" },
     { key: "failed", label: "Failed", count: stats.failed, icon: XCircle, color: "text-destructive" },
     { key: "pending", label: "Pending", count: stats.pending, icon: AlertCircle, color: "text-yellow-500" },
+  ];
+
+  const sourceButtons = [
+    { key: "all", label: "All Sources", count: stats.total, icon: Activity },
+    { key: "teams", label: "Team Chats", count: stats.teams, icon: Users, color: "text-emerald-500" },
+    { key: "directors", label: "Director Chats", count: stats.directors, icon: UserCircle, color: "text-blue-500" },
+  ];
+
+  const typeButtons = [
+    { key: "all", label: "All Types", count: stats.total, icon: FolderKanban },
+    { key: "file_upload", label: "File Uploads", count: typeStats.file_upload, icon: FileText, color: "text-purple-500" },
+    { key: "decision", label: "Decisions", count: typeStats.decision, icon: CheckCircle, color: "text-orange-500" },
+    { key: "milestone", label: "Milestones", count: typeStats.milestone, icon: Zap, color: "text-yellow-500" },
+    { key: "task", label: "Tasks", count: typeStats.task, icon: Activity, color: "text-cyan-500" },
   ];
 
   return (
@@ -127,6 +160,72 @@ const Logs = () => {
                       <span className={cn(
                         "text-[10px] tabular-nums shrink-0 ml-2",
                         statusFilter === btn.key ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {btn.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Source Filters */}
+              <div className="mb-4">
+                <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                  <Users className="h-3 w-3 shrink-0" />
+                  By Source
+                </h3>
+                <div className="space-y-0.5 w-full">
+                  {sourceButtons.map((btn) => (
+                    <button
+                      key={btn.key}
+                      className={cn(
+                        "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                        sourceFilter === btn.key 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => setSourceFilter(btn.key)}
+                    >
+                      <span className="flex items-center gap-1.5 truncate">
+                        <btn.icon className={cn("h-3 w-3 shrink-0", sourceFilter !== btn.key && btn.color)} />
+                        <span className="truncate">{btn.label}</span>
+                      </span>
+                      <span className={cn(
+                        "text-[10px] tabular-nums shrink-0 ml-2",
+                        sourceFilter === btn.key ? "text-primary-foreground/80" : "text-muted-foreground"
+                      )}>
+                        {btn.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Type Filters */}
+              <div className="mb-4">
+                <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
+                  <FolderKanban className="h-3 w-3 shrink-0" />
+                  By Type
+                </h3>
+                <div className="space-y-0.5 w-full">
+                  {typeButtons.map((btn) => (
+                    <button
+                      key={btn.key}
+                      className={cn(
+                        "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                        typeFilter === btn.key 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted/50"
+                      )}
+                      onClick={() => setTypeFilter(btn.key)}
+                    >
+                      <span className="flex items-center gap-1.5 truncate">
+                        <btn.icon className={cn("h-3 w-3 shrink-0", typeFilter !== btn.key && btn.color)} />
+                        <span className="truncate">{btn.label}</span>
+                      </span>
+                      <span className={cn(
+                        "text-[10px] tabular-nums shrink-0 ml-2",
+                        typeFilter === btn.key ? "text-primary-foreground/80" : "text-muted-foreground"
                       )}>
                         {btn.count}
                       </span>
@@ -201,20 +300,36 @@ const Logs = () => {
           </div>
 
           {/* Mobile Filters */}
-          <div className="md:hidden p-3 border-b flex gap-2 overflow-x-auto">
-            {statusButtons.map((btn) => (
-              <Button
-                key={btn.key}
-                variant={statusFilter === btn.key ? "secondary" : "outline"}
-                size="sm"
-                className="shrink-0 h-8 text-xs gap-1"
-                onClick={() => setStatusFilter(btn.key)}
-              >
-                <btn.icon className={cn("h-3 w-3", statusFilter !== btn.key && btn.color)} />
-                {btn.label}
-                <Badge variant="secondary" className="ml-1 text-[10px] px-1">{btn.count}</Badge>
-              </Button>
-            ))}
+          <div className="md:hidden p-3 border-b space-y-2">
+            <div className="flex gap-2 overflow-x-auto">
+              {sourceButtons.map((btn) => (
+                <Button
+                  key={btn.key}
+                  variant={sourceFilter === btn.key ? "secondary" : "outline"}
+                  size="sm"
+                  className="shrink-0 h-8 text-xs gap-1"
+                  onClick={() => setSourceFilter(btn.key)}
+                >
+                  <btn.icon className={cn("h-3 w-3", sourceFilter !== btn.key && btn.color)} />
+                  {btn.label}
+                  <Badge variant="secondary" className="ml-1 text-[10px] px-1">{btn.count}</Badge>
+                </Button>
+              ))}
+            </div>
+            <div className="flex gap-2 overflow-x-auto">
+              {typeButtons.map((btn) => (
+                <Button
+                  key={btn.key}
+                  variant={typeFilter === btn.key ? "secondary" : "outline"}
+                  size="sm"
+                  className="shrink-0 h-8 text-xs gap-1"
+                  onClick={() => setTypeFilter(btn.key)}
+                >
+                  <btn.icon className={cn("h-3 w-3", typeFilter !== btn.key && btn.color)} />
+                  {btn.label}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Content Grid */}
@@ -257,6 +372,21 @@ const Logs = () => {
                                   {log.agent.name}
                                 </Badge>
                               )}
+                              <Badge 
+                                variant="outline" 
+                                className={cn(
+                                  "text-[10px] px-1.5",
+                                  log.trigger_source.includes("Team Chat") 
+                                    ? "border-emerald-500/50 text-emerald-600 dark:text-emerald-400" 
+                                    : "border-blue-500/50 text-blue-600 dark:text-blue-400"
+                                )}
+                              >
+                                {log.trigger_source.includes("Team Chat") ? (
+                                  <><Users className="h-2.5 w-2.5 mr-0.5" /> Team</>
+                                ) : (
+                                  <><UserCircle className="h-2.5 w-2.5 mr-0.5" /> Director</>
+                                )}
+                              </Badge>
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 <span>{formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}</span>
