@@ -2321,7 +2321,23 @@ const Workspace = () => {
                       {files.length > 0 ? (
                         <div className="space-y-2">
                           {files.map((file) => (
-                            <Card key={file.id} className="hover:bg-muted/50 transition-colors cursor-pointer">
+                            <Card 
+                              key={file.id} 
+                              className="hover:bg-muted/50 transition-colors cursor-pointer"
+                              onClick={() => {
+                                const sizeInBytes = typeof file.size === 'string' 
+                                  ? parseFloat(file.size) * 1024 * 1024 
+                                  : file.size;
+                                setPreviewFile({
+                                  name: file.name,
+                                  type: file.type,
+                                  size: sizeInBytes,
+                                  uploadedBy: file.uploadedBy,
+                                  uploadedAt: file.uploadedAt
+                                });
+                                setFilePreviewOpen(true);
+                              }}
+                            >
                               <CardContent className="p-3 flex items-center gap-3">
                                 <span className="text-xl">{getFileIcon(file.type)}</span>
                                 <div className="flex-1 min-w-0">
