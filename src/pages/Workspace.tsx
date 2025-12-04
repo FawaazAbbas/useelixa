@@ -628,26 +628,22 @@ const Workspace = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <div className={`${isMobile ? 'hidden' : 'w-72'} bg-gradient-to-b from-[#13111C] via-[#0D0B14] to-[#08070C] border-r border-purple-500/10 flex flex-col relative overflow-hidden`}>
-        {/* Ambient glow effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-56 bg-purple-600/15 rounded-full blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-1/4 right-0 w-40 h-40 bg-fuchsia-500/10 rounded-full blur-[80px] pointer-events-none" />
-        <div className="absolute top-1/2 left-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none" />
+      <div className={`${isMobile ? 'hidden' : 'w-72'} bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-700/50 flex flex-col shadow-xl`}>
         {/* Workspace Header */}
-        <div className="p-4 border-b border-purple-500/10 relative z-10">
+        <div className="p-4 border-b border-slate-700/50 bg-slate-800/50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-between w-full bg-purple-500/[0.08] hover:bg-purple-500/[0.12] border border-purple-500/20 rounded-xl px-3 py-3 transition-all duration-300 group">
+              <button className="flex items-center justify-between w-full hover:bg-slate-700/50 rounded-lg px-3 py-2.5 transition-all duration-300">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
                     <Building2 className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-purple-100 text-[15px]">My Workspace</div>
-                    <div className="text-xs text-purple-400/80 font-medium">Premium Plan</div>
+                    <div className="font-semibold text-slate-100 text-[15px]">My Workspace</div>
+                    <div className="text-xs text-slate-400">Premium Plan</div>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-purple-300/50 group-hover:text-purple-300 transition-colors" />
+                <ChevronDown className="h-4 w-4 text-slate-400" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72 bg-popover/95 backdrop-blur-xl border-chat-border z-50">
@@ -707,20 +703,20 @@ const Workspace = () => {
         </div>
 
         {/* Search */}
-        <div className="px-4 pb-3 relative z-10">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-300/30 group-focus-within:text-purple-400 transition-colors" />
+        <div className="p-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
             <Input
               placeholder="Search teams & agents..."
               value={sidebarSearch}
               onChange={(e) => setSidebarSearch(e.target.value)}
-              className="pl-9 bg-purple-500/[0.06] border-purple-500/20 text-purple-100 placeholder:text-purple-300/30 focus:bg-purple-500/[0.1] focus:border-purple-400/40 transition-all text-sm h-10 rounded-xl"
+              className="pl-9 bg-slate-800/80 border-slate-700 text-slate-200 placeholder:text-slate-500 focus:bg-slate-800 focus:border-slate-600 transition-colors text-sm"
             />
           </div>
         </div>
 
         {/* Brian Section - ALWAYS VISIBLE */}
-        <div className="px-4 py-2 relative z-10">
+        <div className="px-3 py-2">
           <button
             onClick={() => {
               setShowBrian(true);
@@ -728,33 +724,33 @@ const Workspace = () => {
               setSelectedTeamMemberId(null);
               setSelectedTeamGroupId(null);
             }}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group ${
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
               showBrian 
-                ? "bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 shadow-xl shadow-purple-500/30" 
-                : "bg-purple-500/[0.08] hover:bg-purple-500/[0.15] border border-purple-500/20 hover:border-purple-400/30"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/25" 
+                : "bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700"
             }`}
           >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
               showBrian 
                 ? "bg-white/20" 
-                : "bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 shadow-lg shadow-purple-500/40"
+                : "bg-gradient-to-br from-blue-500 to-cyan-500"
             }`}>
               <Bot className="h-5 w-5 text-white" />
             </div>
-            <div className="flex flex-col items-start flex-1">
-              <span className={`text-sm font-semibold ${showBrian ? 'text-white' : 'text-purple-100'}`}>Brian</span>
-              <span className={`text-xs ${showBrian ? 'text-white/70' : 'text-purple-300/50'}`}>AI COO Assistant</span>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-semibold text-slate-100">Brian</span>
+              <span className="text-xs text-slate-400">AI COO Assistant</span>
             </div>
-            <Sparkles className={`h-4 w-4 ${showBrian ? 'text-white/80' : 'text-fuchsia-400'} group-hover:animate-pulse`} />
+            <Sparkles className="h-4 w-4 text-blue-400 ml-auto" />
           </button>
         </div>
 
-        <div className="mx-4 my-3 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent relative z-10" />
+        <Separator className="my-2 bg-slate-700/50" />
 
         {/* Teams Section */}
-        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <div className="px-4 py-2">
-            <h3 className="text-[11px] font-semibold text-purple-300/40 uppercase tracking-widest flex items-center gap-2">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
               <Users className="h-3.5 w-3.5" />
               Teams
             </h3>
