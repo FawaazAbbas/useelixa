@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { mockTeams, getTeamOnlineCount } from "@/data/mockTeams";
-import { MessageSquare } from "lucide-react";
+import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TeamsSidebarProps {
@@ -13,14 +13,10 @@ interface TeamsSidebarProps {
 }
 
 export const TeamsSidebar = ({ 
-  selectedMemberId, 
-  onSelectMember, 
-  collapseAll,
   selectedTeamGroupId,
   onSelectTeamGroup,
   searchQuery = "",
 }: TeamsSidebarProps) => {
-  // Filter teams based on search query
   const filteredTeams = useMemo(() => {
     if (!searchQuery.trim()) return mockTeams;
     
@@ -41,20 +37,26 @@ export const TeamsSidebar = ({
           <button
             key={team.id}
             className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
+              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md group",
               selectedTeamGroupId === team.id
-                ? "bg-slate-700/70"
+                ? "bg-emerald-500/20 border border-emerald-500/30"
                 : "hover:bg-slate-800/70"
             )}
             onClick={() => onSelectTeamGroup(team.id)}
           >
-            <div className="relative">
-              <MessageSquare className="h-4 w-4 text-primary" />
+            <div className="h-6 w-6 rounded bg-emerald-500/20 flex items-center justify-center">
+              <Users className="h-3.5 w-3.5 text-emerald-400" />
             </div>
-            <span className="text-[13px] truncate text-slate-300">
+            <span className={cn(
+              "text-[13px] truncate",
+              selectedTeamGroupId === team.id ? "text-emerald-200" : "text-slate-300"
+            )}>
               {team.name.replace(' Team', '')}
             </span>
-            <span className="text-[11px] text-slate-500 ml-auto">
+            <span className={cn(
+              "text-[11px] ml-auto tabular-nums",
+              selectedTeamGroupId === team.id ? "text-emerald-400" : "text-slate-500"
+            )}>
               {onlineCount}/{totalCount}
             </span>
           </button>

@@ -22,7 +22,6 @@ export const DirectMessagesSidebar = ({
 }: DirectMessagesSidebarProps) => {
   const [showWaitlist, setShowWaitlist] = useState(false);
 
-  // Get all non-manager agents
   const agents: AgentWithTeam[] = useMemo(() => {
     const allAgents = mockTeams.flatMap((team) =>
       team.members.map((member) => ({
@@ -45,30 +44,31 @@ export const DirectMessagesSidebar = ({
     offline: "bg-gray-400",
   };
 
-  const handleAgentClick = (memberId: string) => {
-    // Show waitlist for non-manager agents
+  const handleAgentClick = () => {
     setShowWaitlist(true);
   };
 
   return (
     <>
-      <div className="space-y-0.5 px-2">
-        {agents.map(({ member, team }) => (
+      <div className="space-y-0.5 px-2 py-1">
+        {agents.map(({ member }) => (
           <button
             key={member.id}
             className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
+              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md group",
               selectedMemberId === member.id
-                ? "bg-slate-700/70"
+                ? "bg-orange-500/20 border border-orange-500/30"
                 : "hover:bg-slate-800/70"
             )}
-            onClick={() => handleAgentClick(member.id)}
+            onClick={handleAgentClick}
           >
             <div className="relative">
-              <Bot className="h-4 w-4 text-orange-500" />
+              <div className="h-6 w-6 rounded bg-orange-500/20 flex items-center justify-center">
+                <Bot className="h-3.5 w-3.5 text-orange-400" />
+              </div>
               <div
                 className={cn(
-                  "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-slate-900",
+                  "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-900",
                   statusColors[member.status]
                 )}
               />

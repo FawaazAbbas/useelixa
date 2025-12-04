@@ -1,4 +1,3 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockTeams, TeamMember, Team } from "@/data/mockTeams";
 import { Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,28 +40,33 @@ export const DirectorsSidebar = ({
   };
 
   return (
-    <div className="space-y-0.5 px-2">
+    <div className="space-y-0.5 px-2 py-1">
       {directors.map(({ member, team }) => (
         <button
           key={member.id}
           className={cn(
-            "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
+            "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md group",
             selectedMemberId === member.id
-              ? "bg-slate-700/70"
+              ? "bg-blue-500/20 border border-blue-500/30"
               : "hover:bg-slate-800/70"
           )}
           onClick={() => onSelectMember(member.id)}
         >
           <div className="relative">
-            <Bot className="h-4 w-4 text-blue-500" />
+            <div className="h-6 w-6 rounded bg-blue-500/20 flex items-center justify-center">
+              <Bot className="h-3.5 w-3.5 text-blue-400" />
+            </div>
             <div
               className={cn(
-                "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-slate-900",
+                "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-900",
                 statusColors[member.status]
               )}
             />
           </div>
-          <span className="text-[13px] truncate text-slate-300">
+          <span className={cn(
+            "text-[13px] truncate",
+            selectedMemberId === member.id ? "text-blue-200" : "text-slate-300"
+          )}>
             {member.name}
           </span>
         </button>
