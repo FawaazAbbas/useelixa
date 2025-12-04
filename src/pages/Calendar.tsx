@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format, addDays, subDays, isToday, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getWeek } from "date-fns";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, LayoutGrid, List, CalendarDays } from "lucide-react";
 import { SidebarActionButton } from "@/components/SidebarActionButton";
@@ -151,6 +151,14 @@ const Calendar = () => {
   const WeekView = () => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    const weekScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      // Scroll to 8am (8 hours * 56px per hour = 448px)
+      if (weekScrollRef.current) {
+        weekScrollRef.current.scrollTop = 8 * 56;
+      }
+    }, [currentDate]);
 
     return (
       <div className="h-full w-full flex flex-col border rounded-lg bg-card overflow-hidden">
@@ -175,7 +183,7 @@ const Calendar = () => {
           ))}
         </div>
 
-        <ScrollArea className="flex-1 w-full">
+        <div ref={weekScrollRef} className="flex-1 w-full overflow-auto">
           <div className="grid grid-cols-[3.5rem_repeat(7,1fr)] w-full min-h-[1344px]">
             <div className="border-r">
               {hours.map((hour) => (
@@ -225,7 +233,7 @@ const Calendar = () => {
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
       </div>
     );
   };
@@ -233,6 +241,14 @@ const Calendar = () => {
   // Day View
   const DayView = () => {
     const dayEvents = getEventsForDay(currentDate);
+    const dayScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      // Scroll to 8am (8 hours * 64px per hour = 512px)
+      if (dayScrollRef.current) {
+        dayScrollRef.current.scrollTop = 8 * 64;
+      }
+    }, [currentDate]);
 
     return (
       <div className="h-full w-full flex flex-col border rounded-lg bg-card overflow-hidden">
@@ -240,7 +256,7 @@ const Calendar = () => {
           <h2 className="text-lg font-semibold">{format(currentDate, "EEEE, MMMM d")}</h2>
         </div>
 
-        <ScrollArea className="flex-1 w-full">
+        <div ref={dayScrollRef} className="flex-1 w-full overflow-auto">
           <div className="flex w-full min-h-[1536px]">
             <div className="w-16 shrink-0 border-r">
               {hours.map((hour) => (
@@ -262,7 +278,7 @@ const Calendar = () => {
                 const startDate = new Date(event.start_time);
                 const endDate = new Date(event.end_time);
                 const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60);
-                const topPosition = event.is_all_day ? 8 : (startDate.getHours() * 64) + (startDate.getMinutes() / 60 * 64);
+                const topPosition = event.is_all_day ? 8 : (startDate.getHours() * 64) + (startDate.getMinutes() / 64 * 64);
                 const height = event.is_all_day ? 48 : Math.max((duration / 60) * 64, 48);
 
                 return (
@@ -281,7 +297,7 @@ const Calendar = () => {
               })}
             </DroppableTimeSlot>
           </div>
-        </ScrollArea>
+        </div>
       </div>
     );
   };
