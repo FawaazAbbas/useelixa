@@ -47,6 +47,7 @@ import { AddAgentToWorkspaceDialog } from "@/components/AddAgentToWorkspaceDialo
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { mockTeamMemberMessages, mockTeamGroupMessages } from "@/data/mockTeamMessages";
 import { getTeamGroupData, getFileIcon, formatRelativeTime } from "@/data/mockTeamGroupData";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -194,6 +195,7 @@ const Workspace = () => {
   const [teamsOpen, setTeamsOpen] = useState(true);
   const [directorsOpen, setDirectorsOpen] = useState(true);
   const [agentsOpen, setAgentsOpen] = useState(false);
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const brianMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -2152,8 +2154,7 @@ const Workspace = () => {
                       <button
                         key={member.id}
                         onClick={() => {
-                          setSelectedTeamGroupId(null);
-                          setSelectedTeamMemberId(member.id);
+                          setShowWaitlistDialog(true);
                         }}
                         className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
                       >
@@ -2492,6 +2493,9 @@ const Workspace = () => {
         open={showAddAgentDialog}
         onOpenChange={setShowAddAgentDialog}
       />
+
+      {/* Waitlist Dialog */}
+      <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
       </div>
     </div>
   );
