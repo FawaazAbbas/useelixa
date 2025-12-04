@@ -628,22 +628,25 @@ const Workspace = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <div className={`${isMobile ? 'hidden' : 'w-72'} bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-700/50 flex flex-col shadow-xl`}>
+      <div className={`${isMobile ? 'hidden' : 'w-72'} bg-gradient-to-b from-[#0f1419] via-[#0a0e12] to-[#060809] border-r border-white/5 flex flex-col relative overflow-hidden`}>
+        {/* Ambient glow effects */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/20 rounded-full blur-[80px] pointer-events-none" />
+        <div className="absolute bottom-1/3 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-[60px] pointer-events-none" />
         {/* Workspace Header */}
-        <div className="p-4 border-b border-slate-700/50 bg-slate-800/50">
+        <div className="p-4 border-b border-white/5 relative z-10">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-between w-full hover:bg-slate-700/50 rounded-lg px-3 py-2.5 transition-all duration-300">
+              <button className="flex items-center justify-between w-full bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl px-3 py-3 transition-all duration-300 group">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-cyan-500 flex items-center justify-center shadow-lg shadow-primary/25">
                     <Building2 className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-slate-100 text-[15px]">My Workspace</div>
-                    <div className="text-xs text-slate-400">Premium Plan</div>
+                    <div className="font-semibold text-white/90 text-[15px]">My Workspace</div>
+                    <div className="text-xs text-primary/70 font-medium">Premium Plan</div>
                   </div>
                 </div>
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-white/40 group-hover:text-white/60 transition-colors" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72 bg-popover/95 backdrop-blur-xl border-chat-border z-50">
@@ -703,20 +706,20 @@ const Workspace = () => {
         </div>
 
         {/* Search */}
-        <div className="p-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-500" />
+        <div className="px-4 pb-3 relative z-10">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/30 group-focus-within:text-primary/70 transition-colors" />
             <Input
               placeholder="Search teams & agents..."
               value={sidebarSearch}
               onChange={(e) => setSidebarSearch(e.target.value)}
-              className="pl-9 bg-slate-800/80 border-slate-700 text-slate-200 placeholder:text-slate-500 focus:bg-slate-800 focus:border-slate-600 transition-colors text-sm"
+              className="pl-9 bg-white/[0.03] border-white/[0.06] text-white/90 placeholder:text-white/30 focus:bg-white/[0.05] focus:border-primary/30 transition-all text-sm h-10 rounded-xl"
             />
           </div>
         </div>
 
         {/* Brian Section - ALWAYS VISIBLE */}
-        <div className="px-3 py-2">
+        <div className="px-4 py-2 relative z-10">
           <button
             onClick={() => {
               setShowBrian(true);
@@ -724,33 +727,33 @@ const Workspace = () => {
               setSelectedTeamMemberId(null);
               setSelectedTeamGroupId(null);
             }}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group ${
               showBrian 
-                ? "bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/25" 
-                : "bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700"
+                ? "bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-500 shadow-xl shadow-cyan-500/20" 
+                : "bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-cyan-500/20"
             }`}
           >
-            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+            <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-all ${
               showBrian 
                 ? "bg-white/20" 
-                : "bg-gradient-to-br from-blue-500 to-cyan-500"
+                : "bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-cyan-500/30"
             }`}>
               <Bot className="h-5 w-5 text-white" />
             </div>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold text-slate-100">Brian</span>
-              <span className="text-xs text-slate-400">AI COO Assistant</span>
+            <div className="flex flex-col items-start flex-1">
+              <span className={`text-sm font-semibold ${showBrian ? 'text-white' : 'text-white/90'}`}>Brian</span>
+              <span className={`text-xs ${showBrian ? 'text-white/70' : 'text-white/40'}`}>AI COO Assistant</span>
             </div>
-            <Sparkles className="h-4 w-4 text-blue-400 ml-auto" />
+            <Sparkles className={`h-4 w-4 ${showBrian ? 'text-white/80' : 'text-cyan-400'} group-hover:animate-pulse`} />
           </button>
         </div>
 
-        <Separator className="my-2 bg-slate-700/50" />
+        <div className="mx-4 my-3 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent relative z-10" />
 
         {/* Teams Section */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative z-10">
           <div className="px-4 py-2">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+            <h3 className="text-[11px] font-semibold text-white/30 uppercase tracking-widest flex items-center gap-2">
               <Users className="h-3.5 w-3.5" />
               Teams
             </h3>

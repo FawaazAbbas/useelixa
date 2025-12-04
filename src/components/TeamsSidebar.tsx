@@ -66,7 +66,7 @@ export const TeamsSidebar = ({
 
   return (
     <ScrollArea className="flex-1">
-      <div className="p-2 space-y-1">
+      <div className="py-1 space-y-2">
         {filteredTeams.map((team) => (
           <TeamSection
             key={team.id}
@@ -80,8 +80,8 @@ export const TeamsSidebar = ({
           />
         ))}
         {filteredTeams.length === 0 && searchQuery.trim() && (
-          <div className="px-4 py-6 text-center text-sm text-slate-500">
-            No teams or agents found
+          <div className="px-4 py-8 text-center">
+            <div className="text-sm text-white/40">No teams or agents found</div>
           </div>
         )}
       </div>

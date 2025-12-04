@@ -28,21 +28,29 @@ export const TeamMemberCard = ({
   return (
     <button
       className={cn(
-        "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md mx-1",
-        isSelected ? "bg-slate-700/70" : "hover:bg-slate-800/70",
-        isIndented && "pl-7"
+        "w-full flex items-center gap-2.5 px-3 py-2.5 h-10 transition-all duration-200 rounded-lg group",
+        isSelected 
+          ? "bg-white/[0.08] border border-white/[0.1]" 
+          : "hover:bg-white/[0.04] border border-transparent",
+        isIndented && "ml-2"
       )}
-      style={{ width: 'calc(100% - 8px)' }}
+      style={{ width: isIndented ? 'calc(100% - 8px)' : '100%' }}
       onClick={onSelect}
     >
-      <div className="relative">
+      <div className={cn(
+        "h-7 w-7 rounded-lg flex items-center justify-center transition-colors relative",
+        isSelected ? "bg-white/[0.1]" : "bg-white/[0.06]"
+      )}>
         <Bot className={cn("h-4 w-4", iconColor)} />
         <div className={cn(
-          "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border-2 border-slate-900",
+          "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#0a0e12]",
           statusColors[member.status]
         )} />
       </div>
-      <span className="text-[13px] truncate text-slate-300">{member.name}</span>
+      <span className={cn(
+        "text-[13px] truncate transition-colors",
+        isSelected ? "text-white/90" : "text-white/60 group-hover:text-white/80"
+      )}>{member.name}</span>
     </button>
   );
 };
