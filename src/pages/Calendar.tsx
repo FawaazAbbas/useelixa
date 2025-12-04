@@ -567,8 +567,7 @@ const Calendar = () => {
         <DemoBanner />
 
         <div className="flex-1 overflow-y-auto">
-          <div className="py-6 px-8 md:py-8">
-            <div className="max-w-7xl mx-auto">
+          <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto">
               {/* Header */}
               <div className="mb-8 animate-fade-in">
                 <div className="flex items-start justify-between gap-4 mb-6">
@@ -783,7 +782,6 @@ const Calendar = () => {
               </div>
             </div>
           </div>
-        </div>
 
         <EventDetailSheet
           event={selectedEvent}

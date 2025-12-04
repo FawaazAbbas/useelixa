@@ -6,7 +6,7 @@ export const DemoBanner = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-b border-primary/20">
+    <div className="sticky top-0 z-40 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-b border-primary/20 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-primary/20 p-2 rounded-lg">
