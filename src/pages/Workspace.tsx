@@ -1352,7 +1352,8 @@ const Workspace = () => {
                         </div>
                       ) : (
                         teamGroupMessages.map((msg, index) => {
-                          const isUserMessage = msg.user_id !== null;
+                          // Liam is the user (You) - treat his messages as user messages (blue bubbles)
+                          const isUserMessage = msg.user_id !== null || msg.sender_name === "Liam";
                           const msgIconColor = msg.isManager ? "text-blue-500" : "text-orange-500";
                           const msgBgColor = msg.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
                           const msgDate = new Date(msg.created_at);
