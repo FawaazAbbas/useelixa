@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { format, addDays, subDays, isToday, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, getWeek } from "date-fns";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, LayoutGrid, List, CalendarDays } from "lucide-react";
+import { SidebarActionButton } from "@/components/SidebarActionButton";
 import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor } from "@dnd-kit/core";
 import { mockCalendarEvents, MockCalendarEvent } from "@/data/mockCalendarEvents";
 import { Card, CardContent } from "@/components/ui/card";
@@ -405,14 +406,9 @@ const Calendar = () => {
             <ScrollArea className="flex-1">
               {/* Create Button */}
               <div className="p-4">
-                <Button 
-                  onClick={() => handleNewEvent()} 
-                  className="w-full gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
-                  size="lg"
-                >
-                  <Plus className="h-5 w-5" />
+                <SidebarActionButton onClick={() => handleNewEvent()} icon={Plus}>
                   Create
-                </Button>
+                </SidebarActionButton>
               </div>
               
               <MiniCalendar />

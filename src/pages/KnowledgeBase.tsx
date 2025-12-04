@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockKnowledgeArticles, mockDocuments, MockKnowledgeArticle, MockDocument } from "@/data/mockKnowledge";
 import { BookOpen, Search, FileText, Upload, Plus, Eye, Calendar, Folder, Download, Table, Presentation, File, Star, Clock, FolderOpen, Tag } from "lucide-react";
+import { SidebarActionButton } from "@/components/SidebarActionButton";
 import { format } from "date-fns";
 import { ArticleDetailDialog } from "@/components/ArticleDetailDialog";
 import { DocumentPreviewDialog } from "@/components/DocumentPreviewDialog";
@@ -274,23 +275,12 @@ export default function KnowledgeBase() {
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0">
           <div className="p-4">
-            <Button 
-              className="w-full gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all" 
-              size="lg"
+            <SidebarActionButton 
               onClick={() => view === "articles" ? setShowCreateArticle(true) : setShowUploadDocument(true)}
+              icon={view === "articles" ? Plus : Upload}
             >
-              {view === "articles" ? (
-                <>
-                  <Plus className="h-5 w-5" />
-                  New Article
-                </>
-              ) : (
-                <>
-                  <Upload className="h-5 w-5" />
-                  Upload Document
-                </>
-              )}
-            </Button>
+              {view === "articles" ? "New Article" : "Upload Document"}
+            </SidebarActionButton>
           </div>
 
           <ScrollArea className="flex-1 w-full">
