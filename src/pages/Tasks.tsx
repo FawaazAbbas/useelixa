@@ -495,104 +495,105 @@ const Tasks = () => {
       <div className="flex-1 flex overflow-hidden w-full">
         {/* Sidebar - Only show in list view */}
         {view === "list" && (
-          <div className="hidden lg:flex flex-col w-64 border-r bg-card/50 shrink-0 overflow-hidden">
-            <ScrollArea className="flex-1">
-              {/* Create Button */}
-              <div className="p-4">
-                <SidebarActionButton onClick={() => setShowCreationModeDialog(true)} icon={Plus}>
-                  New Task
-                </SidebarActionButton>
-              </div>
+          <aside className="hidden lg:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0">
+            <div className="p-4">
+              <SidebarActionButton onClick={() => setShowCreationModeDialog(true)} icon={Plus}>
+                New Task
+              </SidebarActionButton>
+            </div>
 
-              {/* Quick Filters */}
-              <div className="px-4 pb-4">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Filters</h3>
-                <div className="space-y-1">
-                  {filterButtons.map((filter) => (
-                    <button
-                      key={filter.key}
-                      onClick={() => setActiveFilter(filter.key)}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
-                        activeFilter === filter.key 
-                          ? "bg-primary text-primary-foreground" 
-                          : "hover:bg-muted/50",
-                        filter.danger && filter.count > 0 && activeFilter !== filter.key && "text-destructive"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <filter.icon className="h-4 w-4" />
-                        <span>{filter.label}</span>
-                      </div>
-                      <Badge 
-                        variant={activeFilter === filter.key ? "secondary" : filter.danger && filter.count > 0 ? "destructive" : "outline"}
-                        className="text-[10px] px-1.5"
+            <ScrollArea className="flex-1 w-full">
+              <div className="py-3 pl-3 pr-4 w-full max-w-full overflow-hidden">
+                {/* Quick Filters */}
+                <div className="mb-4">
+                  <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Filters</h3>
+                  <div className="space-y-0.5 w-full">
+                    {filterButtons.map((filter) => (
+                      <button
+                        key={filter.key}
+                        onClick={() => setActiveFilter(filter.key)}
+                        className={cn(
+                          "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                          activeFilter === filter.key 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-muted/50",
+                          filter.danger && filter.count > 0 && activeFilter !== filter.key && "text-destructive"
+                        )}
                       >
-                        {filter.count}
-                      </Badge>
-                    </button>
-                  ))}
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <filter.icon className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{filter.label}</span>
+                        </div>
+                        <Badge 
+                          variant={activeFilter === filter.key ? "secondary" : filter.danger && filter.count > 0 ? "destructive" : "outline"}
+                          className="text-[10px] px-1.5 shrink-0 ml-2"
+                        >
+                          {filter.count}
+                        </Badge>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Priority Summary */}
-              <div className="px-4 py-4 border-t">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">By Priority</h3>
-                <div className="space-y-1">
-                  {[
-                    { key: "high", label: "High", color: "bg-red-500", count: tasks.filter(t => t.priority === "high" && t.status === "pending").length },
-                    { key: "medium", label: "Medium", color: "bg-yellow-500", count: tasks.filter(t => t.priority === "medium" && t.status === "pending").length },
-                    { key: "low", label: "Low", color: "bg-green-500", count: tasks.filter(t => t.priority === "low" && t.status === "pending").length },
-                  ].map((priority) => (
-                    <button
-                      key={priority.key}
-                      onClick={() => setPriorityFilter(priorityFilter === priority.key ? "all" : priority.key as "high" | "medium" | "low")}
-                      className={cn(
-                        "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
-                        priorityFilter === priority.key 
-                          ? "bg-primary text-primary-foreground" 
-                          : "hover:bg-muted/50"
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={cn("w-2 h-2 rounded-full", priority.color)} />
-                        <span>{priority.label}</span>
-                      </div>
-                      <span className={cn("text-sm", priorityFilter === priority.key ? "text-primary-foreground" : "text-muted-foreground")}>
-                        {priority.count}
-                      </span>
-                    </button>
-                  ))}
+                {/* Priority Summary */}
+                <div className="pt-3 border-t">
+                  <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">By Priority</h3>
+                  <div className="space-y-0.5 w-full">
+                    {[
+                      { key: "high", label: "High", color: "bg-red-500", count: tasks.filter(t => t.priority === "high" && t.status === "pending").length },
+                      { key: "medium", label: "Medium", color: "bg-yellow-500", count: tasks.filter(t => t.priority === "medium" && t.status === "pending").length },
+                      { key: "low", label: "Low", color: "bg-green-500", count: tasks.filter(t => t.priority === "low" && t.status === "pending").length },
+                    ].map((priority) => (
+                      <button
+                        key={priority.key}
+                        onClick={() => setPriorityFilter(priorityFilter === priority.key ? "all" : priority.key as "high" | "medium" | "low")}
+                        className={cn(
+                          "w-full max-w-full flex items-center justify-between h-8 px-2 rounded-md text-xs transition-colors overflow-hidden",
+                          priorityFilter === priority.key 
+                            ? "bg-primary text-primary-foreground" 
+                            : "hover:bg-muted/50"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className={cn("w-2 h-2 rounded-full shrink-0", priority.color)} />
+                          <span className="truncate">{priority.label}</span>
+                        </div>
+                        <span className={cn("text-[10px] tabular-nums shrink-0 ml-2", priorityFilter === priority.key ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                          {priority.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Upcoming Due */}
-              <div className="px-4 py-4 border-t">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Coming Up</h3>
-                <div className="space-y-2">
-                  {getUpcomingTasks().map((task) => (
-                    <div
-                      key={task.id}
-                      onClick={() => openTaskDetail(task)}
-                      className={cn(
-                        "p-2 rounded-lg cursor-pointer transition-all hover:bg-accent/50 border-l-2",
-                        getPriorityColor(task.priority)
-                      )}
-                    >
-                      <div className="text-sm font-medium truncate">{task.title}</div>
-                      <div className={cn("flex items-center gap-1 text-[10px] mt-1", task.due_date && getDueDateColor(task.due_date))}>
-                        <Clock className="h-2.5 w-2.5" />
-                        {task.due_date && getDueDateLabel(task.due_date)}
+                {/* Upcoming Due */}
+                <div className="pt-3 border-t mt-3">
+                  <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Coming Up</h3>
+                  <div className="space-y-1 w-full">
+                    {getUpcomingTasks().map((task) => (
+                      <div
+                        key={task.id}
+                        onClick={() => openTaskDetail(task)}
+                        className={cn(
+                          "p-2 rounded-md cursor-pointer transition-all hover:bg-accent/50 border-l-2 w-full max-w-full overflow-hidden",
+                          getPriorityColor(task.priority)
+                        )}
+                      >
+                        <div className="text-xs font-medium truncate">{task.title}</div>
+                        <div className={cn("flex items-center gap-1 text-[10px] mt-1", task.due_date && getDueDateColor(task.due_date))}>
+                          <Clock className="h-2.5 w-2.5 shrink-0" />
+                          {task.due_date && getDueDateLabel(task.due_date)}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  {getUpcomingTasks().length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-3">No upcoming tasks</p>
-                  )}
+                    ))}
+                    {getUpcomingTasks().length === 0 && (
+                      <p className="text-xs text-muted-foreground text-center py-3">No upcoming tasks</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </ScrollArea>
-          </div>
+          </aside>
         )}
 
         {/* Main Content Area */}
