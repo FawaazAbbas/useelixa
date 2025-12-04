@@ -46,7 +46,7 @@ import { SidebarActionMenu } from "@/components/SidebarActionMenu";
 import { getTeamMemberById, mockTeams, getTeamOnlineCount } from "@/data/mockTeams";
 import { AddAgentToWorkspaceDialog } from "@/components/AddAgentToWorkspaceDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { mockTeamMemberMessages, mockTeamGroupMessages } from "@/data/mockTeamMessages";
+import { mockTeamMemberMessages, mockTeamGroupMessages, mockDirectorChatData } from "@/data/mockTeamMessages";
 import { getTeamGroupData, getFileIcon, formatRelativeTime } from "@/data/mockTeamGroupData";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import {
@@ -514,12 +514,19 @@ const Workspace = () => {
     setSelectedTeamGroupId(null);
     setRightSidebarTab("about");
     
-    // Load mock messages for this team member
-    const memberData = mockTeamMemberMessages[memberId];
-    if (memberData) {
-      setTeamMemberMessages(memberData.messages);
+    // Check if this is a director with full chat data
+    const directorData = mockDirectorChatData[memberId as keyof typeof mockDirectorChatData];
+    if (directorData) {
+      // Use the full director chat data with HTML content and files
+      setTeamMemberMessages(directorData.messages as any);
     } else {
-      setTeamMemberMessages([]);
+      // Fall back to regular team member messages
+      const memberData = mockTeamMemberMessages[memberId];
+      if (memberData) {
+        setTeamMemberMessages(memberData.messages);
+      } else {
+        setTeamMemberMessages([]);
+      }
     }
     
     // Scroll to bottom
@@ -1196,10 +1203,13 @@ const Workspace = () => {
                         </div>
                       ) : (
                         teamMemberMessages.map((msg) => {
-                          const isUserMessage = msg.user_id !== null;
+                          const isUserMessage = msg.user_id !== null || msg.sender_name === 'Liam';
                           // Blue for managers, orange for workers
                           const msgIconColor = member.isManager ? "text-blue-500" : "text-orange-500";
                           const msgBgColor = member.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
+                          const msgDate = new Date(msg.created_at);
+                          // Check if content contains HTML tags (director messages have HTML)
+                          const hasHtmlContent = msg.content.includes('<') && msg.content.includes('>');
                           return (
                             <div
                               key={msg.id}
@@ -1213,10 +1223,10 @@ const Workspace = () => {
                               <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                                 <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                                   <span className="font-semibold">
-                                    {isUserMessage ? "You" : member.name}
+                                    {isUserMessage ? "You" : (msg.sender_name || member.name)}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
-                                    {new Date(msg.created_at).toLocaleTimeString()}
+                                    {format(msgDate, "d MMM, h:mm a")}
                                   </span>
                                 </div>
                                 <div
@@ -1226,12 +1236,46 @@ const Workspace = () => {
                                       : "bg-muted/80"
                                   }`}
                                 >
-                                  <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {msg.content}
-                                    </ReactMarkdown>
-                                  </div>
+                                  {hasHtmlContent ? (
+                                    <div 
+                                      className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                                      dangerouslySetInnerHTML={{ __html: msg.content }}
+                                    />
+                                  ) : (
+                                    <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {msg.content}
+                                      </ReactMarkdown>
+                                    </div>
+                                  )}
                                 </div>
+                                {/* File attachments */}
+                                {msg.files && msg.files.length > 0 && (
+                                  <div className="mt-2 space-y-2">
+                                    {msg.files.map((file: any, idx: number) => (
+                                      <button
+                                        key={idx}
+                                        onClick={() => {
+                                          setPreviewFile({
+                                            name: file.name,
+                                            type: file.type,
+                                            size: file.size,
+                                            uploadedBy: msg.sender_name || member.name,
+                                            uploadedAt: msg.created_at,
+                                          });
+                                          setFilePreviewOpen(true);
+                                        }}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors hover:bg-muted/50 ${
+                                          isUserMessage ? 'bg-primary/20 border-primary/30' : 'bg-muted/50 border-border'
+                                        }`}
+                                      >
+                                        <FileText className="h-4 w-4 text-muted-foreground" />
+                                        <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+                                        <Download className="h-4 w-4 text-muted-foreground" />
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                               {isUserMessage && (
                                 <Avatar className="h-10 w-10 flex-shrink-0">
@@ -2273,32 +2317,71 @@ const Workspace = () => {
                   </div>
                 </div>
               </div>
-            ) : selectedTeamMemberId ? (
-              <div className="h-full overflow-auto p-4">
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-semibold mb-2">Team Member Files</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Upload files for this team member to access</p>
-                  </div>
-                  
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                    <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                    <p className="text-sm font-medium mb-1">Upload Files</p>
-                    <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
-                    <p className="text-xs text-muted-foreground mt-2">Supports PDF, DOC, TXT, CSV, and more</p>
-                  </div>
+            ) : selectedTeamMemberId ? (() => {
+              const directorData = mockDirectorChatData[selectedTeamMemberId as keyof typeof mockDirectorChatData];
+              const memberInfo = getTeamMemberById(selectedTeamMemberId);
+              const memberName = memberInfo?.member?.name || 'Team Member';
+              const files = directorData?.files || [];
+              
+              return (
+                <div className="h-full overflow-auto p-4">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-semibold mb-2">{memberName} Files</h3>
+                      <p className="text-sm text-muted-foreground mb-4">Shared files from this chat</p>
+                    </div>
+                    
+                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                      <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium mb-1">Upload Files</p>
+                      <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
+                    </div>
 
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">Recent Files</h4>
-                    <Card>
-                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
-                        No files uploaded yet
-                      </CardContent>
-                    </Card>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-semibold">Shared Files ({files.length})</h4>
+                      {files.length > 0 ? (
+                        <div className="space-y-2">
+                          {[...files].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()).map((file, idx) => (
+                            <Card 
+                              key={idx} 
+                              className="hover:bg-muted/50 transition-colors cursor-pointer"
+                              onClick={() => {
+                                const sizeInBytes = typeof file.size === 'string' 
+                                  ? parseFloat(file.size) * 1024 
+                                  : file.size;
+                                setPreviewFile({
+                                  name: file.name,
+                                  type: file.type,
+                                  size: sizeInBytes,
+                                  uploadedBy: file.uploadedBy,
+                                  uploadedAt: file.uploadedAt
+                                });
+                                setFilePreviewOpen(true);
+                              }}
+                            >
+                              <CardContent className="p-3 flex items-center gap-3">
+                                <span className="text-xl">{getFileIcon(file.type)}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{file.name}</p>
+                                  <p className="text-xs text-muted-foreground">{file.size} · {file.uploadedBy}</p>
+                                </div>
+                                <span className="text-xs text-muted-foreground">{formatRelativeTime(file.uploadedAt)}</span>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      ) : (
+                        <Card>
+                          <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                            No files shared yet
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : selectedTeamGroupId ? (() => {
+              );
+            })() : selectedTeamGroupId ? (() => {
               const teamData = getTeamGroupData(selectedTeamGroupId);
               if (!teamData) return null;
               const { team, files } = teamData;
@@ -2382,12 +2465,49 @@ const Workspace = () => {
                 <h3 className="font-semibold mb-4">Brian's Memories</h3>
                 <p className="text-sm text-muted-foreground mb-4">Workspace-level memories and preferences</p>
               </div>
-            ) : selectedTeamMemberId ? (
-              <div className="h-full overflow-auto p-4">
-                <h3 className="font-semibold mb-4">Team Member Memories</h3>
-                <p className="text-sm text-muted-foreground mb-4">Memories and preferences for this team member</p>
-              </div>
-            ) : selectedTeamGroupId ? (() => {
+            ) : selectedTeamMemberId ? (() => {
+              const directorData = mockDirectorChatData[selectedTeamMemberId as keyof typeof mockDirectorChatData];
+              const memberInfo = getTeamMemberById(selectedTeamMemberId);
+              const memberName = memberInfo?.member?.name || 'Team Member';
+              const memories = directorData?.memories || [];
+              
+              return (
+                <div className="h-full overflow-auto p-4 space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">{memberName} Memories</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Key discussion topics and decisions</p>
+                  </div>
+                  
+                  {memories.length > 0 ? (
+                    <div className="space-y-3">
+                      {memories.map((memory) => (
+                        <Card key={memory.id}>
+                          <CardContent className="p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="outline" className="text-xs">{memory.category}</Badge>
+                                  <span className="text-xs text-muted-foreground">{formatRelativeTime(memory.updated_at)}</span>
+                                </div>
+                                <p className="text-sm font-medium">{memory.key}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{memory.value}</p>
+                                <p className="text-xs text-muted-foreground mt-2">Added by {memory.created_by}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                        No memories yet
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              );
+            })() : selectedTeamGroupId ? (() => {
               const teamData = getTeamGroupData(selectedTeamGroupId);
               if (!teamData) return null;
               const { team, memories } = teamData;
@@ -2446,12 +2566,66 @@ const Workspace = () => {
                 <h3 className="font-semibold mb-4">Brian's History</h3>
                 <p className="text-sm text-muted-foreground">All workspace-level activity coordinated by Brian</p>
               </div>
-            ) : selectedTeamMemberId ? (
-              <div className="h-full overflow-auto p-4">
-                <h3 className="font-semibold mb-4">Chat History</h3>
-                <p className="text-sm text-muted-foreground">Activity history with this team member</p>
-              </div>
-            ) : selectedTeamGroupId ? (() => {
+            ) : selectedTeamMemberId ? (() => {
+              const directorData = mockDirectorChatData[selectedTeamMemberId as keyof typeof mockDirectorChatData];
+              const memberInfo = getTeamMemberById(selectedTeamMemberId);
+              const memberName = memberInfo?.member?.name || 'Team Member';
+              const activity = directorData?.activity || [];
+              
+              const getActivityIcon = (type: string) => {
+                switch (type) {
+                  case 'file_upload': return '📁';
+                  case 'decision': return '✅';
+                  case 'milestone': return '🎯';
+                  default: return '📝';
+                }
+              };
+              const getActivityColor = (type: string) => {
+                switch (type) {
+                  case 'file_upload': return 'text-blue-600 dark:text-blue-400';
+                  case 'decision': return 'text-green-600 dark:text-green-400';
+                  case 'milestone': return 'text-purple-600 dark:text-purple-400';
+                  default: return 'text-muted-foreground';
+                }
+              };
+              
+              return (
+                <div className="h-full overflow-auto p-4 space-y-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">{memberName} Activity</h3>
+                    <p className="text-sm text-muted-foreground mb-4">File uploads and key decisions</p>
+                  </div>
+                  
+                  {activity.length > 0 ? (
+                    <div className="space-y-3">
+                      {activity.map((item) => (
+                        <Card key={item.id}>
+                          <CardContent className="p-3">
+                            <div className="flex items-start gap-3">
+                              <span className="text-lg">{getActivityIcon(item.type)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`text-sm font-medium ${getActivityColor(item.type)}`}>{item.action}</span>
+                                  <span className="text-xs text-muted-foreground">· {formatRelativeTime(item.timestamp)}</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                <p className="text-xs text-muted-foreground mt-2">by {item.performer}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <Card>
+                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                        No activity yet
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              );
+            })() : selectedTeamGroupId ? (() => {
               const teamData = getTeamGroupData(selectedTeamGroupId);
               if (!teamData) return null;
               const { team, activity } = teamData;
