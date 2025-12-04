@@ -421,6 +421,18 @@ const Calendar = () => {
             "hidden lg:flex flex-col w-64 border-r bg-card/50 shrink-0 transition-all",
             !sidebarOpen && "w-0 overflow-hidden"
           )}>
+            {/* Create Button */}
+            <div className="p-4">
+              <Button 
+                onClick={() => handleNewEvent()} 
+                className="w-full gap-2 shadow-md hover:shadow-lg transition-all"
+                size="lg"
+              >
+                <Plus className="h-5 w-5" />
+                Create
+              </Button>
+            </div>
+            
             <MiniCalendar />
             
             <div className="flex-1 border-t">
@@ -462,15 +474,6 @@ const Calendar = () => {
             {view === "month" && <MonthView />}
           </div>
         </div>
-
-        {/* Floating Action Button */}
-        <Button
-          onClick={() => handleNewEvent()}
-          className="fixed bottom-20 right-6 md:bottom-8 md:right-8 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 z-30 bg-primary hover:bg-primary/90"
-          size="icon"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
 
         <EventDetailSheet event={selectedEvent} open={detailSheetOpen} onOpenChange={setDetailSheetOpen} />
         <CreateEventDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} initialDate={createEventDate} />
