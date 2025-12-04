@@ -275,7 +275,7 @@ export default function KnowledgeBase() {
         <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0">
           <div className="p-4">
             <Button 
-              className="w-full gap-2 shadow-md hover:shadow-lg transition-all" 
+              className="w-full gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all" 
               size="lg"
               onClick={() => view === "articles" ? setShowCreateArticle(true) : setShowUploadDocument(true)}
             >

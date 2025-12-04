@@ -407,7 +407,7 @@ const Calendar = () => {
               <div className="p-4">
                 <Button 
                   onClick={() => handleNewEvent()} 
-                  className="w-full gap-2 shadow-md hover:shadow-lg transition-all"
+                  className="w-full gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all"
                   size="lg"
                 >
                   <Plus className="h-5 w-5" />
