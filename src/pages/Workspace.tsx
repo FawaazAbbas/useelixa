@@ -960,7 +960,10 @@ const Workspace = () => {
                            </div>
                            {msg.metadata?.files && (
                              <div className="max-w-[85%] mt-2">
-                               <FileMessageCard files={msg.metadata.files} />
+                               <FileMessageCard 
+                                 files={msg.metadata.files} 
+                                 senderName={isUserMessage ? "You" : "Brian"}
+                               />
                              </div>
                            )}
                          </div>
@@ -1663,7 +1666,11 @@ const Workspace = () => {
                          </div>
                          {msg.metadata?.files && (
                            <div className="max-w-[85%] mt-2">
-                             <FileMessageCard files={msg.metadata.files} />
+                             <FileMessageCard 
+                               files={msg.metadata.files}
+                               senderName={isUserMessage ? "You" : selectedChat?.agent?.name || "Agent"}
+                               timestamp={msg.created_at}
+                             />
                            </div>
                          )}
                        </div>

@@ -179,7 +179,10 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                   
                   {msg.metadata?.files && (
                     <div className="mt-2">
-                      <FileMessageCard files={msg.metadata.files} />
+                      <FileMessageCard 
+                        files={msg.metadata.files}
+                        senderName={msg.role === "user" ? "You" : "Brian"}
+                      />
                     </div>
                   )}
                 </div>
