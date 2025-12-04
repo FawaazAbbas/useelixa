@@ -293,11 +293,11 @@ export default function KnowledgeBase() {
           </div>
 
           <ScrollArea className="flex-1 w-full">
-            <div className="p-3 w-full max-w-full overflow-hidden">
+            <div className="py-3 pl-3 pr-4 w-full max-w-full overflow-hidden">
               {view === "articles" ? (
                 <>
                   {/* Category Filters */}
-                  <div className="mb-4">
+                  <div>
                     <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
                       <Tag className="h-3 w-3 shrink-0" />
                       Categories
@@ -339,31 +339,6 @@ export default function KnowledgeBase() {
                             {categoryCounts[cat]}
                           </span>
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recent Articles */}
-                  <div>
-                    <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
-                      <Clock className="h-3 w-3 shrink-0" />
-                      Recent
-                    </h3>
-                    <div className="space-y-1">
-                      {recentArticles.map((article) => (
-                        <div
-                          key={article.id}
-                          className={cn(
-                            "p-2 rounded-md cursor-pointer transition-colors hover:bg-muted/50 border-l-2",
-                            categoryColors[article.category || ""] || "border-l-gray-500"
-                          )}
-                          onClick={() => handleArticleClick(article)}
-                        >
-                          <p className="text-xs font-medium truncate">{article.title}</p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {format(new Date(article.updated_at), "MMM d")}
-                          </p>
-                        </div>
                       ))}
                     </div>
                   </div>
