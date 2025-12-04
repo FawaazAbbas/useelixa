@@ -1,4 +1,95 @@
 // Pre-populated conversations for team members
+// Now using comprehensive Director chat data from CSV imports
+
+import {
+  marketingDirectorMessages,
+  marketingDirectorFiles,
+  marketingDirectorMemories,
+  marketingDirectorActivity
+} from './mockDirectorChatData/marketingDirectorChat';
+import {
+  productDirectorMessages,
+  productDirectorFiles,
+  productDirectorMemories,
+  productDirectorActivity
+} from './mockDirectorChatData/productDirectorChat';
+import {
+  customerServiceDirectorMessages,
+  customerServiceDirectorFiles,
+  customerServiceDirectorMemories,
+  customerServiceDirectorActivity
+} from './mockDirectorChatData/customerServiceDirectorChat';
+import {
+  financeDirectorMessages,
+  financeDirectorFiles,
+  financeDirectorMemories,
+  financeDirectorActivity
+} from './mockDirectorChatData/financeDirectorChat';
+import {
+  techLeadMessages,
+  techLeadFiles,
+  techLeadMemories,
+  techLeadActivity
+} from './mockDirectorChatData/techLeadChat';
+import {
+  creativeDirectorMessages,
+  creativeDirectorFiles,
+  creativeDirectorMemories,
+  creativeDirectorActivity
+} from './mockDirectorChatData/creativeDirectorChat';
+import {
+  legalDirectorMessages,
+  legalDirectorFiles,
+  legalDirectorMemories,
+  legalDirectorActivity
+} from './mockDirectorChatData/legalDirectorChat';
+
+// Director chat data with full conversations, files, memories, and activities
+export const mockDirectorChatData = {
+  'marketing-director': {
+    messages: marketingDirectorMessages,
+    files: marketingDirectorFiles,
+    memories: marketingDirectorMemories,
+    activity: marketingDirectorActivity
+  },
+  'product-director': {
+    messages: productDirectorMessages,
+    files: productDirectorFiles,
+    memories: productDirectorMemories,
+    activity: productDirectorActivity
+  },
+  'customer-service-director': {
+    messages: customerServiceDirectorMessages,
+    files: customerServiceDirectorFiles,
+    memories: customerServiceDirectorMemories,
+    activity: customerServiceDirectorActivity
+  },
+  'finance-director': {
+    messages: financeDirectorMessages,
+    files: financeDirectorFiles,
+    memories: financeDirectorMemories,
+    activity: financeDirectorActivity
+  },
+  'tech-lead': {
+    messages: techLeadMessages,
+    files: techLeadFiles,
+    memories: techLeadMemories,
+    activity: techLeadActivity
+  },
+  'creative-director': {
+    messages: creativeDirectorMessages,
+    files: creativeDirectorFiles,
+    memories: creativeDirectorMemories,
+    activity: creativeDirectorActivity
+  },
+  'legal-director': {
+    messages: legalDirectorMessages,
+    files: legalDirectorFiles,
+    memories: legalDirectorMemories,
+    activity: legalDirectorActivity
+  }
+};
+
 export const mockTeamMemberMessages: Record<string, {
   name: string;
   messages: Array<{
@@ -7,16 +98,13 @@ export const mockTeamMemberMessages: Record<string, {
     user_id: string | null;
     agent_id: string | null;
     created_at: string;
+    files?: { name: string; type: string; size: number; url?: string; }[];
   }>;
 }> = {
-  // Marketing Team
+  // Marketing Team - Using full CSV data
   "marketing-director": {
     name: "Marketing Director",
-    messages: [
-      { id: "md-1", content: "Good morning. I'm the Marketing Director AI. I oversee all marketing operations including paid media, organic growth, content, and brand strategy. How can I help align your marketing efforts today?", user_id: null, agent_id: "marketing-director", created_at: new Date(Date.now() - 3600000).toISOString() },
-      { id: "md-2", content: "Give me a status update on all marketing channels", user_id: "demo-user", agent_id: null, created_at: new Date(Date.now() - 3500000).toISOString() },
-      { id: "md-3", content: "Here's your cross-channel marketing status:\n\n**Paid Media**\n- Meta ROAS: 3.2x (↑12% WoW)\n- Google ROAS: 2.8x (stable)\n- TikTok: Testing phase, promising early results\n\n**Organic**\n- SEO traffic up 18% MoM\n- Social engagement: +24% this week\n- Email open rates: 28% (industry avg: 21%)\n\n**Content**\n- 4 blog posts published this week\n- Video content performing 2x better than static\n\nPriority recommendation: Scale TikTok spend by 20% based on initial performance data.", user_id: null, agent_id: "marketing-director", created_at: new Date(Date.now() - 3400000).toISOString() }
-    ]
+    messages: marketingDirectorMessages as any
   },
   "ppc-specialist": { name: "PPC Specialist", messages: [{ id: "ppc-1", content: "Hi! I'm your PPC Specialist. I manage Google Ads, Bing Ads, and Shopping campaigns. I'm currently optimizing bids for your top-performing keywords. What would you like to review?", user_id: null, agent_id: "ppc-specialist", created_at: new Date(Date.now() - 7200000).toISOString() }] },
   "paid-social-specialist": { name: "Paid Social Specialist", messages: [{ id: "ps-1", content: "Hey! I handle all paid social campaigns across Meta, TikTok, Pinterest, and LinkedIn. Currently running 12 active campaigns. Your Meta retargeting campaign is crushing it - 4.1x ROAS this week!", user_id: null, agent_id: "paid-social-specialist", created_at: new Date(Date.now() - 5400000).toISOString() }] },
