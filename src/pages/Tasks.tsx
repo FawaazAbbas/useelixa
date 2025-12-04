@@ -35,6 +35,7 @@ const Tasks = () => {
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "board">("list");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "completed" | "asap" | "overdue">("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
   
   // Dialog states
   const [showCreationModeDialog, setShowCreationModeDialog] = useState(false);
@@ -184,6 +185,11 @@ const Tasks = () => {
       case "overdue":
         filtered = filtered.filter(t => t.status === "pending" && t.due_date && isPast(new Date(t.due_date)) && !isToday(new Date(t.due_date)));
         break;
+    }
+    
+    // Apply priority filter
+    if (priorityFilter !== "all") {
+      filtered = filtered.filter(t => t.priority === priorityFilter);
     }
     
     if (searchQuery) {
@@ -535,28 +541,31 @@ const Tasks = () => {
               {/* Priority Summary */}
               <div className="px-4 py-4 border-t">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">By Priority</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-red-500" />
-                      <span className="text-sm">High</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">{tasks.filter(t => t.priority === "high" && t.status === "pending").length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                      <span className="text-sm">Medium</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">{tasks.filter(t => t.priority === "medium" && t.status === "pending").length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500" />
-                      <span className="text-sm">Low</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">{tasks.filter(t => t.priority === "low" && t.status === "pending").length}</span>
-                  </div>
+                <div className="space-y-1">
+                  {[
+                    { key: "high", label: "High", color: "bg-red-500", count: tasks.filter(t => t.priority === "high" && t.status === "pending").length },
+                    { key: "medium", label: "Medium", color: "bg-yellow-500", count: tasks.filter(t => t.priority === "medium" && t.status === "pending").length },
+                    { key: "low", label: "Low", color: "bg-green-500", count: tasks.filter(t => t.priority === "low" && t.status === "pending").length },
+                  ].map((priority) => (
+                    <button
+                      key={priority.key}
+                      onClick={() => setPriorityFilter(priorityFilter === priority.key ? "all" : priority.key as "high" | "medium" | "low")}
+                      className={cn(
+                        "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all",
+                        priorityFilter === priority.key 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted/50"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={cn("w-2 h-2 rounded-full", priority.color)} />
+                        <span>{priority.label}</span>
+                      </div>
+                      <span className={cn("text-sm", priorityFilter === priority.key ? "text-primary-foreground" : "text-muted-foreground")}>
+                        {priority.count}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
