@@ -1,28 +1,34 @@
 import { useState } from "react";
 import { DemoBanner } from "@/components/DemoBanner";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { mockKnowledgeArticles, mockDocuments, MockKnowledgeArticle, MockDocument } from "@/data/mockKnowledge";
-import { BookOpen, Search, FileText, Upload, Plus, Eye, Calendar, Folder, Download, Table, Presentation, File } from "lucide-react";
+import { BookOpen, Search, FileText, Upload, Plus, Eye, Calendar, Folder, Download, Table, Presentation, File, Star, Clock, FolderOpen, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { ArticleDetailDialog } from "@/components/ArticleDetailDialog";
 import { DocumentPreviewDialog } from "@/components/DocumentPreviewDialog";
 import { CreateArticleDialog } from "@/components/CreateArticleDialog";
 import { UploadDocumentDialog } from "@/components/UploadDocumentDialog";
+import { cn } from "@/lib/utils";
 
 const categoryColors: Record<string, string> = {
-  "Company Policies": "border-l-blue-500",
-  "Sales": "border-l-green-500",
-  "Product": "border-l-purple-500",
-  "Customer Support": "border-l-orange-500",
-  "Engineering": "border-l-cyan-500",
-  "HR": "border-l-pink-500",
-  "Finance": "border-l-yellow-500",
   "Marketing": "border-l-red-500",
+  "Product & Merchandising": "border-l-purple-500",
+  "Customer Service": "border-l-orange-500",
+  "Finance": "border-l-yellow-500",
+  "Development": "border-l-cyan-500",
+  "Creative": "border-l-pink-500",
+  "Legal & Risk": "border-l-blue-500",
+  "Culture": "border-l-emerald-500",
+  "Company Policies": "border-l-slate-500",
+  "Sales": "border-l-green-500",
+  "Product": "border-l-violet-500",
+  "Customer Support": "border-l-amber-500",
+  "Engineering": "border-l-sky-500",
+  "HR": "border-l-rose-500",
 };
 
 const fileTypeConfig: Record<string, { icon: typeof FileText; color: string; label: string }> = {
@@ -45,6 +51,7 @@ export default function KnowledgeBase() {
   const [showDocumentDialog, setShowDocumentDialog] = useState(false);
   const [showCreateArticle, setShowCreateArticle] = useState(false);
   const [showUploadDocument, setShowUploadDocument] = useState(false);
+  const [view, setView] = useState<"articles" | "documents">("articles");
 
   const filteredArticles = mockKnowledgeArticles.filter((article) => {
     const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,8 +70,32 @@ export default function KnowledgeBase() {
     return matchesSearch && matchesFolder;
   });
 
-  const folders = ["all", ...Array.from(new Set(mockDocuments.map((doc) => doc.folder)))];
-  const categories = ["all", ...Array.from(new Set(mockKnowledgeArticles.map((a) => a.category).filter(Boolean)))];
+  const folders = Array.from(new Set(mockDocuments.map((doc) => doc.folder)));
+  const categories = Array.from(new Set(mockKnowledgeArticles.map((a) => a.category).filter(Boolean))) as string[];
+
+  // Stats
+  const stats = {
+    totalArticles: mockKnowledgeArticles.length,
+    totalDocuments: mockDocuments.length,
+    featured: mockKnowledgeArticles.filter(a => a.priority === "featured").length,
+  };
+
+  // Category counts
+  const categoryCounts = categories.reduce((acc, cat) => {
+    acc[cat] = mockKnowledgeArticles.filter(a => a.category === cat).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Folder counts
+  const folderCounts = folders.reduce((acc, folder) => {
+    acc[folder] = mockDocuments.filter(d => d.folder === folder).length;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // Recent articles (last 5)
+  const recentArticles = [...mockKnowledgeArticles]
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 4);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -86,260 +117,387 @@ export default function KnowledgeBase() {
     setShowDocumentDialog(true);
   };
 
-  return (
-    <div className="flex-1 w-full overflow-y-auto bg-gradient-to-b from-background to-muted/20">
-      <DemoBanner />
-      
-      <div className="py-6 px-4 md:py-8 pb-20 md:pb-8 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <BookOpen className="h-6 w-6 text-primary" />
+  // Article Card Component
+  const ArticleCard = ({ article, idx }: { article: MockKnowledgeArticle; idx: number }) => (
+    <Card
+      className={cn(
+        "cursor-pointer transition-all hover:shadow-xl hover:scale-[1.01] hover:z-10 animate-fade-in border-l-4",
+        article.category ? categoryColors[article.category] || "border-l-gray-500" : "border-l-gray-500"
+      )}
+      onClick={() => handleArticleClick(article)}
+      style={{ animationDelay: `${idx * 30}ms` }}
+    >
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-4 mb-1">
+          <CardTitle className="text-base leading-tight">{article.title}</CardTitle>
+          {article.priority === "featured" && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white shrink-0 text-[10px] px-1.5">
+              <Star className="h-2.5 w-2.5 mr-0.5" />
+              Featured
+            </Badge>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {article.category && (
+            <Badge variant="secondary" className="text-[10px] px-1.5">{article.category}</Badge>
+          )}
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span>{format(new Date(article.updated_at), "MMM d")}</span>
+          </div>
+          {article.views !== undefined && (
+            <div className="flex items-center gap-1">
+              <Eye className="h-3 w-3" />
+              <span>{article.views}</span>
             </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold">Knowledge Base</h1>
-              <p className="text-sm md:text-base text-muted-foreground">
-                {mockKnowledgeArticles.length} articles · {mockDocuments.length} documents
-              </p>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <CardDescription className="line-clamp-2 text-xs">
+          {article.content.substring(0, 150)}...
+        </CardDescription>
+        <div className="flex flex-wrap gap-1 mt-2">
+          {article.tags.slice(0, 3).map((tag) => (
+            <Badge key={tag} variant="outline" className="text-[10px] px-1">
+              {tag}
+            </Badge>
+          ))}
+          {article.tags.length > 3 && (
+            <Badge variant="outline" className="text-[10px] px-1">
+              +{article.tags.length - 3}
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  // Document Card Component
+  const DocumentCard = ({ doc, idx }: { doc: MockDocument; idx: number }) => {
+    const config = getFileTypeConfig(doc.file_type);
+    const IconComponent = config.icon;
+
+    return (
+      <Card
+        className={cn(
+          "cursor-pointer transition-all hover:shadow-xl hover:scale-[1.01] hover:z-10 animate-fade-in border-l-4 group",
+          config.color
+        )}
+        onClick={() => handleDocumentClick(doc)}
+        style={{ animationDelay: `${idx * 30}ms` }}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+              <IconComponent className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-sm truncate">{doc.name}</CardTitle>
+              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                <Badge variant="secondary" className="text-[10px] px-1">{config.label}</Badge>
+                <span>{formatFileSize(doc.file_size)}</span>
+              </div>
             </div>
           </div>
+        </CardHeader>
+        <CardContent className="pt-0 space-y-2">
+          {doc.description && (
+            <CardDescription className="text-[11px] line-clamp-2">
+              {doc.description}
+            </CardDescription>
+          )}
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <Folder className="h-3 w-3" />
+              <span>{doc.folder}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span>{format(new Date(doc.created_at), "MMM d")}</span>
+            </div>
+          </div>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+            <Button size="sm" variant="secondary" className="flex-1 text-[10px] h-7">
+              <Eye className="h-3 w-3 mr-1" />
+              Preview
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1 text-[10px] h-7">
+              <Download className="h-3 w-3 mr-1" />
+              Download
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 bg-gradient-to-b from-background to-muted/20">
+      <DemoBanner />
+      
+      {/* Top Navigation Bar */}
+      <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
+        <div className="flex items-center justify-between px-4 py-3 gap-4">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-6 w-6 text-primary" />
+            <span className="font-bold text-2xl hidden sm:inline">Knowledge Base</span>
+          </div>
+
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+            <Button
+              variant={view === "articles" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("articles")}
+              className="h-7 px-2.5 gap-1"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">Articles</span>
+              <Badge variant="outline" className="ml-1 text-[10px] px-1 h-4">{stats.totalArticles}</Badge>
+            </Button>
+            <Button
+              variant={view === "documents" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setView("documents")}
+              className="h-7 px-2.5 gap-1"
+            >
+              <Folder className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">Documents</span>
+              <Badge variant="outline" className="ml-1 text-[10px] px-1 h-4">{stats.totalDocuments}</Badge>
+            </Button>
+          </div>
         </div>
+      </div>
 
-        {/* Filter Card */}
-        <Card className="mb-4 sm:mb-6">
-          <CardContent className="p-3 sm:p-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search articles and documents..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-10"
-                />
-              </div>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-[180px] h-10 touch-manipulation">
-                  <SelectValue placeholder="Sort by..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="updated">Recently Updated</SelectItem>
-                  <SelectItem value="views">Most Viewed</SelectItem>
-                  <SelectItem value="title">Alphabetical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm">
+          <div className="p-4">
+            <Button 
+              className="w-full justify-start gap-2" 
+              onClick={() => view === "articles" ? setShowCreateArticle(true) : setShowUploadDocument(true)}
+            >
+              {view === "articles" ? (
+                <>
+                  <Plus className="h-4 w-4" />
+                  New Article
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  Upload Document
+                </>
+              )}
+            </Button>
+          </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="articles" className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-2 h-auto">
-            <TabsTrigger value="articles" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2.5 sm:py-3">
-              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Knowledge Articles</span>
-              <span className="sm:hidden">Articles</span>
-              <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">{filteredArticles.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-1 sm:gap-2 text-xs sm:text-sm py-2.5 sm:py-3">
-              <Folder className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Documents</span>
-              <span className="sm:hidden">Docs</span>
-              <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs">{filteredDocuments.length}</Badge>
-            </TabsTrigger>
-          </TabsList>
+          <ScrollArea className="flex-1 px-2">
+            {view === "articles" ? (
+              <>
+                {/* Category Filters */}
+                <div className="px-2 mb-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Tag className="h-3 w-3" />
+                    By Category
+                  </h3>
+                  <div className="space-y-0.5">
+                    <Button
+                      variant={categoryFilter === "all" ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "w-full justify-between h-8 px-2 text-xs",
+                        categoryFilter === "all" && "bg-primary/10"
+                      )}
+                      onClick={() => setCategoryFilter("all")}
+                    >
+                      <span>All Categories</span>
+                      <Badge variant="secondary" className="text-[10px] px-1.5 h-4">
+                        {stats.totalArticles}
+                      </Badge>
+                    </Button>
+                    {categories.map((cat) => (
+                      <Button
+                        key={cat}
+                        variant={categoryFilter === cat ? "secondary" : "ghost"}
+                        size="sm"
+                        className={cn(
+                          "w-full justify-between h-8 px-2 text-xs",
+                          categoryFilter === cat && "bg-primary/10"
+                        )}
+                        onClick={() => setCategoryFilter(categoryFilter === cat ? "all" : cat)}
+                      >
+                        <span className="truncate">{cat}</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 h-4 ml-1">
+                          {categoryCounts[cat]}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Articles Tab */}
-          <TabsContent value="articles" className="space-y-4 sm:space-y-6">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full sm:w-[200px] h-10 touch-manipulation">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat === "all" ? "All Categories" : cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={() => setShowCreateArticle(true)} className="h-10 w-full sm:w-auto touch-manipulation">
-                <Plus className="h-4 w-4 mr-2" />
-                New Article
-              </Button>
-            </div>
-
-            {filteredArticles.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No articles found matching your search.</p>
-                </CardContent>
-              </Card>
+                {/* Recent Articles */}
+                <div className="px-2 mb-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Clock className="h-3 w-3" />
+                    Recently Updated
+                  </h3>
+                  <div className="space-y-1">
+                    {recentArticles.map((article) => (
+                      <div
+                        key={article.id}
+                        className={cn(
+                          "p-2 rounded-md cursor-pointer transition-colors hover:bg-muted/50 border-l-2",
+                          categoryColors[article.category || ""] || "border-l-gray-500"
+                        )}
+                        onClick={() => handleArticleClick(article)}
+                      >
+                        <p className="text-xs font-medium truncate">{article.title}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {format(new Date(article.updated_at), "MMM d")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-1">
-                {filteredArticles.map((article, idx) => (
-                  <Card
-                    key={article.id}
-                    className={`cursor-pointer transition-all hover:shadow-xl hover:scale-[1.01] hover:z-10 animate-fade-in border-l-4 ${
-                      article.category ? categoryColors[article.category] : "border-l-gray-500"
-                    }`}
-                    onClick={() => handleArticleClick(article)}
-                    style={{ animationDelay: `${idx * 30}ms` }}
-                  >
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4 mb-2">
-                        <CardTitle className="text-lg">{article.title}</CardTitle>
-                        {article.priority === "featured" && (
-                          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white shrink-0">
-                            Featured
-                          </Badge>
+              <>
+                {/* Folder Filters */}
+                <div className="px-2 mb-4">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <FolderOpen className="h-3 w-3" />
+                    By Folder
+                  </h3>
+                  <div className="space-y-0.5">
+                    <Button
+                      variant={selectedFolder === "all" ? "secondary" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "w-full justify-between h-8 px-2 text-xs",
+                        selectedFolder === "all" && "bg-primary/10"
+                      )}
+                      onClick={() => setSelectedFolder("all")}
+                    >
+                      <span>All Folders</span>
+                      <Badge variant="secondary" className="text-[10px] px-1.5 h-4">
+                        {stats.totalDocuments}
+                      </Badge>
+                    </Button>
+                    {folders.map((folder) => (
+                      <Button
+                        key={folder}
+                        variant={selectedFolder === folder ? "secondary" : "ghost"}
+                        size="sm"
+                        className={cn(
+                          "w-full justify-between h-8 px-2 text-xs",
+                          selectedFolder === folder && "bg-primary/10"
                         )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                        {article.category && (
-                          <Badge variant="secondary" className="text-xs">{article.category}</Badge>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{format(new Date(article.updated_at), "MMM d")}</span>
-                        </div>
-                        {article.views !== undefined && (
-                          <div className="flex items-center gap-1">
-                            <Eye className="h-3 w-3" />
-                            <span>{article.views}</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="line-clamp-3">
-                        {article.content.substring(0, 200)}...
-                      </CardDescription>
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {article.tags.slice(0, 3).map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {article.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{article.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
+                        onClick={() => setSelectedFolder(selectedFolder === folder ? "all" : folder)}
+                      >
+                        <span className="truncate">{folder}</span>
+                        <Badge variant="secondary" className="text-[10px] px-1.5 h-4 ml-1">
+                          {folderCounts[folder]}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </ScrollArea>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col overflow-hidden">
+          {/* Search Bar */}
+          <div className="p-4 border-b bg-card/30">
+            <div className="relative max-w-2xl">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={view === "articles" ? "Search articles..." : "Search documents..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+          </div>
+
+          {/* Mobile Filters */}
+          <div className="md:hidden p-3 border-b flex gap-2 overflow-x-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 h-8 text-xs"
+              onClick={() => view === "articles" ? setShowCreateArticle(true) : setShowUploadDocument(true)}
+            >
+              {view === "articles" ? <Plus className="h-3 w-3 mr-1" /> : <Upload className="h-3 w-3 mr-1" />}
+              {view === "articles" ? "New Article" : "Upload"}
+            </Button>
+            {view === "articles" ? (
+              categories.slice(0, 4).map((cat) => (
+                <Button
+                  key={cat}
+                  variant={categoryFilter === cat ? "secondary" : "outline"}
+                  size="sm"
+                  className="shrink-0 h-8 text-xs"
+                  onClick={() => setCategoryFilter(categoryFilter === cat ? "all" : cat)}
+                >
+                  {cat}
+                </Button>
+              ))
+            ) : (
+              folders.slice(0, 4).map((folder) => (
+                <Button
+                  key={folder}
+                  variant={selectedFolder === folder ? "secondary" : "outline"}
+                  size="sm"
+                  className="shrink-0 h-8 text-xs"
+                  onClick={() => setSelectedFolder(selectedFolder === folder ? "all" : folder)}
+                >
+                  {folder}
+                </Button>
+              ))
+            )}
+          </div>
+
+          {/* Content Grid */}
+          <ScrollArea className="flex-1">
+            <div className="p-4">
+              {view === "articles" ? (
+                filteredArticles.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">No articles found matching your search.</p>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-4 sm:space-y-6">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
-              <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-                <SelectTrigger className="w-full sm:w-[200px] h-10 touch-manipulation">
-                  <SelectValue placeholder="All Folders" />
-                </SelectTrigger>
-                <SelectContent>
-                  {folders.map((folder) => (
-                    <SelectItem key={folder} value={folder}>
-                      {folder === "all" ? "All Folders" : folder}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button onClick={() => setShowUploadDocument(true)} className="h-10 w-full sm:w-auto touch-manipulation">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Document
-              </Button>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {filteredArticles.map((article, idx) => (
+                      <ArticleCard key={article.id} article={article} idx={idx} />
+                    ))}
+                  </div>
+                )
+              ) : (
+                filteredDocuments.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">No documents found matching your search.</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {filteredDocuments.map((doc, idx) => (
+                      <DocumentCard key={doc.id} doc={doc} idx={idx} />
+                    ))}
+                  </div>
+                )
+              )}
             </div>
-
-            {filteredDocuments.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">No documents found matching your search.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
-                {filteredDocuments.map((doc, idx) => {
-                  const config = getFileTypeConfig(doc.file_type);
-                  const IconComponent = config.icon;
-
-                  return (
-                    <Card
-                      key={doc.id}
-                      className={`cursor-pointer transition-all hover:shadow-xl hover:scale-[1.01] hover:z-10 animate-fade-in border-l-4 ${config.color} group`}
-                      onClick={() => handleDocumentClick(doc)}
-                      style={{ animationDelay: `${idx * 30}ms` }}
-                    >
-                      <CardHeader>
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                            <IconComponent className="h-5 w-5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <CardTitle className="text-sm truncate">{doc.name}</CardTitle>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                              <Badge variant="secondary" className="text-xs">{config.label}</Badge>
-                              <span>{formatFileSize(doc.file_size)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {doc.description && (
-                          <CardDescription className="text-xs line-clamp-2">
-                            {doc.description}
-                          </CardDescription>
-                        )}
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Folder className="h-3 w-3" />
-                            <span>{doc.folder}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{format(new Date(doc.created_at), "MMM d")}</span>
-                          </div>
-                        </div>
-                        {doc.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {doc.tags.slice(0, 2).map((tag) => (
-                              <Badge key={tag} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {doc.tags.length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{doc.tags.length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                          <Button size="sm" variant="secondary" className="flex-1 text-xs">
-                            <Eye className="h-3 w-3 mr-1" />
-                            Preview
-                          </Button>
-                          <Button size="sm" variant="outline" className="flex-1 text-xs">
-                            <Download className="h-3 w-3 mr-1" />
-                            Download
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          </ScrollArea>
+        </main>
       </div>
 
       {/* Dialogs */}
