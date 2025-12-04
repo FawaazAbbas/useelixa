@@ -434,7 +434,23 @@ export const mockTeamMemberMessages: Record<string, {
   },
 };
 
-import { marketingChatMessages, marketingChatFiles, type ChatFileAttachment } from './mockMarketingChatData';
+import { marketingChatMessages } from './mockMarketingChatData';
+import {
+  customerServiceChatMessages,
+  financeChatMessages,
+  developmentChatMessages,
+  creativeChatMessages,
+  legalChatMessages,
+  productChatMessages,
+} from './mockAllTeamChatsData';
+
+// Simple file attachment type for team chats (no URL required for mock data)
+export interface TeamChatFileAttachment {
+  name: string;
+  type: string;
+  size: string | number;
+  url?: string;
+}
 
 // Team Group Chat Messages
 export const mockTeamGroupMessages: Record<string, {
@@ -446,7 +462,7 @@ export const mockTeamGroupMessages: Record<string, {
     agent_id: string | null;
     sender_name: string;
     created_at: string;
-    files?: ChatFileAttachment[];
+    files?: TeamChatFileAttachment[];
   }>;
 }> = {
   "marketing": {
@@ -454,281 +470,27 @@ export const mockTeamGroupMessages: Record<string, {
     messages: marketingChatMessages,
   },
   "product": {
-    name: "Product Team Chat",
-    messages: [
-      {
-        id: "prod-g-1",
-        content: "Team, we need to discuss the pricing strategy for the new Samsung lineup.",
-        user_id: null,
-        agent_id: "product-director",
-        sender_name: "Product Director",
-        created_at: new Date(Date.now() - 5400000).toISOString(),
-      },
-      {
-        id: "prod-g-2",
-        content: "I've been monitoring competitors - CEX dropped their S23 prices by 8% yesterday. We should consider matching.",
-        user_id: null,
-        agent_id: "competitive-pricing-analyst",
-        sender_name: "Competitive Pricing Analyst",
-        created_at: new Date(Date.now() - 5300000).toISOString(),
-      },
-      {
-        id: "prod-g-3",
-        content: "I can update all 47 Samsung listings within the hour if we decide to adjust. Just need the new price points.",
-        user_id: null,
-        agent_id: "product-listing-manager",
-        sender_name: "Product Listing Manager",
-        created_at: new Date(Date.now() - 5200000).toISOString(),
-      },
-      {
-        id: "prod-g-4",
-        content: "From a merchandising perspective, I'd suggest keeping Grade A prices firm but matching on Grade B. Our quality advantage justifies the premium on top-tier stock.",
-        user_id: null,
-        agent_id: "merchandising-specialist",
-        sender_name: "Merchandising Specialist",
-        created_at: new Date(Date.now() - 5100000).toISOString(),
-      },
-      {
-        id: "prod-g-5",
-        content: "Agreed. Let's go with that approach. Update Grade B to match market, hold Grade A.",
-        user_id: null,
-        agent_id: "product-director",
-        sender_name: "Product Director",
-        created_at: new Date(Date.now() - 5000000).toISOString(),
-      }
-    ]
+    name: "Product & Merchandising Team Chat",
+    messages: productChatMessages,
   },
   "customer-service": {
     name: "Customer Service Team Chat",
-    messages: [
-      {
-        id: "cs-g-1",
-        content: "Morning team! CSAT is at 94% - let's push for 95% this week.",
-        user_id: null,
-        agent_id: "cs-director",
-        sender_name: "CS Director",
-        created_at: new Date(Date.now() - 4800000).toISOString(),
-      },
-      {
-        id: "cs-g-2",
-        content: "Queue is manageable today - 8 tickets pending. Response time averaging 4 minutes.",
-        user_id: null,
-        agent_id: "customer-support-rep",
-        sender_name: "Customer Support Rep",
-        created_at: new Date(Date.now() - 4700000).toISOString(),
-      },
-      {
-        id: "cs-g-3",
-        content: "I've processed 23 refunds this week. Return rate is down to 3.2% which is great. Most returns are change-of-mind rather than quality issues.",
-        user_id: null,
-        agent_id: "refunds-warranty-specialist",
-        sender_name: "Refunds & Warranty Specialist",
-        created_at: new Date(Date.now() - 4600000).toISOString(),
-      },
-      {
-        id: "cs-g-4",
-        content: "QA scores are strong - 98% of interactions met standards. I've identified 3 coaching opportunities for next week's training.",
-        user_id: null,
-        agent_id: "qa-specialist",
-        sender_name: "QA Specialist",
-        created_at: new Date(Date.now() - 4500000).toISOString(),
-      },
-      {
-        id: "cs-g-5",
-        content: "Excellent work everyone. Keep up the quality focus.",
-        user_id: null,
-        agent_id: "cs-director",
-        sender_name: "CS Director",
-        created_at: new Date(Date.now() - 4400000).toISOString(),
-      }
-    ]
+    messages: customerServiceChatMessages,
   },
   "finance": {
     name: "Finance Team Chat",
-    messages: [
-      {
-        id: "fin-g-1",
-        content: "Q4 forecast meeting at 2pm. Please have your numbers ready.",
-        user_id: null,
-        agent_id: "finance-director",
-        sender_name: "Finance Director",
-        created_at: new Date(Date.now() - 6000000).toISOString(),
-      },
-      {
-        id: "fin-g-2",
-        content: "I've completed the forecast model. We're tracking 8% ahead of plan - conversion rates are the key driver.",
-        user_id: null,
-        agent_id: "fpa-analyst",
-        sender_name: "FP&A Analyst",
-        created_at: new Date(Date.now() - 5900000).toISOString(),
-      },
-      {
-        id: "fin-g-3",
-        content: "Daily revenue update: £18.4k yesterday, up 12% vs last Tuesday. Paid Social drove 38% of that.",
-        user_id: null,
-        agent_id: "revenue-ops-analyst",
-        sender_name: "Revenue Ops Analyst",
-        created_at: new Date(Date.now() - 5800000).toISOString(),
-      },
-      {
-        id: "fin-g-4",
-        content: "Great performance. Let's discuss margin optimization in the meeting. Gross margin is holding at 42% but I see opportunities.",
-        user_id: null,
-        agent_id: "finance-director",
-        sender_name: "Finance Director",
-        created_at: new Date(Date.now() - 5700000).toISOString(),
-      }
-    ]
+    messages: financeChatMessages,
   },
   "development": {
     name: "Development Team Chat",
-    messages: [
-      {
-        id: "dev-g-1",
-        content: "Sprint standup: What's everyone working on today?",
-        user_id: null,
-        agent_id: "tech-lead",
-        sender_name: "Tech Lead",
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-      },
-      {
-        id: "dev-g-2",
-        content: "Finishing the new product page layout. Initial A/B test shows 8% lift in add-to-cart rate!",
-        user_id: null,
-        agent_id: "shopify-developer",
-        sender_name: "Shopify Developer",
-        created_at: new Date(Date.now() - 3500000).toISOString(),
-      },
-      {
-        id: "dev-g-3",
-        content: "Optimizing the checkout flow. Reduced JS bundle by 23% so far. Targeting 30% by EOD.",
-        user_id: null,
-        agent_id: "frontend-developer",
-        sender_name: "Frontend Developer",
-        created_at: new Date(Date.now() - 3400000).toISOString(),
-      },
-      {
-        id: "dev-g-4",
-        content: "Mobile nav redesign ready in Figma. User testing showed 34% faster task completion. Ready for dev handoff.",
-        user_id: null,
-        agent_id: "ux-ui-designer",
-        sender_name: "UX/UI Designer",
-        created_at: new Date(Date.now() - 3300000).toISOString(),
-      },
-      {
-        id: "dev-g-5",
-        content: "CRO update: New CTA color test hit 94% confidence with +12% clicks. Recommending we ship it.",
-        user_id: null,
-        agent_id: "cro-specialist",
-        sender_name: "CRO Specialist",
-        created_at: new Date(Date.now() - 3200000).toISOString(),
-      },
-      {
-        id: "dev-g-6",
-        content: "All integrations healthy. Klaviyo, inventory, payments - 100% uptime. ERP integration at 60%.",
-        user_id: null,
-        agent_id: "tech-integrations-specialist",
-        sender_name: "Tech Integrations Specialist",
-        created_at: new Date(Date.now() - 3100000).toISOString(),
-      },
-      {
-        id: "dev-g-7",
-        content: "Data pipelines running smoothly. New LTV model is live. Dashboard refresh now at 15 minutes.",
-        user_id: null,
-        agent_id: "data-engineer",
-        sender_name: "Data Engineer",
-        created_at: new Date(Date.now() - 3000000).toISOString(),
-      },
-      {
-        id: "dev-g-8",
-        content: "Great progress team. Let's ship the CTA change today and prioritize the mobile nav for next sprint.",
-        user_id: null,
-        agent_id: "tech-lead",
-        sender_name: "Tech Lead",
-        created_at: new Date(Date.now() - 2900000).toISOString(),
-      }
-    ]
+    messages: developmentChatMessages,
   },
   "creative": {
     name: "Creative Team Chat",
-    messages: [
-      {
-        id: "cre-g-1",
-        content: "Creative review at 3pm. Please bring your latest work.",
-        user_id: null,
-        agent_id: "creative-director",
-        sender_name: "Creative Director",
-        created_at: new Date(Date.now() - 4200000).toISOString(),
-      },
-      {
-        id: "cre-g-2",
-        content: "I've got 12 Black Friday variations ready. Mix of static and carousel formats. Excited to show you!",
-        user_id: null,
-        agent_id: "graphic-designer-creative",
-        sender_name: "Graphic Designer",
-        created_at: new Date(Date.now() - 4100000).toISOString(),
-      },
-      {
-        id: "cre-g-3",
-        content: "4 product videos done, 2 more in editing. UGC-style content is outperforming studio shots by 2.3x.",
-        user_id: null,
-        agent_id: "video-producer",
-        sender_name: "Video Producer",
-        created_at: new Date(Date.now() - 4000000).toISOString(),
-      },
-      {
-        id: "cre-g-4",
-        content: "Excellent. Let's lean into that UGC style for the holiday campaign. Brand sentiment is up 18% this quarter - keep it going.",
-        user_id: null,
-        agent_id: "creative-director",
-        sender_name: "Creative Director",
-        created_at: new Date(Date.now() - 3900000).toISOString(),
-      }
-    ]
+    messages: creativeChatMessages,
   },
   "legal": {
-    name: "Legal Team Chat",
-    messages: [
-      {
-        id: "leg-g-1",
-        content: "Weekly compliance check-in. Any issues to flag?",
-        user_id: null,
-        agent_id: "legal-director",
-        sender_name: "Legal Director",
-        created_at: new Date(Date.now() - 5100000).toISOString(),
-      },
-      {
-        id: "leg-g-2",
-        content: "GDPR audit complete - all clear. Cookie consent updated for the new EU regulations. Privacy policy review scheduled for next week.",
-        user_id: null,
-        agent_id: "compliance-officer",
-        sender_name: "Compliance Officer",
-        created_at: new Date(Date.now() - 5000000).toISOString(),
-      },
-      {
-        id: "leg-g-3",
-        content: "8 supplier agreements reviewed this week. 3 NDAs processed. All T&Cs are current.",
-        user_id: null,
-        agent_id: "legal-assistant",
-        sender_name: "Legal Assistant",
-        created_at: new Date(Date.now() - 4900000).toISOString(),
-      },
-      {
-        id: "leg-g-4",
-        content: "Fraud report: 12 orders blocked this week (£3.2k saved). Chargeback rate at 0.3%, well below industry average. Two patterns flagged for monitoring.",
-        user_id: null,
-        agent_id: "fraud-detection-specialist",
-        sender_name: "Fraud Detection Specialist",
-        created_at: new Date(Date.now() - 4800000).toISOString(),
-      },
-      {
-        id: "leg-g-5",
-        content: "Good work team. Let's keep the chargeback rate low heading into the busy season. Fraud, please share those patterns so we can all be vigilant.",
-        user_id: null,
-        agent_id: "legal-director",
-        sender_name: "Legal Director",
-        created_at: new Date(Date.now() - 4700000).toISOString(),
-      }
-    ]
+    name: "Legal & Risk Team Chat",
+    messages: legalChatMessages,
   }
 };

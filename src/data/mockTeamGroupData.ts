@@ -105,38 +105,12 @@ export const mockTeamActivity: Record<string, Array<{
     { id: "ma-30", action: "File Uploaded", description: "Uploaded tech_reborn_final_report_april12.csv - Day's performance summary", performedBy: "Marketing Director", timestamp: "2025-04-12T17:14:00.000Z", type: "task" },
     { id: "ma-31", action: "Milestone", description: "Record day achieved. Revenue £189,420. Campaign locked, scaling tomorrow.", performedBy: "Liam", timestamp: "2025-04-12T17:16:00.000Z", type: "milestone" },
   ],
-  "product": [
-    { id: "pa-1", action: "Price Update", description: "iPhone 13 pricing adjusted to match competitor drop", performedBy: "Competitive Pricing Analyst", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "decision" },
-    { id: "pa-2", action: "New Category Added", description: "Samsung Galaxy Z Fold category launched with 12 SKUs", performedBy: "Product Director", timestamp: new Date(Date.now() - 86400000).toISOString(), type: "milestone" },
-    { id: "pa-3", action: "Listing Audit", description: "Completed audit of 200 listings, 47 updated", performedBy: "Product Listing Manager", timestamp: new Date(Date.now() - 172800000).toISOString(), type: "task" },
-  ],
-  "customer-service": [
-    { id: "ca-1", action: "CSAT Milestone", description: "Achieved 96% CSAT score for the week", performedBy: "Customer Support Rep", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "milestone" },
-    { id: "ca-2", action: "Process Update", description: "New warranty claim process implemented", performedBy: "Refunds & Warranty Specialist", timestamp: new Date(Date.now() - 86400000).toISOString(), type: "decision" },
-    { id: "ca-3", action: "Training Completed", description: "Team completed new product knowledge training", performedBy: "Customer Service Director", timestamp: new Date(Date.now() - 172800000).toISOString(), type: "task" },
-  ],
-  "finance": [
-    { id: "fa-1", action: "Monthly Close", description: "November books closed - £482k revenue", performedBy: "Finance Director", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "milestone" },
-    { id: "fa-2", action: "Forecast Updated", description: "Q4 forecast revised upward by 8%", performedBy: "FP&A Analyst", timestamp: new Date(Date.now() - 86400000).toISOString(), type: "task" },
-    { id: "fa-3", action: "Budget Discussion", description: "Discussed 2025 budget allocation priorities", performedBy: "Finance Director", timestamp: new Date(Date.now() - 172800000).toISOString(), type: "discussion" },
-  ],
-  "development": [
-    { id: "da-1", action: "Feature Deployed", description: "New checkout optimization live - 8% improvement in conversion", performedBy: "Shopify Developer", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "milestone" },
-    { id: "da-2", action: "Sprint Planning", description: "Sprint 24 planned - 14 story points committed", performedBy: "Tech Lead", timestamp: new Date(Date.now() - 86400000).toISOString(), type: "task" },
-    { id: "da-3", action: "Tech Decision", description: "Approved migration to new payment gateway", performedBy: "Tech Lead", timestamp: new Date(Date.now() - 172800000).toISOString(), type: "decision" },
-    { id: "da-4", action: "Design Review", description: "Mobile navigation redesign approved", performedBy: "UX/UI Designer", timestamp: new Date(Date.now() - 259200000).toISOString(), type: "discussion" },
-  ],
-  "creative": [
-    { id: "cra-1", action: "Assets Delivered", description: "Black Friday campaign creative pack completed - 24 assets", performedBy: "Graphic Designer", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "task" },
-    { id: "cra-2", action: "Video Campaign", description: "Product video series wrapped - 8 videos completed", performedBy: "Video Producer", timestamp: new Date(Date.now() - 86400000).toISOString(), type: "milestone" },
-    { id: "cra-3", action: "Brand Discussion", description: "Discussed potential brand refresh for 2025", performedBy: "Creative Director", timestamp: new Date(Date.now() - 172800000).toISOString(), type: "discussion" },
-  ],
-  "legal": [
-    { id: "la-1", action: "Compliance Check", description: "Quarterly GDPR audit completed - all clear", performedBy: "Compliance Officer", timestamp: new Date(Date.now() - 3600000).toISOString(), type: "milestone" },
-    { id: "la-2", action: "Contract Signed", description: "New supplier agreement finalized", performedBy: "Legal Assistant", timestamp: new Date(Date.now() - 86400000).toISOString(), type: "task" },
-    { id: "la-3", action: "Fraud Alert", description: "Blocked £3.2k in suspicious transactions", performedBy: "Fraud Detection Specialist", timestamp: new Date(Date.now() - 172800000).toISOString(), type: "decision" },
-    { id: "la-4", action: "Policy Update", description: "Updated cookie consent for new regulations", performedBy: "Compliance Officer", timestamp: new Date(Date.now() - 259200000).toISOString(), type: "task" },
-  ],
+  "product": productActivity,
+  "customer-service": customerServiceActivity,
+  "finance": financeActivity,
+  "development": developmentActivity,
+  "creative": creativeActivity,
+  "legal": legalActivity,
 };
 
 // Helper function to get team data by ID
@@ -176,6 +150,11 @@ export const getFileIcon = (type: string): string => {
     fig: "🎨",
     psd: "🎨",
     zip: "📦",
+    png: "🖼️",
+    jpg: "🖼️",
+    mp4: "🎬",
+    pptx: "📊",
+    html: "🌐",
   };
   return icons[type] || "📄";
 };
