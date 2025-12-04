@@ -119,7 +119,7 @@ export const mockTeams: Team[] = [
     gradient: "from-green-500 to-teal-500",
     description: "Delivers exceptional customer experiences and support",
     manager: {
-      id: "cs-director",
+      id: "customer-service-director",
       name: "Human - Customer Service Director",
       role: "Department Head",
       isManager: true,
@@ -170,7 +170,7 @@ export const mockTeams: Team[] = [
     },
     members: [
       {
-        id: "fpa-analyst",
+        id: "fpna-analyst",
         name: "FP&A Analyst",
         role: "Financial Planning",
         isManager: false,
@@ -238,7 +238,7 @@ export const mockTeams: Team[] = [
     },
     members: [
       {
-        id: "graphic-designer-creative",
+        id: "graphic-designer",
         name: "Graphic Designer",
         role: "Visual Design",
         isManager: false,
