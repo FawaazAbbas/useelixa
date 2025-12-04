@@ -500,9 +500,10 @@ const Tasks = () => {
               <div className="p-4">
                 <Button 
                   onClick={() => setShowCreationModeDialog(true)} 
-                  className="w-full shadow-md hover:shadow-lg transition-all gap-2"
+                  className="w-full gap-2 shadow-md hover:shadow-lg transition-all"
+                  size="lg"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-5 w-5" />
                   New Task
                 </Button>
               </div>

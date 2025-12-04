@@ -273,20 +273,21 @@ export default function KnowledgeBase() {
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card/50 backdrop-blur-sm shrink-0">
-          <div className="p-3 border-b">
+          <div className="p-4">
             <Button 
-              className="w-full h-9 gap-2" 
+              className="w-full gap-2 shadow-md hover:shadow-lg transition-all" 
+              size="lg"
               onClick={() => view === "articles" ? setShowCreateArticle(true) : setShowUploadDocument(true)}
             >
               {view === "articles" ? (
                 <>
-                  <Plus className="h-4 w-4 shrink-0" />
-                  <span>New Article</span>
+                  <Plus className="h-5 w-5" />
+                  New Article
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4 shrink-0" />
-                  <span>Upload Document</span>
+                  <Upload className="h-5 w-5" />
+                  Upload Document
                 </>
               )}
             </Button>
