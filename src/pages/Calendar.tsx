@@ -152,7 +152,7 @@ const Calendar = () => {
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
     return (
-      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden">
+      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden w-full">
         <div className="grid grid-cols-8 border-b bg-muted/30">
           <div className="p-2 border-r" />
           {weekDays.map((day) => (
@@ -235,7 +235,7 @@ const Calendar = () => {
     const dayEvents = getEventsForDay(currentDate);
 
     return (
-      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden">
+      <div className="flex-1 flex flex-col border rounded-lg bg-card overflow-hidden w-full">
         <div className="p-4 border-b bg-muted/30">
           <h2 className="text-lg font-semibold">{format(currentDate, "EEEE, MMMM d")}</h2>
         </div>
@@ -297,7 +297,7 @@ const Calendar = () => {
     const allDays = [...paddingDays, ...monthDays];
 
     return (
-      <div className="flex-1 border rounded-lg bg-card overflow-hidden">
+      <div className="flex-1 border rounded-lg bg-card overflow-hidden w-full">
         <div className="grid grid-cols-7 border-b bg-muted/30">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div key={day} className="p-2 text-center text-sm font-medium border-r last:border-r-0">{day}</div>
@@ -421,7 +421,7 @@ const Calendar = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden w-full">
           {/* Sidebar */}
           <div className={cn(
             "hidden lg:flex flex-col w-64 border-r bg-card/50 shrink-0 transition-all",
@@ -462,7 +462,7 @@ const Calendar = () => {
           </div>
 
           {/* Calendar View */}
-          <div className="flex-1 p-4 overflow-hidden flex flex-col">
+          <div className="flex-1 p-4 overflow-hidden flex flex-col min-w-0 w-full">
             {view === "week" && <WeekView />}
             {view === "day" && <DayView />}
             {view === "month" && <MonthView />}
