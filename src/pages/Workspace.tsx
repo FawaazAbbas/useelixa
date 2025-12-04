@@ -191,6 +191,9 @@ const Workspace = () => {
   const [teamGroupMessages, setTeamGroupMessages] = useState<any[]>([]);
   const [sidebarSearch, setSidebarSearch] = useState("");
   const [showAddAgentDialog, setShowAddAgentDialog] = useState(false);
+  const [teamsOpen, setTeamsOpen] = useState(true);
+  const [directorsOpen, setDirectorsOpen] = useState(true);
+  const [agentsOpen, setAgentsOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const brianMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -755,9 +758,9 @@ const Workspace = () => {
 
         {/* Sidebar Sections */}
         <ScrollArea className="flex-1">
-          <div className="py-2">
+          <div className="pb-2">
             {/* Teams Section */}
-            <Collapsible defaultOpen={true}>
+            <Collapsible open={teamsOpen} onOpenChange={setTeamsOpen}>
               <CollapsibleTrigger asChild>
                 <button className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
                   <div className="flex items-center gap-2">
@@ -782,7 +785,7 @@ const Workspace = () => {
             <div className="mx-4 my-2 border-t border-slate-700/40" />
 
             {/* Directors Section */}
-            <Collapsible defaultOpen={true}>
+            <Collapsible open={directorsOpen} onOpenChange={setDirectorsOpen}>
               <CollapsibleTrigger asChild>
                 <button className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
                   <div className="flex items-center gap-2">
@@ -804,7 +807,7 @@ const Workspace = () => {
             <div className="mx-4 my-2 border-t border-slate-700/40" />
 
             {/* Agents Section */}
-            <Collapsible defaultOpen={false}>
+            <Collapsible open={agentsOpen} onOpenChange={setAgentsOpen}>
               <CollapsibleTrigger asChild>
                 <button className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
                   <div className="flex items-center gap-2">
@@ -822,6 +825,11 @@ const Workspace = () => {
                 />
               </CollapsibleContent>
             </Collapsible>
+
+            {/* Divider only when all sections are closed */}
+            {!teamsOpen && !directorsOpen && !agentsOpen && (
+              <div className="mx-4 my-2 border-t border-slate-700/40" />
+            )}
           </div>
         </ScrollArea>
 
