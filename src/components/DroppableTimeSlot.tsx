@@ -19,7 +19,7 @@ export const DroppableTimeSlot = ({ id, data, children, className = "", onClick 
     <div
       ref={setNodeRef}
       onClick={onClick}
-      className={`${className} ${isOver ? "bg-primary/20 ring-2 ring-primary" : ""} transition-all overflow-hidden`}
+      className={`${className} ${isOver ? "bg-primary/20 ring-2 ring-primary" : ""} transition-all`}
     >
       {children}
     </div>

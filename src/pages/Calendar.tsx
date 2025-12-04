@@ -208,10 +208,9 @@ const Calendar = () => {
                     const height = event.is_all_day ? 24 : Math.max((duration / 60) * 56, 24);
 
                     return (
-                      <DraggableEvent
+                      <div
                         key={event.id}
-                        id={event.id}
-                        className="absolute left-0.5 right-0.5 rounded px-1.5 py-0.5 text-[10px] shadow-sm overflow-hidden cursor-pointer"
+                        className="absolute left-0.5 right-0.5 rounded px-1.5 py-0.5 text-[10px] shadow-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                         style={{ top: `${topPosition}px`, height: `${height}px`, backgroundColor: event.color, color: "#000", zIndex: 10 }}
                         onClick={(e) => { e.stopPropagation(); handleEventClick(event); }}
                       >
@@ -219,7 +218,7 @@ const Calendar = () => {
                         {height > 30 && !event.is_all_day && (
                           <div className="opacity-70">{format(startDate, "h:mma")}</div>
                         )}
-                      </DraggableEvent>
+                      </div>
                     );
                   })}
                 </DroppableTimeSlot>
@@ -267,10 +266,9 @@ const Calendar = () => {
                 const height = event.is_all_day ? 48 : Math.max((duration / 60) * 64, 48);
 
                 return (
-                  <DraggableEvent
+                  <div
                     key={event.id}
-                    id={event.id}
-                    className="absolute left-2 right-2 rounded-lg p-2 border-l-4 shadow-sm cursor-pointer bg-card"
+                    className="absolute left-2 right-2 rounded-lg p-2 border-l-4 shadow-sm cursor-pointer bg-card hover:shadow-md transition-shadow"
                     style={{ top: `${topPosition}px`, height: `${height}px`, borderLeftColor: event.color, zIndex: 10 }}
                     onClick={(e) => { e.stopPropagation(); handleEventClick(event); }}
                   >
@@ -278,7 +276,7 @@ const Calendar = () => {
                     {!event.is_all_day && (
                       <div className="text-xs text-muted-foreground">{format(startDate, "h:mm a")} - {format(endDate, "h:mm a")}</div>
                     )}
-                  </DraggableEvent>
+                  </div>
                 );
               })}
             </DroppableTimeSlot>
