@@ -47,8 +47,8 @@ export const AddAgentToWorkspaceDialog = ({
   }, [searchQuery, selectedCategory]);
 
   const handleAddAgent = (agent: MockAgent) => {
-    onOpenChange(false);
     setShowWaitlist(true);
+    setTimeout(() => onOpenChange(false), 50);
   };
 
   const uniqueCategories = useMemo(() => {
