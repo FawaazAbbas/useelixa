@@ -14,6 +14,13 @@ interface DirectorWithTeam {
   team: Team;
 }
 
+// Mock unread counts for demo - some directors have unread messages
+const mockDirectorUnreads: Record<string, number> = {
+  "marketing-manager": 2,
+  "finance-manager": 1,
+  "creative-manager": 4,
+};
+
 export const DirectorsSidebar = ({
   selectedMemberId,
   onSelectMember,
@@ -41,31 +48,39 @@ export const DirectorsSidebar = ({
 
   return (
     <div className="space-y-0.5 px-2 py-1">
-      {directors.map(({ member }) => (
-        <button
-          key={member.id}
-          className={cn(
-            "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
-            selectedMemberId === member.id
-              ? "bg-slate-700/70"
-              : "hover:bg-slate-800/70"
-          )}
-          onClick={() => onSelectMember(member.id)}
-        >
-          <div className="relative">
-            <Bot className="h-4 w-4 text-blue-400" />
-            <div
-              className={cn(
-                "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-slate-900",
-                statusColors[member.status]
-              )}
-            />
-          </div>
-          <span className="text-[13px] truncate text-slate-300">
-            {member.name}
-          </span>
-        </button>
-      ))}
+      {directors.map(({ member }) => {
+        const unreadCount = mockDirectorUnreads[member.id] || 0;
+        return (
+          <button
+            key={member.id}
+            className={cn(
+              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
+              selectedMemberId === member.id
+                ? "bg-slate-700/70"
+                : "hover:bg-slate-800/70"
+            )}
+            onClick={() => onSelectMember(member.id)}
+          >
+            <div className="relative">
+              <Bot className="h-4 w-4 text-blue-400" />
+              <div
+                className={cn(
+                  "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-slate-900",
+                  statusColors[member.status]
+                )}
+              />
+            </div>
+            <span className="text-[13px] truncate text-slate-300 flex-1 text-left">
+              {member.name}
+            </span>
+            {unreadCount > 0 && selectedMemberId !== member.id && (
+              <span className="min-w-[18px] h-[18px] px-1.5 text-[10px] font-medium bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+        );
+      })}
       {directors.length === 0 && searchQuery.trim() && (
         <div className="px-4 py-4 text-center text-sm text-slate-500">
           No directors found
