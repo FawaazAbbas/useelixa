@@ -16,10 +16,10 @@ export interface MockCalendarEvent {
 }
 
 const today = new Date();
+today.setHours(12, 0, 0, 0); // Set to noon to avoid timezone edge cases
+
 const getDateAtTime = (daysOffset: number, hour: number, minute: number = 0) => {
-  const date = new Date(today);
-  date.setDate(date.getDate() + daysOffset);
-  date.setHours(hour, minute, 0, 0);
+  const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysOffset, hour, minute, 0, 0);
   return date.toISOString();
 };
 
