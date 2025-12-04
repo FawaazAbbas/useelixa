@@ -362,20 +362,6 @@ const Calendar = () => {
               <span className="font-semibold text-lg hidden sm:inline">Calendar</span>
             </div>
 
-            {/* Center: Navigation */}
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevious}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={handleToday} className="px-3 h-8">Today</Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNext}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <div className="text-sm font-medium min-w-[180px] text-center hidden md:block">
-                {getDateRangeLabel()}
-              </div>
-            </div>
-
             {/* Right: View Toggles */}
             <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
               <Button
@@ -406,11 +392,6 @@ const Calendar = () => {
                 <span className="hidden sm:inline text-xs">Month</span>
               </Button>
             </div>
-          </div>
-          
-          {/* Mobile date display */}
-          <div className="md:hidden px-4 pb-2 text-center">
-            <Badge variant="secondary" className="text-xs">{getDateRangeLabel()}</Badge>
           </div>
         </div>
 
@@ -471,6 +452,24 @@ const Calendar = () => {
 
           {/* Calendar View */}
           <div className="flex-1 p-4 overflow-hidden flex flex-col min-w-0 w-full">
+            {/* Date Navigation - Above Calendar */}
+            <div className="flex items-center justify-between mb-4 shrink-0">
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handlePrevious}>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={handleNext}>
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleToday} className="ml-2 h-9">
+                  Today
+                </Button>
+              </div>
+              <h2 className="text-xl font-semibold">
+                {getDateRangeLabel()}
+              </h2>
+            </div>
+            
             {view === "week" && <WeekView />}
             {view === "day" && <DayView />}
             {view === "month" && <MonthView />}
