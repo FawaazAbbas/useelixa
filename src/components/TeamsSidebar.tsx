@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { mockTeams, getTeamOnlineCount } from "@/data/mockTeams";
+import { mockTeams } from "@/data/mockTeams";
 import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,39 +29,23 @@ export const TeamsSidebar = ({
 
   return (
     <div className="space-y-0.5 px-2 py-1">
-      {filteredTeams.map((team) => {
-        const onlineCount = getTeamOnlineCount(team);
-        const totalCount = team.members.length + 1;
-        
-        return (
-          <button
-            key={team.id}
-            className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md group",
-              selectedTeamGroupId === team.id
-                ? "bg-emerald-500/20 border border-emerald-500/30"
-                : "hover:bg-slate-800/70"
-            )}
-            onClick={() => onSelectTeamGroup(team.id)}
-          >
-            <div className="h-6 w-6 rounded bg-emerald-500/20 flex items-center justify-center">
-              <Users className="h-3.5 w-3.5 text-emerald-400" />
-            </div>
-            <span className={cn(
-              "text-[13px] truncate",
-              selectedTeamGroupId === team.id ? "text-emerald-200" : "text-slate-300"
-            )}>
-              {team.name.replace(' Team', '')}
-            </span>
-            <span className={cn(
-              "text-[11px] ml-auto tabular-nums",
-              selectedTeamGroupId === team.id ? "text-emerald-400" : "text-slate-500"
-            )}>
-              {onlineCount}/{totalCount}
-            </span>
-          </button>
-        );
-      })}
+      {filteredTeams.map((team) => (
+        <button
+          key={team.id}
+          className={cn(
+            "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
+            selectedTeamGroupId === team.id
+              ? "bg-slate-700/70"
+              : "hover:bg-slate-800/70"
+          )}
+          onClick={() => onSelectTeamGroup(team.id)}
+        >
+          <Users className="h-4 w-4 text-slate-400" />
+          <span className="text-[13px] truncate text-slate-300">
+            {team.name.replace(' Team', '')}
+          </span>
+        </button>
+      ))}
       {filteredTeams.length === 0 && searchQuery.trim() && (
         <div className="px-4 py-4 text-center text-sm text-slate-500">
           No teams found
