@@ -755,81 +755,73 @@ const Workspace = () => {
 
         {/* Sidebar Sections */}
         <ScrollArea className="flex-1">
-          <div className="py-2 space-y-4">
+          <div className="py-2">
             {/* Teams Section */}
-            <div>
-              <Collapsible defaultOpen={true}>
-                <CollapsibleTrigger asChild>
-                  <button className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
-                    <h3 className="text-[11px] font-bold text-emerald-400/90 uppercase tracking-widest flex items-center gap-2">
-                      <div className="h-5 w-5 rounded bg-emerald-500/20 flex items-center justify-center">
-                        <Users className="h-3 w-3 text-emerald-400" />
-                      </div>
-                      Teams
-                    </h3>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 collapsible-chevron" />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <TeamsSidebar
-                    selectedMemberId={selectedTeamMemberId}
-                    onSelectMember={handleSelectTeamMember}
-                    collapseAll={showBrian}
-                    selectedTeamGroupId={selectedTeamGroupId}
-                    onSelectTeamGroup={handleSelectTeamGroup}
-                    searchQuery={sidebarSearch}
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
+            <Collapsible defaultOpen={true}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Teams</span>
+                    <span className="text-[10px] bg-slate-700/80 text-slate-400 px-1.5 py-0.5 rounded-full">7</span>
+                  </div>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 collapsible-chevron" />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <TeamsSidebar
+                  selectedMemberId={selectedTeamMemberId}
+                  onSelectMember={handleSelectTeamMember}
+                  collapseAll={showBrian}
+                  selectedTeamGroupId={selectedTeamGroupId}
+                  onSelectTeamGroup={handleSelectTeamGroup}
+                  searchQuery={sidebarSearch}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+
+            <div className="mx-4 my-2 border-t border-slate-700/40" />
 
             {/* Directors Section */}
-            <div>
-              <Collapsible defaultOpen={true}>
-                <CollapsibleTrigger asChild>
-                  <button className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
-                    <h3 className="text-[11px] font-bold text-blue-400/90 uppercase tracking-widest flex items-center gap-2">
-                      <div className="h-5 w-5 rounded bg-blue-500/20 flex items-center justify-center">
-                        <Bot className="h-3 w-3 text-blue-400" />
-                      </div>
-                      Directors
-                    </h3>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 collapsible-chevron" />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <DirectorsSidebar
-                    selectedMemberId={selectedTeamMemberId}
-                    onSelectMember={handleSelectTeamMember}
-                    searchQuery={sidebarSearch}
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
+            <Collapsible defaultOpen={true}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Directors</span>
+                    <span className="text-[10px] bg-slate-700/80 text-slate-400 px-1.5 py-0.5 rounded-full">7</span>
+                  </div>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 collapsible-chevron" />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <DirectorsSidebar
+                  selectedMemberId={selectedTeamMemberId}
+                  onSelectMember={handleSelectTeamMember}
+                  searchQuery={sidebarSearch}
+                />
+              </CollapsibleContent>
+            </Collapsible>
 
-            {/* Direct Messages Section */}
-            <div>
-              <Collapsible defaultOpen={false}>
-                <CollapsibleTrigger asChild>
-                  <button className="w-full px-4 py-2 flex items-center justify-between hover:bg-slate-800/30 transition-colors group">
-                    <h3 className="text-[11px] font-bold text-orange-400/90 uppercase tracking-widest flex items-center gap-2">
-                      <div className="h-5 w-5 rounded bg-orange-500/20 flex items-center justify-center">
-                        <MessageSquare className="h-3 w-3 text-orange-400" />
-                      </div>
-                      Agents
-                    </h3>
-                    <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 collapsible-chevron" />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <DirectMessagesSidebar
-                    selectedMemberId={selectedTeamMemberId}
-                    onSelectMember={handleSelectTeamMember}
-                    searchQuery={sidebarSearch}
-                  />
-                </CollapsibleContent>
-              </Collapsible>
-            </div>
+            <div className="mx-4 my-2 border-t border-slate-700/40" />
+
+            {/* Agents Section */}
+            <Collapsible defaultOpen={false}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full px-4 py-2.5 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Agents</span>
+                    <span className="text-[10px] bg-slate-700/80 text-slate-400 px-1.5 py-0.5 rounded-full">17</span>
+                  </div>
+                  <ChevronDown className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200 collapsible-chevron" />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <DirectMessagesSidebar
+                  selectedMemberId={selectedTeamMemberId}
+                  onSelectMember={handleSelectTeamMember}
+                  searchQuery={sidebarSearch}
+                />
+              </CollapsibleContent>
+            </Collapsible>
           </div>
         </ScrollArea>
 

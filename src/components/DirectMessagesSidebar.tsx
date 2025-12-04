@@ -55,20 +55,18 @@ export const DirectMessagesSidebar = ({
           <button
             key={member.id}
             className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md group",
+              "w-full flex items-center gap-2.5 px-3 py-2 h-9 transition-colors rounded-md",
               selectedMemberId === member.id
-                ? "bg-orange-500/20 border border-orange-500/30"
+                ? "bg-slate-700/70"
                 : "hover:bg-slate-800/70"
             )}
             onClick={handleAgentClick}
           >
             <div className="relative">
-              <div className="h-6 w-6 rounded bg-orange-500/20 flex items-center justify-center">
-                <Bot className="h-3.5 w-3.5 text-orange-400" />
-              </div>
+              <Bot className="h-4 w-4 text-orange-400" />
               <div
                 className={cn(
-                  "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-slate-900",
+                  "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-slate-900",
                   statusColors[member.status]
                 )}
               />
