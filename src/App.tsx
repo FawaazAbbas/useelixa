@@ -27,6 +27,7 @@ import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { FloatingWaitlistButton } from "./components/FloatingWaitlistButton";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <MobileRedirect />
         <FloatingWaitlistButton />
         <Routes>
