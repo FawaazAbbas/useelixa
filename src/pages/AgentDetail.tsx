@@ -17,7 +17,97 @@ import { RelatedAgents } from "@/components/RelatedAgents";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
 
-// Plugin icon mapping
+// Plugin display mapping - converts API credential types to user-friendly names
+const pluginDisplayMap: Record<string, { name: string; logo: string; color: string }> = {
+  // Google Services
+  googleAdsOAuth2Api: { name: "Google Ads", logo: "/logos/GoogleDriveLogo.png", color: "from-blue-500/20 to-green-500/20" },
+  googleAnalyticsOAuth2Api: { name: "Google Analytics", logo: "/logos/GoogleDriveLogo.png", color: "from-orange-500/20 to-yellow-500/20" },
+  googleCalendarOAuth2Api: { name: "Google Calendar", logo: "/logos/GoogleDriveLogo.png", color: "from-blue-500/20 to-blue-600/20" },
+  googleDocsOAuth2Api: { name: "Google Docs", logo: "/logos/GoogleDriveLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  googleDriveOAuth2Api: { name: "Google Drive", logo: "/logos/GoogleDriveLogo.png", color: "from-green-500/20 to-blue-500/20" },
+  googleSheetsOAuth2Api: { name: "Google Sheets", logo: "/logos/GoogleDriveLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  googleSearchConsoleOAuth2Api: { name: "Search Console", logo: "/logos/GoogleDriveLogo.png", color: "from-red-500/20 to-orange-500/20" },
+  bigQueryOAuth2Api: { name: "BigQuery", logo: "/logos/BigQueryLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  youtubeOAuth2Api: { name: "YouTube", logo: "/logos/TikTokLogo.png", color: "from-red-500/20 to-red-600/20" },
+  
+  // Marketing & Ads
+  metaAdsOAuth2Api: { name: "Meta Ads", logo: "/logos/TikTokLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  tiktokAdsApi: { name: "TikTok Ads", logo: "/logos/TikTokLogo.png", color: "from-pink-500/20 to-purple-500/20" },
+  klaviyoApi: { name: "Klaviyo", logo: "/logos/KlaviyoLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  mailchimpOAuth2Api: { name: "Mailchimp", logo: "/logos/KlaviyoLogo.png", color: "from-yellow-500/20 to-amber-500/20" },
+  omnisendApi: { name: "Omnisend", logo: "/logos/OmnisendLogo.png", color: "from-purple-500/20 to-violet-500/20" },
+  linkedInOAuth2Api: { name: "LinkedIn", logo: "/logos/n8nLogo.png", color: "from-blue-700/20 to-blue-800/20" },
+  bufferApi: { name: "Buffer", logo: "/logos/n8nLogo.png", color: "from-slate-500/20 to-gray-500/20" },
+  semrushApi: { name: "SEMrush", logo: "/logos/n8nLogo.png", color: "from-orange-500/20 to-red-500/20" },
+  ahrefsApi: { name: "Ahrefs", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  
+  // Finance & Payments
+  xeroOAuth2Api: { name: "Xero", logo: "/logos/XeroLogo.png", color: "from-cyan-500/20 to-blue-500/20" },
+  quickBooksOAuth2Api: { name: "QuickBooks", logo: "/logos/QuickBooksLogo.png", color: "from-green-600/20 to-emerald-600/20" },
+  stripeApi: { name: "Stripe", logo: "/logos/StripeLogo.png", color: "from-purple-500/20 to-indigo-500/20" },
+  paypalApi: { name: "PayPal", logo: "/logos/PayPalLogo.png", color: "from-blue-600/20 to-sky-600/20" },
+  plaidApi: { name: "Plaid", logo: "/logos/PlaidLogo.png", color: "from-slate-600/20 to-gray-600/20" },
+  
+  // Communication
+  slackOAuth2Api: { name: "Slack", logo: "/logos/n8nLogo.png", color: "from-purple-500/20 to-pink-500/20" },
+  gmailOAuth2Api: { name: "Gmail", logo: "/logos/GoogleDriveLogo.png", color: "from-red-500/20 to-orange-500/20" },
+  
+  // Productivity
+  notionOAuth2Api: { name: "Notion", logo: "/logos/n8nLogo.png", color: "from-slate-500/20 to-gray-500/20" },
+  asanaOAuth2Api: { name: "Asana", logo: "/logos/AsanaLogo.png", color: "from-pink-500/20 to-rose-500/20" },
+  clickupApi: { name: "ClickUp", logo: "/logos/ClickUpLogo.png", color: "from-purple-500/20 to-violet-500/20" },
+  
+  // Development
+  githubOAuth2Api: { name: "GitHub", logo: "/logos/GitHubLogo.png", color: "from-slate-700/20 to-gray-700/20" },
+  gitlabOAuth2Api: { name: "GitLab", logo: "/logos/GitLabLogo.png", color: "from-orange-500/20 to-red-500/20" },
+  jiraOAuth2Api: { name: "Jira", logo: "/logos/n8nLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  vercelApi: { name: "Vercel", logo: "/logos/VercelLogo.png", color: "from-slate-600/20 to-gray-600/20" },
+  
+  // Design
+  figmaApi: { name: "Figma", logo: "/logos/FigmaLogo.png", color: "from-purple-500/20 to-pink-500/20" },
+  dropboxOAuth2Api: { name: "Dropbox", logo: "/logos/DropboxLogo.png", color: "from-blue-500/20 to-sky-500/20" },
+  vimeoApi: { name: "Vimeo", logo: "/logos/n8nLogo.png", color: "from-cyan-500/20 to-blue-500/20" },
+  
+  // Customer Support
+  gorgiasApi: { name: "Gorgias", logo: "/logos/GorgiasLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  zendeskApi: { name: "Zendesk", logo: "/logos/ZendeskLogo.png", color: "from-green-600/20 to-teal-600/20" },
+  freshdeskApi: { name: "Freshdesk", logo: "/logos/FreshdeskLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  
+  // Ecommerce
+  shopifyApi: { name: "Shopify", logo: "/logos/n8nLogo.png", color: "from-green-500/20 to-lime-500/20" },
+  
+  // Legal
+  docusignApi: { name: "DocuSign", logo: "/logos/DocuSignLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  
+  // CRM
+  hubspotOAuth2Api: { name: "HubSpot", logo: "/logos/n8nLogo.png", color: "from-orange-500/20 to-red-500/20" },
+  salesforceOAuth2Api: { name: "Salesforce", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-sky-500/20" },
+  
+  // Analytics
+  lookerApi: { name: "Looker", logo: "/logos/n8nLogo.png", color: "from-purple-500/20 to-indigo-500/20" },
+  
+  // Other
+  grammarly: { name: "Grammarly", logo: "/logos/n8nLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+};
+
+const getPluginDisplay = (credentialType: string) => {
+  const display = pluginDisplayMap[credentialType];
+  if (display) return display;
+  
+  // Fallback: clean up the credential type for display
+  const cleaned = credentialType
+    .replace(/OAuth2Api$/i, '')
+    .replace(/Api$/i, '')
+    .replace(/([A-Z])/g, ' $1')
+    .trim();
+  
+  return {
+    name: cleaned.charAt(0).toUpperCase() + cleaned.slice(1),
+    logo: "/logos/n8nLogo.png",
+    color: "from-primary/20 to-accent/20"
+  };
+};
+
 const pluginIcons: Record<string, any> = {
   gmail: Mail,
   email: Mail,
@@ -511,18 +601,30 @@ const AgentDetail = () => {
                     
                     {plugins && plugins.length > 0 ? (
                       <div className="grid gap-3 sm:grid-cols-2">
-                        {plugins.map((plugin: any, index: number) => {
-                          const pluginName = typeof plugin === 'string' ? plugin : plugin.name || plugin.type;
-                          const PluginIcon = getPluginIcon(pluginName);
+                        {plugins.map((plugin: string, index: number) => {
+                          const pluginDisplay = getPluginDisplay(plugin);
+                          const PluginIcon = getPluginIcon(plugin);
                           return (
-                            <div key={index} className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-colors">
-                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <PluginIcon className="h-5 w-5 text-primary" />
+                            <div key={index} className={`flex items-center gap-3 p-4 rounded-xl bg-gradient-to-br ${pluginDisplay.color} border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-200`}>
+                              <div className="h-12 w-12 rounded-xl bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm overflow-hidden">
+                                <img 
+                                  src={pluginDisplay.logo} 
+                                  alt={pluginDisplay.name}
+                                  className="h-7 w-7 object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                  }}
+                                />
+                                <PluginIcon className="h-6 w-6 text-primary hidden" />
                               </div>
-                              <div>
-                                <p className="font-medium text-sm">{pluginName}</p>
-                                <p className="text-xs text-muted-foreground">Required</p>
+                              <div className="flex-1">
+                                <p className="font-semibold text-sm">{pluginDisplay.name}</p>
+                                <p className="text-xs text-muted-foreground">Integration Required</p>
                               </div>
+                              <Badge variant="outline" className="text-xs bg-background/50">
+                                OAuth
+                              </Badge>
                             </div>
                           );
                         })}
@@ -666,16 +768,16 @@ const AgentDetail = () => {
                   </h4>
                   {plugins && plugins.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {plugins.slice(0, 4).map((plugin: any, index: number) => {
-                        const pluginName = typeof plugin === 'string' ? plugin : plugin.name || plugin.type;
+                      {plugins.slice(0, 4).map((plugin: string, index: number) => {
+                        const pluginDisplay = getPluginDisplay(plugin);
                         return (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {pluginName}
+                          <Badge key={index} variant="outline" className="text-xs bg-muted/50">
+                            {pluginDisplay.name}
                           </Badge>
                         );
                       })}
                       {plugins.length > 4 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs bg-muted/50">
                           +{plugins.length - 4} more
                         </Badge>
                       )}
