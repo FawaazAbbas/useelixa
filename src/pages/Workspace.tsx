@@ -175,7 +175,7 @@ const Workspace = () => {
   const [showParticipantsDialog, setShowParticipantsDialog] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [rightSidebarTab, setRightSidebarTab] = useState("automations");
+  const [rightSidebarTab, setRightSidebarTab] = useState("about");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
