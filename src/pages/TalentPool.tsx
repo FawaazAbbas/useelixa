@@ -328,8 +328,50 @@ const TalentPool = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <TalentPoolNavbar />
 
-      {/* Hero - Bold & Vibrant */}
-      <section className="relative">
+      {/* Sticky Search Bar - appears when searching */}
+      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-500 ease-out ${isFiltering ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+        <div className="bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
+          <div className="max-w-3xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search for AI agents..." 
+                  className="pl-11 h-11 bg-muted/50 border-border/50 rounded-xl focus-visible:ring-primary/50"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              {activeFilterCount > 0 && (
+                <Badge variant="secondary" className="gap-1">
+                  {activeFilterCount} filters
+                </Badge>
+              )}
+              <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="lg:hidden h-11 w-11 rounded-xl relative">
+                    <SlidersHorizontal className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80 bg-background">
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FilterPanel />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                Clear
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero - Bold & Vibrant - Collapses when searching */}
+      <section className={`relative transition-all duration-500 ease-out ${isFiltering ? 'max-h-0 opacity-0 overflow-hidden py-0' : 'max-h-[800px] opacity-100'}`}>
         {/* Animated gradient background - extends beyond section */}
         <div className="absolute inset-0 -bottom-32 pointer-events-none">
           <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-rose-500/30 via-pink-500/20 to-transparent rounded-full blur-3xl animate-pulse" />
@@ -434,41 +476,40 @@ const TalentPool = () => {
               </button>
             )}
           </div>
-
-          {/* Active filters display */}
-          {(selectedCategories.length > 0 || selectedCapabilities.length > 0 || minRating > 0) && (
-            <div className="flex flex-wrap items-center gap-2 justify-center">
-              {selectedCategories.map(cat => (
-                <Badge key={cat} className="gap-1 pr-1 bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
-                  {cat}
-                  <button onClick={() => toggleCategory(cat)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              {minRating > 0 && (
-                <Badge className="gap-1 pr-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-white/10">
-                  {minRating}+ Stars
-                  <button onClick={() => setMinRating(0)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              )}
-              {selectedCapabilities.map(cap => (
-                <Badge key={cap} className="gap-1 pr-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-white/10">
-                  {cap}
-                  <button onClick={() => toggleCapability(cap)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7">
-                Clear all
-              </Button>
-            </div>
-          )}
         </div>
       </section>
+
+      {/* Active filters display - shown below sticky bar when filtering */}
+      {isFiltering && (selectedCategories.length > 0 || selectedCapabilities.length > 0 || minRating > 0) && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedCategories.map(cat => (
+              <Badge key={cat} className="gap-1 pr-1 bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
+                {cat}
+                <button onClick={() => toggleCategory(cat)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+            {minRating > 0 && (
+              <Badge className="gap-1 pr-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-white/10">
+                {minRating}+ Stars
+                <button onClick={() => setMinRating(0)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            )}
+            {selectedCapabilities.map(cap => (
+              <Badge key={cap} className="gap-1 pr-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-white/10">
+                {cap}
+                <button onClick={() => toggleCapability(cap)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
