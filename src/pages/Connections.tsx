@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plug, CheckCircle2, Search, Filter, LayoutGrid, Link2, Unplug } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { GOOGLE_BUNDLES } from "@/config/googleBundles";
 import { DemoBanner } from "@/components/DemoBanner";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ConnectionStatus {
   type: string;
@@ -641,37 +640,42 @@ export default function Connections() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const [connections, setConnections] = useState<ConnectionStatus[]>([]);
 
-  useEffect(() => {
-    const fetchCredentials = async () => {
-      const { data, error } = await supabase
-        .from("user_credentials")
-        .select("*");
-      
-      if (error) {
-        console.error("Error fetching credentials:", error);
-        return;
-      }
-
-      if (data) {
-        const mapped: ConnectionStatus[] = data.map((cred) => ({
-          type: cred.credential_type,
-          connected: true,
-          lastConnected: cred.updated_at,
-          expiresAt: cred.expires_at || undefined,
-          isExpired: cred.expires_at ? new Date(cred.expires_at) < new Date() : false,
-          bundleType: cred.bundle_type || undefined,
-          accountEmail: cred.account_email || undefined,
-          accountLabel: cred.account_label || undefined,
-          id: cred.id,
-        }));
-        setConnections(mapped);
-      }
-    };
-
-    fetchCredentials();
-  }, []);
+  // Demo mode: 26 connected integrations (Google bundles, Finance, Marketing, Customer Support)
+  const connections: ConnectionStatus[] = [
+    // Google Bundles (6)
+    { type: "googleOAuth2Api", connected: true, bundleType: "email_workspace", accountEmail: "demo@techreborn.com", accountLabel: "Work Account", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "googleOAuth2Api", connected: true, bundleType: "ads_marketing", accountEmail: "ads@techreborn.com", accountLabel: "Ads Account", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "googleOAuth2Api", connected: true, bundleType: "analytics_reporting", accountEmail: "analytics@techreborn.com", accountLabel: "Analytics", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "googleOAuth2Api", connected: true, bundleType: "cloud_data", accountEmail: "data@techreborn.com", accountLabel: "Cloud Data", lastConnected: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "googleOAuth2Api", connected: true, bundleType: "firebase_infra", accountEmail: "dev@techreborn.com", accountLabel: "Firebase", lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "googleOAuth2Api", connected: true, bundleType: "android_play", accountEmail: "mobile@techreborn.com", accountLabel: "Play Store", lastConnected: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
+    // Marketing (4)
+    { type: "klaviyoApi", connected: true, accountEmail: "marketing@techreborn.com", accountLabel: "Tech Reborn Marketing", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "mailchimpOAuth2Api", connected: true, accountEmail: "marketing@techreborn.com", accountLabel: "Main Account", lastConnected: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "omnisendApi", connected: true, accountEmail: "marketing@techreborn.com", accountLabel: "Ecommerce Store", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "tiktokAdsApi", connected: true, accountEmail: "ads@techreborn.com", accountLabel: "Tech Reborn Ads", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    // Finance (10)
+    { type: "xeroApi", connected: true, accountEmail: "finance@techreborn.com", accountLabel: "Tech Reborn Ltd", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "quickbooksApi", connected: true, accountEmail: "finance@techreborn.com", accountLabel: "US Operations", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "stripeApi", connected: true, accountEmail: "payments@techreborn.com", accountLabel: "Live Account", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "paypalApi", connected: true, accountEmail: "payments@techreborn.com", accountLabel: "Business Account", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "klarnaApi", connected: true, accountEmail: "payments@techreborn.com", accountLabel: "EU Store", lastConnected: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "clearpayApi", connected: true, accountEmail: "payments@techreborn.com", accountLabel: "UK Store", lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "laybuyApi", connected: true, accountEmail: "payments@techreborn.com", accountLabel: "ANZ Store", lastConnected: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "truelayerApi", connected: true, accountEmail: "finance@techreborn.com", accountLabel: "Open Banking", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "plaidApi", connected: true, accountEmail: "finance@techreborn.com", accountLabel: "Bank Connections", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "hmrcMtdApi", connected: true, accountEmail: "tax@techreborn.com", accountLabel: "VAT Returns", lastConnected: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
+    // Customer Support (3)
+    { type: "gorgiasApi", connected: true, accountEmail: "support@techreborn.com", accountLabel: "Helpdesk", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "zendeskApi", connected: true, accountEmail: "support@techreborn.com", accountLabel: "Support Portal", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "freshdeskApi", connected: true, accountEmail: "support@techreborn.com", accountLabel: "Customer Service", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+    // Communication (2)
+    { type: "slackOAuth2Api", connected: true, accountEmail: "team@techreborn.slack.com", accountLabel: "Company Workspace", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+    { type: "notionApi", connected: true, accountEmail: "demo@techreborn.com", accountLabel: "Main Workspace", lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
+    // Reviews (1)
+    { type: "trustpilotApi", connected: true, accountEmail: "reviews@techreborn.com", accountLabel: "Tech Reborn Store", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  ];
 
   const handleConnect = () => {
     setWaitlistOpen(true);
