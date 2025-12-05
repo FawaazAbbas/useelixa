@@ -150,7 +150,7 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   linkedInOAuth2Api: { name: "LinkedIn", logo: "/logos/LinkedInLogo.svg", color: "from-blue-700/20 to-blue-800/20" },
   bufferApi: { name: "Buffer", logo: "/logos/BufferLogo.svg", color: "from-slate-500/20 to-gray-500/20" },
   semrushApi: { name: "SEMrush", logo: "/logos/SEMrushLogo.svg", color: "from-orange-500/20 to-red-500/20" },
-  ahrefsApi: { name: "Ahrefs", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  ahrefsApi: { name: "Ahrefs", logo: "/elixa-logo.png", color: "from-blue-500/20 to-indigo-500/20" },
   lookerApi: { name: "Looker", logo: "/logos/LookerLogo.svg", color: "from-blue-500/20 to-indigo-500/20" },
   grammarly: { name: "Grammarly", logo: "/logos/GrammarlyLogo.svg", color: "from-green-500/20 to-emerald-500/20" },
   
