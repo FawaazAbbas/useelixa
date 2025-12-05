@@ -512,7 +512,7 @@ const AgentDetail = () => {
                     {isInstalled ? (
                       <Button 
                         size="lg" 
-                        className={`w-full sm:w-auto px-8 bg-gradient-to-r ${catConfig.accent} hover:opacity-90 text-white shadow-lg`}
+                        className="w-full sm:w-auto px-8 bg-primary hover:bg-primary/90 shadow-lg"
                         onClick={() => navigate("/workspace")}
                       >
                         <MessageSquare className="h-4 w-4 mr-2" />
@@ -521,7 +521,7 @@ const AgentDetail = () => {
                     ) : (
                       <Button 
                         size="lg" 
-                        className={`w-full sm:w-auto px-8 bg-gradient-to-r ${catConfig.accent} hover:opacity-90 text-white shadow-lg`}
+                        className="w-full sm:w-auto px-8 bg-primary hover:bg-primary/90 shadow-lg"
                         onClick={handleInstall}
                         disabled={installing}
                       >
