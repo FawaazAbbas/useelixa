@@ -51,6 +51,7 @@ import { getTeamGroupData, formatRelativeTime } from "@/data/mockTeamGroupData";
 import { FileIcon } from "@/components/FileIcon";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { BrianAvatar } from "@/components/BrianAvatar";
+import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
 import { brianFiles, brianMemories, brianActivity } from "@/data/mockWorkspaceData";
 import {
   DropdownMenu,
@@ -1248,6 +1249,16 @@ const Workspace = () => {
                                       </button>
                                     ))}
                                   </div>
+                                )}
+                                {/* Agent Recommendation Card */}
+                                {msg.recommendedAgent && (
+                                  <AgentRecommendationCard
+                                    agentId={msg.recommendedAgent.id}
+                                    agentName={msg.recommendedAgent.name}
+                                    description={msg.recommendedAgent.description}
+                                    category={msg.recommendedAgent.category}
+                                    rating={msg.recommendedAgent.rating}
+                                  />
                                 )}
                               </div>
                               {isUserMessage && (
