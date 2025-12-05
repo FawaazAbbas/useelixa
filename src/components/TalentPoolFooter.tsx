@@ -1,9 +1,7 @@
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { mockCategories } from "@/data/mockCategories";
 
 export const TalentPoolFooter = () => {
-  const navigate = useNavigate();
-
   return (
     <footer className="border-t border-border/50 bg-muted/30 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
@@ -26,12 +24,12 @@ export const TalentPoolFooter = () => {
             <ul className="space-y-2 text-sm">
               {mockCategories.slice(0, 6).map((category) => (
                 <li key={category.name}>
-                  <button
-                    onClick={() => navigate(`/talent-pool/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
+                  <Link
+                    to={`/talent-pool?category=${encodeURIComponent(category.name)}`}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     {category.name}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -42,20 +40,20 @@ export const TalentPoolFooter = () => {
             <h3 className="font-semibold">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <button
-                  onClick={() => navigate("/talent-pool")}
+                <Link
+                  to="/talent-pool"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Browse Agents
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => navigate("/talent-pool/charts")}
+                <Link
+                  to="/talent-pool/charts"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Top Charts
-                </button>
+                </Link>
               </li>
               <li>
                 <Link
