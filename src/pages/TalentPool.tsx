@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Search, Sparkles, TrendingUp, Clock, Filter, X } from "lucide-react";
+import { Search, Sparkles, TrendingUp, Clock, Filter, X, SlidersHorizontal, Star, ChevronDown, ChevronUp } from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
@@ -7,6 +7,13 @@ import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -31,6 +38,8 @@ interface Category {
   agentCount?: number;
 }
 
+type SortOption = "popular" | "rating" | "reviews" | "newest" | "name";
+
 const TalentPool = () => {
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -38,9 +47,17 @@ const TalentPool = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [minRating, setMinRating] = useState(0);
+  const [selectedCapabilities, setSelectedCapabilities] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [displayedCount, setDisplayedCount] = useState(12);
   const [hasMore, setHasMore] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  
+  // Collapsible states
+  const [categoriesOpen, setCategoriesOpen] = useState(true);
+  const [ratingsOpen, setRatingsOpen] = useState(true);
+  const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,31 +122,61 @@ const TalentPool = () => {
     fetchData();
   }, []);
 
+  // Extract all unique capabilities from agents
+  const allCapabilities = useMemo(() => {
+    const caps = new Set<string>();
+    agents.forEach(agent => {
+      agent.capabilities?.forEach(cap => caps.add(cap));
+    });
+    return Array.from(caps).sort();
+  }, [agents]);
+
+  // Filter and sort agents
   const filteredAgents = useMemo(() => {
-    return agents.filter(agent => {
+    let result = agents.filter(agent => {
       const matchesSearch = searchQuery === "" || 
         agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (agent.capabilities?.some(cap => cap.toLowerCase().includes(searchQuery.toLowerCase())));
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(agent.category);
-      return matchesSearch && matchesCategory;
+      const matchesRating = agent.rating >= minRating;
+      const matchesCapabilities = selectedCapabilities.length === 0 || 
+        selectedCapabilities.some(cap => agent.capabilities?.includes(cap));
+      return matchesSearch && matchesCategory && matchesRating && matchesCapabilities;
     });
-  }, [agents, searchQuery, selectedCategories]);
+
+    // Sort
+    switch (sortBy) {
+      case "popular":
+        result.sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0));
+        break;
+      case "rating":
+        result.sort((a, b) => b.rating - a.rating);
+        break;
+      case "reviews":
+        result.sort((a, b) => b.total_reviews - a.total_reviews);
+        break;
+      case "newest":
+        result.sort((a, b) => b.id.localeCompare(a.id)); // Using ID as proxy for creation order
+        break;
+      case "name":
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+    }
+
+    return result;
+  }, [agents, searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy]);
 
   const displayedAgents = filteredAgents.slice(0, displayedCount);
 
-  // Personalized "For You" recommendations (mock logic - in real app would use user history)
+  // Personalized recommendations
   const forYouAgents = useMemo(() => {
-    // Simulate personalization by mixing top-rated and trending
     const topRated = [...agents].sort((a, b) => b.rating - a.rating).slice(0, 4);
     const trending = [...agents].sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0)).slice(4, 8);
     return [...topRated, ...trending].slice(0, 8);
   }, [agents]);
 
-  // New arrivals (mock - would be sorted by created_at in real app)
-  const newAgents = useMemo(() => {
-    return agents.slice(-6).reverse();
-  }, [agents]);
+  const newAgents = useMemo(() => agents.slice(-6).reverse(), [agents]);
 
   const loadMore = useCallback(() => {
     if (displayedCount >= filteredAgents.length) {
@@ -142,7 +189,7 @@ const TalentPool = () => {
   useEffect(() => {
     setDisplayedCount(12);
     setHasMore(filteredAgents.length > 12);
-  }, [searchQuery, selectedCategories, filteredAgents.length]);
+  }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
   const toggleCategory = (categoryName: string) => {
     setSelectedCategories(prev => 
@@ -152,86 +199,213 @@ const TalentPool = () => {
     );
   };
 
+  const toggleCapability = (capability: string) => {
+    setSelectedCapabilities(prev => 
+      prev.includes(capability) 
+        ? prev.filter(c => c !== capability)
+        : [...prev, capability]
+    );
+  };
+
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategories([]);
+    setMinRating(0);
+    setSelectedCapabilities([]);
+    setSortBy("popular");
   };
 
-  const isFiltering = searchQuery || selectedCategories.length > 0;
+  const activeFilterCount = selectedCategories.length + (minRating > 0 ? 1 : 0) + selectedCapabilities.length;
+  const isFiltering = searchQuery || activeFilterCount > 0;
+
+  // Filter Panel Component
+  const FilterPanel = ({ className = "" }: { className?: string }) => (
+    <div className={`space-y-6 ${className}`}>
+      {/* Sort */}
+      <div className="space-y-3">
+        <Label className="text-sm font-semibold">Sort By</Label>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger className="w-full bg-background">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-background border">
+            <SelectItem value="popular">Most Popular</SelectItem>
+            <SelectItem value="rating">Highest Rated</SelectItem>
+            <SelectItem value="reviews">Most Reviews</SelectItem>
+            <SelectItem value="newest">Newest</SelectItem>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Categories */}
+      <Collapsible open={categoriesOpen} onOpenChange={setCategoriesOpen}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+          <span className="text-sm font-semibold">Categories</span>
+          {categoriesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3 space-y-2">
+          <ScrollArea className="h-[200px] pr-3">
+            {categories.map((category) => (
+              <div key={category.id} className="flex items-center space-x-2 py-1.5">
+                <Checkbox
+                  id={`cat-${category.id}`}
+                  checked={selectedCategories.includes(category.name)}
+                  onCheckedChange={() => toggleCategory(category.name)}
+                />
+                <Label 
+                  htmlFor={`cat-${category.id}`} 
+                  className="text-sm cursor-pointer flex-1 flex justify-between"
+                >
+                  <span>{category.name}</span>
+                  <span className="text-muted-foreground text-xs">{category.agentCount}</span>
+                </Label>
+              </div>
+            ))}
+          </ScrollArea>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Rating */}
+      <Collapsible open={ratingsOpen} onOpenChange={setRatingsOpen}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+          <span className="text-sm font-semibold">Minimum Rating</span>
+          {ratingsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3 space-y-4">
+          <div className="flex items-center gap-2">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-medium">{minRating.toFixed(1)}+</span>
+          </div>
+          <Slider
+            value={[minRating]}
+            onValueChange={([v]) => setMinRating(v)}
+            max={5}
+            step={0.5}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Any</span>
+            <span>5.0</span>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Capabilities */}
+      <Collapsible open={capabilitiesOpen} onOpenChange={setCapabilitiesOpen}>
+        <CollapsibleTrigger className="flex items-center justify-between w-full py-2">
+          <span className="text-sm font-semibold">Capabilities</span>
+          {capabilitiesOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pt-3 space-y-2">
+          <ScrollArea className="h-[180px] pr-3">
+            {allCapabilities.slice(0, 20).map((capability) => (
+              <div key={capability} className="flex items-center space-x-2 py-1.5">
+                <Checkbox
+                  id={`cap-${capability}`}
+                  checked={selectedCapabilities.includes(capability)}
+                  onCheckedChange={() => toggleCapability(capability)}
+                />
+                <Label htmlFor={`cap-${capability}`} className="text-sm cursor-pointer truncate">
+                  {capability}
+                </Label>
+              </div>
+            ))}
+          </ScrollArea>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Clear Filters */}
+      {activeFilterCount > 0 && (
+        <Button variant="outline" onClick={clearFilters} className="w-full">
+          Clear All Filters ({activeFilterCount})
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <TalentPoolNavbar />
 
-      {/* Hero - Minimal discovery-first */}
-      <section className="relative py-12 sm:py-16 md:py-20">
+      {/* Hero */}
+      <section className="relative py-10 sm:py-14">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
         </div>
         
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="text-center space-y-4 mb-10">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
+          <div className="text-center space-y-3 mb-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
               Find Your Perfect AI Agent
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+            <p className="text-muted-foreground">
               {agents.length} agents ready to transform your workflow
             </p>
           </div>
           
           {/* Search bar */}
           <div className="relative max-w-2xl mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-lg opacity-60" />
-            <div className="relative flex items-center gap-3 bg-background/80 backdrop-blur-xl rounded-xl border border-border/50 p-2 shadow-2xl shadow-black/5">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl blur-lg opacity-50" />
+            <div className="relative flex items-center gap-2 bg-background/90 backdrop-blur-xl rounded-xl border border-border/50 p-2 shadow-xl">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input 
                   placeholder="Search agents, capabilities..." 
-                  className="pl-12 h-12 text-base bg-transparent border-0 focus-visible:ring-0 shadow-none"
+                  className="pl-11 h-11 bg-transparent border-0 focus-visible:ring-0 shadow-none"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setShowFilters(!showFilters)}
-                className={`h-10 w-10 ${showFilters ? 'bg-primary/10 text-primary' : ''}`}
-              >
-                <Filter className="h-5 w-5" />
-              </Button>
+              
+              {/* Mobile filter button */}
+              <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="lg:hidden relative">
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {activeFilterCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80 bg-background">
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FilterPanel />
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
-
-            {/* Filter chips */}
-            {showFilters && (
-              <div className="mt-4 p-4 bg-background/80 backdrop-blur-xl rounded-xl border border-border/50 animate-fade-in">
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => toggleCategory(category.name)}
-                      className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
-                        selectedCategories.includes(category.name)
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-muted/50 border-border/50 hover:border-primary/50'
-                      }`}
-                    >
-                      {category.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* Active filters */}
-          {selectedCategories.length > 0 && (
+          {/* Active filters display */}
+          {(selectedCategories.length > 0 || selectedCapabilities.length > 0 || minRating > 0) && (
             <div className="flex flex-wrap items-center gap-2 mt-4 justify-center">
               {selectedCategories.map(cat => (
                 <Badge key={cat} variant="secondary" className="gap-1 pr-1">
                   {cat}
                   <button onClick={() => toggleCategory(cat)} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              {minRating > 0 && (
+                <Badge variant="secondary" className="gap-1 pr-1">
+                  {minRating}+ Stars
+                  <button onClick={() => setMinRating(0)} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {selectedCapabilities.map(cap => (
+                <Badge key={cap} variant="secondary" className="gap-1 pr-1">
+                  {cap}
+                  <button onClick={() => toggleCapability(cap)} className="ml-1 hover:bg-muted rounded-full p-0.5">
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -244,142 +418,160 @@ const TalentPool = () => {
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Main Content with Sidebar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="relative w-12 h-12 mx-auto">
-              <div className="absolute inset-0 rounded-full bg-primary/30 blur-md animate-pulse" />
-              <div className="relative animate-spin rounded-full h-12 w-12 border-2 border-muted border-t-primary" />
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">Loading agents...</p>
-          </div>
-        ) : isFiltering ? (
-          /* Filtered Results */
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-semibold">
-                  {searchQuery ? `Results for "${searchQuery}"` : 'Filtered Results'}
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {filteredAgents.length} agents found
-                </p>
+        <div className="flex gap-8">
+          {/* Desktop Filter Sidebar */}
+          <aside className="hidden lg:block w-64 shrink-0">
+            <div className="sticky top-24 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-5">
+              <div className="flex items-center gap-2 mb-5">
+                <Filter className="h-4 w-4" />
+                <span className="font-semibold">Filters</span>
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    {activeFilterCount}
+                  </Badge>
+                )}
               </div>
-              <Button variant="ghost" onClick={clearFilters}>
-                Clear filters
-              </Button>
+              <FilterPanel />
             </div>
+          </aside>
 
-            {filteredAgents.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-lg text-muted-foreground mb-4">No agents match your criteria</p>
-                <Button onClick={clearFilters}>Browse all agents</Button>
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            {loading ? (
+              <div className="text-center py-20">
+                <div className="relative w-12 h-12 mx-auto">
+                  <div className="absolute inset-0 rounded-full bg-primary/30 blur-md animate-pulse" />
+                  <div className="relative animate-spin rounded-full h-12 w-12 border-2 border-muted border-t-primary" />
+                </div>
+                <p className="mt-4 text-sm text-muted-foreground">Loading agents...</p>
+              </div>
+            ) : isFiltering ? (
+              /* Filtered Results */
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      {searchQuery ? `Results for "${searchQuery}"` : 'Filtered Results'}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {filteredAgents.length} agents found
+                    </p>
+                  </div>
+                </div>
+
+                {filteredAgents.length === 0 ? (
+                  <div className="text-center py-16 bg-card/30 rounded-xl border border-border/50">
+                    <p className="text-lg text-muted-foreground mb-4">No agents match your criteria</p>
+                    <Button onClick={clearFilters}>Clear filters</Button>
+                  </div>
+                ) : (
+                  <InfiniteScroll
+                    dataLength={displayedAgents.length}
+                    next={loadMore}
+                    hasMore={hasMore}
+                    loader={<div className="text-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary mx-auto" /></div>}
+                    endMessage={<p className="text-center py-6 text-sm text-muted-foreground">All {filteredAgents.length} agents loaded</p>}
+                  >
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                      {displayedAgents.map((agent, i) => (
+                        <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 20}ms` }}>
+                          <AgentCard agent={agent} />
+                        </div>
+                      ))}
+                    </div>
+                  </InfiniteScroll>
+                )}
               </div>
             ) : (
-              <InfiniteScroll
-                dataLength={displayedAgents.length}
-                next={loadMore}
-                hasMore={hasMore}
-                loader={<div className="text-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary mx-auto" /></div>}
-                endMessage={<p className="text-center py-6 text-sm text-muted-foreground">All {filteredAgents.length} agents loaded</p>}
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                  {displayedAgents.map((agent, i) => (
-                    <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 20}ms` }}>
-                      <AgentCard agent={agent} />
+              /* Discovery Home */
+              <div className="space-y-12">
+                {/* For You */}
+                <section>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20">
+                      <Sparkles className="h-5 w-5 text-primary" />
                     </div>
-                  ))}
-                </div>
-              </InfiniteScroll>
+                    <div>
+                      <h2 className="text-xl font-semibold">Recommended for You</h2>
+                      <p className="text-sm text-muted-foreground">Based on popular choices</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                    {forYouAgents.map((agent, i) => (
+                      <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+                        <AgentCard agent={agent} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* Trending */}
+                <section>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20">
+                      <TrendingUp className="h-5 w-5 text-orange-500" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold">Trending Now</h2>
+                      <p className="text-sm text-muted-foreground">Most installed this week</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                    {agents.slice(0, 4).map((agent, i) => (
+                      <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+                        <AgentCard agent={agent} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* New */}
+                <section>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
+                      <Clock className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold">New Arrivals</h2>
+                      <p className="text-sm text-muted-foreground">Recently added</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {newAgents.map((agent, i) => (
+                      <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
+                        <AgentCard agent={agent} />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* All */}
+                <section>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xl font-semibold">All Agents</h2>
+                    <span className="text-sm text-muted-foreground">{agents.length} total</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {agents.slice(0, 12).map((agent, i) => (
+                      <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 20}ms` }}>
+                        <AgentCard agent={agent} />
+                      </div>
+                    ))}
+                  </div>
+                  {agents.length > 12 && (
+                    <div className="text-center mt-8">
+                      <Button variant="outline" size="lg" onClick={() => setSearchQuery(" ")}>
+                        View All {agents.length} Agents
+                      </Button>
+                    </div>
+                  )}
+                </section>
+              </div>
             )}
-          </div>
-        ) : (
-          /* Discovery Home */
-          <div className="space-y-14">
-            {/* For You Section */}
-            <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold">Recommended for You</h2>
-                  <p className="text-sm text-muted-foreground">Based on popular choices and top ratings</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {forYouAgents.map((agent, i) => (
-                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
-                    <AgentCard agent={agent} />
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Trending Section */}
-            <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20">
-                  <TrendingUp className="h-5 w-5 text-orange-500" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold">Trending Now</h2>
-                  <p className="text-sm text-muted-foreground">Most installed this week</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {agents.slice(0, 4).map((agent, i) => (
-                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
-                    <AgentCard agent={agent} />
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* New Arrivals */}
-            <section>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20">
-                  <Clock className="h-5 w-5 text-emerald-500" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-semibold">New Arrivals</h2>
-                  <p className="text-sm text-muted-foreground">Recently added agents</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {newAgents.map((agent, i) => (
-                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 30}ms` }}>
-                    <AgentCard agent={agent} />
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Browse All */}
-            <section>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-semibold">All Agents</h2>
-                <span className="text-sm text-muted-foreground">{agents.length} total</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                {agents.slice(0, 16).map((agent, i) => (
-                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${i * 20}ms` }}>
-                    <AgentCard agent={agent} />
-                  </div>
-                ))}
-              </div>
-              {agents.length > 16 && (
-                <div className="text-center mt-10">
-                  <Button variant="outline" size="lg" onClick={() => setSearchQuery(" ")}>
-                    View All {agents.length} Agents
-                  </Button>
-                </div>
-              )}
-            </section>
-          </div>
-        )}
+          </main>
+        </div>
       </div>
 
       <TalentPoolFooter />
