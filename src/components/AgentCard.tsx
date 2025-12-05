@@ -1,5 +1,6 @@
 import { Star, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 interface Agent {
   id: string;
@@ -66,10 +67,33 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
             <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
               {agent.name}
             </h3>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
               {agent.short_description || agent.description}
             </p>
           </div>
+
+          {/* Capability tags */}
+          {agent.capabilities && agent.capabilities.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {agent.capabilities.slice(0, 3).map((capability, index) => (
+                <Badge 
+                  key={index} 
+                  variant="secondary" 
+                  className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground font-normal"
+                >
+                  {capability}
+                </Badge>
+              ))}
+              {agent.capabilities.length > 3 && (
+                <Badge 
+                  variant="secondary" 
+                  className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground font-normal"
+                >
+                  +{agent.capabilities.length - 3}
+                </Badge>
+              )}
+            </div>
+          )}
 
           {/* Stats row */}
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
