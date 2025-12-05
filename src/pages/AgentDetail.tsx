@@ -147,10 +147,10 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   klaviyoApi: { name: "Klaviyo", logo: "/logos/KlaviyoLogo.png", color: "from-green-500/20 to-emerald-500/20" },
   mailchimpOAuth2Api: { name: "Mailchimp", logo: "/logos/KlaviyoLogo.png", color: "from-yellow-500/20 to-amber-500/20" },
   omnisendApi: { name: "Omnisend", logo: "/logos/OmnisendLogo.png", color: "from-purple-500/20 to-violet-500/20" },
-  linkedInOAuth2Api: { name: "LinkedIn", logo: "/logos/n8nLogo.png", color: "from-blue-700/20 to-blue-800/20" },
-  bufferApi: { name: "Buffer", logo: "/logos/n8nLogo.png", color: "from-slate-500/20 to-gray-500/20" },
-  semrushApi: { name: "SEMrush", logo: "/logos/n8nLogo.png", color: "from-orange-500/20 to-red-500/20" },
-  ahrefsApi: { name: "Ahrefs", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  linkedInOAuth2Api: { name: "LinkedIn", logo: "/logos/LinearLogo.png", color: "from-blue-700/20 to-blue-800/20" },
+  bufferApi: { name: "Buffer", logo: "/logos/DatadogLogo.png", color: "from-slate-500/20 to-gray-500/20" },
+  semrushApi: { name: "SEMrush", logo: "/logos/SentryLogo.png", color: "from-orange-500/20 to-red-500/20" },
+  ahrefsApi: { name: "Ahrefs", logo: "/logos/DatadogLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
   
   // Finance & Payments
   xeroOAuth2Api: { name: "Xero", logo: "/logos/XeroLogo.png", color: "from-cyan-500/20 to-blue-500/20" },
@@ -158,26 +158,42 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   stripeApi: { name: "Stripe", logo: "/logos/StripeLogo.png", color: "from-purple-500/20 to-indigo-500/20" },
   paypalApi: { name: "PayPal", logo: "/logos/PayPalLogo.png", color: "from-blue-600/20 to-sky-600/20" },
   plaidApi: { name: "Plaid", logo: "/logos/PlaidLogo.png", color: "from-slate-600/20 to-gray-600/20" },
+  klarnaApi: { name: "Klarna", logo: "/logos/KlarnaLogo.png", color: "from-pink-500/20 to-rose-500/20" },
+  truelayerApi: { name: "TrueLayer", logo: "/logos/TrueLayerLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
   
   // Communication
-  slackOAuth2Api: { name: "Slack", logo: "/logos/n8nLogo.png", color: "from-purple-500/20 to-pink-500/20" },
+  slackOAuth2Api: { name: "Slack", logo: "/logos/SlackLogo.svg", color: "from-purple-500/20 to-pink-500/20" },
   gmailOAuth2Api: { name: "Gmail", logo: "/logos/GoogleDriveLogo.png", color: "from-red-500/20 to-orange-500/20" },
+  teamsApi: { name: "Microsoft Teams", logo: "/logos/TeamsLogo.svg", color: "from-purple-500/20 to-indigo-500/20" },
+  whatsappApi: { name: "WhatsApp", logo: "/logos/WhatsAppLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  aircallApi: { name: "Aircall", logo: "/logos/AircallLogo.png", color: "from-green-500/20 to-teal-500/20" },
   
   // Productivity
-  notionOAuth2Api: { name: "Notion", logo: "/logos/n8nLogo.png", color: "from-slate-500/20 to-gray-500/20" },
+  notionOAuth2Api: { name: "Notion", logo: "/logos/DatadogLogo.png", color: "from-slate-500/20 to-gray-500/20" },
   asanaOAuth2Api: { name: "Asana", logo: "/logos/AsanaLogo.png", color: "from-pink-500/20 to-rose-500/20" },
   clickupApi: { name: "ClickUp", logo: "/logos/ClickUpLogo.png", color: "from-purple-500/20 to-violet-500/20" },
+  linearApi: { name: "Linear", logo: "/logos/LinearLogo.png", color: "from-indigo-500/20 to-purple-500/20" },
   
   // Development
   githubOAuth2Api: { name: "GitHub", logo: "/logos/GitHubLogo.png", color: "from-slate-700/20 to-gray-700/20" },
   gitlabOAuth2Api: { name: "GitLab", logo: "/logos/GitLabLogo.png", color: "from-orange-500/20 to-red-500/20" },
-  jiraOAuth2Api: { name: "Jira", logo: "/logos/n8nLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  bitbucketApi: { name: "Bitbucket", logo: "/logos/BitbucketLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  jiraOAuth2Api: { name: "Jira", logo: "/logos/BitbucketLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
   vercelApi: { name: "Vercel", logo: "/logos/VercelLogo.png", color: "from-slate-600/20 to-gray-600/20" },
+  netlifyApi: { name: "Netlify", logo: "/logos/NetlifyLogo.png", color: "from-teal-500/20 to-cyan-500/20" },
+  renderApi: { name: "Render", logo: "/logos/RenderLogo.png", color: "from-purple-500/20 to-violet-500/20" },
+  sentryApi: { name: "Sentry", logo: "/logos/SentryLogo.png", color: "from-purple-500/20 to-pink-500/20" },
+  datadogApi: { name: "Datadog", logo: "/logos/DatadogLogo.png", color: "from-purple-500/20 to-violet-500/20" },
+  newrelicApi: { name: "New Relic", logo: "/logos/NewRelicLogo.png", color: "from-green-500/20 to-teal-500/20" },
+  logrocketApi: { name: "LogRocket", logo: "/logos/LogRocketLogo.png", color: "from-purple-500/20 to-indigo-500/20" },
+  awsApi: { name: "AWS", logo: "/logos/AWSLogo.png", color: "from-orange-500/20 to-amber-500/20" },
+  gcpApi: { name: "Google Cloud", logo: "/logos/GCPLogo.png", color: "from-blue-500/20 to-red-500/20" },
+  supabaseApi: { name: "Supabase", logo: "/logos/SupabaseLogo.png", color: "from-green-500/20 to-emerald-500/20" },
   
   // Design
   figmaApi: { name: "Figma", logo: "/logos/FigmaLogo.png", color: "from-purple-500/20 to-pink-500/20" },
   dropboxOAuth2Api: { name: "Dropbox", logo: "/logos/DropboxLogo.png", color: "from-blue-500/20 to-sky-500/20" },
-  vimeoApi: { name: "Vimeo", logo: "/logos/n8nLogo.png", color: "from-cyan-500/20 to-blue-500/20" },
+  adobeSignApi: { name: "Adobe Sign", logo: "/logos/AdobeSignLogo.png", color: "from-red-500/20 to-orange-500/20" },
   
   // Customer Support
   gorgiasApi: { name: "Gorgias", logo: "/logos/GorgiasLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
@@ -185,20 +201,33 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   freshdeskApi: { name: "Freshdesk", logo: "/logos/FreshdeskLogo.png", color: "from-green-500/20 to-emerald-500/20" },
   
   // Ecommerce
-  shopifyApi: { name: "Shopify", logo: "/logos/n8nLogo.png", color: "from-green-500/20 to-lime-500/20" },
+  shopifyApi: { name: "Shopify", logo: "/logos/TripleWhaleLogo.png", color: "from-green-500/20 to-lime-500/20" },
+  triplewhaleApi: { name: "Triple Whale", logo: "/logos/TripleWhaleLogo.png", color: "from-blue-500/20 to-cyan-500/20" },
+  northbeamApi: { name: "Northbeam", logo: "/logos/NorthbeamLogo.png", color: "from-indigo-500/20 to-purple-500/20" },
+  yotpoApi: { name: "Yotpo", logo: "/logos/YotpoLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  judgemeApi: { name: "Judge.me", logo: "/logos/JudgeMeLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  grinApi: { name: "Grin", logo: "/logos/GrinLogo.png", color: "from-pink-500/20 to-rose-500/20" },
+  trustpilotApi: { name: "Trustpilot", logo: "/logos/TrustpilotLogo.png", color: "from-green-500/20 to-emerald-500/20" },
   
   // Legal
   docusignApi: { name: "DocuSign", logo: "/logos/DocuSignLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
   
   // CRM
-  hubspotOAuth2Api: { name: "HubSpot", logo: "/logos/n8nLogo.png", color: "from-orange-500/20 to-red-500/20" },
-  salesforceOAuth2Api: { name: "Salesforce", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-sky-500/20" },
+  hubspotOAuth2Api: { name: "HubSpot", logo: "/logos/SentryLogo.png", color: "from-orange-500/20 to-red-500/20" },
+  salesforceOAuth2Api: { name: "Salesforce", logo: "/logos/DatadogLogo.png", color: "from-blue-500/20 to-sky-500/20" },
   
-  // Analytics
-  lookerApi: { name: "Looker", logo: "/logos/n8nLogo.png", color: "from-purple-500/20 to-indigo-500/20" },
+  // Compliance/Privacy
+  cookiebotApi: { name: "Cookiebot", logo: "/logos/CookiebotLogo.png", color: "from-green-500/20 to-teal-500/20" },
+  onetrustApi: { name: "OneTrust", logo: "/logos/OneTrustLogo.png", color: "from-teal-500/20 to-cyan-500/20" },
+  vwoApi: { name: "VWO", logo: "/logos/VWOLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  convertApi: { name: "Convert", logo: "/logos/ConvertLogo.png", color: "from-orange-500/20 to-amber-500/20" },
   
-  // Other
-  grammarly: { name: "Grammarly", logo: "/logos/n8nLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  // Affiliate
+  awinApi: { name: "Awin", logo: "/logos/AwinLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
+  impactApi: { name: "Impact", logo: "/logos/ImpactLogo.png", color: "from-purple-500/20 to-violet-500/20" },
+  
+  // Tax
+  hmrcApi: { name: "HMRC", logo: "/logos/HMRCLogo.png", color: "from-slate-500/20 to-gray-500/20" },
 };
 
 const getPluginDisplay = (credentialType: string) => {
@@ -339,6 +368,17 @@ const AgentDetail = () => {
     setHasAICapabilities(aiEnabled);
     setRequiredCredentials(Array.from(credentials));
   }, [agent]);
+
+  // Keyboard shortcut to navigate back
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName))) {
+        navigate('/talent-pool');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
 
   const handleInstall = async () => {
     if (!user) {
