@@ -455,7 +455,7 @@ const AgentDetail = () => {
           className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Talent Pool
         </Button>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
