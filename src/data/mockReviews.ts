@@ -298,8 +298,60 @@ export const mockReviews: MockReview[] = [
   }
 ];
 
-export const getReviewsByAgent = (agentId: string) => 
-  mockReviews.filter(review => review.agentId === agentId);
+// Generate dynamic reviews for any agent
+const reviewTemplates = [
+  { rating: 5, title: "Game changer for our team", content: "This agent has completely transformed our workflow. Highly recommend!", userName: "Sarah M.", helpful: 34 },
+  { rating: 5, title: "Excellent AI capabilities", content: "Setup was easy and the results are impressive. Worth every minute spent configuring it.", userName: "Michael C.", helpful: 28 },
+  { rating: 4, title: "Great tool with minor improvements needed", content: "Works well for most cases. Would love to see more customization options.", userName: "Emily R.", helpful: 15 },
+  { rating: 5, title: "Best in class", content: "We've tried several solutions and this is by far the best. ROI was clear within the first month.", userName: "David K.", helpful: 42 },
+  { rating: 5, title: "Saves hours every week", content: "What used to take hours now takes minutes. The AI understands context perfectly.", userName: "Jessica L.", helpful: 31 },
+  { rating: 4, title: "Solid performance", content: "Really good for our use case. Sometimes needs minor adjustments but overall excellent.", userName: "Robert T.", helpful: 19 },
+  { rating: 5, title: "Incredible results", content: "The accuracy and insights are outstanding. Our team relies on this daily.", userName: "Amanda W.", helpful: 38 },
+  { rating: 5, title: "Professional grade", content: "Finally found an AI agent that can handle complex tasks. Comprehensive and reliable.", userName: "James A.", helpful: 26 },
+  { rating: 5, title: "Highly recommend", content: "Easy to set up, great integration, and fantastic results. Can't imagine working without it.", userName: "Lisa B.", helpful: 45 },
+  { rating: 4, title: "Great automation", content: "Automates tedious tasks effectively. A few more features would make it perfect.", userName: "Chris W.", helpful: 22 },
+];
+
+// Seeded random for consistent results
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+export const getReviewsByAgent = (agentId: string): MockReview[] => {
+  // First check for explicit mock reviews
+  const explicitReviews = mockReviews.filter(review => review.agentId === agentId);
+  if (explicitReviews.length > 0) return explicitReviews;
+  
+  // Generate 3-5 reviews for any agent
+  const seed = agentId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const numReviews = 3 + Math.floor(seededRandom(seed) * 3);
+  
+  const generatedReviews: MockReview[] = [];
+  for (let i = 0; i < numReviews; i++) {
+    const templateIndex = Math.floor(seededRandom(seed + i * 100) * reviewTemplates.length);
+    const template = reviewTemplates[templateIndex];
+    const daysAgo = Math.floor(seededRandom(seed + i * 200) * 60) + 1;
+    const date = new Date();
+    date.setDate(date.getDate() - daysAgo);
+    
+    generatedReviews.push({
+      id: `gen-${agentId}-${i}`,
+      agentId,
+      userId: `user-gen-${i}`,
+      userName: template.userName,
+      userAvatar: template.userName.split(' ').map(n => n[0]).join(''),
+      rating: template.rating,
+      title: template.title,
+      content: template.content,
+      date: date.toISOString().split('T')[0],
+      helpful: Math.floor(seededRandom(seed + i * 300) * 40) + 5,
+      verified: seededRandom(seed + i * 400) > 0.2,
+    });
+  }
+  
+  return generatedReviews;
+};
 
 export const getAverageRating = (agentId: string) => {
   const agentReviews = getReviewsByAgent(agentId);
