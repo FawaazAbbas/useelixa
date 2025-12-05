@@ -682,30 +682,6 @@ const Workspace = () => {
                   <div className="text-xs text-muted-foreground">Premium Plan</div>
                 </div>
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="flex items-center gap-3 py-3 cursor-pointer"
-                onClick={() => toast({ title: "Demo Mode", description: "Workspace switching not available in demo" })}
-              >
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-5 w-5 text-blue-500" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold">Team Workspace</div>
-                  <div className="text-xs text-muted-foreground">Pro Plan • 3 members</div>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                className="flex items-center gap-3 py-3 cursor-pointer"
-                onClick={() => toast({ title: "Demo Mode", description: "Workspace switching not available in demo" })}
-              >
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="h-5 w-5 text-green-500" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold">Client Projects</div>
-                  <div className="text-xs text-muted-foreground">Enterprise • 5 members</div>
-                </div>
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="flex items-center gap-2 py-2 cursor-pointer"
