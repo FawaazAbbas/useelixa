@@ -329,14 +329,15 @@ const TalentPool = () => {
       <TalentPoolNavbar />
 
       {/* Hero - Bold & Vibrant */}
-      <section className="relative overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 pointer-events-none">
+      <section className="relative">
+        {/* Animated gradient background - extends beyond section */}
+        <div className="absolute inset-0 -bottom-32 pointer-events-none">
           <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-rose-500/30 via-pink-500/20 to-transparent rounded-full blur-3xl animate-pulse" />
           <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-violet-500/30 via-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute -bottom-20 left-1/3 w-[600px] h-[300px] bg-gradient-to-t from-cyan-500/20 via-blue-500/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+          <div className="absolute bottom-0 left-1/3 w-[600px] h-[400px] bg-gradient-to-t from-cyan-500/15 via-blue-500/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute -bottom-40 right-1/4 w-[500px] h-[300px] bg-gradient-to-t from-purple-500/10 via-violet-500/5 to-transparent rounded-full blur-3xl" />
+          {/* Grid pattern overlay - fades out at bottom */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
         </div>
         
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24">
