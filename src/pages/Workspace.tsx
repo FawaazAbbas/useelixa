@@ -910,7 +910,7 @@ const Workspace = () => {
                           </div>
                         )}
                          {!isUserMessage && (
-                           <BrianAvatar size="md" />
+                           <BrianAvatar size="md" rounded="full" />
                          )}
                          <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                            <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
@@ -960,7 +960,7 @@ const Workspace = () => {
                 )}
                 {brianSending && (
                   <div className="flex gap-3">
-                    <BrianAvatar size="md" />
+                    <BrianAvatar size="md" rounded="full" />
                     <div className="flex-1">
                       <div className="inline-block px-4 py-2 rounded-lg bg-muted">
                         <div className="flex items-center gap-2">

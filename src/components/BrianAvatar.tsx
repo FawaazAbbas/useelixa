@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 interface BrianAvatarProps {
   size?: "sm" | "md" | "lg" | "xl";
+  rounded?: "lg" | "full";
   className?: string;
 }
 
@@ -20,11 +21,12 @@ const iconSizeClasses = {
   xl: "h-8 w-8",
 };
 
-export const BrianAvatar = ({ size = "md", className }: BrianAvatarProps) => {
+export const BrianAvatar = ({ size = "md", rounded = "lg", className }: BrianAvatarProps) => {
   return (
     <div
       className={cn(
-        "rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0",
+        "bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0",
+        rounded === "full" ? "rounded-full" : "rounded-lg",
         sizeClasses[size],
         className
       )}
