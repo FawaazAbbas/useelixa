@@ -51,7 +51,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "✅",
     color: "bg-pink-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AsanaLogo.png`,
+    logo: "/logos/AsanaLogo.png",
     companyName: "Asana",
   },
   linearApi: {
@@ -60,7 +60,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "📊",
     color: "bg-indigo-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/LinearLogo.png`,
+    logo: "/logos/LinearLogo.png",
     companyName: "Linear",
   },
   clickupApi: {
@@ -69,7 +69,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "📋",
     color: "bg-purple-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/ClickUpLogo.png`,
+    logo: "/logos/ClickUpLogo.png",
     companyName: "ClickUp",
   },
   figmaApi: {
@@ -78,7 +78,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "🎨",
     color: "bg-purple-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/FigmaLogo.png`,
+    logo: "/logos/FigmaLogo.png",
     companyName: "Figma",
   },
   dropboxApi: {
@@ -87,7 +87,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "📦",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/DropboxLogo.png`,
+    logo: "/logos/DropboxLogo.png",
     companyName: "Dropbox",
   },
   googleDriveApi: {
@@ -96,7 +96,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "📁",
     color: "bg-yellow-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GoogleDriveLogo.png`,
+    logo: "/logos/GoogleDriveLogo.png",
     companyName: "Google",
   },
   n8nApi: {
@@ -105,7 +105,7 @@ const CREDENTIAL_INFO: Record<
     category: "Productivity",
     icon: "⚡",
     color: "bg-orange-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/n8nLogo.png`,
+    logo: "/logos/n8nLogo.png",
     companyName: "n8n",
   },
 
@@ -143,7 +143,7 @@ const CREDENTIAL_INFO: Record<
     category: "Communication",
     icon: "💬",
     color: "bg-green-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/WhatsAppLogo.png`,
+    logo: "/logos/WhatsAppLogo.png",
     companyName: "Meta",
   },
   aircallApi: {
@@ -152,7 +152,7 @@ const CREDENTIAL_INFO: Record<
     category: "Communication",
     icon: "📱",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AircallLogo.png`,
+    logo: "/logos/AircallLogo.png",
     companyName: "Aircall",
   },
 
@@ -172,7 +172,7 @@ const CREDENTIAL_INFO: Record<
     category: "Marketing",
     icon: "📧",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/KlaviyoLogo.png`,
+    logo: "/logos/KlaviyoLogo.png",
     companyName: "Klaviyo",
   },
   omnisendApi: {
@@ -181,7 +181,7 @@ const CREDENTIAL_INFO: Record<
     category: "Marketing",
     icon: "📨",
     color: "bg-purple-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/OmnisendLogo.png`,
+    logo: "/logos/OmnisendLogo.png",
     companyName: "Omnisend",
   },
   tiktokAdsApi: {
@@ -190,7 +190,7 @@ const CREDENTIAL_INFO: Record<
     category: "Marketing",
     icon: "🎵",
     color: "bg-black",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/TikTokLogo.png`,
+    logo: "/logos/TikTokLogo.png",
     companyName: "TikTok",
   },
   metaBusinessApi: {
@@ -210,7 +210,7 @@ const CREDENTIAL_INFO: Record<
     category: "Analytics",
     icon: "🐋",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/TripleWhaleLogo.png`,
+    logo: "/logos/TripleWhaleLogo.png",
     companyName: "Triple Whale",
   },
   northbeamApi: {
@@ -219,7 +219,7 @@ const CREDENTIAL_INFO: Record<
     category: "Analytics",
     icon: "📈",
     color: "bg-indigo-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/NorthbeamLogo.png`,
+    logo: "/logos/NorthbeamLogo.png",
     companyName: "Northbeam",
   },
   bigQueryApi: {
@@ -228,7 +228,7 @@ const CREDENTIAL_INFO: Record<
     category: "Analytics",
     icon: "📊",
     color: "bg-blue-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/BigQueryLogo.png`,
+    logo: "/logos/BigQueryLogo.png",
     companyName: "Google",
   },
 
@@ -239,7 +239,7 @@ const CREDENTIAL_INFO: Record<
     category: "Influencer & Affiliate",
     icon: "🤝",
     color: "bg-purple-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GrinLogo.png`,
+    logo: "/logos/GrinLogo.png",
     companyName: "Grin",
   },
   aspireApi: {
@@ -248,7 +248,7 @@ const CREDENTIAL_INFO: Record<
     category: "Influencer & Affiliate",
     icon: "⭐",
     color: "bg-pink-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AspireLogo.png`,
+    logo: "/logos/AspireLogo.png",
     companyName: "Aspire",
   },
   impactApi: {
@@ -257,7 +257,7 @@ const CREDENTIAL_INFO: Record<
     category: "Influencer & Affiliate",
     icon: "🎯",
     color: "bg-blue-700",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/ImpactLogo.png`,
+    logo: "/logos/ImpactLogo.png",
     companyName: "Impact",
   },
   awinApi: {
@@ -266,7 +266,7 @@ const CREDENTIAL_INFO: Record<
     category: "Influencer & Affiliate",
     icon: "🔗",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AwinLogo.png`,
+    logo: "/logos/AwinLogo.png",
     companyName: "Awin",
   },
 
@@ -277,7 +277,7 @@ const CREDENTIAL_INFO: Record<
     category: "Optimization",
     icon: "🔬",
     color: "bg-blue-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/VWOLogo.png`,
+    logo: "/logos/VWOLogo.png",
     companyName: "VWO",
   },
   convertApi: {
@@ -286,7 +286,7 @@ const CREDENTIAL_INFO: Record<
     category: "Optimization",
     icon: "🎯",
     color: "bg-orange-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/ConvertLogo.png`,
+    logo: "/logos/ConvertLogo.png",
     companyName: "Convert",
   },
 
@@ -297,7 +297,7 @@ const CREDENTIAL_INFO: Record<
     category: "Customer Support",
     icon: "🎧",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GorgiasLogo.png`,
+    logo: "/logos/GorgiasLogo.png",
     companyName: "Gorgias",
   },
   zendeskApi: {
@@ -306,7 +306,7 @@ const CREDENTIAL_INFO: Record<
     category: "Customer Support",
     icon: "💬",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/ZendeskLogo.png`,
+    logo: "/logos/ZendeskLogo.png",
     companyName: "Zendesk",
   },
   freshdeskApi: {
@@ -315,7 +315,7 @@ const CREDENTIAL_INFO: Record<
     category: "Customer Support",
     icon: "🎫",
     color: "bg-green-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/FreshdeskLogo.png`,
+    logo: "/logos/FreshdeskLogo.png",
     companyName: "Freshworks",
   },
 
@@ -326,7 +326,7 @@ const CREDENTIAL_INFO: Record<
     category: "Reviews",
     icon: "⭐",
     color: "bg-green-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/TrustpilotLogo.png`,
+    logo: "/logos/TrustpilotLogo.png",
     companyName: "Trustpilot",
   },
   judgeMeApi: {
@@ -335,7 +335,7 @@ const CREDENTIAL_INFO: Record<
     category: "Reviews",
     icon: "⚖️",
     color: "bg-yellow-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/JudgeMeLogo.png`,
+    logo: "/logos/JudgeMeLogo.png",
     companyName: "Judge.me",
   },
   yotpoApi: {
@@ -344,7 +344,7 @@ const CREDENTIAL_INFO: Record<
     category: "Reviews",
     icon: "🌟",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/YotpoLogo.png`,
+    logo: "/logos/YotpoLogo.png",
     companyName: "Yotpo",
   },
 
@@ -355,7 +355,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "📒",
     color: "bg-blue-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/XeroLogo.png`,
+    logo: "/logos/XeroLogo.png",
     companyName: "Xero",
   },
   quickbooksApi: {
@@ -364,7 +364,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "📊",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/QuickBooksLogo.png`,
+    logo: "/logos/QuickBooksLogo.png",
     companyName: "Intuit",
   },
   stripeApi: {
@@ -373,7 +373,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "💳",
     color: "bg-purple-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/StripeLogo.png`,
+    logo: "/logos/StripeLogo.png",
     companyName: "Stripe",
   },
   paypalApi: {
@@ -382,7 +382,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "💰",
     color: "bg-blue-700",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/PayPalLogo.png`,
+    logo: "/logos/PayPalLogo.png",
     companyName: "PayPal",
   },
   klarnaApi: {
@@ -391,7 +391,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "🛒",
     color: "bg-pink-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/KlarnaLogo.png`,
+    logo: "/logos/KlarnaLogo.png",
     companyName: "Klarna",
   },
   clearpayApi: {
@@ -400,7 +400,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "💎",
     color: "bg-teal-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/ClearpayLogo.png`,
+    logo: "/logos/ClearpayLogo.png",
     companyName: "Clearpay",
   },
   laybuyApi: {
@@ -409,7 +409,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "📆",
     color: "bg-purple-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/LaybuyLogo.png`,
+    logo: "/logos/LaybuyLogo.png",
     companyName: "Laybuy",
   },
   trueLayerApi: {
@@ -418,7 +418,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "🏦",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/TrueLayerLogo.png`,
+    logo: "/logos/TrueLayerLogo.png",
     companyName: "TrueLayer",
   },
   plaidApi: {
@@ -427,7 +427,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "🔐",
     color: "bg-black",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/PlaidLogo.png`,
+    logo: "/logos/PlaidLogo.png",
     companyName: "Plaid",
   },
   hmrcMtdApi: {
@@ -436,7 +436,7 @@ const CREDENTIAL_INFO: Record<
     category: "Finance",
     icon: "🇬🇧",
     color: "bg-green-700",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/HMRCLogo.png`,
+    logo: "/logos/HMRCLogo.png",
     companyName: "HMRC",
   },
 
@@ -447,7 +447,7 @@ const CREDENTIAL_INFO: Record<
     category: "Development",
     icon: "🐙",
     color: "bg-gray-900",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GitHubLogo.png`,
+    logo: "/logos/GitHubLogo.png",
     companyName: "GitHub",
   },
   gitlabApi: {
@@ -456,7 +456,7 @@ const CREDENTIAL_INFO: Record<
     category: "Development",
     icon: "🦊",
     color: "bg-orange-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GitLabLogo.png`,
+    logo: "/logos/GitLabLogo.png",
     companyName: "GitLab",
   },
   bitbucketApi: {
@@ -465,7 +465,7 @@ const CREDENTIAL_INFO: Record<
     category: "Development",
     icon: "🪣",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/BitbucketLogo.png`,
+    logo: "/logos/BitbucketLogo.png",
     companyName: "Atlassian",
   },
   supabaseApi: {
@@ -474,7 +474,7 @@ const CREDENTIAL_INFO: Record<
     category: "Development",
     icon: "⚡",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/SupabaseLogo.png`,
+    logo: "/logos/SupabaseLogo.png",
     companyName: "Supabase",
   },
 
@@ -485,7 +485,7 @@ const CREDENTIAL_INFO: Record<
     category: "Hosting & Cloud",
     icon: "▲",
     color: "bg-black",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/VercelLogo.png`,
+    logo: "/logos/VercelLogo.png",
     companyName: "Vercel",
   },
   netlifyApi: {
@@ -494,7 +494,7 @@ const CREDENTIAL_INFO: Record<
     category: "Hosting & Cloud",
     icon: "🌐",
     color: "bg-teal-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/NetlifyLogo.png`,
+    logo: "/logos/NetlifyLogo.png",
     companyName: "Netlify",
   },
   renderApi: {
@@ -503,7 +503,7 @@ const CREDENTIAL_INFO: Record<
     category: "Hosting & Cloud",
     icon: "🚀",
     color: "bg-purple-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/RenderLogo.png`,
+    logo: "/logos/RenderLogo.png",
     companyName: "Render",
   },
   awsApi: {
@@ -512,7 +512,7 @@ const CREDENTIAL_INFO: Record<
     category: "Hosting & Cloud",
     icon: "☁️",
     color: "bg-orange-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AWSLogo.png`,
+    logo: "/logos/AWSLogo.png",
     companyName: "Amazon",
   },
   gcpApi: {
@@ -521,7 +521,7 @@ const CREDENTIAL_INFO: Record<
     category: "Hosting & Cloud",
     icon: "☁️",
     color: "bg-blue-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/GCPLogo.png`,
+    logo: "/logos/GCPLogo.png",
     companyName: "Google",
   },
 
@@ -532,7 +532,7 @@ const CREDENTIAL_INFO: Record<
     category: "Monitoring",
     icon: "🛡️",
     color: "bg-purple-700",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/SentryLogo.png`,
+    logo: "/logos/SentryLogo.png",
     companyName: "Sentry",
   },
   logrocketApi: {
@@ -541,7 +541,7 @@ const CREDENTIAL_INFO: Record<
     category: "Monitoring",
     icon: "🚀",
     color: "bg-purple-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/LogRocketLogo.png`,
+    logo: "/logos/LogRocketLogo.png",
     companyName: "LogRocket",
   },
   datadogApi: {
@@ -550,7 +550,7 @@ const CREDENTIAL_INFO: Record<
     category: "Monitoring",
     icon: "🐕",
     color: "bg-purple-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/DatadogLogo.png`,
+    logo: "/logos/DatadogLogo.png",
     companyName: "Datadog",
   },
   newRelicApi: {
@@ -559,7 +559,7 @@ const CREDENTIAL_INFO: Record<
     category: "Monitoring",
     icon: "📡",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/NewRelicLogo.png`,
+    logo: "/logos/NewRelicLogo.png",
     companyName: "New Relic",
   },
 
@@ -570,7 +570,7 @@ const CREDENTIAL_INFO: Record<
     category: "Legal & Compliance",
     icon: "✍️",
     color: "bg-blue-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/DocuSignLogo.png`,
+    logo: "/logos/DocuSignLogo.png",
     companyName: "DocuSign",
   },
   adobeSignApi: {
@@ -579,7 +579,7 @@ const CREDENTIAL_INFO: Record<
     category: "Legal & Compliance",
     icon: "📝",
     color: "bg-red-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/AdobeSignLogo.png`,
+    logo: "/logos/AdobeSignLogo.png",
     companyName: "Adobe",
   },
   oneTrustApi: {
@@ -588,7 +588,7 @@ const CREDENTIAL_INFO: Record<
     category: "Legal & Compliance",
     icon: "🔒",
     color: "bg-green-600",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/OneTrustLogo.png`,
+    logo: "/logos/OneTrustLogo.png",
     companyName: "OneTrust",
   },
   cookiebotApi: {
@@ -597,7 +597,7 @@ const CREDENTIAL_INFO: Record<
     category: "Legal & Compliance",
     icon: "🍪",
     color: "bg-blue-500",
-    logo: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/CookiebotLogo.png`,
+    logo: "/logos/CookiebotLogo.png",
     companyName: "Cookiebot",
   },
 
