@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Check } from "lucide-react";
+import { Sparkles, Check, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -24,27 +25,50 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [company, setCompany] = useState("");
   const [useCase, setUseCase] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // In demo mode, just show success
-    setSubmitted(true);
-    toast({
-      title: "You're on the list!",
-      description: "We'll reach out soon with early access details.",
-    });
+    try {
+      const { error } = await supabase
+        .from('waitlist_signups')
+        .insert({
+          name,
+          email,
+          company: company || null,
+          use_case: useCase || null,
+        });
 
-    // Reset after 3 seconds
-    setTimeout(() => {
-      setSubmitted(false);
-      setName("");
-      setEmail("");
-      setCompany("");
-      setUseCase("");
-      onOpenChange(false);
-    }, 3000);
+      if (error) throw error;
+
+      setSubmitted(true);
+      toast({
+        title: "You're on the list!",
+        description: "We'll reach out soon with early access details.",
+      });
+
+      // Reset after 3 seconds
+      setTimeout(() => {
+        setSubmitted(false);
+        setName("");
+        setEmail("");
+        setCompany("");
+        setUseCase("");
+        onOpenChange(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Waitlist signup error:', error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -123,11 +147,16 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               
               <Button 
                 type="submit" 
+                disabled={isLoading}
                 className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]"
                 size="lg"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Join the Waitlist
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 mr-2" />
+                )}
+                {isLoading ? "Joining..." : "Join the Waitlist"}
               </Button>
               
               <p className="text-xs text-center text-muted-foreground mt-4">
