@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, Download, Loader2, Sparkles, Calendar, Bot, Users, Zap, MessageSquare, Plug, Shield, CheckCircle2, Clock, Brain, Target, Workflow, Globe, Mail, FileText, Database, BarChart3, Settings2, Lock, Unlock, Megaphone, Headphones, DollarSign, Package, Code, Palette, Scale, Smartphone, ClipboardList, ShoppingCart } from "lucide-react";
+import { Star, Download, Loader2, Sparkles, Calendar, Bot, Users, Zap, MessageSquare, Plug, Shield, CheckCircle2, Clock, Brain, Target, Workflow, Globe, Mail, FileText, Database, BarChart3, Settings2, Lock, Unlock, Megaphone, Headphones, DollarSign, Package, Code, Palette, Scale, Smartphone, ClipboardList, ShoppingCart, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -448,7 +448,15 @@ const AgentDetail = () => {
       <TalentPoolNavbar />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
-        <TalentPoolBreadcrumb items={breadcrumbItems} />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigate("/talent-pool")}
+          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
