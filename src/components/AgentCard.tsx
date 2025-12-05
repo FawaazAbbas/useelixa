@@ -19,65 +19,65 @@ interface AgentCardProps {
   agent: Agent;
 }
 
-// Category visual config: gradient + icon
-const categoryConfig: Record<string, { gradient: string; icon: React.ReactNode }> = {
+// Category visual config: tint color + icon
+const categoryConfig: Record<string, { tint: string; icon: React.ReactNode }> = {
   "Marketing & Growth": { 
-    gradient: "from-rose-500 to-orange-500", 
-    icon: <Megaphone className="h-8 w-8" /> 
+    tint: "bg-rose-500/5 hover:bg-rose-500/10", 
+    icon: <Megaphone className="h-5 w-5 text-rose-500" /> 
   },
   "Customer Support": { 
-    gradient: "from-emerald-500 to-teal-500", 
-    icon: <Headphones className="h-8 w-8" /> 
+    tint: "bg-emerald-500/5 hover:bg-emerald-500/10", 
+    icon: <Headphones className="h-5 w-5 text-emerald-500" /> 
   },
   "Sales": { 
-    gradient: "from-orange-500 to-red-500", 
-    icon: <Target className="h-8 w-8" /> 
+    tint: "bg-orange-500/5 hover:bg-orange-500/10", 
+    icon: <Target className="h-5 w-5 text-orange-500" /> 
   },
   "Finance": { 
-    gradient: "from-green-500 to-emerald-600", 
-    icon: <DollarSign className="h-8 w-8" /> 
+    tint: "bg-green-500/5 hover:bg-green-500/10", 
+    icon: <DollarSign className="h-5 w-5 text-green-500" /> 
   },
   "Operations": { 
-    gradient: "from-blue-500 to-cyan-500", 
-    icon: <Package className="h-8 w-8" /> 
+    tint: "bg-blue-500/5 hover:bg-blue-500/10", 
+    icon: <Package className="h-5 w-5 text-blue-500" /> 
   },
   "HR & People": { 
-    gradient: "from-cyan-500 to-blue-500", 
-    icon: <Users className="h-8 w-8" /> 
+    tint: "bg-cyan-500/5 hover:bg-cyan-500/10", 
+    icon: <Users className="h-5 w-5 text-cyan-500" /> 
   },
   "Development": { 
-    gradient: "from-amber-500 to-orange-500", 
-    icon: <Code className="h-8 w-8" /> 
+    tint: "bg-amber-500/5 hover:bg-amber-500/10", 
+    icon: <Code className="h-5 w-5 text-amber-500" /> 
   },
   "Design & Creative": { 
-    gradient: "from-pink-500 to-rose-500", 
-    icon: <Palette className="h-8 w-8" /> 
+    tint: "bg-pink-500/5 hover:bg-pink-500/10", 
+    icon: <Palette className="h-5 w-5 text-pink-500" /> 
   },
   "Analytics & Data": { 
-    gradient: "from-purple-500 to-indigo-500", 
-    icon: <BarChart3 className="h-8 w-8" /> 
+    tint: "bg-purple-500/5 hover:bg-purple-500/10", 
+    icon: <BarChart3 className="h-5 w-5 text-purple-500" /> 
   },
   "Legal & Compliance": { 
-    gradient: "from-slate-500 to-gray-600", 
-    icon: <Scale className="h-8 w-8" /> 
+    tint: "bg-slate-500/5 hover:bg-slate-500/10", 
+    icon: <Scale className="h-5 w-5 text-slate-500" /> 
   },
   "Product": { 
-    gradient: "from-violet-500 to-purple-500", 
-    icon: <Smartphone className="h-8 w-8" /> 
+    tint: "bg-violet-500/5 hover:bg-violet-500/10", 
+    icon: <Smartphone className="h-5 w-5 text-violet-500" /> 
   },
   "Project Management": { 
-    gradient: "from-indigo-500 to-blue-500", 
-    icon: <ClipboardList className="h-8 w-8" /> 
+    tint: "bg-indigo-500/5 hover:bg-indigo-500/10", 
+    icon: <ClipboardList className="h-5 w-5 text-indigo-500" /> 
   },
   "Ecommerce": { 
-    gradient: "from-teal-500 to-emerald-500", 
-    icon: <ShoppingCart className="h-8 w-8" /> 
+    tint: "bg-teal-500/5 hover:bg-teal-500/10", 
+    icon: <ShoppingCart className="h-5 w-5 text-teal-500" /> 
   },
 };
 
 const defaultConfig = { 
-  gradient: "from-primary to-accent", 
-  icon: <Bot className="h-8 w-8" /> 
+  tint: "bg-primary/5 hover:bg-primary/10", 
+  icon: <Bot className="h-5 w-5 text-primary" /> 
 };
 
 export const AgentCard = ({ agent }: AgentCardProps) => {
@@ -99,38 +99,28 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
       className="group cursor-pointer h-full"
       onClick={handleClick}
     >
-      <div className="relative h-full bg-card rounded-xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1">
-        {/* Agent Visual Header */}
-        <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
-          {/* Pattern overlay */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
-              backgroundSize: '16px 16px'
-            }} />
-          </div>
-          {/* Icon */}
-          <div className="relative text-white/90 transform group-hover:scale-110 transition-transform duration-300">
-            {config.icon}
-          </div>
-          {/* Category badge */}
-          <div className="absolute top-2 left-2">
-            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white">
-              {agent.category}
-            </span>
-          </div>
-        </div>
-
+      <div className={`relative h-full rounded-xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1 ${config.tint}`}>
         {/* Content */}
         <div className="p-4 space-y-3">
-          <div>
-            <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
-              {agent.name}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-              {agent.short_description || agent.description}
-            </p>
+          {/* Header with icon and title */}
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 p-2 rounded-lg bg-background/80 backdrop-blur-sm border border-border/30">
+              {config.icon}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                {agent.name}
+              </h3>
+              <span className="text-[10px] text-muted-foreground">
+                {agent.category}
+              </span>
+            </div>
           </div>
+
+          {/* Description */}
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+            {agent.short_description || agent.description}
+          </p>
 
           {/* Capability tags */}
           {agent.capabilities && agent.capabilities.length > 0 && (
@@ -139,7 +129,7 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
                 <Badge 
                   key={index} 
                   variant="secondary" 
-                  className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground font-normal"
+                  className="text-[10px] px-1.5 py-0 h-5 bg-background/50 text-muted-foreground font-normal"
                 >
                   {capability}
                 </Badge>
@@ -147,7 +137,7 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
               {agent.capabilities.length > 2 && (
                 <Badge 
                   variant="secondary" 
-                  className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground font-normal"
+                  className="text-[10px] px-1.5 py-0 h-5 bg-background/50 text-muted-foreground font-normal"
                 >
                   +{agent.capabilities.length - 2}
                 </Badge>
