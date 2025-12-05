@@ -227,22 +227,36 @@ const TalentPoolCharts = () => {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Vibrant segmented control */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 bg-muted/50 backdrop-blur-sm border border-border/50 p-1 mb-6">
-            <TabsTrigger value="trending" className="flex items-center justify-center py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden sm:inline">Trending</span>
-            </TabsTrigger>
-            <TabsTrigger value="rated" className="flex items-center justify-center py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
-              <Star className="h-4 w-4" />
-              <span className="hidden sm:inline">Highest Rated</span>
-            </TabsTrigger>
-            <TabsTrigger value="new" className="flex items-center justify-center py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">New</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="relative mb-8">
+            {/* Glow effect behind tabs */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/20 via-purple-500/20 to-cyan-500/20 rounded-2xl blur-xl opacity-60" />
+            
+            <TabsList className="relative w-full grid grid-cols-3 bg-background/80 backdrop-blur-xl rounded-2xl border border-white/10 p-1.5 shadow-2xl">
+              <TabsTrigger 
+                value="trending" 
+                className="relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-white/5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-rose-500 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-rose-500/25"
+              >
+                <TrendingUp className="h-4 w-4" />
+                <span className="hidden sm:inline">Trending</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rated" 
+                className="relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-white/5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-amber-500/25"
+              >
+                <Star className="h-4 w-4" />
+                <span className="hidden sm:inline">Highest Rated</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="new" 
+                className="relative flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all duration-300 data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground data-[state=inactive]:hover:bg-white/5 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-cyan-500/25"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">New</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value={selectedTab} className="space-y-3 mt-0">
             {loading ? (
