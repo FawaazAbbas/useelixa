@@ -631,10 +631,6 @@ const TalentPool = () => {
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24">
           {/* Main headline */}
           <div className="text-center space-y-6 mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 text-sm font-medium mb-4">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span>{agents.length} AI employees ready to hire</span>
-            </div>
             
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
