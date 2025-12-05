@@ -328,44 +328,64 @@ const TalentPool = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <TalentPoolNavbar />
 
-      {/* Hero */}
-      <section className="relative py-10 sm:py-14">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+      {/* Hero - Bold & Vibrant */}
+      <section className="relative overflow-hidden">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-rose-500/30 via-pink-500/20 to-transparent rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-violet-500/30 via-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute -bottom-20 left-1/3 w-[600px] h-[300px] bg-gradient-to-t from-cyan-500/20 via-blue-500/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
         </div>
         
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="text-center space-y-3 mb-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight">
-              Find Your Perfect AI Agent
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24">
+          {/* Main headline */}
+          <div className="text-center space-y-6 mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 text-sm font-medium mb-4">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span>{agents.length} AI Agents Available</span>
+            </div>
+            
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+              <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                Discover AI Agents
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
+                That Work For You
+              </span>
             </h1>
-            <p className="text-muted-foreground">
-              {agents.length} agents ready to transform your workflow
+            
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Browse {categories.length} categories of intelligent agents ready to automate, assist, and accelerate your workflow
             </p>
           </div>
           
-          {/* Search bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-xl blur-lg opacity-50" />
-            <div className="relative flex items-center gap-2 bg-background/90 backdrop-blur-xl rounded-xl border border-border/50 p-2 shadow-xl">
+          {/* Search bar - Bold style */}
+          <div className="relative max-w-2xl mx-auto mb-8">
+            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-cyan-500/40 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity" />
+            <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input 
-                  placeholder="Search agents, capabilities..." 
-                  className="pl-11 h-11 bg-transparent border-0 focus-visible:ring-0 shadow-none"
+                  placeholder="Search for AI agents..." 
+                  className="pl-14 h-14 text-lg bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              <Button className="h-12 px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25">
+                Search
+              </Button>
               
               {/* Mobile filter button */}
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden relative">
-                    <SlidersHorizontal className="h-4 w-4" />
+                  <Button variant="outline" size="icon" className="lg:hidden h-12 w-12 rounded-xl relative border-white/10">
+                    <SlidersHorizontal className="h-5 w-5" />
                     {activeFilterCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[11px] text-white flex items-center justify-center font-medium">
                         {activeFilterCount}
                       </span>
                     )}
@@ -383,34 +403,65 @@ const TalentPool = () => {
             </div>
           </div>
 
+          {/* Quick category pills */}
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {categories.slice(0, 6).map((category, i) => {
+              const colors = [
+                "from-rose-500/20 to-rose-500/5 border-rose-500/30 hover:border-rose-500/50",
+                "from-purple-500/20 to-purple-500/5 border-purple-500/30 hover:border-purple-500/50",
+                "from-cyan-500/20 to-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50",
+                "from-amber-500/20 to-amber-500/5 border-amber-500/30 hover:border-amber-500/50",
+                "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50",
+                "from-blue-500/20 to-blue-500/5 border-blue-500/30 hover:border-blue-500/50",
+              ];
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => toggleCategory(category.name)}
+                  className={`px-4 py-2 text-sm font-medium rounded-full bg-gradient-to-r border backdrop-blur-sm transition-all hover:scale-105 ${colors[i % colors.length]} ${selectedCategories.includes(category.name) ? 'ring-2 ring-white/20' : ''}`}
+                >
+                  {category.name}
+                </button>
+              );
+            })}
+            {categories.length > 6 && (
+              <button
+                onClick={() => setSearchQuery(" ")}
+                className="px-4 py-2 text-sm font-medium rounded-full bg-muted/50 border border-border/50 hover:bg-muted transition-all"
+              >
+                +{categories.length - 6} more
+              </button>
+            )}
+          </div>
+
           {/* Active filters display */}
           {(selectedCategories.length > 0 || selectedCapabilities.length > 0 || minRating > 0) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 justify-center">
+            <div className="flex flex-wrap items-center gap-2 justify-center">
               {selectedCategories.map(cat => (
-                <Badge key={cat} variant="secondary" className="gap-1 pr-1">
+                <Badge key={cat} className="gap-1 pr-1 bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
                   {cat}
-                  <button onClick={() => toggleCategory(cat)} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <button onClick={() => toggleCategory(cat)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
               {minRating > 0 && (
-                <Badge variant="secondary" className="gap-1 pr-1">
+                <Badge className="gap-1 pr-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-white/10">
                   {minRating}+ Stars
-                  <button onClick={() => setMinRating(0)} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <button onClick={() => setMinRating(0)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               )}
               {selectedCapabilities.map(cap => (
-                <Badge key={cap} variant="secondary" className="gap-1 pr-1">
+                <Badge key={cap} className="gap-1 pr-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-white/10">
                   {cap}
-                  <button onClick={() => toggleCapability(cap)} className="ml-1 hover:bg-muted rounded-full p-0.5">
+                  <button onClick={() => toggleCapability(cap)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-6">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7">
                 Clear all
               </Button>
             </div>
