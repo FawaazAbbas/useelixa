@@ -178,9 +178,6 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
       onClick={handleClick}
     >
       <div className={`relative h-full rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-2 border bg-card ${config.glow} ${config.border}`}>
-        {/* Gradient accent at top */}
-        <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${config.accent} opacity-80 group-hover:opacity-100 transition-opacity`} />
-        
         {/* Subtle gradient overlay */}
         <div className={`absolute inset-0 bg-gradient-to-br ${config.gradientFrom} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none`} />
         
