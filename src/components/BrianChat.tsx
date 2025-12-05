@@ -136,7 +136,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                 className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
-                  <BrianAvatar size="md" />
+                  <BrianAvatar size="md" rounded="full" />
                 )}
                 
                 <div className="flex-1 max-w-[80%]">
@@ -193,7 +193,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
 
             {sending && (
               <div className="flex gap-3 justify-start">
-                <BrianAvatar size="md" />
+                <BrianAvatar size="md" rounded="full" />
                 <div className="rounded-lg px-4 py-2 bg-muted">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>
