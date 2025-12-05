@@ -2,17 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 
-interface TalentPoolNavbarProps {
-  showBackButton?: boolean;
-  backLabel?: string;
-  backTo?: string;
-}
-
-export const TalentPoolNavbar = ({ 
-  showBackButton = false, 
-  backLabel = "Back",
-  backTo = "/talent-pool"
-}: TalentPoolNavbarProps) => {
+export const TalentPoolNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -47,17 +37,6 @@ export const TalentPoolNavbar = ({
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {showBackButton && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2 text-sm hover:bg-white/10 backdrop-blur-sm"
-              onClick={() => navigate(backTo)}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span className="hidden sm:inline">{backLabel}</span>
-            </Button>
-          )}
           <Button onClick={() => navigate("/workspace")} variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-white/10 backdrop-blur-sm">
             Workspace
           </Button>
@@ -67,5 +46,28 @@ export const TalentPoolNavbar = ({
         </div>
       </div>
     </nav>
+  );
+};
+
+// Breadcrumb back button for sub-pages
+interface TalentPoolBackButtonProps {
+  label?: string;
+  to?: string;
+}
+
+export const TalentPoolBackButton = ({ 
+  label = "Back to Talent Pool", 
+  to = "/talent-pool" 
+}: TalentPoolBackButtonProps) => {
+  const navigate = useNavigate();
+  
+  return (
+    <button 
+      onClick={() => navigate(to)}
+      className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+    >
+      <ArrowLeft className="h-4 w-4" />
+      {label}
+    </button>
   );
 };

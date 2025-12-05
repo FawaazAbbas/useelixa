@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { mockAgents } from "@/data/mockAgents";
 import { FreeBadge } from "@/components/FreeBadge";
-import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
+import { TalentPoolNavbar, TalentPoolBackButton } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 
 const TalentPoolCharts = () => {
@@ -117,7 +117,9 @@ const TalentPoolCharts = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-20 md:pb-0">
       <TalentPoolNavbar />
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+        <TalentPoolBackButton label="Back to Talent Pool" />
+        
         {/* Hero */}
         <div className="mb-8 md:mb-12">
           <div className="flex items-center gap-3 mb-4">
