@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search, Sparkles, TrendingUp, Clock, Filter, X, SlidersHorizontal, Star, ChevronDown, ChevronUp } from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
@@ -43,6 +44,7 @@ type SortOption = "popular" | "rating" | "reviews" | "newest" | "name";
 
 const TalentPool = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -247,6 +249,14 @@ const TalentPool = () => {
     fetchData();
   }, []);
 
+  // Handle URL search params for category filtering
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setSelectedCategories([categoryParam]);
+    }
+  }, [searchParams]);
+
   // Extract all unique capabilities from agents
   const allCapabilities = useMemo(() => {
     const caps = new Set<string>();
@@ -376,11 +386,18 @@ const TalentPool = () => {
   }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
   const toggleCategory = (categoryName: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryName) 
-        ? prev.filter(c => c !== categoryName)
-        : [...prev, categoryName]
-    );
+    const newCategories = selectedCategories.includes(categoryName) 
+      ? selectedCategories.filter(c => c !== categoryName)
+      : [...selectedCategories, categoryName];
+    
+    setSelectedCategories(newCategories);
+    
+    // Update URL params
+    if (newCategories.length === 1) {
+      setSearchParams({ category: newCategories[0] });
+    } else {
+      setSearchParams({});
+    }
   };
 
   const toggleCapability = (capability: string) => {
@@ -397,6 +414,7 @@ const TalentPool = () => {
     setMinRating(0);
     setSelectedCapabilities([]);
     setSortBy("popular");
+    setSearchParams({});
   };
 
   const activeFilterCount = selectedCategories.length + (minRating > 0 ? 1 : 0) + selectedCapabilities.length;
