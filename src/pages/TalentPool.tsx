@@ -54,11 +54,56 @@ const TalentPool = () => {
   const [displayedCount, setDisplayedCount] = useState(12);
   const [hasMore, setHasMore] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   
   // Collapsible states
   const [categoriesOpen, setCategoriesOpen] = useState(true);
   const [ratingsOpen, setRatingsOpen] = useState(true);
   const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
+
+  // Search suggestions based on query
+  const searchSuggestions = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2) return [];
+    
+    const query = searchQuery.toLowerCase();
+    const suggestions: { type: 'category' | 'capability' | 'plugin'; value: string; count: number }[] = [];
+    
+    // Category suggestions
+    categories.forEach(cat => {
+      if (cat.name.toLowerCase().includes(query) && cat.agentCount) {
+        suggestions.push({ type: 'category', value: cat.name, count: cat.agentCount });
+      }
+    });
+    
+    // Capability suggestions
+    const capCounts: Record<string, number> = {};
+    agents.forEach(agent => {
+      agent.capabilities?.forEach(cap => {
+        if (cap.toLowerCase().includes(query)) {
+          capCounts[cap] = (capCounts[cap] || 0) + 1;
+        }
+      });
+    });
+    Object.entries(capCounts).forEach(([cap, count]) => {
+      suggestions.push({ type: 'capability', value: cap, count });
+    });
+    
+    // Plugin suggestions
+    const pluginCounts: Record<string, number> = {};
+    agents.forEach(agent => {
+      agent.plugins?.forEach(plugin => {
+        if (plugin.toLowerCase().includes(query)) {
+          pluginCounts[plugin] = (pluginCounts[plugin] || 0) + 1;
+        }
+      });
+    });
+    Object.entries(pluginCounts).forEach(([plugin, count]) => {
+      suggestions.push({ type: 'plugin', value: plugin, count });
+    });
+    
+    // Sort by count and limit
+    return suggestions.sort((a, b) => b.count - a.count).slice(0, 8);
+  }, [searchQuery, categories, agents]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -142,12 +187,48 @@ const TalentPool = () => {
     return Array.from(caps).sort();
   }, [agents]);
 
-  // Filter and sort agents
-  const filteredAgents = useMemo(() => {
-    let result = agents.filter(agent => {
-      // Tokenize search query into individual words for flexible matching
-      const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+  // Calculate relevance score for an agent
+  const calculateRelevance = (agent: Agent, searchTerms: string[]): number => {
+    if (searchTerms.length === 0) return 0;
+    
+    let score = 0;
+    const nameLower = agent.name.toLowerCase();
+    const descLower = agent.description.toLowerCase();
+    const categoryLower = agent.category.toLowerCase();
+    
+    searchTerms.forEach(term => {
+      // Name matches are highest priority (exact > starts with > contains)
+      if (nameLower === term) score += 100;
+      else if (nameLower.startsWith(term)) score += 50;
+      else if (nameLower.includes(term)) score += 25;
       
+      // Category exact match is high priority
+      if (categoryLower === term) score += 80;
+      else if (categoryLower.includes(term)) score += 40;
+      
+      // Capability exact match
+      if (agent.capabilities?.some(cap => cap.toLowerCase() === term)) score += 60;
+      else if (agent.capabilities?.some(cap => cap.toLowerCase().includes(term))) score += 30;
+      
+      // Plugin match
+      if (agent.plugins?.some(p => p.toLowerCase().includes(term))) score += 35;
+      
+      // Description match (lower priority)
+      if (descLower.includes(term)) score += 10;
+    });
+    
+    // Boost popular agents slightly
+    score += Math.min((agent.total_installs || 0) / 100, 20);
+    score += agent.rating * 2;
+    
+    return score;
+  };
+
+  // Filter and sort agents with relevance scoring
+  const filteredAgents = useMemo(() => {
+    const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+    
+    let result = agents.filter(agent => {
       // Build searchable content from all agent fields
       const searchableContent = [
         agent.name,
@@ -174,23 +255,28 @@ const TalentPool = () => {
       return (matchesSearch || matchesCategorySearch) && matchesCategory && matchesRating && matchesCapabilities;
     });
 
-    // Sort
-    switch (sortBy) {
-      case "popular":
-        result.sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0));
-        break;
-      case "rating":
-        result.sort((a, b) => b.rating - a.rating);
-        break;
-      case "reviews":
-        result.sort((a, b) => b.total_reviews - a.total_reviews);
-        break;
-      case "newest":
-        result.sort((a, b) => b.id.localeCompare(a.id)); // Using ID as proxy for creation order
-        break;
-      case "name":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
+    // If searching, sort by relevance first
+    if (searchTerms.length > 0 && sortBy === "popular") {
+      result.sort((a, b) => calculateRelevance(b, searchTerms) - calculateRelevance(a, searchTerms));
+    } else {
+      // Sort by selected option
+      switch (sortBy) {
+        case "popular":
+          result.sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0));
+          break;
+        case "rating":
+          result.sort((a, b) => b.rating - a.rating);
+          break;
+        case "reviews":
+          result.sort((a, b) => b.total_reviews - a.total_reviews);
+          break;
+        case "newest":
+          result.sort((a, b) => b.id.localeCompare(a.id));
+          break;
+        case "name":
+          result.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+      }
     }
 
     return result;
@@ -382,7 +468,37 @@ const TalentPool = () => {
                     className="px-4 h-12 text-base bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   />
+                  
+                  {/* Suggestions dropdown */}
+                  {showSuggestions && searchSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50">
+                      {searchSuggestions.map((suggestion) => (
+                        <button
+                          key={`sticky-${suggestion.type}-${suggestion.value}`}
+                          className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+                          onMouseDown={() => {
+                            setSearchQuery(suggestion.value);
+                            setShowSuggestions(false);
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                              suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
+                              suggestion.type === 'capability' ? 'bg-cyan-500/20 text-cyan-400' :
+                              'bg-amber-500/20 text-amber-400'
+                            }`}>
+                              {suggestion.type}
+                            </span>
+                            <span className="font-medium">{suggestion.value}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">{suggestion.count} agents</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 
                 {activeFilterCount > 0 && (
@@ -466,7 +582,37 @@ const TalentPool = () => {
                   className="px-5 h-14 text-lg bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 />
+                
+                {/* Suggestions dropdown */}
+                {showSuggestions && searchSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50">
+                    {searchSuggestions.map((suggestion, i) => (
+                      <button
+                        key={`${suggestion.type}-${suggestion.value}`}
+                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+                        onMouseDown={() => {
+                          setSearchQuery(suggestion.value);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
+                            suggestion.type === 'capability' ? 'bg-cyan-500/20 text-cyan-400' :
+                            'bg-amber-500/20 text-amber-400'
+                          }`}>
+                            {suggestion.type}
+                          </span>
+                          <span className="font-medium">{suggestion.value}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{suggestion.count} agents</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <Button className="h-12 px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25">
                 Search
