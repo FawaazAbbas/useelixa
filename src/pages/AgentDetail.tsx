@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, Download, Loader2, Sparkles, Calendar, Bot, Users, Zap, MessageSquare } from "lucide-react";
+import { ArrowLeft, Star, Download, Loader2, Sparkles, Calendar, Bot, Users, Zap, MessageSquare, Plug, Shield, CheckCircle2, Clock, Brain, Target, Workflow, Globe, Mail, FileText, Database, BarChart3, Settings2, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,30 @@ import { ReviewCard } from "@/components/ReviewCard";
 import { RelatedAgents } from "@/components/RelatedAgents";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
+
+// Plugin icon mapping
+const pluginIcons: Record<string, any> = {
+  gmail: Mail,
+  email: Mail,
+  drive: FileText,
+  sheets: BarChart3,
+  docs: FileText,
+  calendar: Calendar,
+  notion: FileText,
+  slack: MessageSquare,
+  database: Database,
+  analytics: BarChart3,
+  api: Globe,
+  default: Plug,
+};
+
+const getPluginIcon = (plugin: string) => {
+  const lower = plugin.toLowerCase();
+  for (const [key, Icon] of Object.entries(pluginIcons)) {
+    if (lower.includes(key)) return Icon;
+  }
+  return pluginIcons.default;
+};
 
 const AgentDetail = () => {
   const { id } = useParams();
@@ -201,6 +226,12 @@ const AgentDetail = () => {
   const reviews = getReviewsByAgent(agent.id);
   const ratingDistribution = getRatingDistribution(agent.id);
 
+  // Parse required credentials/plugins from agent data
+  const plugins = agent.required_credentials || [];
+  const supportedFeatures = agent.supported_features || ['text'];
+  const isChatCompatible = agent.is_chat_compatible !== false;
+  const isWorkflowBased = agent.is_workflow_based || false;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20 md:pb-0">
       {/* Header */}
@@ -221,7 +252,7 @@ const AgentDetail = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* Hero Card */}
             <Card className="bg-card/50 backdrop-blur-sm border-border/50 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
@@ -236,6 +267,12 @@ const AgentDetail = () => {
                       <Badge className="bg-gradient-to-r from-purple-500/90 to-pink-500/90 text-white border-0">
                         <Sparkles className="h-3.5 w-3.5 mr-1" />
                         AI-Powered
+                      </Badge>
+                    )}
+                    {isChatCompatible && (
+                      <Badge variant="outline" className="border-green-500/50 text-green-600">
+                        <MessageSquare className="h-3 w-3 mr-1" />
+                        Chat Ready
                       </Badge>
                     )}
                   </div>
@@ -254,7 +291,7 @@ const AgentDetail = () => {
                   </div>
 
                   {/* Stats */}
-                  <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       <span className="font-medium">{agent.rating || 0}</span>
@@ -264,12 +301,10 @@ const AgentDetail = () => {
                       <Download className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">{agent.total_installs || 0} installs</span>
                     </div>
-                    {agent.lastUpdated && (
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Updated {new Date(agent.lastUpdated).toLocaleDateString()}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">~{agent.response_timeout || 30}s response</span>
+                    </div>
                   </div>
 
                   {/* CTA */}
@@ -317,54 +352,129 @@ const AgentDetail = () => {
 
             {/* Tabbed Content */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full justify-start bg-muted/50 backdrop-blur-sm border border-border/50 p-1">
+              <TabsList className="w-full justify-start bg-muted/50 backdrop-blur-sm border border-border/50 p-1 overflow-x-auto">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-background">Overview</TabsTrigger>
+                <TabsTrigger value="plugins" className="data-[state=active]:bg-background">Plugins</TabsTrigger>
                 <TabsTrigger value="reviews" className="data-[state=active]:bg-background">Reviews ({reviews.length})</TabsTrigger>
-                {agent.changelog && agent.changelog.length > 0 && (
-                  <TabsTrigger value="changelog" className="data-[state=active]:bg-background">Changelog</TabsTrigger>
-                )}
                 <TabsTrigger value="support" className="data-[state=active]:bg-background">Support</TabsTrigger>
               </TabsList>
 
               {/* Overview Tab */}
               <TabsContent value="overview" className="space-y-6 mt-6">
+                {/* Description Card */}
                 <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                   <CardHeader>
-                    <CardTitle className="text-lg">About this agent</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Target className="h-5 w-5 text-primary" />
+                      What This Agent Does
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <p className="text-muted-foreground leading-relaxed">
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground leading-relaxed text-base">
                       {agent.long_description || agent.description}
                     </p>
-                    
-                    {hasAICapabilities && (
-                      <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/20">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="h-5 w-5 text-purple-500" />
-                          <h3 className="font-semibold">AI-Powered Agent</h3>
+                  </CardContent>
+                </Card>
+
+                {/* AI Capabilities Card */}
+                {(hasAICapabilities || agent.ai_personality) && (
+                  <Card className="bg-card/50 backdrop-blur-sm border-border/50 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none" />
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Brain className="h-5 w-5 text-purple-500" />
+                        AI Intelligence
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4 relative">
+                      <p className="text-sm text-muted-foreground">
+                        This agent leverages advanced AI models to understand context, generate intelligent responses, and automate complex tasks.
+                      </p>
+                      {agent.ai_personality && (
+                        <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                          <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-purple-500" />
+                            Personality
+                          </h4>
+                          <p className="text-sm text-muted-foreground">{agent.ai_personality}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          This agent uses advanced AI models for intelligent content generation, analysis, and image creation. 
-                          No API keys required - AI capabilities work instantly upon installation.
-                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                          Natural Language
+                        </Badge>
+                        <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                          Context Aware
+                        </Badge>
+                        <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 border-purple-500/20">
+                          Auto Learning
+                        </Badge>
                       </div>
-                    )}
-                    
-                    {agent.capabilities && agent.capabilities.length > 0 && (
-                      <div className="pt-2">
-                        <h3 className="font-semibold mb-4">Key Features</h3>
-                        <div className="grid gap-3">
-                          {agent.capabilities.map((capability: string, index: number) => (
-                            <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
-                              <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                                <Zap className="h-3.5 w-3.5 text-primary" />
-                              </div>
-                              <span className="text-sm text-muted-foreground">{capability}</span>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Key Features */}
+                {agent.capabilities && agent.capabilities.length > 0 && (
+                  <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        Key Capabilities
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {agent.capabilities.map((capability: string, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                            <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
                             </div>
+                            <span className="text-sm">{capability}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Technical Specs */}
+                <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Settings2 className="h-5 w-5 text-muted-foreground" />
+                      Technical Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                        <span className="text-sm text-muted-foreground">Response Time</span>
+                        <span className="text-sm font-medium">~{agent.response_timeout || 30}s</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                        <span className="text-sm text-muted-foreground">Chat Compatible</span>
+                        <Badge variant="secondary" className={isChatCompatible ? "bg-green-500/10 text-green-600" : "bg-muted"}>
+                          {isChatCompatible ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                        <span className="text-sm text-muted-foreground">Workflow Based</span>
+                        <Badge variant="secondary" className={isWorkflowBased ? "bg-blue-500/10 text-blue-600" : "bg-muted"}>
+                          {isWorkflowBased ? "Yes" : "No"}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
+                        <span className="text-sm text-muted-foreground">Supported Features</span>
+                        <div className="flex gap-1">
+                          {supportedFeatures.slice(0, 3).map((feature: string) => (
+                            <Badge key={feature} variant="outline" className="text-xs">
+                              {feature}
+                            </Badge>
                           ))}
                         </div>
                       </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -383,6 +493,68 @@ const AgentDetail = () => {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* Plugins Tab */}
+              <TabsContent value="plugins" className="space-y-6 mt-6">
+                <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Plug className="h-5 w-5 text-primary" />
+                      Required Integrations
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      This agent connects with the following services to perform its tasks. You'll be prompted to connect these when you install the agent.
+                    </p>
+                    
+                    {plugins && plugins.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {plugins.map((plugin: any, index: number) => {
+                          const pluginName = typeof plugin === 'string' ? plugin : plugin.name || plugin.type;
+                          const PluginIcon = getPluginIcon(pluginName);
+                          return (
+                            <div key={index} className="flex items-center gap-3 p-4 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-colors">
+                              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <PluginIcon className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{pluginName}</p>
+                                <p className="text-xs text-muted-foreground">Required</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 rounded-xl bg-muted/20 border border-dashed border-border">
+                        <Unlock className="h-10 w-10 text-green-500 mx-auto mb-3" />
+                        <p className="font-medium">No External Integrations Required</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          This agent works out of the box without any additional setup
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Security Note */}
+                <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
+                        <Shield className="h-5 w-5 text-green-500" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-1">Secure Connections</h4>
+                        <p className="text-sm text-muted-foreground">
+                          All integrations use OAuth 2.0 for secure authentication. Your credentials are encrypted and never stored in plain text. You can revoke access at any time from your Connections settings.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               {/* Reviews Tab */}
@@ -415,34 +587,6 @@ const AgentDetail = () => {
                   )}
                 </div>
               </TabsContent>
-
-              {/* Changelog Tab */}
-              {agent.changelog && agent.changelog.length > 0 && (
-                <TabsContent value="changelog" className="space-y-4 mt-6">
-                  {agent.changelog.map((version: any, index: number) => (
-                    <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">Version {version.version}</CardTitle>
-                          <Badge variant="secondary" className="bg-muted/80">{new Date(version.date).toLocaleDateString()}</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2 text-sm text-muted-foreground">
-                          {version.changes.map((change: string, idx: number) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                                <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                              </div>
-                              <span>{change}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </TabsContent>
-              )}
 
               {/* Support Tab */}
               <TabsContent value="support" className="space-y-4 mt-6">
@@ -499,6 +643,10 @@ const AgentDetail = () => {
                       <span className="text-muted-foreground">Installs</span>
                       <span className="font-medium">{agent.total_installs || 0}</span>
                     </div>
+                    <div className="flex justify-between items-center py-2 border-b border-border/50">
+                      <span className="text-muted-foreground">Response Time</span>
+                      <span className="font-medium">~{agent.response_timeout || 30}s</span>
+                    </div>
                     <div className="flex justify-between items-center py-2">
                       <span className="text-muted-foreground">Status</span>
                       <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
@@ -506,6 +654,35 @@ const AgentDetail = () => {
                       </Badge>
                     </div>
                   </div>
+                </div>
+
+                <Separator />
+
+                {/* Plugins Summary */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Plug className="h-4 w-4" />
+                    Integrations
+                  </h4>
+                  {plugins && plugins.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {plugins.slice(0, 4).map((plugin: any, index: number) => {
+                        const pluginName = typeof plugin === 'string' ? plugin : plugin.name || plugin.type;
+                        return (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {pluginName}
+                          </Badge>
+                        );
+                      })}
+                      {plugins.length > 4 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{plugins.length - 4} more
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No external integrations required</p>
+                  )}
                 </div>
 
                 <div className="pt-2">
