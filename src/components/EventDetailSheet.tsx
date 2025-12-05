@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Clock, MapPin, Video, Users, Calendar as CalendarIcon, Repeat, X, Bot } from "lucide-react";
+import { Clock, MapPin, Video, Users, Calendar as CalendarIcon, Repeat, X } from "lucide-react";
 import { MockCalendarEvent } from "@/data/mockCalendarEvents";
 import {
   Sheet,
@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { BrianAvatar } from "@/components/BrianAvatar";
 import { toast } from "sonner";
 
 // List of AI agent names that should use robot avatars
@@ -171,9 +172,7 @@ const EventDetailSheet = ({ event, open, onOpenChange }: EventDetailSheetProps) 
                     return (
                       <div key={index} className="flex items-center gap-3">
                         {isAIAgent ? (
-                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                            <Bot className="h-4 w-4 text-white" />
-                          </div>
+                          <BrianAvatar size="sm" />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                             <span className="text-xs font-medium">
