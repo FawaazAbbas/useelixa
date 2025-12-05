@@ -1,5 +1,4 @@
 import { useNavigate, Link } from "react-router-dom";
-import { mockCategories } from "@/data/mockCategories";
 
 export const TalentPoolFooter = () => {
   const navigate = useNavigate();
@@ -7,7 +6,7 @@ export const TalentPoolFooter = () => {
   return (
     <footer className="border-t border-border/50 bg-muted/30 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <img 
@@ -18,23 +17,6 @@ export const TalentPoolFooter = () => {
             <p className="text-sm text-muted-foreground">
               Your AI Talent Pool. Hire brilliant AI agents to transform your workspace.
             </p>
-          </div>
-
-          {/* Categories */}
-          <div className="space-y-4">
-            <h3 className="font-semibold">Categories</h3>
-            <ul className="space-y-2 text-sm">
-              {mockCategories.slice(0, 6).map((category) => (
-                <li key={category.name}>
-                  <button
-                    onClick={() => navigate(`/talent-pool/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {category.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Resources */}
