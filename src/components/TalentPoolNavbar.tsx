@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -49,7 +49,7 @@ export const TalentPoolNavbar = () => {
   );
 };
 
-// Breadcrumb back button for sub-pages
+// Simple back button for sub-pages
 interface TalentPoolBackButtonProps {
   label?: string;
   to?: string;
@@ -69,5 +69,43 @@ export const TalentPoolBackButton = ({
       <ArrowLeft className="h-4 w-4" />
       {label}
     </button>
+  );
+};
+
+// Breadcrumb navigation for agent details
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface TalentPoolBreadcrumbProps {
+  items: BreadcrumbItem[];
+}
+
+export const TalentPoolBreadcrumb = ({ items }: TalentPoolBreadcrumbProps) => {
+  const navigate = useNavigate();
+  
+  return (
+    <nav className="flex items-center gap-1 text-sm mb-6" aria-label="Breadcrumb">
+      {items.map((item, index) => (
+        <div key={index} className="flex items-center gap-1">
+          {index > 0 && (
+            <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+          )}
+          {item.href ? (
+            <button
+              onClick={() => navigate(item.href!)}
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              {item.label}
+            </button>
+          ) : (
+            <span className="text-foreground font-medium truncate max-w-[200px]">
+              {item.label}
+            </span>
+          )}
+        </div>
+      ))}
+    </nav>
   );
 };
