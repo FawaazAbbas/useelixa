@@ -982,6 +982,42 @@ export type Database = {
           },
         ]
       }
+      developer_applications: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          experience_level: string | null
+          id: string
+          message: string | null
+          name: string
+          portfolio_url: string | null
+          skills: string[] | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          experience_level?: string | null
+          id?: string
+          message?: string | null
+          name: string
+          portfolio_url?: string | null
+          skills?: string[] | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          experience_level?: string | null
+          id?: string
+          message?: string | null
+          name?: string
+          portfolio_url?: string | null
+          skills?: string[] | null
+        }
+        Relationships: []
+      }
       integrations: {
         Row: {
           bundle_type: string | null
@@ -1306,6 +1342,33 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      waitlist_signups: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          use_case: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          use_case?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          use_case?: string | null
         }
         Relationships: []
       }
