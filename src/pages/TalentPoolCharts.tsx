@@ -229,7 +229,7 @@ const TalentPoolCharts = () => {
 
         {/* Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-3 bg-muted/50 backdrop-blur-sm border border-border/50 p-1.5 mb-6">
+          <TabsList className="w-full grid grid-cols-3 bg-muted/50 backdrop-blur-sm border border-border/50 p-1.5 mb-6 mt-0">
             <TabsTrigger value="trending" className="data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Trending</span>

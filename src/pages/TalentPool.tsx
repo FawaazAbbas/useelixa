@@ -544,7 +544,7 @@ const TalentPool = () => {
                   
                   {/* Suggestions dropdown */}
                   {showSuggestions && dropdownSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[100]">
                       {!searchQuery && (
                         <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
                           <TrendingUp className="h-3 w-3" />
@@ -652,7 +652,7 @@ const TalentPool = () => {
           </div>
           
           {/* Search bar - Bold style */}
-          <div className="relative max-w-2xl mx-auto mb-8">
+          <div className="relative max-w-2xl mx-auto mb-8 z-30">
             <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-cyan-500/40 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
               <div className="flex-1 relative">
@@ -668,7 +668,7 @@ const TalentPool = () => {
                 
                 {/* Suggestions dropdown */}
                 {showSuggestions && dropdownSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[100]">
                     {!searchQuery && (
                       <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
                         <TrendingUp className="h-3 w-3" />
@@ -732,7 +732,7 @@ const TalentPool = () => {
           </div>
 
           {/* Quick category pills */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
+          <div className="relative z-10 flex flex-wrap justify-center gap-2 mb-6">
             {categories.slice(0, 6).map((category, i) => {
               const colors = [
                 "from-rose-500/20 to-rose-500/5 border-rose-500/30 hover:border-rose-500/50",
