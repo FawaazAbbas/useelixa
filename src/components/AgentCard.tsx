@@ -177,7 +177,9 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
       className="group cursor-pointer h-full"
       onClick={handleClick}
     >
-      <div className={`relative h-full rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-2 border bg-white dark:bg-card ${config.tint} ${config.glow} ${config.border}`}>
+      <div className={`relative h-full rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-2 border bg-white dark:bg-card ${config.glow} ${config.border}`}>
+        {/* Subtle tint overlay on hover only */}
+        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity ${config.tint}`} />
         {/* Accent line at top */}
         <div className={`absolute top-0 left-0 right-0 h-1 ${config.accent} opacity-70 group-hover:opacity-100 transition-opacity`} />
         
