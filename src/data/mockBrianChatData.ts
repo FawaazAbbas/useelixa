@@ -64,7 +64,7 @@ export const brianMessages = [
     content: "<p>Right now FP&amp;A Analyst and Revenue Ops Analyst share it. That is fine short term, but if you want something more serious, I recommend we bring in a dedicated agent from the <strong>Elixa AI Talent Pool</strong>.</p><p>My suggestion from the talent pool is:<br><strong>Data Analyst Pro</strong> (Talent Pool) – specialised in dashboards, cohort tracking and campaign analytics.</p><p>Do you want me to \"hire\" Data Analyst Pro into the team for Tech Reborn?</p>",
     timestamp: "2025-12-05T10:25:00.000Z",
     recommendedAgent: {
-      id: "data-analyst-pro",
+      id: "bcd820ab-4ad3-467c-a120-e38989971f62",
       name: "Data Analyst Pro",
       description: "Specialised in dashboards, cohort tracking and campaign analytics.",
       category: "Analytics",
@@ -113,8 +113,8 @@ export const brianMessages = [
     content: "<p>For Tech Reborn, this is enough.</p><p>If I had to add just one more from the <strong>Elixa AI Talent Pool</strong> later, it would be a <strong>Post Purchase Experience Architect</strong> type agent, but that is a luxury rather than a core need.</p><p>For now I would rather get the current team working in sync.</p>",
     timestamp: "2025-12-05T10:52:00.000Z",
     recommendedAgent: {
-      id: "post-purchase-experience-architect",
-      name: "Post Purchase Experience Architect",
+      id: "df7d3642-a030-4097-b100-21bc14b03a61",
+      name: "Customer Journey Mapper",
       description: "Designs and optimizes post-purchase journeys, retention flows, and customer delight moments.",
       category: "Customer Service",
       rating: 4.6,
@@ -156,8 +156,8 @@ export const brianMessages = [
     content: "<p>That is the job.</p><p>You keep pushing the company forward. I will keep putting the right agents in the right places and stop the whole thing from catching fire.</p><p>By the way, I was looking at how our day to day runs and for our operations I also think <strong>Supply Chain &amp; Fulfilment Planner</strong> from the <strong>Elixa AI Talent Pool</strong> would be great – it can own purchase order planning, warehouse capacity, dispatch SLAs and stock risk alerts so ops runs smoother in the background.</p>",
     timestamp: "2025-12-05T11:13:00.000Z",
     recommendedAgent: {
-      id: "supply-chain-fulfilment-planner",
-      name: "Supply Chain & Fulfilment Planner",
+      id: "fbc5d753-1060-4bf7-bff7-2457a0dae906",
+      name: "Logistics & Shipping Optimiser",
       description: "Owns purchase order planning, warehouse capacity, dispatch SLAs and stock risk alerts.",
       category: "Operations",
       rating: 4.7,
