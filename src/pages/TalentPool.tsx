@@ -344,21 +344,21 @@ const TalentPool = () => {
           <div className="text-center space-y-6 mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 text-sm font-medium mb-4">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span>{agents.length} AI Agents Available</span>
+              <span>{agents.length} AI employees ready to hire</span>
             </div>
             
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                Discover AI Agents
+                We Are
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                That Work For You
+                The Company
               </span>
             </h1>
             
             <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Browse {categories.length} categories of intelligent agents ready to automate, assist, and accelerate your workflow
+              Hire AI employees that actually get work done. Your team, reimagined.
             </p>
           </div>
           
