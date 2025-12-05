@@ -309,7 +309,7 @@ export const marketingDirectorMessages: DirectorMessage[] = [
       id: 'ce6c1d00-906c-4f04-9575-ae74bdd4cfb2',
       name: 'Video Producer',
       description: 'Builds campaign structures, scripts platform-native video content, and creates shot lists for UGC creators.',
-      category: 'Creative',
+      category: 'Design & Creative',
       rating: 4.8,
     },
   }
