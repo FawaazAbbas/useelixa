@@ -50,20 +50,11 @@ export const TalentPoolNavbar = () => {
         <div className="flex items-center gap-3">
           <Button 
             onClick={() => navigate("/workspace")} 
-            variant="ghost" 
-            size="sm" 
-            className="hidden sm:inline-flex hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-all"
-          >
-            <Zap className="h-4 w-4 mr-2 text-primary" />
-            Workspace
-          </Button>
-          <Button 
-            onClick={() => navigate("/auth")} 
             size="sm" 
             className="bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-200"
           >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Sign In
+            <Zap className="h-4 w-4 mr-2" />
+            My Workspace
           </Button>
         </div>
       </div>
