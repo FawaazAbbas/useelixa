@@ -28,6 +28,7 @@ interface Agent {
   category: string;
   image_url: string;
   capabilities?: string[];
+  plugins?: string[];
 }
 
 interface Category {
@@ -67,7 +68,7 @@ const TalentPool = () => {
         .from("agents")
         .select(`
           id, name, description, short_description, rating, total_reviews,
-          total_installs, image_url, capabilities, category_id,
+          total_installs, image_url, capabilities, category_id, required_credentials,
           agent_categories(id, name, description, icon)
         `)
         .eq("status", "active")
@@ -78,18 +79,28 @@ const TalentPool = () => {
 
       if (agentsData) {
         setAgents(
-          agentsData.map((agent: any) => ({
-            id: agent.id,
-            name: agent.name,
-            description: agent.description || agent.short_description || "",
-            short_description: agent.short_description,
-            rating: agent.rating || 0,
-            total_reviews: agent.total_reviews || 0,
-            total_installs: agent.total_installs || 0,
-            category: agent.agent_categories?.name || "Uncategorized",
-            image_url: agent.image_url || "/elixa-logo.png",
-            capabilities: agent.capabilities || [],
-          }))
+          agentsData.map((agent: any) => {
+            // Extract plugin names from required_credentials
+            const plugins = agent.required_credentials 
+              ? Object.keys(agent.required_credentials).map((key: string) => 
+                  key.replace(/_/g, ' ').replace(/credentials?$/i, '').trim()
+                )
+              : [];
+            
+            return {
+              id: agent.id,
+              name: agent.name,
+              description: agent.description || agent.short_description || "",
+              short_description: agent.short_description,
+              rating: agent.rating || 0,
+              total_reviews: agent.total_reviews || 0,
+              total_installs: agent.total_installs || 0,
+              category: agent.agent_categories?.name || "Uncategorized",
+              image_url: agent.image_url || "/elixa-logo.png",
+              capabilities: agent.capabilities || [],
+              plugins,
+            };
+          })
         );
       }
 
@@ -134,15 +145,33 @@ const TalentPool = () => {
   // Filter and sort agents
   const filteredAgents = useMemo(() => {
     let result = agents.filter(agent => {
-      const matchesSearch = searchQuery === "" || 
-        agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (agent.capabilities?.some(cap => cap.toLowerCase().includes(searchQuery.toLowerCase())));
+      // Tokenize search query into individual words for flexible matching
+      const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+      
+      // Build searchable content from all agent fields
+      const searchableContent = [
+        agent.name,
+        agent.description,
+        agent.short_description || '',
+        agent.category,
+        ...(agent.capabilities || []),
+        ...(agent.plugins || []),
+      ].join(' ').toLowerCase();
+      
+      // Match if ANY search term is found in the searchable content
+      const matchesSearch = searchTerms.length === 0 || 
+        searchTerms.some(term => searchableContent.includes(term));
+      
+      // Also match if search query matches category exactly (for category quick filters)
+      const matchesCategorySearch = searchQuery && 
+        agent.category.toLowerCase().includes(searchQuery.toLowerCase());
+      
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(agent.category);
       const matchesRating = agent.rating >= minRating;
       const matchesCapabilities = selectedCapabilities.length === 0 || 
         selectedCapabilities.some(cap => agent.capabilities?.includes(cap));
-      return matchesSearch && matchesCategory && matchesRating && matchesCapabilities;
+      
+      return (matchesSearch || matchesCategorySearch) && matchesCategory && matchesRating && matchesCapabilities;
     });
 
     // Sort
