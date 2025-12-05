@@ -786,7 +786,7 @@ const AgentDetail = () => {
                   )}
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 space-y-3">
                   {isInstalled ? (
                     <Button 
                       className="w-full bg-primary hover:bg-primary/90"
@@ -809,6 +809,26 @@ const AgentDetail = () => {
                       Add to Workspace
                     </Button>
                   )}
+                  
+                  {/* Platform Integration Buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      variant="outline"
+                      className="w-full gap-2 text-sm"
+                      onClick={() => toast({ title: "Coming Soon", description: "Slack integration will be available soon!" })}
+                    >
+                      <img src="/logos/SlackLogo.svg" alt="Slack" className="h-4 w-4" />
+                      Add to Slack
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="w-full gap-2 text-sm"
+                      onClick={() => toast({ title: "Coming Soon", description: "Microsoft Teams integration will be available soon!" })}
+                    >
+                      <img src="/logos/TeamsLogo.svg" alt="Teams" className="h-4 w-4" />
+                      Add to Teams
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
