@@ -909,6 +909,7 @@ const Workspace = () => {
                   brianMessages.map((msg, idx) => {
                     const isUserMessage = msg.role === "user";
                     const isSelected = selectedBrianIndices.has(idx);
+                    const msgTimestamp = (msg as any).timestamp ? new Date((msg as any).timestamp) : new Date();
                     return (
                       <div
                         key={idx}
@@ -943,7 +944,7 @@ const Workspace = () => {
                                {isUserMessage ? "You" : "Brian"}
                              </span>
                              <span className="text-xs text-muted-foreground">
-                               {new Date().toLocaleTimeString()}
+                               {format(msgTimestamp, "d MMM, h:mm a")}
                              </span>
                              {!isSelectionMode && (
                                <MessageContextMenu
@@ -960,11 +961,10 @@ const Workspace = () => {
                                  : "bg-muted/80"
                              }`}
                            >
-                             <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                 {msg.content}
-                               </ReactMarkdown>
-                             </div>
+                             <div 
+                               className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-primary-foreground' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                               dangerouslySetInnerHTML={{ __html: msg.content }}
+                             />
                            </div>
                            {msg.metadata?.files && (
                              <div className="max-w-[85%] mt-2">
