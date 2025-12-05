@@ -196,7 +196,7 @@ const Workspace = () => {
   const [showAddAgentDialog, setShowAddAgentDialog] = useState(false);
   const [teamsOpen, setTeamsOpen] = useState(true);
   const [directorsOpen, setDirectorsOpen] = useState(true);
-  const [agentsOpen, setAgentsOpen] = useState(false);
+  const [agentsOpen, setAgentsOpen] = useState(true);
   const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const [filePreviewOpen, setFilePreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ name: string; type: string; size: number; uploadedBy?: string; uploadedAt?: string } | null>(null);
