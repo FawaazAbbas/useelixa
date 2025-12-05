@@ -49,6 +49,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { mockTeamMemberMessages, mockTeamGroupMessages, mockDirectorChatData } from "@/data/mockTeamMessages";
 import { getTeamGroupData, getFileIcon, formatRelativeTime } from "@/data/mockTeamGroupData";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
+import { brianFiles, brianMemories, brianActivity } from "@/data/mockWorkspaceData";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -2297,23 +2298,52 @@ const Workspace = () => {
                 <div className="space-y-4">
                   <div>
                     <h3 className="font-semibold mb-2">Brian's Files</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Upload workspace-level files that Brian can access and reference</p>
+                    <p className="text-sm text-muted-foreground mb-4">Files shared in this conversation</p>
                   </div>
                   
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
-                    <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                    <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm font-medium mb-1">Upload Files</p>
                     <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
-                    <p className="text-xs text-muted-foreground mt-2">Supports PDF, DOC, TXT, CSV, and more</p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold">Recent Files</h4>
-                    <Card>
-                      <CardContent className="p-4 text-center text-sm text-muted-foreground">
-                        No files uploaded yet
-                      </CardContent>
-                    </Card>
+                    <h4 className="text-sm font-semibold">Shared Files ({brianFiles.length})</h4>
+                    {brianFiles.length > 0 ? (
+                      <div className="space-y-2">
+                        {[...brianFiles].sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()).map((file) => (
+                          <Card 
+                            key={file.id} 
+                            className="hover:bg-muted/50 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setPreviewFile({
+                                name: file.name,
+                                type: file.type,
+                                size: file.size,
+                                uploadedBy: file.uploadedBy,
+                                uploadedAt: file.uploadedAt
+                              });
+                              setFilePreviewOpen(true);
+                            }}
+                          >
+                            <CardContent className="p-3 flex items-center gap-3">
+                              <span className="text-xl">{getFileIcon(file.type)}</span>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{file.name}</p>
+                                <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · {file.uploadedBy}</p>
+                              </div>
+                              <span className="text-xs text-muted-foreground">{formatRelativeTime(file.uploadedAt)}</span>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <Card>
+                        <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                          No files shared yet
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2461,9 +2491,38 @@ const Workspace = () => {
 
           <TabsContent value="memories" className="flex-1 m-0 overflow-hidden">
             {showBrian ? (
-              <div className="h-full overflow-auto p-4">
-                <h3 className="font-semibold mb-4">Brian's Memories</h3>
-                <p className="text-sm text-muted-foreground mb-4">Workspace-level memories and preferences</p>
+              <div className="h-full overflow-auto p-4 space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Brian's Memories</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Key discussion topics and decisions</p>
+                </div>
+                
+                {brianMemories.length > 0 ? (
+                  <div className="space-y-3">
+                    {brianMemories.map((memory) => (
+                      <Card key={memory.id}>
+                        <CardContent className="p-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-xs">{memory.category}</Badge>
+                                <span className="text-xs text-muted-foreground">{formatRelativeTime(memory.created_at)}</span>
+                              </div>
+                              <p className="text-sm font-medium">{memory.key}</p>
+                              <p className="text-sm text-muted-foreground mt-1">{memory.value}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                      No memories recorded yet
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             ) : selectedTeamMemberId ? (() => {
               const directorData = mockDirectorChatData[selectedTeamMemberId as keyof typeof mockDirectorChatData];
@@ -2562,9 +2621,57 @@ const Workspace = () => {
 
           <TabsContent value="history" className="flex-1 m-0 overflow-hidden">
             {showBrian ? (
-              <div className="h-full overflow-auto p-4">
-                <h3 className="font-semibold mb-4">Brian's History</h3>
-                <p className="text-sm text-muted-foreground">All workspace-level activity coordinated by Brian</p>
+              <div className="h-full overflow-auto p-4 space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Brian's Activity</h3>
+                  <p className="text-sm text-muted-foreground mb-4">File uploads and key decisions</p>
+                </div>
+                
+                {brianActivity.length > 0 ? (
+                  <div className="space-y-3">
+                    {brianActivity.map((item) => {
+                      const getActivityIcon = (type: string) => {
+                        switch (type) {
+                          case 'file_upload': return '📁';
+                          case 'decision': return '✅';
+                          default: return '📝';
+                        }
+                      };
+                      const getActivityColor = (type: string) => {
+                        switch (type) {
+                          case 'file_upload': return 'text-blue-600 dark:text-blue-400';
+                          case 'decision': return 'text-green-600 dark:text-green-400';
+                          default: return 'text-muted-foreground';
+                        }
+                      };
+                      return (
+                        <Card key={item.id}>
+                          <CardContent className="p-3">
+                            <div className="flex items-start gap-3">
+                              <span className="text-lg">{getActivityIcon(item.action)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className={`text-sm font-medium ${getActivityColor(item.action)}`}>
+                                    {item.action === 'file_upload' ? 'File Upload' : 'Decision'}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">· {formatRelativeTime(item.timestamp)}</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{item.description}</p>
+                                <p className="text-xs text-muted-foreground mt-2">by {item.agent}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                      No activity yet
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             ) : selectedTeamMemberId ? (() => {
               const directorData = mockDirectorChatData[selectedTeamMemberId as keyof typeof mockDirectorChatData];

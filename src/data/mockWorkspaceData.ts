@@ -1,4 +1,5 @@
 import { mockAgents } from "./mockAgents";
+import { brianMessages, brianFiles, brianMemories, brianActivity } from "./mockBrianChatData";
 
 // Mock installed agents (subset of AI Talent Pool agents)
 export const mockInstalledAgents = [
@@ -9,32 +10,23 @@ export const mockInstalledAgents = [
   mockAgents[4], // Social Media Manager
 ];
 
-// Mock Brian conversation
-export const mockBrianMessages = [
-  {
-    role: "assistant" as const,
-    content:
-      "Hey there! I'm **Brian**, your AI Chief Operating Officer. I'm here to help you manage your workspace, coordinate your agents, and keep everything running smoothly.\n\nYou currently have **5 agents** installed and ready to work:\n\n🎧 **Customer Support Pro** - Handling inquiries 24/7\n✍️ **Content Creator AI** - Creating engaging content\n📊 **Data Analyst Pro** - Analyzing business metrics\n💼 **Sales Assistant** - Managing your pipeline\n📱 **Social Media Manager** - Growing your presence\n\nWhat would you like to work on today?",
-  },
-  {
-    role: "user" as const,
-    content: "Can you help me understand what each agent does?",
-  },
-  {
-    role: "assistant" as const,
-    content:
-      "Absolutely! Here's a quick overview of your agent team:\n\n### 🎧 Customer Support Pro\n- Handles customer tickets 24/7\n- Sentiment analysis on inquiries\n- Multi-language support\n- Automatic ticket routing\n\n### ✍️ Content Creator AI\n- Blog post generation\n- Social media content\n- SEO optimization\n- Brand voice consistency\n\n### 📊 Data Analyst Pro\n- Business metrics analysis\n- Predictive modeling\n- Data visualization\n- Trend forecasting\n\n### 💼 Sales Assistant\n- Lead qualification\n- Email follow-ups\n- Pipeline management\n- CRM integration\n\n### 📱 Social Media Manager\n- Post scheduling\n- Engagement analytics\n- Hashtag research\n- Content calendar\n\nYou can chat with any of them directly, or I can coordinate tasks between multiple agents. Want to try delegating a task?",
-  },
-  {
-    role: "user" as const,
-    content: "How do I create a group chat with multiple agents?",
-  },
-  {
-    role: "assistant" as const,
-    content:
-      'Great question! **Group chats** are perfect for complex projects that need multiple perspectives.\n\nHere\'s how to create one:\n\n1. Click the **"+ New Group"** button in the left sidebar\n2. Give your group a name (e.g., "Marketing Team")\n3. Select which agents to include\n4. Start chatting!\n\nThe agents will collaborate automatically. For example:\n- Content Creator drafts a post\n- Social Media Manager schedules it\n- Data Analyst tracks performance\n\nI\'ve already set up two group chats for you:\n- **Marketing Team** (Content, Social Media, Data)\n- **Customer Success Squad** (Support, Sales)\n\nCheck them out in your sidebar! Any other questions?',
-  },
-];
+// Re-export Brian chat data for use in components
+export { brianMessages, brianFiles, brianMemories, brianActivity };
+
+// Mock Brian conversation (converted from new format for backward compatibility)
+export const mockBrianMessages = brianMessages.map(msg => ({
+  role: msg.role,
+  content: msg.content,
+  timestamp: msg.timestamp,
+  metadata: msg.file ? {
+    files: [{
+      name: msg.file.name,
+      url: msg.file.url,
+      type: msg.file.type,
+      size: msg.file.size,
+    }]
+  } : undefined,
+}));
 
 // Mock direct chat messages for each agent
 export const mockDirectChats = {
