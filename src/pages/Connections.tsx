@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plug, CheckCircle2, Search, Filter, LayoutGrid, Link2, Unplug } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { GOOGLE_BUNDLES } from "@/config/googleBundles";
 import { DemoBanner } from "@/components/DemoBanner";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ConnectionStatus {
   type: string;
@@ -640,34 +641,37 @@ export default function Connections() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [connections, setConnections] = useState<ConnectionStatus[]>([]);
 
-  const connections: ConnectionStatus[] = [
-    {
-      type: "googleOAuth2Api",
-      connected: true,
-      lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      bundleType: "email_workspace",
-      accountEmail: "demo@example.com",
-      accountLabel: "Work Account",
-      id: "conn-1",
-    },
-    {
-      type: "notionApi",
-      connected: true,
-      lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      accountEmail: "demo@example.com",
-      accountLabel: "Main Workspace",
-      id: "conn-2",
-    },
-    {
-      type: "slackOAuth2Api",
-      connected: true,
-      lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      accountEmail: "demo@company.slack.com",
-      accountLabel: "Company Workspace",
-      id: "conn-3",
-    },
-  ];
+  useEffect(() => {
+    const fetchCredentials = async () => {
+      const { data, error } = await supabase
+        .from("user_credentials")
+        .select("*");
+      
+      if (error) {
+        console.error("Error fetching credentials:", error);
+        return;
+      }
+
+      if (data) {
+        const mapped: ConnectionStatus[] = data.map((cred) => ({
+          type: cred.credential_type,
+          connected: true,
+          lastConnected: cred.updated_at,
+          expiresAt: cred.expires_at || undefined,
+          isExpired: cred.expires_at ? new Date(cred.expires_at) < new Date() : false,
+          bundleType: cred.bundle_type || undefined,
+          accountEmail: cred.account_email || undefined,
+          accountLabel: cred.account_label || undefined,
+          id: cred.id,
+        }));
+        setConnections(mapped);
+      }
+    };
+
+    fetchCredentials();
+  }, []);
 
   const handleConnect = () => {
     setWaitlistOpen(true);
