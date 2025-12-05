@@ -59,7 +59,7 @@ const AgentDetail = () => {
           agent_categories(name)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching agent:", error);

@@ -6,97 +6,148 @@ import { FeaturedAgentCard } from "@/components/FeaturedAgentCard";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { mockAgents, getFeaturedAgents } from "@/data/mockAgents";
-import { mockCategories } from "@/data/mockCategories";
-import { mockCollections } from "@/data/mockCollections";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface Agent {
   id: string;
   name: string;
   description: string;
+  short_description?: string;
   rating: number;
   total_reviews: number;
   total_installs?: number;
   category: string;
   image_url: string;
+  capabilities?: string[];
 }
+
+interface Category {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  agentCount?: number;
+}
+
+// Category icons mapping
+const categoryIcons: Record<string, string> = {
+  "Marketing & Growth": "📈",
+  "Customer Support": "🎧",
+  "Sales": "🎯",
+  "Finance": "💰",
+  "Operations": "📦",
+  "HR & People": "👥",
+  "Development": "💻",
+  "Design & Creative": "🎨",
+  "Analytics & Data": "📊",
+  "Legal & Compliance": "⚖️",
+  "Product": "📱",
+  "Project Management": "📋",
+  "Ecommerce": "🛒",
+};
 
 const TalentPool = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [displayedCount, setDisplayedCount] = useState(12);
   const [hasMore, setHasMore] = useState(true);
-  const [useMockData] = useState(true); // Use mock data for demo
 
   useEffect(() => {
     const fetchData = async () => {
-      if (useMockData) {
-        // Use mock data for demo
-        setAgents(mockAgents as any);
-        setCategories(mockCategories.map(c => c.name));
-        setLoading(false);
-        return;
+      setLoading(true);
+      
+      // Fetch agents with their categories
+      const { data: agentsData, error: agentsError } = await supabase
+        .from("agents")
+        .select(`
+          id,
+          name,
+          description,
+          short_description,
+          rating,
+          total_reviews,
+          total_installs,
+          image_url,
+          capabilities,
+          category_id,
+          agent_categories(id, name, description, icon)
+        `)
+        .eq("status", "active")
+        .or("is_system.is.null,is_system.eq.false")
+        .order("total_installs", { ascending: false });
+
+      if (agentsError) {
+        console.error("Error fetching agents:", agentsError);
       }
 
-      // Real Supabase data (keep for production)
-      const [agentsRes, categoriesRes] = await Promise.all([
-        supabase
-          .from("agents")
-          .select(`
-            id,
-            name,
-            description,
-            rating,
-            total_reviews,
-            total_installs,
-            image_url,
-            agent_categories(name)
-          `)
-          .eq("status", "active")
-          .eq("is_system", false),
-        supabase.from("agent_categories").select("name")
-      ]);
-
-      if (agentsRes.data) {
+      if (agentsData) {
         setAgents(
-          agentsRes.data.map((agent: any) => ({
+          agentsData.map((agent: any) => ({
             id: agent.id,
             name: agent.name,
-            description: agent.description || "",
+            description: agent.description || agent.short_description || "",
+            short_description: agent.short_description,
             rating: agent.rating || 0,
             total_reviews: agent.total_reviews || 0,
             total_installs: agent.total_installs || 0,
             category: agent.agent_categories?.name || "Uncategorized",
-            image_url: agent.image_url || ""
+            image_url: agent.image_url || "/elixa-logo.png",
+            capabilities: agent.capabilities || [],
           }))
         );
       }
 
-      if (categoriesRes.data) {
-        setCategories(categoriesRes.data.map((c: any) => c.name));
+      // Fetch categories with agent counts
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("agent_categories")
+        .select("id, name, description, icon")
+        .order("name");
+
+      if (categoriesError) {
+        console.error("Error fetching categories:", categoriesError);
+      }
+
+      if (categoriesData && agentsData) {
+        // Calculate agent count per category
+        const categoryCounts = agentsData.reduce((acc: Record<string, number>, agent: any) => {
+          const catName = agent.agent_categories?.name;
+          if (catName) {
+            acc[catName] = (acc[catName] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
+        setCategories(
+          categoriesData.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            description: cat.description || "",
+            icon: categoryIcons[cat.name] || "🤖",
+            agentCount: categoryCounts[cat.name] || 0,
+          }))
+        );
       }
 
       setLoading(false);
     };
 
     fetchData();
-  }, [useMockData]);
+  }, []);
 
   // Filter agents based on search and category
   const filteredAgents = agents.filter(agent => {
     const matchesSearch = searchQuery === "" || 
       agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      agent.description.toLowerCase().includes(searchQuery.toLowerCase());
+      agent.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (agent.capabilities?.some(cap => cap.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesCategory = !selectedCategory || agent.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -118,7 +169,31 @@ const TalentPool = () => {
     setHasMore(filteredAgents.length > 12);
   }, [searchQuery, selectedCategory, filteredAgents.length]);
 
-  const featuredAgents = useMockData ? getFeaturedAgents() : [];
+  // Get featured agents (top 5 by installs)
+  const featuredAgents = agents.slice(0, 5).map(agent => ({
+    ...agent,
+    gradient: getGradientForCategory(agent.category),
+    staffPick: true,
+  }));
+
+  function getGradientForCategory(category: string): string {
+    const gradients: Record<string, string> = {
+      "Marketing & Growth": "from-rose-500 to-orange-600",
+      "Customer Support": "from-green-500 to-teal-600",
+      "Sales": "from-orange-500 to-red-600",
+      "Finance": "from-emerald-500 to-green-600",
+      "Operations": "from-blue-500 to-cyan-600",
+      "HR & People": "from-cyan-500 to-blue-600",
+      "Development": "from-amber-500 to-orange-600",
+      "Design & Creative": "from-pink-500 to-rose-600",
+      "Analytics & Data": "from-purple-500 to-indigo-600",
+      "Legal & Compliance": "from-slate-500 to-gray-600",
+      "Product": "from-violet-500 to-purple-600",
+      "Project Management": "from-indigo-500 to-blue-600",
+      "Ecommerce": "from-teal-500 to-emerald-600",
+    };
+    return gradients[category] || "from-primary to-accent";
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/5 to-background">
@@ -171,7 +246,7 @@ const TalentPool = () => {
               AI Talent Pool
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover and connect with AI agents tailored to your needs
+              {agents.length} AI agents across {categories.length} categories
             </p>
           </div>
           
@@ -194,11 +269,11 @@ const TalentPool = () => {
                 <span className="text-sm text-muted-foreground mr-2">Popular:</span>
                 {categories.slice(0, 5).map((category) => (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.name)}
                     className="px-4 py-2 text-sm font-medium rounded-full bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/30 hover:bg-white/80 dark:hover:bg-white/20 hover:border-white/50 transition-all hover:scale-105"
                   >
-                    {category}
+                    {category.name} ({category.agentCount})
                   </button>
                 ))}
               </div>
@@ -209,7 +284,15 @@ const TalentPool = () => {
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!searchQuery && !selectedCategory ? (
+        {loading ? (
+          <div className="text-center py-20">
+            <div className="relative w-16 h-16 mx-auto">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-md opacity-50 animate-pulse" />
+              <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-white/20 border-t-primary"></div>
+            </div>
+            <p className="mt-4 text-muted-foreground">Loading agents...</p>
+          </div>
+        ) : !searchQuery && !selectedCategory ? (
           <div className="space-y-16">
             {/* Featured Section - Large hero cards */}
             {featuredAgents.length > 0 && (
@@ -236,9 +319,9 @@ const TalentPool = () => {
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Browse by Category</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {mockCategories.slice(0, 12).map((category, index) => (
+                {categories.map((category, index) => (
                   <button
-                    key={category.name}
+                    key={category.id}
                     onClick={() => setSelectedCategory(category.name)}
                     className="group relative overflow-hidden rounded-2xl p-6 text-center transition-all duration-300 hover:scale-105 animate-fade-in"
                     style={{ animationDelay: `${index * 30}ms` }}
@@ -249,6 +332,9 @@ const TalentPool = () => {
                       <div className="text-4xl group-hover:scale-110 transition-transform">{category.icon}</div>
                       <div className="font-semibold text-sm group-hover:text-primary transition-colors">
                         {category.name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {category.agentCount} agents
                       </div>
                     </div>
                   </button>
@@ -276,6 +362,17 @@ const TalentPool = () => {
                   </div>
                 ))}
               </div>
+              {agents.length > 24 && (
+                <div className="text-center mt-8">
+                  <Button
+                    variant="outline"
+                    onClick={() => setSearchQuery(" ")}
+                    className="bg-white/50 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/70 dark:hover:bg-white/10"
+                  >
+                    View All {agents.length} Agents
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -296,7 +393,7 @@ const TalentPool = () => {
                   <ChevronRight className="h-4 w-4 rotate-180 mr-1" /> Back to Browse
                 </Button>
                 <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                  {searchQuery ? `Search: "${searchQuery}"` : selectedCategory}
+                  {searchQuery.trim() ? `Search: "${searchQuery.trim()}"` : selectedCategory}
                 </h2>
                 <p className="text-muted-foreground">
                   {filteredAgents.length} {filteredAgents.length === 1 ? 'agent' : 'agents'} found
@@ -304,14 +401,7 @@ const TalentPool = () => {
               </div>
             </div>
 
-            {loading ? (
-              <div className="text-center py-20">
-                <div className="relative w-16 h-16 mx-auto">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-md opacity-50 animate-pulse" />
-                  <div className="relative animate-spin rounded-full h-16 w-16 border-4 border-white/20 border-t-primary"></div>
-                </div>
-              </div>
-            ) : filteredAgents.length === 0 ? (
+            {filteredAgents.length === 0 ? (
               <div className="text-center py-20 px-4">
                 <div className="relative max-w-md mx-auto">
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-xl opacity-30" />
