@@ -55,11 +55,45 @@ const TalentPool = () => {
   const [hasMore, setHasMore] = useState(true);
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   
   // Collapsible states
   const [categoriesOpen, setCategoriesOpen] = useState(true);
   const [ratingsOpen, setRatingsOpen] = useState(true);
   const [capabilitiesOpen, setCapabilitiesOpen] = useState(false);
+
+  // Popular searches - trending categories and top capabilities
+  const popularSearches = useMemo(() => {
+    const searches: { type: 'category' | 'capability' | 'trending'; value: string; count: number }[] = [];
+    
+    // Top 4 categories by agent count
+    const topCategories = [...categories]
+      .filter(c => c.agentCount && c.agentCount > 0)
+      .sort((a, b) => (b.agentCount || 0) - (a.agentCount || 0))
+      .slice(0, 4);
+    
+    topCategories.forEach(cat => {
+      searches.push({ type: 'category', value: cat.name, count: cat.agentCount || 0 });
+    });
+    
+    // Top 4 capabilities by usage
+    const capCounts: Record<string, number> = {};
+    agents.forEach(agent => {
+      agent.capabilities?.forEach(cap => {
+        capCounts[cap] = (capCounts[cap] || 0) + 1;
+      });
+    });
+    
+    const topCaps = Object.entries(capCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 4);
+    
+    topCaps.forEach(([cap, count]) => {
+      searches.push({ type: 'capability', value: cap, count });
+    });
+    
+    return searches;
+  }, [categories, agents]);
 
   // Search suggestions based on query
   const searchSuggestions = useMemo(() => {
@@ -104,6 +138,41 @@ const TalentPool = () => {
     // Sort by count and limit
     return suggestions.sort((a, b) => b.count - a.count).slice(0, 8);
   }, [searchQuery, categories, agents]);
+
+  // Combined suggestions for dropdown (either search results or popular when empty)
+  const dropdownSuggestions = useMemo(() => {
+    return searchSuggestions.length > 0 ? searchSuggestions : popularSearches;
+  }, [searchSuggestions, popularSearches]);
+
+  // Keyboard navigation handler
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || dropdownSuggestions.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => 
+        prev < dropdownSuggestions.length - 1 ? prev + 1 : 0
+      );
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedSuggestionIndex(prev => 
+        prev > 0 ? prev - 1 : dropdownSuggestions.length - 1
+      );
+    } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
+      e.preventDefault();
+      setSearchQuery(dropdownSuggestions[selectedSuggestionIndex].value);
+      setShowSuggestions(false);
+      setSelectedSuggestionIndex(-1);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setSelectedSuggestionIndex(-1);
+    }
+  }, [showSuggestions, dropdownSuggestions, selectedSuggestionIndex]);
+
+  // Reset selection when suggestions change
+  useEffect(() => {
+    setSelectedSuggestionIndex(-1);
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -470,19 +539,29 @@ const TalentPool = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={() => setShowSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    onKeyDown={handleSearchKeyDown}
                   />
                   
                   {/* Suggestions dropdown */}
-                  {showSuggestions && searchSuggestions.length > 0 && (
+                  {showSuggestions && dropdownSuggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50">
-                      {searchSuggestions.map((suggestion) => (
+                      {!searchQuery && (
+                        <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
+                          <TrendingUp className="h-3 w-3" />
+                          Popular Searches
+                        </div>
+                      )}
+                      {dropdownSuggestions.map((suggestion, index) => (
                         <button
                           key={`sticky-${suggestion.type}-${suggestion.value}`}
-                          className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+                          className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
+                            index === selectedSuggestionIndex ? 'bg-white/15' : 'hover:bg-white/10'
+                          }`}
                           onMouseDown={() => {
                             setSearchQuery(suggestion.value);
                             setShowSuggestions(false);
                           }}
+                          onMouseEnter={() => setSelectedSuggestionIndex(index)}
                         >
                           <div className="flex items-center gap-3">
                             <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -584,19 +663,29 @@ const TalentPool = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onKeyDown={handleSearchKeyDown}
                 />
                 
                 {/* Suggestions dropdown */}
-                {showSuggestions && searchSuggestions.length > 0 && (
+                {showSuggestions && dropdownSuggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-50">
-                    {searchSuggestions.map((suggestion, i) => (
+                    {!searchQuery && (
+                      <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
+                        <TrendingUp className="h-3 w-3" />
+                        Popular Searches
+                      </div>
+                    )}
+                    {dropdownSuggestions.map((suggestion, index) => (
                       <button
-                        key={`${suggestion.type}-${suggestion.value}`}
-                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/10 transition-colors text-left"
+                        key={`hero-${suggestion.type}-${suggestion.value}`}
+                        className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
+                          index === selectedSuggestionIndex ? 'bg-white/15' : 'hover:bg-white/10'
+                        }`}
                         onMouseDown={() => {
                           setSearchQuery(suggestion.value);
                           setShowSuggestions(false);
                         }}
+                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
                       >
                         <div className="flex items-center gap-3">
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
