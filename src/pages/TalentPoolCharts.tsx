@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, Star, TrendingUp, Download, Search } from "lucide-react";
+import { Star, TrendingUp, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { mockAgents } from "@/data/mockAgents";
 import { FreeBadge } from "@/components/FreeBadge";
+import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 
 const TalentPoolCharts = () => {
@@ -114,59 +115,7 @@ const TalentPoolCharts = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-20 md:pb-0">
-      {/* Glassmorphic Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-white/80 dark:bg-white/10 border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <button 
-              onClick={() => navigate("/talent-pool")}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-            >
-              <img 
-                src="/elixa-logo.png" 
-                alt="ELIXA" 
-                className="h-8 w-auto object-contain"
-              />
-            </button>
-            
-            <div className="hidden md:flex items-center gap-6">
-              <button 
-                onClick={() => navigate("/talent-pool")}
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              >
-                Browse Agents
-              </button>
-              <button 
-                onClick={() => navigate("/talent-pool/charts")}
-                className="text-sm font-medium text-primary"
-              >
-                Top Charts
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="hidden sm:flex gap-2"
-                onClick={() => navigate("/talent-pool")}
-              >
-                <Search className="h-4 w-4" />
-                Search
-              </Button>
-              <Button 
-                size="sm"
-                onClick={() => navigate("/workspace")}
-              >
-                Open Workspace
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Spacer for fixed navbar */}
-      <div className="h-16" />
+      <TalentPoolNavbar />
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Hero */}
