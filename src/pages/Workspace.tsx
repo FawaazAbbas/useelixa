@@ -662,7 +662,7 @@ const Workspace = () => {
                     <Building2 className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="font-semibold text-slate-100 text-[15px]">My Workspace</div>
+                    <div className="font-semibold text-slate-100 text-[15px]">Baduss Technologies</div>
                     <div className="text-xs text-slate-400">Premium Plan</div>
                   </div>
                 </div>
@@ -678,8 +678,8 @@ const Workspace = () => {
                   <Building2 className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold">My Workspace</div>
-                  <div className="text-xs text-muted-foreground">Premium Plan • Personal</div>
+                  <div className="font-semibold">Baduss Technologies</div>
+                  <div className="text-xs text-muted-foreground">Premium Plan</div>
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem 

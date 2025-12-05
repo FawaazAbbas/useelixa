@@ -17,17 +17,17 @@ const getIconByType = (type: string) => {
   const lowerType = type.toLowerCase();
   
   // PDF
-  if (lowerType === 'pdf') {
+  if (lowerType === 'pdf' || lowerType.includes('pdf')) {
     return { Icon: FileText, color: "text-red-500" };
   }
   
-  // Spreadsheets
-  if (['xlsx', 'xls', 'csv', 'numbers'].includes(lowerType)) {
+  // Spreadsheets - handle both extensions and descriptive types
+  if (['xlsx', 'xls', 'csv', 'numbers', 'spreadsheet'].includes(lowerType) || lowerType.includes('spreadsheet')) {
     return { Icon: FileSpreadsheet, color: "text-green-500" };
   }
   
-  // Documents
-  if (['docx', 'doc', 'txt', 'md', 'rtf'].includes(lowerType)) {
+  // Documents - handle both extensions and descriptive types
+  if (['docx', 'doc', 'txt', 'md', 'rtf', 'document'].includes(lowerType) || lowerType.includes('document') || lowerType.includes('word')) {
     return { Icon: FileText, color: "text-blue-500" };
   }
   
