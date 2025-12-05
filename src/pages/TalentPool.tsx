@@ -349,11 +349,11 @@ const TalentPool = () => {
             
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                We Are
+                The Team That
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                The Company
+                Never Sleeps
               </span>
             </h1>
             
