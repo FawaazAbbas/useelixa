@@ -330,53 +330,64 @@ const TalentPool = () => {
 
       {/* Sticky Search Bar - appears when searching with delay */}
       <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'translate-y-0 opacity-100 scale-100 delay-300' : '-translate-y-full opacity-0 scale-95 pointer-events-none delay-0'}`}>
-        <div className="bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
-          <div className="max-w-3xl mx-auto px-4 py-3">
-            <div className="flex items-center gap-3">
-              {/* Back button */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={clearFilters} 
-                className="h-11 w-11 rounded-xl hover:bg-muted/80 shrink-0"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+        <div className="bg-background/60 backdrop-blur-2xl border-b border-white/10">
+          <div className="max-w-2xl mx-auto px-4 py-4">
+            <div className="relative">
+              {/* Gradient glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/30 via-purple-500/30 to-cyan-500/30 rounded-2xl blur-lg opacity-60" />
               
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search for AI agents..." 
-                  className="pl-11 h-11 bg-muted/50 border-border/50 rounded-xl focus-visible:ring-primary/50"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
+                {/* Back button */}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={clearFilters} 
+                  className="h-12 w-12 rounded-xl hover:bg-white/10 shrink-0"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+                
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search for AI agents..." 
+                    className="pl-12 h-12 text-base bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                
+                {activeFilterCount > 0 && (
+                  <Badge className="gap-1 hidden sm:flex bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
+                    {activeFilterCount} filters
+                  </Badge>
+                )}
+                
+                <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="icon" className="lg:hidden h-12 w-12 rounded-xl relative border-white/10 bg-white/5">
+                      <SlidersHorizontal className="h-5 w-5" />
+                      {activeFilterCount > 0 && (
+                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] text-white flex items-center justify-center font-medium">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-80 bg-background">
+                    <SheetHeader>
+                      <SheetTitle>Filters</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-6">
+                      <FilterPanel />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                
+                <Button className="h-12 px-5 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hidden sm:flex">
+                  Search
+                </Button>
               </div>
-              {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="gap-1 hidden sm:flex">
-                  {activeFilterCount} filters
-                </Badge>
-              )}
-              <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden h-11 w-11 rounded-xl relative">
-                    <SlidersHorizontal className="h-4 w-4" />
-                    {activeFilterCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center font-medium">
-                        {activeFilterCount}
-                      </span>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-80 bg-background">
-                  <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6">
-                    <FilterPanel />
-                  </div>
-                </SheetContent>
-              </Sheet>
             </div>
           </div>
         </div>
