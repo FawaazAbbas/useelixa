@@ -500,40 +500,8 @@ const TalentPool = () => {
         </div>
       </section>
 
-      {/* Active filters display - shown below sticky bar when filtering */}
-      {isFiltering && (selectedCategories.length > 0 || selectedCapabilities.length > 0 || minRating > 0) && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {selectedCategories.map(cat => (
-              <Badge key={cat} className="gap-1 pr-1 bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
-                {cat}
-                <button onClick={() => toggleCategory(cat)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            {minRating > 0 && (
-              <Badge className="gap-1 pr-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-white/10">
-                {minRating}+ Stars
-                <button onClick={() => setMinRating(0)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            )}
-            {selectedCapabilities.map(cap => (
-              <Badge key={cap} className="gap-1 pr-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-white/10">
-                {cap}
-                <button onClick={() => toggleCapability(cap)} className="ml-1 hover:bg-white/10 rounded-full p-0.5">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 transition-all duration-700 ${isFiltering ? 'pt-36' : ''}`}>
         <div className={`flex gap-8 ${isFiltering ? '' : ''}`}>
           {/* Desktop Filter Sidebar - Only shown when filtering */}
           {isFiltering && (
