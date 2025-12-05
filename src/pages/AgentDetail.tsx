@@ -384,11 +384,7 @@ const AgentDetail = () => {
 
   const handleInstall = async () => {
     if (!user) {
-      toast({
-        title: "Demo Mode",
-        description: "Sign up to install agents and use them in your workspace",
-      });
-      setTimeout(() => navigate("/workspace"), 1000);
+      navigate("/auth");
       return;
     }
 
@@ -494,7 +490,7 @@ const AgentDetail = () => {
           variant="ghost" 
           size="sm" 
           onClick={() => navigate("/talent-pool")}
-          className="mb-4 -ml-2 text-muted-foreground hover:text-foreground"
+          className="mb-4 -ml-2 text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Talent Pool
