@@ -249,20 +249,15 @@ const TalentPool = () => {
     fetchData();
   }, []);
 
-  // Handle URL search params for category filtering - only on mount
+  // Handle URL search params for category filtering - only on initial mount
   useEffect(() => {
-    const categoryParam = searchParams.get('category');
-    console.log('[TalentPool] URL category param on mount:', categoryParam);
-    if (categoryParam && selectedCategories.length === 0) {
+    // Use window.location.search directly to avoid timing issues with useSearchParams
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get('category');
+    if (categoryParam) {
       setSelectedCategories([categoryParam]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
-
-  // Debug: Log when selectedCategories changes
-  useEffect(() => {
-    console.log('[TalentPool] selectedCategories changed:', selectedCategories);
-  }, [selectedCategories]);
+  }, []);
 
   // Extract all unique capabilities from agents
   const allCapabilities = useMemo(() => {
@@ -370,14 +365,21 @@ const TalentPool = () => {
 
   const displayedAgents = filteredAgents.slice(0, displayedCount);
 
-  // Personalized recommendations
+  // Personalized recommendations - deduplicated
   const forYouAgents = useMemo(() => {
     const topRated = [...agents].sort((a, b) => b.rating - a.rating).slice(0, 4);
-    const trending = [...agents].sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0)).slice(4, 8);
+    const topRatedIds = new Set(topRated.map(a => a.id));
+    const trending = [...agents]
+      .sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0))
+      .filter(a => !topRatedIds.has(a.id))
+      .slice(0, 4);
     return [...topRated, ...trending].slice(0, 8);
   }, [agents]);
 
-  const newAgents = useMemo(() => agents.slice(-6).reverse(), [agents]);
+  const newAgents = useMemo(() => {
+    const forYouIds = new Set(agents.sort((a, b) => b.rating - a.rating).slice(0, 4).map(a => a.id));
+    return agents.slice(-6).reverse().filter(a => !forYouIds.has(a.id));
+  }, [agents]);
 
   const loadMore = useCallback(() => {
     if (displayedCount >= filteredAgents.length) {
@@ -393,12 +395,10 @@ const TalentPool = () => {
   }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
   const toggleCategory = (categoryName: string) => {
-    console.log('[TalentPool] toggleCategory called with:', categoryName);
     const newCategories = selectedCategories.includes(categoryName) 
       ? selectedCategories.filter(c => c !== categoryName)
       : [...selectedCategories, categoryName];
     
-    console.log('[TalentPool] Setting new categories:', newCategories);
     setSelectedCategories(newCategories);
     
     // Update URL params
