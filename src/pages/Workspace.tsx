@@ -949,6 +949,16 @@ const Workspace = () => {
                                />
                              </div>
                            )}
+                           {/* Agent Recommendation Card */}
+                           {(msg as any).recommendedAgent && (
+                             <AgentRecommendationCard
+                               agentId={(msg as any).recommendedAgent.id}
+                               agentName={(msg as any).recommendedAgent.name}
+                               description={(msg as any).recommendedAgent.description}
+                               category={(msg as any).recommendedAgent.category}
+                               rating={(msg as any).recommendedAgent.rating}
+                             />
+                           )}
                          </div>
                          {isUserMessage && (
                            <Avatar className="h-10 w-10 flex-shrink-0">

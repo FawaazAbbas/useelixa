@@ -7,6 +7,7 @@ import { mockBrianMessages } from "@/data/mockWorkspaceData";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  timestamp?: string;
   metadata?: {
     files?: Array<{
       name: string;
@@ -14,6 +15,13 @@ interface Message {
       type: string;
       size: number;
     }>;
+  };
+  recommendedAgent?: {
+    id: string;
+    name: string;
+    description?: string;
+    category?: string;
+    rating?: number;
   };
 }
 
