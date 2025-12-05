@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
 import { Search, Sparkles, TrendingUp, Clock, Filter, X, SlidersHorizontal, Star, ChevronDown, ChevronUp } from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
@@ -44,7 +43,6 @@ type SortOption = "popular" | "rating" | "reviews" | "newest" | "name";
 
 const TalentPool = () => {
   const { user } = useAuth();
-  const [searchParams, setSearchParams] = useSearchParams();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -249,16 +247,6 @@ const TalentPool = () => {
     fetchData();
   }, []);
 
-  // Handle URL search params for category filtering - only on initial mount
-  useEffect(() => {
-    // Use window.location.search directly to avoid timing issues with useSearchParams
-    const urlParams = new URLSearchParams(window.location.search);
-    const categoryParam = urlParams.get('category');
-    if (categoryParam) {
-      setSelectedCategories([categoryParam]);
-    }
-  }, []);
-
   // Extract all unique capabilities from agents
   const allCapabilities = useMemo(() => {
     const caps = new Set<string>();
@@ -365,21 +353,14 @@ const TalentPool = () => {
 
   const displayedAgents = filteredAgents.slice(0, displayedCount);
 
-  // Personalized recommendations - deduplicated
+  // Personalized recommendations
   const forYouAgents = useMemo(() => {
     const topRated = [...agents].sort((a, b) => b.rating - a.rating).slice(0, 4);
-    const topRatedIds = new Set(topRated.map(a => a.id));
-    const trending = [...agents]
-      .sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0))
-      .filter(a => !topRatedIds.has(a.id))
-      .slice(0, 4);
+    const trending = [...agents].sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0)).slice(4, 8);
     return [...topRated, ...trending].slice(0, 8);
   }, [agents]);
 
-  const newAgents = useMemo(() => {
-    const forYouIds = new Set(agents.sort((a, b) => b.rating - a.rating).slice(0, 4).map(a => a.id));
-    return agents.slice(-6).reverse().filter(a => !forYouIds.has(a.id));
-  }, [agents]);
+  const newAgents = useMemo(() => agents.slice(-6).reverse(), [agents]);
 
   const loadMore = useCallback(() => {
     if (displayedCount >= filteredAgents.length) {
@@ -395,18 +376,11 @@ const TalentPool = () => {
   }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
   const toggleCategory = (categoryName: string) => {
-    const newCategories = selectedCategories.includes(categoryName) 
-      ? selectedCategories.filter(c => c !== categoryName)
-      : [...selectedCategories, categoryName];
-    
-    setSelectedCategories(newCategories);
-    
-    // Update URL params
-    if (newCategories.length === 1) {
-      setSearchParams({ category: newCategories[0] });
-    } else {
-      setSearchParams({});
-    }
+    setSelectedCategories(prev => 
+      prev.includes(categoryName) 
+        ? prev.filter(c => c !== categoryName)
+        : [...prev, categoryName]
+    );
   };
 
   const toggleCapability = (capability: string) => {
@@ -423,7 +397,6 @@ const TalentPool = () => {
     setMinRating(0);
     setSelectedCapabilities([]);
     setSortBy("popular");
-    setSearchParams({});
   };
 
   const activeFilterCount = selectedCategories.length + (minRating > 0 ? 1 : 0) + selectedCapabilities.length;

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import TalentPool from "./pages/TalentPool";
 import TalentPoolCharts from "./pages/TalentPoolCharts";
+import CategoryPage from "./pages/CategoryPage";
 import AgentDetail from "./pages/AgentDetail";
 import Workspace from "./pages/Workspace";
 import Auth from "./pages/Auth";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/" element={<TalentPool />} />
           <Route path="/talent-pool" element={<TalentPool />} />
           <Route path="/talent-pool/charts" element={<TalentPoolCharts />} />
+          <Route path="/talent-pool/category/:slug" element={<CategoryPage />} />
           <Route path="/agent/:id" element={<AgentDetail />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/publish" element={<Publish />} />

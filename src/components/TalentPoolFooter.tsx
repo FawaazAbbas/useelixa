@@ -1,16 +1,9 @@
-import { Link } from "react-router-dom";
-
-// Use actual database category names
-const footerCategories = [
-  "Marketing & Growth",
-  "Customer Support",
-  "Sales",
-  "Analytics & Data",
-  "Finance",
-  "Operations",
-];
+import { useNavigate, Link } from "react-router-dom";
+import { mockCategories } from "@/data/mockCategories";
 
 export const TalentPoolFooter = () => {
+  const navigate = useNavigate();
+
   return (
     <footer className="border-t border-border/50 bg-muted/30 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
@@ -31,14 +24,14 @@ export const TalentPoolFooter = () => {
           <div className="space-y-4">
             <h3 className="font-semibold">Categories</h3>
             <ul className="space-y-2 text-sm">
-              {footerCategories.map((category) => (
-                <li key={category}>
-                  <Link
-                    to={`/talent-pool?category=${encodeURIComponent(category)}`}
+              {mockCategories.slice(0, 6).map((category) => (
+                <li key={category.name}>
+                  <button
+                    onClick={() => navigate(`/talent-pool/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {category}
-                  </Link>
+                    {category.name}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -49,20 +42,20 @@ export const TalentPoolFooter = () => {
             <h3 className="font-semibold">Resources</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link
-                  to="/talent-pool"
+                <button
+                  onClick={() => navigate("/talent-pool")}
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Browse Agents
-                </Link>
+                </button>
               </li>
               <li>
-                <Link
-                  to="/talent-pool/charts"
+                <button
+                  onClick={() => navigate("/talent-pool/charts")}
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   Top Charts
-                </Link>
+                </button>
               </li>
               <li>
                 <Link
