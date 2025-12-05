@@ -14,7 +14,7 @@ import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { StarBreakdown } from "@/components/StarBreakdown";
 import { ReviewCard } from "@/components/ReviewCard";
 import { RelatedAgents } from "@/components/RelatedAgents";
-import { TalentPoolNavbar, TalentPoolBackButton } from "@/components/TalentPoolNavbar";
+import { TalentPoolNavbar, TalentPoolBreadcrumb } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
@@ -324,12 +324,20 @@ const AgentDetail = () => {
   const isChatCompatible = agent.is_chat_compatible !== false;
   const isWorkflowBased = agent.is_workflow_based || false;
 
+  const categorySlug = (agent.agent_categories?.name || agent.category || "").toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+  
+  const breadcrumbItems = [
+    { label: "Talent Pool", href: "/talent-pool" },
+    { label: agent.agent_categories?.name || agent.category || "Uncategorized", href: `/talent-pool/category/${categorySlug}` },
+    { label: agent.name }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20 md:pb-0">
       <TalentPoolNavbar />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
-        <TalentPoolBackButton label="Back to Talent Pool" />
+        <TalentPoolBreadcrumb items={breadcrumbItems} />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
