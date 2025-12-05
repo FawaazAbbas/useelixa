@@ -118,7 +118,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
           <div className="space-y-4 max-w-3xl mx-auto">
             {messages.length === 0 && (
               <div className="text-center py-8 space-y-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
                   <Bot className="h-8 w-8 text-white" />
                 </div>
                 <div>
@@ -137,8 +137,8 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                 className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-4 w-4 text-white" />
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-5 w-5 text-white" />
                   </div>
                 )}
                 
@@ -196,8 +196,8 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
 
             {sending && (
               <div className="flex gap-3 justify-start">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                  <Bot className="h-4 w-4 text-white" />
+                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                  <Bot className="h-5 w-5 text-white" />
                 </div>
                 <div className="rounded-lg px-4 py-2 bg-muted">
                   <Loader2 className="h-4 w-4 animate-spin" />
