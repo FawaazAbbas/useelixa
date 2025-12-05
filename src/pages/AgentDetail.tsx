@@ -14,7 +14,7 @@ import { ScreenshotGallery } from "@/components/ScreenshotGallery";
 import { StarBreakdown } from "@/components/StarBreakdown";
 import { ReviewCard } from "@/components/ReviewCard";
 import { RelatedAgents } from "@/components/RelatedAgents";
-import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
+import { TalentPoolNavbar, TalentPoolBackButton } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
@@ -326,9 +326,11 @@ const AgentDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20 md:pb-0">
-      <TalentPoolNavbar showBackButton backLabel="Back" backTo="/talent-pool" />
+      <TalentPoolNavbar />
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
+        <TalentPoolBackButton label="Back to Talent Pool" />
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
