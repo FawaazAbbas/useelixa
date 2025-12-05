@@ -1,16 +1,17 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Star } from "lucide-react";
+import { Star, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface Agent {
   id: string;
   name: string;
   description: string;
+  short_description?: string;
   rating: number;
   total_reviews: number;
   total_installs?: number;
   category: string;
   image_url: string;
+  capabilities?: string[];
 }
 
 interface AgentCardProps {
@@ -24,44 +25,62 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
     navigate(`/agent/${agent.id}`);
   };
 
+  const formatInstalls = (count?: number) => {
+    if (!count) return "0";
+    if (count >= 1000) return `${(count / 1000).toFixed(1)}k`;
+    return count.toString();
+  };
+
   return (
     <div 
-      className="group cursor-pointer transition-all duration-300 hover:scale-105 animate-fade-in"
+      className="group cursor-pointer h-full"
       onClick={handleClick}
     >
-      <div className="relative overflow-hidden rounded-2xl">
-        {/* Glassmorphic card */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-white/40 dark:from-white/10 dark:via-white/5 dark:to-white/5 backdrop-blur-xl border border-white/20" />
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/0 to-accent/0 opacity-0 group-hover:from-primary/20 group-hover:to-accent/20 group-hover:opacity-100 transition-all duration-500" />
-        
-        <div className="relative p-4 space-y-3">
-          {/* Agent Icon */}
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-accent/30 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg group-hover:shadow-xl transition-all transform group-hover:scale-110 duration-300 border border-white/30">
-            {agent.image_url ? (
-              <img src={agent.image_url} alt={agent.name} className="w-full h-full object-cover rounded-xl" />
-            ) : (
-              <span className="font-bold bg-gradient-to-br from-primary to-accent bg-clip-text text-transparent">
+      <div className="relative h-full bg-card rounded-xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1">
+        {/* Agent Image/Icon Header */}
+        <div className="relative h-32 bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center overflow-hidden">
+          {agent.image_url ? (
+            <img 
+              src={agent.image_url} 
+              alt={agent.name} 
+              className="w-16 h-16 object-cover rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300" 
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <span className="text-2xl font-bold text-primary-foreground">
                 {agent.name.charAt(0).toUpperCase()}
               </span>
-            )}
+            </div>
+          )}
+          {/* Category badge */}
+          <div className="absolute top-3 left-3">
+            <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground">
+              {agent.category}
+            </span>
           </div>
+        </div>
 
-          {/* Agent Info */}
-          <div className="space-y-1.5">
+        {/* Content */}
+        <div className="p-4 space-y-3">
+          <div>
             <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
               {agent.name}
             </h3>
-            
-            <p className="text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">
-              {agent.description}
+            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed min-h-[2.5rem]">
+              {agent.short_description || agent.description}
             </p>
+          </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-1 pt-0.5">
-              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-              <span className="text-xs font-medium text-muted-foreground">
-                {agent.rating.toFixed(1)}
-              </span>
+          {/* Stats row */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+            <div className="flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs font-medium">{agent.rating.toFixed(1)}</span>
+              <span className="text-xs text-muted-foreground">({agent.total_reviews})</span>
+            </div>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Download className="h-3 w-3" />
+              <span className="text-xs">{formatInstalls(agent.total_installs)}</span>
             </div>
           </div>
         </div>

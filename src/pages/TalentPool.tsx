@@ -323,15 +323,15 @@ const TalentPool = () => {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {agents.slice(0, 24).map((agent, index) => (
-                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 20}ms` }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {agents.slice(0, 16).map((agent, index) => (
+                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 30}ms` }}>
                     <AgentCard agent={agent} />
                   </div>
                 ))}
               </div>
-              {agents.length > 24 && (
-                <div className="text-center mt-8">
+              {agents.length > 16 && (
+                <div className="text-center mt-10">
                   <Button
                     variant="outline"
                     onClick={() => setSearchQuery(" ")}
@@ -406,9 +406,11 @@ const TalentPool = () => {
                   </p>
                 }
               >
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  {displayedAgents.map((agent) => (
-                    <AgentCard key={agent.id} agent={agent} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {displayedAgents.map((agent, index) => (
+                    <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 30}ms` }}>
+                      <AgentCard agent={agent} />
+                    </div>
                   ))}
                 </div>
               </InfiniteScroll>
