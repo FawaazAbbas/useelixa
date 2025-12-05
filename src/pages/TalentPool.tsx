@@ -328,8 +328,8 @@ const TalentPool = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <TalentPoolNavbar />
 
-      {/* Sticky Search Bar - appears when searching */}
-      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-full opacity-0 scale-95 pointer-events-none'}`}>
+      {/* Sticky Search Bar - appears when searching with delay */}
+      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'translate-y-0 opacity-100 scale-100 delay-300' : '-translate-y-full opacity-0 scale-95 pointer-events-none delay-0'}`}>
         <div className="bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
           <div className="max-w-3xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3">
@@ -383,7 +383,7 @@ const TalentPool = () => {
       </div>
 
       {/* Hero - Bold & Vibrant - Collapses when searching */}
-      <section className={`relative transition-all duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'max-h-0 opacity-0 overflow-hidden py-0' : 'max-h-[800px] opacity-100'}`}>
+      <section className={`relative transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'max-h-0 opacity-0 overflow-hidden py-0' : 'max-h-[800px] opacity-100'}`}>
         {/* Animated gradient background - extends beyond section */}
         <div className="absolute inset-0 -bottom-32 pointer-events-none">
           <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-rose-500/30 via-pink-500/20 to-transparent rounded-full blur-3xl animate-pulse" />
