@@ -50,6 +50,7 @@ import { mockTeamMemberMessages, mockTeamGroupMessages, mockDirectorChatData } f
 import { getTeamGroupData, formatRelativeTime } from "@/data/mockTeamGroupData";
 import { FileIcon } from "@/components/FileIcon";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
+import { BrianAvatar } from "@/components/BrianAvatar";
 import { brianFiles, brianMemories, brianActivity } from "@/data/mockWorkspaceData";
 import {
   DropdownMenu,
@@ -835,9 +836,7 @@ const Workspace = () => {
             {/* Brian Chat Header */}
             <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                  <Bot className="h-5 w-5 text-white" />
-                </div>
+                <BrianAvatar size="md" />
                 <div>
                   <div className="font-semibold">Brian</div>
                   <div className="text-xs text-muted-foreground">Your AI COO</div>
@@ -911,9 +910,7 @@ const Workspace = () => {
                           </div>
                         )}
                          {!isUserMessage && (
-                           <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                             <Bot className="h-5 w-5 text-white" />
-                           </div>
+                           <BrianAvatar size="md" />
                          )}
                          <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                            <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
@@ -963,9 +960,7 @@ const Workspace = () => {
                 )}
                 {brianSending && (
                   <div className="flex gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-5 w-5 text-white" />
-                    </div>
+                    <BrianAvatar size="md" />
                     <div className="flex-1">
                       <div className="inline-block px-4 py-2 rounded-lg bg-muted">
                         <div className="flex items-center gap-2">
