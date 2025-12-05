@@ -26,6 +26,7 @@ export const mockBrianMessages = brianMessages.map(msg => ({
       size: msg.file.size,
     }]
   } : undefined,
+  recommendedAgent: (msg as any).recommendedAgent,
 }));
 
 // Mock direct chat messages for each agent
