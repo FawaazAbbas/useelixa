@@ -306,7 +306,7 @@ export const marketingDirectorMessages: DirectorMessage[] = [
     sender_name: 'Marketing Director',
     created_at: '2025-12-04T11:58:00Z',
     recommendedAgent: {
-      id: 'video-producer',
+      id: 'ce6c1d00-906c-4f04-9575-ae74bdd4cfb2',
       name: 'Video Producer',
       description: 'Builds campaign structures, scripts platform-native video content, and creates shot lists for UGC creators.',
       category: 'Creative',
