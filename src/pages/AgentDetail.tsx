@@ -139,20 +139,20 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   googleSheetsOAuth2Api: { name: "Google Sheets", logo: "/logos/GoogleDriveLogo.png", color: "from-green-500/20 to-emerald-500/20" },
   googleSearchConsoleOAuth2Api: { name: "Search Console", logo: "/logos/GoogleDriveLogo.png", color: "from-red-500/20 to-orange-500/20" },
   bigQueryOAuth2Api: { name: "BigQuery", logo: "/logos/BigQueryLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
-  youtubeOAuth2Api: { name: "YouTube", logo: "/logos/n8nLogo.png", color: "from-red-500/20 to-red-600/20" },
+  youtubeOAuth2Api: { name: "YouTube", logo: "/logos/YouTubeLogo.svg", color: "from-red-500/20 to-red-600/20" },
   
   // Marketing & Ads
-  metaAdsOAuth2Api: { name: "Meta Ads", logo: "/logos/n8nLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  metaAdsOAuth2Api: { name: "Meta Ads", logo: "/logos/MetaLogo.svg", color: "from-blue-600/20 to-indigo-600/20" },
   tiktokAdsApi: { name: "TikTok Ads", logo: "/logos/TikTokLogo.png", color: "from-pink-500/20 to-purple-500/20" },
   klaviyoApi: { name: "Klaviyo", logo: "/logos/KlaviyoLogo.png", color: "from-green-500/20 to-emerald-500/20" },
-  mailchimpOAuth2Api: { name: "Mailchimp", logo: "/logos/n8nLogo.png", color: "from-yellow-500/20 to-amber-500/20" },
+  mailchimpOAuth2Api: { name: "Mailchimp", logo: "/logos/MailchimpLogo.svg", color: "from-yellow-500/20 to-amber-500/20" },
   omnisendApi: { name: "Omnisend", logo: "/logos/OmnisendLogo.png", color: "from-purple-500/20 to-violet-500/20" },
-  linkedInOAuth2Api: { name: "LinkedIn", logo: "/logos/n8nLogo.png", color: "from-blue-700/20 to-blue-800/20" },
-  bufferApi: { name: "Buffer", logo: "/logos/n8nLogo.png", color: "from-slate-500/20 to-gray-500/20" },
-  semrushApi: { name: "SEMrush", logo: "/logos/n8nLogo.png", color: "from-orange-500/20 to-red-500/20" },
+  linkedInOAuth2Api: { name: "LinkedIn", logo: "/logos/LinkedInLogo.svg", color: "from-blue-700/20 to-blue-800/20" },
+  bufferApi: { name: "Buffer", logo: "/logos/BufferLogo.svg", color: "from-slate-500/20 to-gray-500/20" },
+  semrushApi: { name: "SEMrush", logo: "/logos/SEMrushLogo.svg", color: "from-orange-500/20 to-red-500/20" },
   ahrefsApi: { name: "Ahrefs", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
-  lookerApi: { name: "Looker", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
-  grammarly: { name: "Grammarly", logo: "/logos/n8nLogo.png", color: "from-green-500/20 to-emerald-500/20" },
+  lookerApi: { name: "Looker", logo: "/logos/LookerLogo.svg", color: "from-blue-500/20 to-indigo-500/20" },
+  grammarly: { name: "Grammarly", logo: "/logos/GrammarlyLogo.svg", color: "from-green-500/20 to-emerald-500/20" },
   
   // Finance & Payments
   xeroOAuth2Api: { name: "Xero", logo: "/logos/XeroLogo.png", color: "from-cyan-500/20 to-blue-500/20" },
@@ -171,7 +171,7 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   aircallApi: { name: "Aircall", logo: "/logos/AircallLogo.png", color: "from-green-500/20 to-teal-500/20" },
   
   // Productivity
-  notionOAuth2Api: { name: "Notion", logo: "/logos/n8nLogo.png", color: "from-slate-500/20 to-gray-500/20" },
+  notionOAuth2Api: { name: "Notion", logo: "/logos/NotionLogo.svg", color: "from-slate-500/20 to-gray-500/20" },
   asanaOAuth2Api: { name: "Asana", logo: "/logos/AsanaLogo.png", color: "from-pink-500/20 to-rose-500/20" },
   clickupApi: { name: "ClickUp", logo: "/logos/ClickUpLogo.png", color: "from-purple-500/20 to-violet-500/20" },
   linearApi: { name: "Linear", logo: "/logos/LinearLogo.png", color: "from-indigo-500/20 to-purple-500/20" },
@@ -180,7 +180,7 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   githubOAuth2Api: { name: "GitHub", logo: "/logos/GitHubLogo.png", color: "from-slate-700/20 to-gray-700/20" },
   gitlabOAuth2Api: { name: "GitLab", logo: "/logos/GitLabLogo.png", color: "from-orange-500/20 to-red-500/20" },
   bitbucketApi: { name: "Bitbucket", logo: "/logos/BitbucketLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
-  jiraOAuth2Api: { name: "Jira", logo: "/logos/n8nLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
+  jiraOAuth2Api: { name: "Jira", logo: "/logos/JiraLogo.svg", color: "from-blue-600/20 to-indigo-600/20" },
   vercelApi: { name: "Vercel", logo: "/logos/VercelLogo.png", color: "from-slate-600/20 to-gray-600/20" },
   netlifyApi: { name: "Netlify", logo: "/logos/NetlifyLogo.png", color: "from-teal-500/20 to-cyan-500/20" },
   renderApi: { name: "Render", logo: "/logos/RenderLogo.png", color: "from-purple-500/20 to-violet-500/20" },
@@ -203,7 +203,7 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   freshdeskApi: { name: "Freshdesk", logo: "/logos/FreshdeskLogo.png", color: "from-green-500/20 to-emerald-500/20" },
   
   // Ecommerce
-  shopifyApi: { name: "Shopify", logo: "/logos/n8nLogo.png", color: "from-green-500/20 to-lime-500/20" },
+  shopifyApi: { name: "Shopify", logo: "/logos/ShopifyLogo.svg", color: "from-green-500/20 to-lime-500/20" },
   triplewhaleApi: { name: "Triple Whale", logo: "/logos/TripleWhaleLogo.png", color: "from-blue-500/20 to-cyan-500/20" },
   northbeamApi: { name: "Northbeam", logo: "/logos/NorthbeamLogo.png", color: "from-indigo-500/20 to-purple-500/20" },
   yotpoApi: { name: "Yotpo", logo: "/logos/YotpoLogo.png", color: "from-blue-500/20 to-indigo-500/20" },
@@ -215,8 +215,8 @@ const pluginDisplayMap: Record<string, { name: string; logo: string; color: stri
   docusignApi: { name: "DocuSign", logo: "/logos/DocuSignLogo.png", color: "from-blue-600/20 to-indigo-600/20" },
   
   // CRM
-  hubspotOAuth2Api: { name: "HubSpot", logo: "/logos/n8nLogo.png", color: "from-orange-500/20 to-red-500/20" },
-  salesforceOAuth2Api: { name: "Salesforce", logo: "/logos/n8nLogo.png", color: "from-blue-500/20 to-sky-500/20" },
+  hubspotOAuth2Api: { name: "HubSpot", logo: "/logos/HubSpotLogo.svg", color: "from-orange-500/20 to-red-500/20" },
+  salesforceOAuth2Api: { name: "Salesforce", logo: "/logos/SalesforceLogo.svg", color: "from-blue-500/20 to-sky-500/20" },
   
   // Compliance/Privacy
   cookiebotApi: { name: "Cookiebot", logo: "/logos/CookiebotLogo.png", color: "from-green-500/20 to-teal-500/20" },
