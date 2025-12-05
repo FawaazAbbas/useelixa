@@ -1,4 +1,4 @@
-import { Star, Download } from "lucide-react";
+import { Star, Download, Megaphone, Headphones, Target, DollarSign, Package, Users, Code, Palette, BarChart3, Scale, Smartphone, ClipboardList, ShoppingCart, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 
@@ -19,8 +19,70 @@ interface AgentCardProps {
   agent: Agent;
 }
 
+// Category visual config: gradient + icon
+const categoryConfig: Record<string, { gradient: string; icon: React.ReactNode }> = {
+  "Marketing & Growth": { 
+    gradient: "from-rose-500 to-orange-500", 
+    icon: <Megaphone className="h-8 w-8" /> 
+  },
+  "Customer Support": { 
+    gradient: "from-emerald-500 to-teal-500", 
+    icon: <Headphones className="h-8 w-8" /> 
+  },
+  "Sales": { 
+    gradient: "from-orange-500 to-red-500", 
+    icon: <Target className="h-8 w-8" /> 
+  },
+  "Finance": { 
+    gradient: "from-green-500 to-emerald-600", 
+    icon: <DollarSign className="h-8 w-8" /> 
+  },
+  "Operations": { 
+    gradient: "from-blue-500 to-cyan-500", 
+    icon: <Package className="h-8 w-8" /> 
+  },
+  "HR & People": { 
+    gradient: "from-cyan-500 to-blue-500", 
+    icon: <Users className="h-8 w-8" /> 
+  },
+  "Development": { 
+    gradient: "from-amber-500 to-orange-500", 
+    icon: <Code className="h-8 w-8" /> 
+  },
+  "Design & Creative": { 
+    gradient: "from-pink-500 to-rose-500", 
+    icon: <Palette className="h-8 w-8" /> 
+  },
+  "Analytics & Data": { 
+    gradient: "from-purple-500 to-indigo-500", 
+    icon: <BarChart3 className="h-8 w-8" /> 
+  },
+  "Legal & Compliance": { 
+    gradient: "from-slate-500 to-gray-600", 
+    icon: <Scale className="h-8 w-8" /> 
+  },
+  "Product": { 
+    gradient: "from-violet-500 to-purple-500", 
+    icon: <Smartphone className="h-8 w-8" /> 
+  },
+  "Project Management": { 
+    gradient: "from-indigo-500 to-blue-500", 
+    icon: <ClipboardList className="h-8 w-8" /> 
+  },
+  "Ecommerce": { 
+    gradient: "from-teal-500 to-emerald-500", 
+    icon: <ShoppingCart className="h-8 w-8" /> 
+  },
+};
+
+const defaultConfig = { 
+  gradient: "from-primary to-accent", 
+  icon: <Bot className="h-8 w-8" /> 
+};
+
 export const AgentCard = ({ agent }: AgentCardProps) => {
   const navigate = useNavigate();
+  const config = categoryConfig[agent.category] || defaultConfig;
 
   const handleClick = () => {
     navigate(`/agent/${agent.id}`);
@@ -38,24 +100,22 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
       onClick={handleClick}
     >
       <div className="relative h-full bg-card rounded-xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1">
-        {/* Agent Image/Icon Header */}
-        <div className="relative h-32 bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center overflow-hidden">
-          {agent.image_url ? (
-            <img 
-              src={agent.image_url} 
-              alt={agent.name} 
-              className="w-16 h-16 object-cover rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300" 
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <span className="text-2xl font-bold text-primary-foreground">
-                {agent.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+        {/* Agent Visual Header */}
+        <div className={`relative h-28 bg-gradient-to-br ${config.gradient} flex items-center justify-center overflow-hidden`}>
+          {/* Pattern overlay */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+              backgroundSize: '16px 16px'
+            }} />
+          </div>
+          {/* Icon */}
+          <div className="relative text-white/90 transform group-hover:scale-110 transition-transform duration-300">
+            {config.icon}
+          </div>
           {/* Category badge */}
-          <div className="absolute top-3 left-3">
-            <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-background/80 backdrop-blur-sm text-muted-foreground">
+          <div className="absolute top-2 left-2">
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-sm text-white">
               {agent.category}
             </span>
           </div>
@@ -75,7 +135,7 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
           {/* Capability tags */}
           {agent.capabilities && agent.capabilities.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {agent.capabilities.slice(0, 3).map((capability, index) => (
+              {agent.capabilities.slice(0, 2).map((capability, index) => (
                 <Badge 
                   key={index} 
                   variant="secondary" 
@@ -84,12 +144,12 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
                   {capability}
                 </Badge>
               ))}
-              {agent.capabilities.length > 3 && (
+              {agent.capabilities.length > 2 && (
                 <Badge 
                   variant="secondary" 
                   className="text-[10px] px-1.5 py-0 h-5 bg-muted/50 text-muted-foreground font-normal"
                 >
-                  +{agent.capabilities.length - 3}
+                  +{agent.capabilities.length - 2}
                 </Badge>
               )}
             </div>
