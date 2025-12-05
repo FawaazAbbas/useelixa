@@ -10,6 +10,7 @@ import { useBrianChat } from "@/hooks/useBrianChat";
 import { VoiceCallDialog } from "@/components/VoiceCallDialog";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { BrianAvatar } from "@/components/BrianAvatar";
+import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -180,6 +181,17 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                         senderName={msg.role === "user" ? "You" : "Brian"}
                       />
                     </div>
+                  )}
+                  
+                  {/* Agent Recommendation Card */}
+                  {(msg as any).recommendedAgent && (
+                    <AgentRecommendationCard
+                      agentId={(msg as any).recommendedAgent.id}
+                      agentName={(msg as any).recommendedAgent.name}
+                      description={(msg as any).recommendedAgent.description}
+                      category={(msg as any).recommendedAgent.category}
+                      rating={(msg as any).recommendedAgent.rating}
+                    />
                   )}
                 </div>
 
