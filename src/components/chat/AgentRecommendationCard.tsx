@@ -26,47 +26,46 @@ export const AgentRecommendationCard = ({
   return (
     <div 
       onClick={handleClick}
-      className="group mt-2 w-full cursor-pointer overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-3 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.01]"
+      className="group mt-3 max-w-[85%] cursor-pointer overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-3 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]"
     >
       {/* Header with sparkle */}
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="h-3 w-3 text-primary animate-pulse" />
-        <span className="text-[11px] font-medium text-primary">Recommended from Talent Pool</span>
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+        <span className="text-xs font-medium text-primary">Recommended from Talent Pool</span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         {/* Agent Icon */}
-        <div className="flex-shrink-0 h-10 w-10 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border border-primary/10 group-hover:scale-105 transition-transform duration-300">
-          <Bot className="h-5 w-5 text-primary" />
+        <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border border-primary/10 group-hover:scale-110 transition-transform duration-300">
+          <Bot className="h-6 w-6 text-primary" />
         </div>
 
         {/* Agent Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h4 className="text-sm font-semibold text-foreground truncate">{agentName}</h4>
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-semibold text-foreground truncate">{agentName}</h4>
             {rating && (
-              <div className="flex items-center gap-0.5 text-amber-500">
-                <Star className="h-3 w-3 fill-current" />
-                <span className="text-[11px] font-medium">{rating.toFixed(1)}</span>
+              <div className="flex items-center gap-1 text-amber-500">
+                <Star className="h-3.5 w-3.5 fill-current" />
+                <span className="text-xs font-medium">{rating.toFixed(1)}</span>
               </div>
             )}
           </div>
           
-          <div className="flex items-center gap-2 mt-0.5">
-            {category && (
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">
-                {category}
-              </Badge>
-            )}
-            {description && (
-              <p className="text-[11px] text-muted-foreground truncate">{description}</p>
-            )}
-          </div>
+          {category && (
+            <Badge variant="secondary" className="text-[10px] px-2 py-0 mb-1.5 bg-primary/10 text-primary border-0">
+              {category}
+            </Badge>
+          )}
+          
+          {description && (
+            <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
+          )}
         </div>
 
         {/* Arrow */}
-        <div className="flex-shrink-0">
-          <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+        <div className="flex-shrink-0 self-center">
+          <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
         </div>
       </div>
     </div>
