@@ -16,6 +16,7 @@ import { ReviewCard } from "@/components/ReviewCard";
 import { RelatedAgents } from "@/components/RelatedAgents";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
+import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 
 // Plugin display mapping - converts API credential types to user-friendly names
 const pluginDisplayMap: Record<string, { name: string; logo: string; color: string }> = {
@@ -706,7 +707,7 @@ const AgentDetail = () => {
                     <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
                       <div className="font-medium mb-1">Email Support</div>
                       <p className="text-sm text-muted-foreground">
-                        Contact support@elixa.ai for priority assistance
+                        Contact support@elixa.app for priority assistance
                       </p>
                     </div>
                     <div className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
@@ -822,6 +823,9 @@ const AgentDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <TalentPoolFooter />
     </div>
   );
 };

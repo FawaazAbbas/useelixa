@@ -95,14 +95,39 @@ export const getTeamGroupData = (teamId: string) => {
   };
 };
 
-// Helper to get file icon based on type
-export const getFileIcon = (type: string): string => {
-  const icons: Record<string, string> = {
-    pdf: "📄", xlsx: "📊", csv: "📊", docx: "📝", md: "📝",
-    json: "📋", fig: "🎨", psd: "🎨", zip: "📦", png: "🖼️",
-    jpg: "🖼️", mp4: "🎬", pptx: "📊", html: "🌐", yml: "⚙️",
+// Helper to get file icon type for lucide icons
+export const getFileIconType = (type: string): 'pdf' | 'spreadsheet' | 'document' | 'image' | 'video' | 'archive' | 'code' | 'presentation' | 'design' | 'default' => {
+  const iconTypes: Record<string, 'pdf' | 'spreadsheet' | 'document' | 'image' | 'video' | 'archive' | 'code' | 'presentation' | 'design' | 'default'> = {
+    pdf: 'pdf',
+    xlsx: 'spreadsheet',
+    csv: 'spreadsheet',
+    docx: 'document',
+    md: 'document',
+    json: 'code',
+    fig: 'design',
+    psd: 'design',
+    zip: 'archive',
+    png: 'image',
+    jpg: 'image',
+    jpeg: 'image',
+    gif: 'image',
+    svg: 'image',
+    mp4: 'video',
+    mov: 'video',
+    pptx: 'presentation',
+    html: 'code',
+    yml: 'code',
+    yaml: 'code',
+    js: 'code',
+    ts: 'code',
+    tsx: 'code',
   };
-  return icons[type] || "📄";
+  return iconTypes[type.toLowerCase()] || 'default';
+};
+
+// Legacy function for backward compatibility - now returns icon type string
+export const getFileIcon = (type: string): string => {
+  return getFileIconType(type);
 };
 
 export const formatFileSize = (size: string): string => size;

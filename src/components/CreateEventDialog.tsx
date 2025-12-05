@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Bot } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -28,12 +28,36 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { mockTeams, Team, TeamMember } from "@/data/mockTeams";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface CreateEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialDate?: Date;
 }
+
+// Get all team members for attendee selection
+const getAllAttendeeOptions = (): { id: string; name: string; team: string; isManager: boolean }[] => {
+  const attendees: { id: string; name: string; team: string; isManager: boolean }[] = [];
+  
+  // Add Liam (the user)
+  attendees.push({ id: "liam", name: "Liam Baduss", team: "Executive", isManager: true });
+  
+  // Add Brian
+  attendees.push({ id: "brian", name: "Brian (AI COO)", team: "Executive", isManager: true });
+  
+  // Add all team members
+  mockTeams.forEach((team: Team) => {
+    attendees.push({ id: team.manager.id, name: team.manager.name, team: team.name, isManager: true });
+    team.members.forEach((member: TeamMember) => {
+      attendees.push({ id: member.id, name: member.name, team: team.name, isManager: false });
+    });
+  });
+  
+  return attendees;
+};
 
 const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialogProps) => {
   const [date, setDate] = useState<Date | undefined>(initialDate || new Date());
@@ -56,6 +80,9 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
   });
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedAttendees, setSelectedAttendees] = useState<string[]>([]);
+  
+  const attendeeOptions = getAllAttendeeOptions();
 
   // Update date when initialDate changes or dialog opens
   useEffect(() => {
@@ -72,6 +99,20 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
     e.preventDefault();
     toast.info("Event creation is disabled in demo mode");
     onOpenChange(false);
+  };
+
+  const addAttendee = (attendeeId: string) => {
+    if (!selectedAttendees.includes(attendeeId)) {
+      setSelectedAttendees([...selectedAttendees, attendeeId]);
+    }
+  };
+
+  const removeAttendee = (attendeeId: string) => {
+    setSelectedAttendees(selectedAttendees.filter(id => id !== attendeeId));
+  };
+
+  const getAttendeeName = (id: string) => {
+    return attendeeOptions.find(a => a.id === id)?.name || id;
   };
 
   return (
@@ -197,6 +238,45 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
             />
+          </div>
+
+          {/* Attendees */}
+          <div className="space-y-2">
+            <Label>Attendees</Label>
+            <Select onValueChange={addAttendee}>
+              <SelectTrigger>
+                <SelectValue placeholder="Add attendees" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {attendeeOptions
+                  .filter(a => !selectedAttendees.includes(a.id))
+                  .map(attendee => (
+                    <SelectItem key={attendee.id} value={attendee.id}>
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-3 w-3" />
+                        <span>{attendee.name}</span>
+                        <span className="text-xs text-muted-foreground">({attendee.team})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {selectedAttendees.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedAttendees.map(id => (
+                  <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                    {getAttendeeName(id)}
+                    <button
+                      type="button"
+                      onClick={() => removeAttendee(id)}
+                      className="ml-1 hover:bg-muted-foreground/20 rounded-full"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Actions */}

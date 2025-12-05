@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Clock, MapPin, Video, Users, Calendar as CalendarIcon, Repeat, X } from "lucide-react";
+import { Clock, MapPin, Video, Users, Calendar as CalendarIcon, Repeat, X, Bot } from "lucide-react";
 import { MockCalendarEvent } from "@/data/mockCalendarEvents";
 import {
   Sheet,
@@ -10,8 +10,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
+
+// List of AI agent names that should use robot avatars
+const AI_AGENT_NAMES = [
+  "Marketing Director", "Content Writer", "SEO Specialist", "PPC Specialist",
+  "Social Media Manager", "Email Marketing Specialist", "Product Director",
+  "Listing & Merchandising Specialist", "Competitive Pricing Analyst",
+  "Customer Support Rep", "Refunds & Warranty Specialist", "QA Specialist",
+  "FP&A Analyst", "Revenue Ops Analyst", "Tech Lead", "Shopify Developer",
+  "UX/UI Designer", "Creative Director", "Graphic Designer", "Video Producer",
+  "Legal Director", "Compliance Officer", "Legal Assistant",
+  "Brian", "Brian (AI COO)"
+];
 
 interface EventDetailSheetProps {
   event: MockCalendarEvent | null;
@@ -151,20 +162,34 @@ const EventDetailSheet = ({ event, open, onOpenChange }: EventDetailSheetProps) 
                   </h4>
                 </div>
                 <div className="space-y-2">
-                  {event.attendees.map((attendee, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="text-xs">
-                          {attendee.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">{attendee.name}</span>
-                    </div>
-                  ))}
+                  {event.attendees.map((attendee, index) => {
+                    const isAIAgent = AI_AGENT_NAMES.some(name => 
+                      attendee.name.toLowerCase().includes(name.toLowerCase()) ||
+                      name.toLowerCase().includes(attendee.name.toLowerCase())
+                    ) && !attendee.name.toLowerCase().includes('liam') && !attendee.name.toLowerCase().includes('human');
+                    
+                    return (
+                      <div key={index} className="flex items-center gap-3">
+                        {isAIAgent ? (
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                            <Bot className="h-4 w-4 text-white" />
+                          </div>
+                        ) : (
+                          <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-medium">
+                              {attendee.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()
+                                .slice(0, 2)}
+                            </span>
+                          </div>
+                        )}
+                        <span className="text-sm">{attendee.name}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <Separator />
