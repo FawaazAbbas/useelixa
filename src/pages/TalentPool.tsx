@@ -249,13 +249,20 @@ const TalentPool = () => {
     fetchData();
   }, []);
 
-  // Handle URL search params for category filtering
+  // Handle URL search params for category filtering - only on mount
   useEffect(() => {
     const categoryParam = searchParams.get('category');
-    if (categoryParam) {
+    console.log('[TalentPool] URL category param on mount:', categoryParam);
+    if (categoryParam && selectedCategories.length === 0) {
       setSelectedCategories([categoryParam]);
     }
-  }, [searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
+  // Debug: Log when selectedCategories changes
+  useEffect(() => {
+    console.log('[TalentPool] selectedCategories changed:', selectedCategories);
+  }, [selectedCategories]);
 
   // Extract all unique capabilities from agents
   const allCapabilities = useMemo(() => {
@@ -386,10 +393,12 @@ const TalentPool = () => {
   }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
   const toggleCategory = (categoryName: string) => {
+    console.log('[TalentPool] toggleCategory called with:', categoryName);
     const newCategories = selectedCategories.includes(categoryName) 
       ? selectedCategories.filter(c => c !== categoryName)
       : [...selectedCategories, categoryName];
     
+    console.log('[TalentPool] Setting new categories:', newCategories);
     setSelectedCategories(newCategories);
     
     // Update URL params
