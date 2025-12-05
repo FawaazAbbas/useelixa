@@ -100,14 +100,12 @@ const TalentPoolCharts = () => {
 
   // Get agents sorted by different criteria
   const trendingAgents = [...agents].sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0)).slice(0, 20);
-  const popularAgents = [...agents].sort((a, b) => (b.total_installs || 0) - (a.total_installs || 0));
   const topRatedAgents = [...agents].sort((a, b) => b.rating - a.rating);
   const newAgents = [...agents].slice(-10).reverse();
 
   const getAgentList = () => {
     switch (selectedTab) {
       case "trending": return trendingAgents;
-      case "popular": return popularAgents;
       case "rated": return topRatedAgents;
       case "new": return newAgents;
       default: return trendingAgents;
@@ -208,7 +206,7 @@ const TalentPoolCharts = () => {
           variant="ghost" 
           size="sm" 
           onClick={() => navigate("/talent-pool")}
-          className="mb-6 -ml-2 text-muted-foreground hover:text-foreground"
+          className="mb-6 -ml-2 text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Talent Pool
@@ -231,14 +229,10 @@ const TalentPoolCharts = () => {
 
         {/* Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="w-full justify-start bg-muted/50 backdrop-blur-sm border border-border/50 p-1.5 mb-6 overflow-x-auto">
+          <TabsList className="w-full grid grid-cols-3 bg-muted/50 backdrop-blur-sm border border-border/50 p-1.5 mb-6">
             <TabsTrigger value="trending" className="data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Trending</span>
-            </TabsTrigger>
-            <TabsTrigger value="popular" className="data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Most Installed</span>
             </TabsTrigger>
             <TabsTrigger value="rated" className="data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2">
               <Star className="h-4 w-4" />

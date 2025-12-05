@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronRight, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -10,37 +10,59 @@ export const TalentPoolNavbar = () => {
   const isChartsActive = location.pathname === "/talent-pool/charts";
 
   return (
-    <nav className="border-b border-white/10 bg-background/40 backdrop-blur-2xl sticky top-0 z-50 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)]">
+    <nav className="border-b border-white/10 bg-gradient-to-r from-background/95 via-primary/5 to-background/95 backdrop-blur-2xl sticky top-0 z-50 shadow-[0_8px_32px_0_rgba(0,0,0,0.12)]">
+      {/* Animated gradient line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <img 
-            src="/elixa-logo.png" 
-            alt="ELIXA" 
-            className="h-8 w-auto object-contain cursor-pointer hover:scale-105 transition-transform" 
-            onClick={() => navigate("/talent-pool")}
-          />
-          <div className="hidden md:flex gap-6">
+          <div className="relative group cursor-pointer" onClick={() => navigate("/talent-pool")}>
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-violet-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <img 
+              src="/elixa-logo.png" 
+              alt="ELIXA" 
+              className="relative h-8 w-auto object-contain hover:scale-105 transition-transform" 
+            />
+          </div>
+          <div className="hidden md:flex gap-1 bg-muted/30 backdrop-blur-sm rounded-full p-1 border border-border/30">
             <button 
               onClick={() => navigate("/talent-pool")}
-              className={`text-sm font-${isDiscoverActive ? 'semibold' : 'medium'} ${isDiscoverActive ? 'text-foreground' : 'text-muted-foreground'} hover:text-${isDiscoverActive ? 'primary' : 'foreground'} transition-colors relative group`}
+              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+                isDiscoverActive 
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
             >
               Discover
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
             </button>
             <button 
               onClick={() => navigate("/talent-pool/charts")}
-              className={`text-sm font-${isChartsActive ? 'semibold' : 'medium'} ${isChartsActive ? 'text-foreground' : 'text-muted-foreground'} hover:text-${isChartsActive ? 'primary' : 'foreground'} transition-colors relative group`}
+              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+                isChartsActive 
+                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              }`}
             >
               Charts
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
             </button>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={() => navigate("/workspace")} variant="ghost" size="sm" className="hidden sm:inline-flex hover:bg-white/10 backdrop-blur-sm">
+          <Button 
+            onClick={() => navigate("/workspace")} 
+            variant="ghost" 
+            size="sm" 
+            className="hidden sm:inline-flex hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-all"
+          >
+            <Zap className="h-4 w-4 mr-2 text-primary" />
             Workspace
           </Button>
-          <Button onClick={() => navigate("/auth")} size="sm" className="bg-primary/90 hover:bg-primary shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all backdrop-blur-sm">
+          <Button 
+            onClick={() => navigate("/auth")} 
+            size="sm" 
+            className="bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-200"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
             Sign In
           </Button>
         </div>
