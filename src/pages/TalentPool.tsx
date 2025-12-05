@@ -329,8 +329,8 @@ const TalentPool = () => {
       <TalentPoolNavbar />
 
       {/* Sticky Search Bar - appears when searching with delay */}
-      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'translate-y-0 opacity-100 scale-100 delay-300' : '-translate-y-full opacity-0 scale-95 pointer-events-none delay-0'}`}>
-        <div className="bg-background/60 backdrop-blur-2xl border-b border-white/10">
+      <div className={`fixed top-[72px] left-0 right-0 z-50 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'translate-y-0 opacity-100 scale-100 delay-300' : '-translate-y-full opacity-0 scale-95 pointer-events-none delay-0'}`}>
+        <div className="bg-background/95 backdrop-blur-2xl border-b border-white/10 shadow-xl">
           <div className="max-w-2xl mx-auto px-4 py-4">
             <div className="relative">
               {/* Gradient glow */}
