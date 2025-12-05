@@ -1,5 +1,14 @@
 import { Link } from "react-router-dom";
-import { mockCategories } from "@/data/mockCategories";
+
+// Use actual database category names
+const footerCategories = [
+  "Marketing & Growth",
+  "Customer Support",
+  "Sales",
+  "Analytics & Data",
+  "Finance",
+  "Operations",
+];
 
 export const TalentPoolFooter = () => {
   return (
@@ -22,13 +31,13 @@ export const TalentPoolFooter = () => {
           <div className="space-y-4">
             <h3 className="font-semibold">Categories</h3>
             <ul className="space-y-2 text-sm">
-              {mockCategories.slice(0, 6).map((category) => (
-                <li key={category.name}>
+              {footerCategories.map((category) => (
+                <li key={category}>
                   <Link
-                    to={`/talent-pool?category=${encodeURIComponent(category.name)}`}
+                    to={`/talent-pool?category=${encodeURIComponent(category)}`}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {category.name}
+                    {category}
                   </Link>
                 </li>
               ))}
