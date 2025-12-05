@@ -112,6 +112,13 @@ export const brianMessages = [
     role: "assistant" as const,
     content: "<p>For Tech Reborn, this is enough.</p><p>If I had to add just one more from the <strong>Elixa AI Talent Pool</strong> later, it would be a <strong>Post Purchase Experience Architect</strong> type agent, but that is a luxury rather than a core need.</p><p>For now I would rather get the current team working in sync.</p>",
     timestamp: "2025-12-05T10:52:00.000Z",
+    recommendedAgent: {
+      id: "post-purchase-experience-architect",
+      name: "Post Purchase Experience Architect",
+      description: "Designs and optimizes post-purchase journeys, retention flows, and customer delight moments.",
+      category: "Customer Service",
+      rating: 4.6,
+    },
   },
   {
     role: "user" as const,

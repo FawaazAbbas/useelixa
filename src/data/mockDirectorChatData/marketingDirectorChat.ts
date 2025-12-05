@@ -14,6 +14,13 @@ export interface DirectorMessage {
     size: number;
     url?: string;
   }[];
+  recommendedAgent?: {
+    id: string;
+    name: string;
+    description?: string;
+    category?: string;
+    rating?: number;
+  };
 }
 
 export interface DirectorFile {
@@ -297,7 +304,14 @@ export const marketingDirectorMessages: DirectorMessage[] = [
     user_id: null,
     agent_id: 'marketing-director',
     sender_name: 'Marketing Director',
-    created_at: '2025-12-04T11:58:00Z'
+    created_at: '2025-12-04T11:58:00Z',
+    recommendedAgent: {
+      id: 'video-producer',
+      name: 'Video Producer',
+      description: 'Builds campaign structures, scripts platform-native video content, and creates shot lists for UGC creators.',
+      category: 'Creative',
+      rating: 4.8,
+    },
   }
 ];
 
