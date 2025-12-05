@@ -171,7 +171,7 @@ const EventDetailSheet = ({ event, open, onOpenChange }: EventDetailSheetProps) 
                     return (
                       <div key={index} className="flex items-center gap-3">
                         {isAIAgent ? (
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
                             <Bot className="h-4 w-4 text-white" />
                           </div>
                         ) : (
