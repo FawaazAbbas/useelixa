@@ -418,24 +418,26 @@ const TalentPool = () => {
         </div>
       </section>
 
-      {/* Main Content with Sidebar */}
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="flex gap-8">
-          {/* Desktop Filter Sidebar */}
-          <aside className="hidden lg:block w-64 shrink-0">
-            <div className="sticky top-24 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-5">
-              <div className="flex items-center gap-2 mb-5">
-                <Filter className="h-4 w-4" />
-                <span className="font-semibold">Filters</span>
-                {activeFilterCount > 0 && (
-                  <Badge variant="secondary" className="ml-auto text-xs">
-                    {activeFilterCount}
-                  </Badge>
-                )}
+        <div className={`flex gap-8 ${isFiltering ? '' : ''}`}>
+          {/* Desktop Filter Sidebar - Only shown when filtering */}
+          {isFiltering && (
+            <aside className="hidden lg:block w-64 shrink-0">
+              <div className="sticky top-24 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 p-5">
+                <div className="flex items-center gap-2 mb-5">
+                  <Filter className="h-4 w-4" />
+                  <span className="font-semibold">Filters</span>
+                  {activeFilterCount > 0 && (
+                    <Badge variant="secondary" className="ml-auto text-xs">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </div>
+                <FilterPanel />
               </div>
-              <FilterPanel />
-            </div>
-          </aside>
+            </aside>
+          )}
 
           {/* Main Content */}
           <main className="flex-1 min-w-0">
