@@ -168,9 +168,9 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                   </div>
                   
                   {/* Show timestamp if available */}
-                  {(msg as any).timestamp && (
+                  {msg.timestamp && (
                     <div className={`text-xs text-muted-foreground mt-1 ${msg.role === "user" ? "text-right" : ""}`}>
-                      {new Date((msg as any).timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(msg.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   )}
                   
@@ -184,13 +184,13 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                   )}
                   
                   {/* Agent Recommendation Card */}
-                  {(msg as any).recommendedAgent && (
+                  {msg.recommendedAgent && (
                     <AgentRecommendationCard
-                      agentId={(msg as any).recommendedAgent.id}
-                      agentName={(msg as any).recommendedAgent.name}
-                      description={(msg as any).recommendedAgent.description}
-                      category={(msg as any).recommendedAgent.category}
-                      rating={(msg as any).recommendedAgent.rating}
+                      agentId={msg.recommendedAgent.id}
+                      agentName={msg.recommendedAgent.name}
+                      description={msg.recommendedAgent.description}
+                      category={msg.recommendedAgent.category}
+                      rating={msg.recommendedAgent.rating}
                     />
                   )}
                 </div>
