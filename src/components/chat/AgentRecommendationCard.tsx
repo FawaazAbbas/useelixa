@@ -26,7 +26,7 @@ export const AgentRecommendationCard = ({
   return (
     <div 
       onClick={handleClick}
-      className="group mt-3 cursor-pointer overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]"
+      className="group mt-3 max-w-[85%] cursor-pointer overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-3 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]"
     >
       {/* Header with sparkle */}
       <div className="flex items-center gap-2 mb-3">
