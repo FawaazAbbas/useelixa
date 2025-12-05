@@ -1349,9 +1349,8 @@ const Workspace = () => {
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center relative">
-                        <Bot className="h-4 w-4 text-primary absolute -left-0.5" />
-                        <Bot className="h-4 w-4 text-primary absolute -right-0.5" />
+                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
                       </div>
                       <div>
                         <div className="font-semibold">{team.name}</div>
@@ -1393,10 +1392,7 @@ const Workspace = () => {
                     <div className="space-y-4 max-w-4xl mx-auto">
                       {teamGroupMessages.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full gap-3">
-                          <div className="relative h-12 w-16 flex items-center justify-center">
-                            <Bot className="h-8 w-8 text-muted-foreground absolute left-0" />
-                            <Bot className="h-8 w-8 text-muted-foreground absolute right-0" />
-                          </div>
+                          <Users className="h-12 w-12 text-muted-foreground" />
                           <p className="text-muted-foreground">Start a conversation with {team.name}</p>
                         </div>
                       ) : (
@@ -1567,9 +1563,8 @@ const Workspace = () => {
                   <>
                 {selectedChat.type === 'group' ? (
                      <>
-                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center relative">
-                      <Bot className="h-4 w-4 text-primary absolute -left-0.5" />
-                      <Bot className="h-4 w-4 text-primary absolute -right-0.5" />
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <div className="font-semibold">{selectedChat.name}</div>
@@ -1741,13 +1736,8 @@ const Workspace = () => {
                     ? { bg: 'bg-primary/20', icon: 'text-primary' }
                     : getAgentColor(selectedChat.agent?.category || 'General');
                   return (
-                    <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0 relative`}>
-                      {selectedChat.type === 'group' ? (
-                        <>
-                          <Bot className="h-4 w-4 text-primary absolute -left-0.5" />
-                          <Bot className="h-4 w-4 text-primary absolute -right-0.5" />
-                        </>
-                      ) : <Bot className={`h-6 w-6 ${colors.icon}`} />}
+                    <div className={`h-10 w-10 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                      {selectedChat.type === 'group' ? <Users className="h-5 w-5 text-primary" /> : <Bot className={`h-6 w-6 ${colors.icon}`} />}
                     </div>
                   );
                 })()}
@@ -2236,9 +2226,8 @@ const Workspace = () => {
             return (
               <TabsContent value="about" className="flex-1 m-0 overflow-auto p-6 space-y-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className={`h-12 w-12 rounded-full flex items-center justify-center relative`} style={{ background: team.gradient }}>
-                    <Bot className="h-5 w-5 text-white absolute -left-0.5" />
-                    <Bot className="h-5 w-5 text-white absolute -right-0.5" />
+                  <div className={`h-12 w-12 rounded-full flex items-center justify-center`} style={{ background: team.gradient }}>
+                    <Users className="h-7 w-7 text-white" />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">{team.name}</h3>
