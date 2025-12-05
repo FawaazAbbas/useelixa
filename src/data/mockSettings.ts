@@ -8,8 +8,8 @@ export interface MockProfile {
 
 export const mockProfile: MockProfile = {
   id: "demo-user-123",
-  display_name: "Demo User",
-  email: "demo@example.com",
-  bio: "Exploring Elixa's powerful AI automation capabilities",
+  display_name: "Liam Baduss",
+  email: "Liam@badusstechnologies.com",
+  bio: "CEO of Baduss Technologies. Exploring Elixa's powerful AI automation capabilities.",
   avatar_url: null,
 };

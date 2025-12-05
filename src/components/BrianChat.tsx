@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Sparkles, Loader2, Paperclip, X, Phone } from "lucide-react";
+import { Send, Loader2, Paperclip, X, Phone, Bot, Sparkles } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -118,8 +118,8 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
           <div className="space-y-4 max-w-3xl mx-auto">
             {messages.length === 0 && (
               <div className="text-center py-8 space-y-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-500">
-                  <Sparkles className="h-8 w-8 text-white" />
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500">
+                  <Bot className="h-8 w-8 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Hey there! I'm Brian, your AI COO.</h3>
@@ -137,9 +137,9 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                 className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
-                  <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500 flex-shrink-0">
-                    <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
-                  </Avatar>
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                    <Bot className="h-4 w-4 text-white" />
+                  </div>
                 )}
                 
                 <div className="flex-1 max-w-[80%]">
@@ -196,9 +196,9 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
 
             {sending && (
               <div className="flex gap-3 justify-start">
-                <Avatar className="h-8 w-8 bg-gradient-to-br from-purple-600 to-blue-500 flex-shrink-0">
-                  <AvatarFallback className="text-white text-sm font-bold">B</AvatarFallback>
-                </Avatar>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
                 <div className="rounded-lg px-4 py-2 bg-muted">
                   <Loader2 className="h-4 w-4 animate-spin" />
                 </div>

@@ -25,8 +25,8 @@ export const MainNavSidebar = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Mock user for demo
-  const mockUser = { email: "demo@example.com" };
+  // Mock user for demo - Liam Baduss
+  const mockUser = { email: "Liam@badusstechnologies.com", name: "Liam Baduss" };
   const displayUser = user || mockUser;
 
   const handleSignOut = async () => {
@@ -38,8 +38,8 @@ export const MainNavSidebar = () => {
   };
 
   const getUserInitials = () => {
-    if (!displayUser?.email) return "D";
-    return displayUser.email.charAt(0).toUpperCase();
+    if (!displayUser?.email) return "L";
+    return "L"; // Liam's initial
   };
 
   return (
@@ -103,9 +103,9 @@ export const MainNavSidebar = () => {
         <DropdownMenuContent align="end" className="w-56" style={{ zIndex: 999999 }}>
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Demo Account</p>
+              <p className="text-sm font-medium leading-none">Liam Baduss</p>
               <p className="text-xs leading-none text-muted-foreground truncate">
-                {displayUser.email}
+                Liam@badusstechnologies.com
               </p>
             </div>
           </DropdownMenuLabel>

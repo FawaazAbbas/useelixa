@@ -47,7 +47,8 @@ import { getTeamMemberById, mockTeams, getTeamOnlineCount } from "@/data/mockTea
 import { AddAgentToWorkspaceDialog } from "@/components/AddAgentToWorkspaceDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { mockTeamMemberMessages, mockTeamGroupMessages, mockDirectorChatData } from "@/data/mockTeamMessages";
-import { getTeamGroupData, getFileIcon, formatRelativeTime } from "@/data/mockTeamGroupData";
+import { getTeamGroupData, formatRelativeTime } from "@/data/mockTeamGroupData";
+import { FileIcon } from "@/components/FileIcon";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { brianFiles, brianMemories, brianActivity } from "@/data/mockWorkspaceData";
 import {
@@ -2327,7 +2328,7 @@ const Workspace = () => {
                             }}
                           >
                             <CardContent className="p-3 flex items-center gap-3">
-                              <span className="text-xl">{getFileIcon(file.type)}</span>
+                              <FileIcon fileType={file.type} size="lg" />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">{file.name}</p>
                                 <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · {file.uploadedBy}</p>
@@ -2390,7 +2391,7 @@ const Workspace = () => {
                               }}
                             >
                               <CardContent className="p-3 flex items-center gap-3">
-                                <span className="text-xl">{getFileIcon(file.type)}</span>
+                                <FileIcon fileType={file.type} size="lg" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium truncate">{file.name}</p>
                                   <p className="text-xs text-muted-foreground">{file.size} · {file.uploadedBy}</p>
@@ -2452,7 +2453,7 @@ const Workspace = () => {
                               }}
                             >
                               <CardContent className="p-3 flex items-center gap-3">
-                                <span className="text-xl">{getFileIcon(file.type)}</span>
+                                <FileIcon fileType={file.type} size="lg" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium truncate">{file.name}</p>
                                   <p className="text-xs text-muted-foreground">{file.size} · {file.uploadedBy}</p>
