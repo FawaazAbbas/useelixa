@@ -1,6 +1,4 @@
-import { useNavigate } from "react-router-dom";
-import { Github, Twitter, Linkedin, Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useNavigate, Link } from "react-router-dom";
 import { mockCategories } from "@/data/mockCategories";
 
 export const TalentPoolFooter = () => {
@@ -18,22 +16,8 @@ export const TalentPoolFooter = () => {
               className="h-8 w-auto object-contain"
             />
             <p className="text-sm text-muted-foreground">
-              Your AI Talent Pool. Hire brilliant AI agents to transform your workspace. All completely free, forever.
+              Your AI Talent Pool. Hire brilliant AI agents to transform your workspace.
             </p>
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Twitter className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Github className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Linkedin className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Mail className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
 
           {/* Categories */}
@@ -46,7 +30,7 @@ export const TalentPoolFooter = () => {
                     onClick={() => navigate(`/talent-pool/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`)}
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    {category.icon} {category.name}
+                    {category.name}
                   </button>
                 </li>
               ))}
@@ -74,19 +58,12 @@ export const TalentPoolFooter = () => {
                 </button>
               </li>
               <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
-                  Documentation
-                </button>
-              </li>
-              <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
-                  API Reference
-                </button>
-              </li>
-              <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
-                  Community Forum
-                </button>
+                <Link
+                  to="/contact"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Contact Support
+                </Link>
               </li>
             </ul>
           </div>
@@ -96,36 +73,35 @@ export const TalentPoolFooter = () => {
             <h3 className="font-semibold">Company</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  to="/about"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
                   About Us
-                </button>
+                </Link>
               </li>
               <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
-                  Blog
-                </button>
-              </li>
-              <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
-                  Careers
-                </button>
-              </li>
-              <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  to="/privacy"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
                   Privacy Policy
-                </button>
+                </Link>
               </li>
               <li>
-                <button className="text-muted-foreground hover:text-primary transition-colors">
+                <Link
+                  to="/terms"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
                   Terms of Service
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-          <p>© 2024 ELIXA. All rights reserved. All agents are 100% free to use.</p>
+          <p>© 2024 ELIXA. All rights reserved.</p>
         </div>
       </div>
     </footer>
