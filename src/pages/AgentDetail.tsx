@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Star, Download, Loader2, Sparkles, Calendar, Bot, Users, Zap, MessageSquare, Plug, Shield, CheckCircle2, Clock, Brain, Target, Workflow, Globe, Mail, FileText, Database, BarChart3, Settings2, Lock, Unlock } from "lucide-react";
+import { Star, Download, Loader2, Sparkles, Calendar, Bot, Users, Zap, MessageSquare, Plug, Shield, CheckCircle2, Clock, Brain, Target, Workflow, Globe, Mail, FileText, Database, BarChart3, Settings2, Lock, Unlock, Megaphone, Headphones, DollarSign, Package, Code, Palette, Scale, Smartphone, ClipboardList, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,115 @@ import { TalentPoolNavbar, TalentPoolBreadcrumb } from "@/components/TalentPoolN
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
+
+// Category visual config matching AgentCard
+const categoryConfig: Record<string, { 
+  iconBg: string;
+  iconText: string;
+  accent: string;
+  badgeBg: string;
+  icon: React.ReactNode;
+}> = {
+  "Marketing & Growth": { 
+    iconBg: "bg-gradient-to-br from-rose-500 to-pink-600",
+    iconText: "text-white",
+    accent: "from-rose-500 to-pink-600",
+    badgeBg: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+    icon: <Megaphone className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Customer Support": { 
+    iconBg: "bg-gradient-to-br from-emerald-500 to-teal-600",
+    iconText: "text-white",
+    accent: "from-emerald-500 to-teal-600",
+    badgeBg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    icon: <Headphones className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Sales": { 
+    iconBg: "bg-gradient-to-br from-orange-500 to-amber-600",
+    iconText: "text-white",
+    accent: "from-orange-500 to-amber-600",
+    badgeBg: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+    icon: <Target className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Finance": { 
+    iconBg: "bg-gradient-to-br from-green-500 to-emerald-600",
+    iconText: "text-white",
+    accent: "from-green-500 to-emerald-600",
+    badgeBg: "bg-green-500/10 text-green-600 border-green-500/20",
+    icon: <DollarSign className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Operations": { 
+    iconBg: "bg-gradient-to-br from-blue-500 to-indigo-600",
+    iconText: "text-white",
+    accent: "from-blue-500 to-indigo-600",
+    badgeBg: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+    icon: <Package className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "HR & People": { 
+    iconBg: "bg-gradient-to-br from-cyan-500 to-blue-600",
+    iconText: "text-white",
+    accent: "from-cyan-500 to-blue-600",
+    badgeBg: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20",
+    icon: <Users className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Development": { 
+    iconBg: "bg-gradient-to-br from-amber-500 to-orange-600",
+    iconText: "text-white",
+    accent: "from-amber-500 to-orange-600",
+    badgeBg: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    icon: <Code className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Design & Creative": { 
+    iconBg: "bg-gradient-to-br from-pink-500 to-rose-600",
+    iconText: "text-white",
+    accent: "from-pink-500 to-rose-600",
+    badgeBg: "bg-pink-500/10 text-pink-600 border-pink-500/20",
+    icon: <Palette className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Analytics & Data": { 
+    iconBg: "bg-gradient-to-br from-purple-500 to-violet-600",
+    iconText: "text-white",
+    accent: "from-purple-500 to-violet-600",
+    badgeBg: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+    icon: <BarChart3 className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Legal & Compliance": { 
+    iconBg: "bg-gradient-to-br from-slate-500 to-gray-600",
+    iconText: "text-white",
+    accent: "from-slate-500 to-gray-600",
+    badgeBg: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+    icon: <Scale className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Product": { 
+    iconBg: "bg-gradient-to-br from-violet-500 to-purple-600",
+    iconText: "text-white",
+    accent: "from-violet-500 to-purple-600",
+    badgeBg: "bg-violet-500/10 text-violet-600 border-violet-500/20",
+    icon: <Smartphone className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Project Management": { 
+    iconBg: "bg-gradient-to-br from-indigo-500 to-blue-600",
+    iconText: "text-white",
+    accent: "from-indigo-500 to-blue-600",
+    badgeBg: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
+    icon: <ClipboardList className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+  "Ecommerce": { 
+    iconBg: "bg-gradient-to-br from-teal-500 to-cyan-600",
+    iconText: "text-white",
+    accent: "from-teal-500 to-cyan-600",
+    badgeBg: "bg-teal-500/10 text-teal-600 border-teal-500/20",
+    icon: <ShoppingCart className="h-8 w-8 md:h-10 md:w-10" /> 
+  },
+};
+
+const defaultCategoryConfig = { 
+  iconBg: "bg-gradient-to-br from-primary to-primary/80",
+  iconText: "text-primary-foreground",
+  accent: "from-primary to-primary/80",
+  badgeBg: "bg-primary/10 text-primary border-primary/20",
+  icon: <Bot className="h-8 w-8 md:h-10 md:w-10" /> 
+};
 
 // Plugin display mapping - converts API credential types to user-friendly names
 const pluginDisplayMap: Record<string, { name: string; logo: string; color: string }> = {
@@ -325,10 +434,12 @@ const AgentDetail = () => {
   const isWorkflowBased = agent.is_workflow_based || false;
 
   const categorySlug = (agent.agent_categories?.name || agent.category || "").toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
+  const categoryName = agent.agent_categories?.name || agent.category || "Uncategorized";
+  const catConfig = categoryConfig[categoryName] || defaultCategoryConfig;
   
   const breadcrumbItems = [
     { label: "Talent Pool", href: "/talent-pool" },
-    { label: agent.agent_categories?.name || agent.category || "Uncategorized", href: `/talent-pool/category/${categorySlug}` },
+    { label: categoryName, href: `/talent-pool/category/${categorySlug}` },
     { label: agent.name }
   ];
 
@@ -343,23 +454,23 @@ const AgentDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Card */}
-            <Card className="bg-card/50 backdrop-blur-sm border-border/50 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+            <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
               <CardContent className="relative p-6 md:p-8">
                 <div className="space-y-6">
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="bg-muted/80 backdrop-blur-sm">
-                      {agent.agent_categories?.name || agent.category || "Uncategorized"}
+                    <Badge variant="outline" className={catConfig.badgeBg}>
+                      {categoryName}
                     </Badge>
                     {hasAICapabilities && (
-                      <Badge className="bg-gradient-to-r from-purple-500/90 to-pink-500/90 text-white border-0">
+                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 shadow-lg shadow-purple-500/25">
                         <Sparkles className="h-3.5 w-3.5 mr-1" />
                         AI-Powered
                       </Badge>
                     )}
                     {isChatCompatible && (
-                      <Badge variant="outline" className="border-green-500/50 text-green-600">
+                      <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10">
                         <MessageSquare className="h-3 w-3 mr-1" />
                         Chat Ready
                       </Badge>
@@ -368,8 +479,8 @@ const AgentDetail = () => {
 
                   {/* Agent Info */}
                   <div className="flex items-start gap-5">
-                    <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center shrink-0">
-                      <Bot className="h-8 w-8 md:h-10 md:w-10 text-primary" />
+                    <div className={`h-16 w-16 md:h-20 md:w-20 rounded-2xl ${catConfig.iconBg} flex items-center justify-center shrink-0 shadow-lg`}>
+                      <span className={catConfig.iconText}>{catConfig.icon}</span>
                     </div>
                     <div className="space-y-2 min-w-0">
                       <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{agent.name}</h1>
@@ -381,16 +492,16 @@ const AgentDetail = () => {
 
                   {/* Stats */}
                   <div className="flex flex-wrap items-center gap-3 text-sm">
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       <span className="font-medium">{agent.rating || 0}</span>
                       <span className="text-muted-foreground">({agent.total_reviews || 0})</span>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
                       <Download className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">{agent.total_installs || 0} installs</span>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">~{agent.response_timeout || 30}s response</span>
                     </div>
@@ -401,7 +512,7 @@ const AgentDetail = () => {
                     {isInstalled ? (
                       <Button 
                         size="lg" 
-                        className="w-full sm:w-auto px-8 bg-primary hover:bg-primary/90"
+                        className={`w-full sm:w-auto px-8 bg-gradient-to-r ${catConfig.accent} hover:opacity-90 text-white shadow-lg`}
                         onClick={() => navigate("/workspace")}
                       >
                         <MessageSquare className="h-4 w-4 mr-2" />
@@ -410,7 +521,7 @@ const AgentDetail = () => {
                     ) : (
                       <Button 
                         size="lg" 
-                        className="w-full sm:w-auto px-8 bg-primary hover:bg-primary/90"
+                        className={`w-full sm:w-auto px-8 bg-gradient-to-r ${catConfig.accent} hover:opacity-90 text-white shadow-lg`}
                         onClick={handleInstall}
                         disabled={installing}
                       >
@@ -429,7 +540,7 @@ const AgentDetail = () => {
 
             {/* Screenshot Gallery */}
             {agent.screenshots && agent.screenshots.length > 0 && (
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <Card className="bg-card/80 backdrop-blur-sm border-border/50 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-lg">Gallery</CardTitle>
                 </CardHeader>
