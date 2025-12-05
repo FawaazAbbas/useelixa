@@ -329,10 +329,20 @@ const TalentPool = () => {
       <TalentPoolNavbar />
 
       {/* Sticky Search Bar - appears when searching */}
-      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-500 ease-out ${isFiltering ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}>
+      <div className={`fixed top-16 left-0 right-0 z-40 transition-all duration-500 ease-out ${isFiltering ? 'translate-y-0 opacity-100 scale-100' : '-translate-y-full opacity-0 scale-95 pointer-events-none'}`}>
         <div className="bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-lg">
           <div className="max-w-3xl mx-auto px-4 py-3">
             <div className="flex items-center gap-3">
+              {/* Back button */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={clearFilters} 
+                className="h-11 w-11 rounded-xl hover:bg-muted/80 shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
@@ -343,7 +353,7 @@ const TalentPool = () => {
                 />
               </div>
               {activeFilterCount > 0 && (
-                <Badge variant="secondary" className="gap-1">
+                <Badge variant="secondary" className="gap-1 hidden sm:flex">
                   {activeFilterCount} filters
                 </Badge>
               )}
@@ -351,6 +361,11 @@ const TalentPool = () => {
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon" className="lg:hidden h-11 w-11 rounded-xl relative">
                     <SlidersHorizontal className="h-4 w-4" />
+                    {activeFilterCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center font-medium">
+                        {activeFilterCount}
+                      </span>
+                    )}
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-80 bg-background">
@@ -362,9 +377,6 @@ const TalentPool = () => {
                   </div>
                 </SheetContent>
               </Sheet>
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
-                Clear
-              </Button>
             </div>
           </div>
         </div>
