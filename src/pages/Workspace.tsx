@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload, Download, PanelRightOpen, PanelRightClose } from "lucide-react";
+import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload, Download } from "lucide-react";
 import { getAgentColor } from '@/utils/agentColors';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -204,7 +204,6 @@ const Workspace = () => {
   const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const [filePreviewOpen, setFilePreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ name: string; type: string; size: number; uploadedBy?: string; uploadedAt?: string } | null>(null);
-  const [showRightSidebar, setShowRightSidebar] = useState(true);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const brianMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -929,15 +928,6 @@ const Workspace = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="hidden md:flex lg:hidden"
-                  onClick={() => setShowRightSidebar(!showRightSidebar)}
-                  title={showRightSidebar ? "Hide panel" : "Show panel"}
-                >
-                  {showRightSidebar ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
                   onClick={() => setShowSettings(true)}
                 >
                   <Settings className="h-4 w-4" />
@@ -1272,15 +1262,6 @@ const Workspace = () => {
                       >
                         <LayoutList className="h-4 w-4" />
                         <span className="ml-2">Panels</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="hidden md:flex lg:hidden"
-                        onClick={() => setShowRightSidebar(!showRightSidebar)}
-                        title={showRightSidebar ? "Hide panel" : "Show panel"}
-                      >
-                        {showRightSidebar ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -1639,15 +1620,6 @@ const Workspace = () => {
                       >
                         <LayoutList className="h-4 w-4" />
                         <span className="ml-2">Panels</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="hidden md:flex lg:hidden"
-                        onClick={() => setShowRightSidebar(!showRightSidebar)}
-                        title={showRightSidebar ? "Hide panel" : "Show panel"}
-                      >
-                        {showRightSidebar ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -2438,9 +2410,9 @@ const Workspace = () => {
       </Sheet>
       )}
 
-      {/* Right Sidebar - Tabbed Panels (Desktop and Medium Screens) */}
+      {/* Right Sidebar - Tabbed Panels (Desktop Only) */}
       {(selectedChat || showBrian || selectedTeamMemberId || selectedTeamGroupId) && (
-        <div className={`hidden ${showRightSidebar ? 'md:block' : 'lg:block'} w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl`}>
+        <div className="hidden lg:block w-80 border-l border-border/50 bg-gradient-to-b from-muted/30 to-muted/50 backdrop-blur-xl overflow-hidden shadow-xl">
           <Tabs value={rightSidebarTab} onValueChange={setRightSidebarTab} className="h-full flex flex-col">
           <div className="px-4 pt-4 pb-2">
             <TabsList className={`w-full ${showBrian || selectedTeamMemberId || selectedTeamGroupId ? 'grid grid-cols-4' : 'grid grid-cols-5'}`}>
