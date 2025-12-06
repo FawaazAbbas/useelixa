@@ -1,4 +1,4 @@
-import { Bot, Users, CheckSquare, Upload, Info, FileText, Brain, Activity, PlayCircle } from "lucide-react";
+import { Bot, Users, CheckSquare, Upload, Info, FileText, Brain, Activity, PlayCircle, FolderUp, CircleCheck, Target, ClipboardList, MessageCircle, NotebookPen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,13 +47,14 @@ export const ChatRightPanel = ({
   const showAutomationsTab = !showBrian && !selectedTeamMemberId && !selectedTeamGroupId && selectedChat;
 
   const getActivityIcon = (type: string) => {
+    const iconClass = "h-5 w-5";
     switch (type) {
-      case 'file_upload': return '📁';
-      case 'decision': return '✅';
-      case 'milestone': return '🎯';
-      case 'task': return '📋';
-      case 'discussion': return '💬';
-      default: return '📝';
+      case 'file_upload': return <FolderUp className={`${iconClass} text-blue-500`} />;
+      case 'decision': return <CircleCheck className={`${iconClass} text-green-500`} />;
+      case 'milestone': return <Target className={`${iconClass} text-purple-500`} />;
+      case 'task': return <ClipboardList className={`${iconClass} text-orange-500`} />;
+      case 'discussion': return <MessageCircle className={`${iconClass} text-purple-500`} />;
+      default: return <NotebookPen className={`${iconClass} text-muted-foreground`} />;
     }
   };
 
@@ -655,7 +656,7 @@ export const ChatRightPanel = ({
                 <Card key={item.id}>
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">
-                      <span className="text-lg">{getActivityIcon(item.action)}</span>
+                      {getActivityIcon(item.action)}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-medium ${getActivityColor(item.action)}`}>
@@ -701,7 +702,7 @@ export const ChatRightPanel = ({
                 <Card key={item.id}>
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">
-                      <span className="text-lg">{getActivityIcon(item.type)}</span>
+                      {getActivityIcon(item.type)}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-medium ${getActivityColor(item.type)}`}>{item.action}</span>
@@ -744,7 +745,7 @@ export const ChatRightPanel = ({
                 <Card key={item.id}>
                   <CardContent className="p-3">
                     <div className="flex items-start gap-3">
-                      <span className="text-lg">{getActivityIcon(item.type)}</span>
+                      {getActivityIcon(item.type)}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`text-sm font-medium ${getActivityColor(item.type)}`}>{item.action}</span>
