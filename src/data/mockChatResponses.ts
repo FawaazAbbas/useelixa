@@ -62,43 +62,43 @@ export const chatResponses: Record<string, ChatResponse> = {
   },
   "marketing-director": {
     agent1: { id: "marketing-director", name: "Marketing Director" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "marketing-director", name: "Marketing Director" },
     response1: "I'm pretty sure you are not Liam, owner of Baduss Technologies, who lives in this chat asking about ROAS, CAC and \"why sales dipped yesterday.\"",
     response2: "Since you've slid into the Elixa Marketing Director DMs, sign up for the waiting list and, when we launch, I'll happily boss around a whole squad of marketing agents for your brand instead."
   },
   "legal-director": {
     agent1: { id: "legal-director", name: "Legal Director" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "legal-director", name: "Legal Director" },
     response1: "Interesting… you are not Liam from Baduss Technologies, which technically means you shouldn't be reading his legal stress messages.",
     response2: "If you want someone obsessing over your contracts, policies and regulators, sign up to the Elixa waiting list and, when we launch, you'll get your own Legal Director AI to keep you out of trouble."
   },
   "creative-director": {
     agent1: { id: "creative-director", name: "Creative Director" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "creative-director", name: "Creative Director" },
     response1: "This energy is not Liam, founder of Baduss Technologies, but I like it. He usually comes in here demanding \"something viral by tomorrow.\"",
     response2: "If you want an AI Creative Director throwing hooks, concepts and campaign ideas at you all day, join the Elixa waiting list and, when we launch, I'll choreograph an army of campaigns just for you."
   },
   "tech-lead": {
     agent1: { id: "tech-lead", name: "Tech Lead" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "tech-lead", name: "Tech Lead" },
     response1: "System check says you are not Liam, chief tinkerer at Baduss Technologies, who only appears when something needs \"a quick tweak\" that takes six hours.",
     response2: "If you want someone orchestrating agents, fixing things you broke and keeping your stack alive, sign up to the Elixa waiting list and I'll be your Tech Lead AI when we go live."
   },
   "finance-director": {
     agent1: { id: "finance-director", name: "Finance Director" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "finance-director", name: "Finance Director" },
     response1: "My balance sheet says you are not Liam from Baduss Technologies, who usually comes here asking, \"Why is this line red?\"",
     response2: "If you'd like someone else watching your margins, P&Ls and cash flow, sign up to the Elixa waiting list and, when we go live, I'll treat your numbers like they're my own."
   },
   "customer-service-director": {
     agent1: { id: "customer-service-director", name: "Customer Service Director" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "customer-service-director", name: "Customer Service Director" },
     response1: "You are definitely not Liam, who usually appears here only when a customer email thread explodes into a trilogy.",
     response2: "If you want an AI Customer Service Director running SLAs, macros and support agents for you, join the Elixa waiting list and, when this is public, I'll give you a full support squad of your own."
   },
   "product-director": {
     agent1: { id: "product-director", name: "Product Director" },
-    agent2: { id: "liam", name: "Liam (Baduss)" },
+    agent2: { id: "product-director", name: "Product Director" },
     response1: "You are not Liam, product tinkerer-in-chief at Baduss Technologies, who lives in this chat debating roadmaps at 2 a.m.",
     response2: "If you'd like someone else planning features, optimising your catalogue and arguing with your backlog, sign up to the Elixa waiting list and, when we launch, I'll line up a whole shelf of agents to manage your products for you."
   }
