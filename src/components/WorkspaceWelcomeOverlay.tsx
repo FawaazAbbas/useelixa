@@ -42,8 +42,8 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
         phase === "entering" ? "opacity-0" : phase === "exiting" ? "opacity-0 scale-105" : "opacity-100"
       }`}
     >
-      {/* Backdrop with animated gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Backdrop with semi-transparent gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-800/80 to-slate-900/85 backdrop-blur-md">
         {/* Animated gradient orbs */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-500/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
