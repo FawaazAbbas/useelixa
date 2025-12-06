@@ -959,12 +959,12 @@ const Workspace = () => {
                            <div
                              className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                                isUserMessage
-                                 ? "bg-primary/90 text-primary-foreground"
+                                 ? "bg-primary text-white"
                                  : "bg-muted/80"
                              }`}
                            >
                              <div 
-                               className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-primary-foreground' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                               className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
                                dangerouslySetInnerHTML={{ __html: msg.content }}
                              />
                            </div>
@@ -1199,7 +1199,7 @@ const Workspace = () => {
                                 <div
                                   className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                                     isUserMessage
-                                      ? "bg-primary/90 text-primary-foreground"
+                                      ? "bg-primary text-white"
                                       : "bg-muted/80"
                                   }`}
                                 >
@@ -1527,10 +1527,10 @@ const Workspace = () => {
                                       {format(msgDate, "d MMM, h:mm a")}
                                     </span>
                                   </div>
-                                <div
+                               <div
                                   className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                                     isUserMessage
-                                      ? "bg-primary/90 text-primary-foreground"
+                                      ? "bg-primary text-white"
                                       : "bg-muted/80"
                                   }`}
                                 >
@@ -1880,7 +1880,7 @@ const Workspace = () => {
                        <div
                          className={`inline-block px-4 py-3 rounded-2xl max-w-[85%] shadow-sm backdrop-blur-sm ${
                            isUserMessage
-                             ? "bg-primary/90 text-primary-foreground"
+                             ? "bg-primary text-white"
                              : msg.error_message
                              ? "bg-destructive/10 border border-destructive"
                                : "bg-muted/80"
