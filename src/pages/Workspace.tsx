@@ -1337,8 +1337,11 @@ const Workspace = () => {
                                   created_at: new Date().toISOString()
                                 };
                                 setTeamMemberMessages(prev => [...prev, response1]);
+                                setIsTeamMemberSending(false);
                                 
-                                await new Promise(r => setTimeout(r, 3000));
+                                await new Promise(r => setTimeout(r, 2000));
+                                setIsTeamMemberSending(true);
+                                await new Promise(r => setTimeout(r, 2000));
                                 const response2 = {
                                   id: `agent2-${Date.now()}`,
                                   content: responses.response2,
@@ -1386,8 +1389,11 @@ const Workspace = () => {
                                 created_at: new Date().toISOString()
                               };
                               setTeamMemberMessages(prev => [...prev, response1]);
+                              setIsTeamMemberSending(false);
                               
-                              await new Promise(r => setTimeout(r, 3000));
+                              await new Promise(r => setTimeout(r, 2000));
+                              setIsTeamMemberSending(true);
+                              await new Promise(r => setTimeout(r, 2000));
                               const response2 = {
                                 id: `agent2-${Date.now()}`,
                                 content: responses.response2,
@@ -1649,8 +1655,11 @@ const Workspace = () => {
                                   created_at: new Date().toISOString()
                                 };
                                 setTeamGroupMessages(prev => [...prev, response1]);
+                                setIsTeamGroupSending(false);
                                 
-                                await new Promise(r => setTimeout(r, 3000));
+                                await new Promise(r => setTimeout(r, 2000));
+                                setIsTeamGroupSending(true);
+                                await new Promise(r => setTimeout(r, 2000));
                                 const response2 = {
                                   id: `agent2-${Date.now()}`,
                                   content: responses.response2,
@@ -1698,8 +1707,11 @@ const Workspace = () => {
                                 created_at: new Date().toISOString()
                               };
                               setTeamGroupMessages(prev => [...prev, response1]);
+                              setIsTeamGroupSending(false);
                               
-                              await new Promise(r => setTimeout(r, 3000));
+                              await new Promise(r => setTimeout(r, 2000));
+                              setIsTeamGroupSending(true);
+                              await new Promise(r => setTimeout(r, 2000));
                               const response2 = {
                                 id: `agent2-${Date.now()}`,
                                 content: responses.response2,
