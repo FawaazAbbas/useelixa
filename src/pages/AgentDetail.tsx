@@ -502,7 +502,7 @@ const AgentDetail = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hero Card */}
-            <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden shadow-xl">
+            <Card className="bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
               <CardContent className="relative p-6 md:p-8">
                 <div className="space-y-6">
@@ -600,7 +600,7 @@ const AgentDetail = () => {
 
             {/* Tabbed Content */}
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full justify-start bg-muted/50 backdrop-blur-sm border border-border/50 p-1 overflow-x-auto">
+              <TabsList className="w-full justify-start bg-muted/50 backdrop-blur-sm border border-border/50 p-1 overflow-hidden">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-background">Overview</TabsTrigger>
                 <TabsTrigger value="plugins" className="data-[state=active]:bg-background">Plugins</TabsTrigger>
                 <TabsTrigger value="reviews" className="data-[state=active]:bg-background">Reviews ({reviews.length})</TabsTrigger>
