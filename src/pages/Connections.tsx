@@ -682,7 +682,7 @@ export default function Connections() {
   };
 
   const handleDisconnect = () => {
-    toast.error("Disconnect feature disabled in demo mode");
+    setWaitlistOpen(true);
   };
 
   const allConnectionItems = [
