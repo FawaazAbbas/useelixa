@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, FileText, FileSpreadsheet, FileImage, Film, Archive, Code, Presentation } from "lucide-react";
 import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface FilePreviewDialogProps {
   open: boolean;
@@ -40,16 +41,12 @@ const getFileExtension = (filename: string): string => {
 };
 
 export function FilePreviewDialog({ open, onOpenChange, file, uploadedBy, uploadedAt }: FilePreviewDialogProps) {
-  const { toast } = useToast();
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
 
   if (!file) return null;
 
   const handleDownload = () => {
-    toast({
-      title: "Demo Mode",
-      description: `Download started for "${file.name}" - this is simulated in demo mode.`,
-    });
-    onOpenChange(false);
+    setShowWaitlistDialog(true);
   };
 
   return (
@@ -106,6 +103,12 @@ export function FilePreviewDialog({ open, onOpenChange, file, uploadedBy, upload
           </Button>
         </div>
       </DialogContent>
+
+      {/* Waitlist Dialog */}
+      <WaitlistDialog
+        open={showWaitlistDialog}
+        onOpenChange={setShowWaitlistDialog}
+      />
     </Dialog>
   );
 }

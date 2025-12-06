@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useBrianChat } from "@/hooks/useBrianChat";
-import { VoiceCallDialog } from "@/components/VoiceCallDialog";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { BrianAvatar } from "@/components/BrianAvatar";
 import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
@@ -24,7 +24,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
   const [input, setInput] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -253,7 +253,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
               <Button
                 size="icon"
                 variant="outline"
-                onClick={() => document.getElementById('brian-file-upload')?.click()}
+                onClick={() => setShowWaitlistDialog(true)}
                 disabled={uploading || sending}
               >
                 <Paperclip className="h-4 w-4" />
@@ -261,7 +261,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
               <Button
                 size="icon"
                 variant="outline"
-                onClick={() => setShowVoiceCall(true)}
+                onClick={() => setShowWaitlistDialog(true)}
                 title="Start voice call"
               >
                 <Phone className="h-4 w-4" />
@@ -290,13 +290,10 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
         </div>
       </div>
 
-      {/* Voice Call Dialog */}
-      <VoiceCallDialog
-        open={showVoiceCall}
-        onClose={() => setShowVoiceCall(false)}
-        agentName="Brian"
-        agentInstructions="You are Brian, the AI Chief Operating Officer. You know everything about the user's workspace, can delegate work to specialized agents, and ensure quality before delivering results. You are knowledgeable, proactive, and quality-focused."
-        voice="alloy"
+      {/* Waitlist Dialog */}
+      <WaitlistDialog
+        open={showWaitlistDialog}
+        onOpenChange={setShowWaitlistDialog}
       />
     </>
   );

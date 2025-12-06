@@ -313,7 +313,10 @@ export const ChatRightPanel = ({
               <p className="text-sm text-muted-foreground mb-4">Files shared in this conversation</p>
             </div>
             
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+            <div 
+              onClick={() => setShowWaitlistDialog(true)}
+              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            >
               <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm font-medium mb-1">Upload Files</p>
               <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
@@ -373,7 +376,10 @@ export const ChatRightPanel = ({
               <p className="text-sm text-muted-foreground mb-4">Shared files from this chat</p>
             </div>
             
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+            <div 
+              onClick={() => setShowWaitlistDialog(true)}
+              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            >
               <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm font-medium mb-1">Upload Files</p>
               <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
@@ -437,7 +443,10 @@ export const ChatRightPanel = ({
               <p className="text-sm text-muted-foreground mb-4">Shared files for the entire team</p>
             </div>
             
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer">
+            <div 
+              onClick={() => setShowWaitlistDialog(true)}
+              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            >
               <Upload className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
               <p className="text-sm font-medium mb-1">Upload Files</p>
               <p className="text-xs text-muted-foreground">Drop files here or click to browse</p>
