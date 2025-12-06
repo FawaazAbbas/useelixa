@@ -24,9 +24,8 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Developers from "./pages/Developers";
-import { MainNavSidebar } from "./components/MainNavSidebar";
+import { AppLayout } from "./components/AppLayout";
 import { MobileRedirect } from "./components/MobileRedirect";
-import { MobileBottomNav } from "./components/MobileBottomNav";
 import { FloatingWaitlistButton } from "./components/FloatingWaitlistButton";
 import { ScrollToTop } from "./components/ScrollToTop";
 
@@ -51,60 +50,36 @@ const App = () => (
           <Route path="/publish" element={<Publish />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
           
-          {/* App routes with main navigation */}
+          {/* App routes with sidebar layout */}
           <Route path="/workspace" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
+            <AppLayout>
               <Workspace />
-              <MobileBottomNav />
-            </div>
+            </AppLayout>
           } />
           <Route path="/tasks" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
+            <AppLayout>
               <Tasks />
-              <MobileBottomNav />
-            </div>
+            </AppLayout>
           } />
           <Route path="/calendar" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
+            <AppLayout>
               <Calendar />
-              <MobileBottomNav />
-            </div>
+            </AppLayout>
           } />
           <Route path="/logs" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
+            <AppLayout>
               <Logs />
-              <MobileBottomNav />
-            </div>
+            </AppLayout>
           } />
           <Route path="/connections" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
+            <AppLayout>
               <Connections />
-              <MobileBottomNav />
-            </div>
+            </AppLayout>
           } />
           <Route path="/knowledge-base" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
+            <AppLayout>
               <KnowledgeBase />
-              <MobileBottomNav />
-            </div>
+            </AppLayout>
           } />
           <Route path="/settings" element={<Settings />} />
           <Route path="/about" element={<About />} />

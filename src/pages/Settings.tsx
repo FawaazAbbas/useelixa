@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { MainNavSidebar } from "@/components/MainNavSidebar";
+import { AppLayout } from "@/components/AppLayout";
 import { DemoBanner } from "@/components/DemoBanner";
 import { mockProfile } from "@/data/mockSettings";
 
@@ -29,11 +29,9 @@ const Settings = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gradient-to-b from-background to-muted/20">
-      <MainNavSidebar />
-      
-      <div className="flex-1 overflow-auto pb-20 md:pb-0">
-        <DemoBanner />
+    <AppLayout>
+      <div className="flex-1 overflow-auto">
+        <div className="hidden md:block"><DemoBanner /></div>
         <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto animate-fade-in">
           <Button 
             variant="ghost" 
@@ -149,7 +147,7 @@ const Settings = () => {
           </Tabs>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
