@@ -79,7 +79,7 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
       <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
         {/* Logo/Icon */}
         <div
-          className={`mb-8 transition-all duration-700 ${
+          className={`flex justify-center mb-8 transition-all duration-700 ${
             showContent ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-90"
           }`}
         >
