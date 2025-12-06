@@ -6,7 +6,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Check, Loader2, Rocket, Users, Zap } from "lucide-react";
+import { Sparkles, Check, Loader2 } from "lucide-react";
+import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -136,7 +137,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               {/* Header */}
               <div className="text-center space-y-3 mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 mb-2">
-                  <Rocket className="h-8 w-8 text-white" />
+                  <ElixaLogo size={28} color="#ffffff" />
                 </div>
                 
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">
