@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { mockTeams } from "@/data/mockTeams";
 import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,8 +12,8 @@ interface TeamsSidebarProps {
   searchQuery?: string;
 }
 
-// Mock unread counts for demo - using actual team IDs from mockTeams
-const mockUnreadCounts: Record<string, number> = {
+// Initial mock unread counts for demo
+const initialUnreadCounts: Record<string, number> = {
   "team-marketing": 3,
   "team-development": 5,
   "team-customer-service": 2,
@@ -24,6 +24,18 @@ export const TeamsSidebar = ({
   onSelectTeamGroup,
   searchQuery = "",
 }: TeamsSidebarProps) => {
+  const [unreadCounts, setUnreadCounts] = useState(initialUnreadCounts);
+
+  // Clear unread count when a team is selected
+  useEffect(() => {
+    if (selectedTeamGroupId && unreadCounts[selectedTeamGroupId] > 0) {
+      setUnreadCounts(prev => ({
+        ...prev,
+        [selectedTeamGroupId]: 0
+      }));
+    }
+  }, [selectedTeamGroupId]);
+
   const filteredTeams = useMemo(() => {
     if (!searchQuery.trim()) return mockTeams;
     
@@ -37,7 +49,7 @@ export const TeamsSidebar = ({
   return (
     <div className="space-y-0.5 px-2 py-1">
       {filteredTeams.map((team) => {
-        const unreadCount = mockUnreadCounts[team.id] || 0;
+        const unreadCount = unreadCounts[team.id] || 0;
         return (
           <button
             key={team.id}
@@ -53,7 +65,7 @@ export const TeamsSidebar = ({
             <span className="text-[13px] truncate text-slate-300 flex-1 text-left">
               {team.name.replace(' Team', '')}
             </span>
-            {unreadCount > 0 && selectedTeamGroupId !== team.id && (
+            {unreadCount > 0 && (
               <span className="min-w-[18px] h-[18px] px-1.5 text-[10px] font-medium bg-primary text-primary-foreground rounded-full flex items-center justify-center">
                 {unreadCount}
               </span>
