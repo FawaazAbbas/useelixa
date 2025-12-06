@@ -203,7 +203,7 @@ export const financeDirectorMessages: DirectorMessage[] = [
   },
   {
     id: 'fdir-23',
-    content: '<p>Deal.</p><p>And just to say it out loud: having you as an AI CFO I actually trust is half the reason I feel safe aiming for £7m. If I get stupid, drag me back.</p>',
+    content: '<p>Deal.</p><p>And just to say it out loud: having you as a CFO I actually trust is half the reason I feel safe aiming for £7m. If I get stupid, drag me back.</p>',
     user_id: 'demo-user',
     agent_id: null,
     sender_name: 'Liam',
