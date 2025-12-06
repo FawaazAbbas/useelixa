@@ -5,29 +5,90 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Mail, MessageSquare, Clock } from "lucide-react";
+import { Mail, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  subject: z.string().trim().min(1, "Subject is required").max(200, "Subject must be less than 200 characters"),
+  message: z.string().trim().min(1, "Message is required").max(2000, "Message must be less than 2000 characters")
+});
 
 const Contact = () => {
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Message sent",
-      description: "Thanks for reaching out. We'll get back to you soon.",
-    });
-    
-    setIsSubmitting(false);
-    (e.target as HTMLFormElement).reset();
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      subject: formData.get("subject") as string,
+      message: formData.get("message") as string,
+    };
+
+    try {
+      // Validate form data
+      const validatedData = contactSchema.parse(data);
+
+      // Insert into database
+      const { error: dbError } = await supabase
+        .from("contact_submissions")
+        .insert({
+          name: validatedData.name,
+          email: validatedData.email,
+          subject: validatedData.subject,
+          message: validatedData.message,
+        });
+
+      if (dbError) throw dbError;
+
+      setIsSubmitted(true);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        setError(err.errors[0].message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+        <TalentPoolNavbar />
+        
+        <main className="pt-24 pb-16">
+          <div className="max-w-xl mx-auto px-4 sm:px-6 text-center">
+            <div className="bg-card/50 border border-border/50 rounded-2xl p-8 md:p-12">
+              <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-8 w-8 text-green-500" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-4">Message Received!</h1>
+              <p className="text-muted-foreground mb-6">
+                Thanks for reaching out. We've received your message and will get back to you within 24 hours.
+              </p>
+              <Button onClick={() => setIsSubmitted(false)} variant="outline">
+                Send Another Message
+              </Button>
+            </div>
+          </div>
+        </main>
+
+        <TalentPoolFooter />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
@@ -90,11 +151,18 @@ const Contact = () => {
             <Card className="md:col-span-2 bg-card/50 border-border/50">
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+                      {error}
+                    </div>
+                  )}
+                  
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name</Label>
                       <Input 
-                        id="name" 
+                        id="name"
+                        name="name"
                         placeholder="Your name" 
                         required 
                         className="bg-background/50"
@@ -103,7 +171,8 @@ const Contact = () => {
                     <div className="space-y-2">
                       <Label htmlFor="email">Email</Label>
                       <Input 
-                        id="email" 
+                        id="email"
+                        name="email"
                         type="email" 
                         placeholder="your@email.com" 
                         required 
@@ -115,7 +184,8 @@ const Contact = () => {
                   <div className="space-y-2">
                     <Label htmlFor="subject">Subject</Label>
                     <Input 
-                      id="subject" 
+                      id="subject"
+                      name="subject"
                       placeholder="How can we help?" 
                       required 
                       className="bg-background/50"
@@ -125,7 +195,8 @@ const Contact = () => {
                   <div className="space-y-2">
                     <Label htmlFor="message">Message</Label>
                     <Textarea 
-                      id="message" 
+                      id="message"
+                      name="message"
                       placeholder="Tell us more about your question or issue..." 
                       rows={5} 
                       required 
