@@ -369,6 +369,16 @@ const Workspace = () => {
     }
   }, [teamMemberMessages, selectedTeamMemberId]);
 
+  // Scroll to bottom when demo messages are added to any chat
+  useEffect(() => {
+    const currentChatId = selectedTeamGroupId || selectedTeamMemberId;
+    if (currentChatId && demoMessages[currentChatId]?.length > 0) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [demoMessages, selectedTeamGroupId, selectedTeamMemberId]);
+
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
 
