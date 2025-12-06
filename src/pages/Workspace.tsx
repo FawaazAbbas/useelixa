@@ -1169,7 +1169,7 @@ const Workspace = () => {
                           <p className="text-muted-foreground">Start a conversation with {member.name}</p>
                         </div>
                       ) : (
-                        teamMemberMessages.map((msg) => {
+                        teamMemberMessages.map((msg, index) => {
                           const isUserMessage = msg.user_id !== null || msg.sender_name === 'Liam';
                           // Blue for managers, orange for workers
                           const msgIconColor = member.isManager ? "text-blue-500" : "text-orange-500";
@@ -1177,11 +1177,27 @@ const Workspace = () => {
                           const msgDate = new Date(msg.created_at);
                           // Check if content contains HTML tags (director messages have HTML)
                           const hasHtmlContent = msg.content.includes('<') && msg.content.includes('>');
+                          
+                          // Check if we need a demo session separator
+                          const isDemoMessage = msg.id.startsWith('user-') || msg.id.startsWith('agent1-') || msg.id.startsWith('agent2-');
+                          const prevMsg = index > 0 ? teamMemberMessages[index - 1] : null;
+                          const prevIsDemoMessage = prevMsg && (prevMsg.id.startsWith('user-') || prevMsg.id.startsWith('agent1-') || prevMsg.id.startsWith('agent2-'));
+                          const showDemoSeparator = isDemoMessage && !prevIsDemoMessage;
+                          
                           return (
-                            <div
-                              key={msg.id}
-                              className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}
-                            >
+                            <div key={msg.id}>
+                              {showDemoSeparator && (
+                                <div className="flex items-center gap-4 my-6">
+                                  <div className="flex-1 h-px bg-border" />
+                                  <div className="flex items-center gap-2 px-4 py-1.5 bg-muted/60 rounded-full border border-border/50">
+                                    <span className="text-xs font-medium text-muted-foreground">
+                                      {format(new Date(), "d MMM yyyy")} • Demo Session
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 h-px bg-border" />
+                                </div>
+                              )}
+                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                               {!isUserMessage && (
                                 <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
                                   <Bot className={`h-6 w-6 ${msgIconColor}`} />
@@ -1260,6 +1276,7 @@ const Workspace = () => {
                                 </Avatar>
                               )}
                             </div>
+                          </div>
                           );
                         })
                       )}
@@ -1499,9 +1516,17 @@ const Workspace = () => {
                           // Check if we need a session separator
                           let showSeparator = false;
                           let separatorText = "";
+                          const isDemoMessage = msg.id.startsWith('user-') || msg.id.startsWith('agent1-') || msg.id.startsWith('agent2-');
+                          const prevMsg = index > 0 ? teamGroupMessages[index - 1] : null;
+                          const prevIsDemoMessage = prevMsg && (prevMsg.id.startsWith('user-') || prevMsg.id.startsWith('agent1-') || prevMsg.id.startsWith('agent2-'));
+                          
                           if (index === 0) {
                             showSeparator = true;
                             separatorText = msgHour < 12 ? "Morning Session" : msgHour < 17 ? "Afternoon Session" : "Evening Session";
+                          } else if (isDemoMessage && !prevIsDemoMessage) {
+                            // Show "Today • Demo Session" divider before first demo message
+                            showSeparator = true;
+                            separatorText = "Demo Session";
                           } else {
                             const prevDate = new Date(teamGroupMessages[index - 1].created_at);
                             const prevHour = prevDate.getHours();
