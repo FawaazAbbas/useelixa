@@ -916,6 +916,13 @@ const Workspace = () => {
               >
                 <Phone className="h-4 w-4" />
               </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => setShowSettings(true)}
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -924,13 +931,6 @@ const Workspace = () => {
                 >
                   <LayoutList className="h-4 w-4" />
                   <span className="ml-2">Panels</span>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => setShowSettings(true)}
-                >
-                  <Settings className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -1254,6 +1254,13 @@ const Workspace = () => {
                       >
                         <Phone className="h-4 w-4" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowSettings(true)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -1262,13 +1269,6 @@ const Workspace = () => {
                       >
                         <LayoutList className="h-4 w-4" />
                         <span className="ml-2">Panels</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setShowSettings(true)}
-                      >
-                        <Settings className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -1612,6 +1612,13 @@ const Workspace = () => {
                       >
                         <Phone className="h-4 w-4" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setShowSettings(true)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -1620,13 +1627,6 @@ const Workspace = () => {
                       >
                         <LayoutList className="h-4 w-4" />
                         <span className="ml-2">Panels</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setShowSettings(true)}
-                      >
-                        <Settings className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -1998,6 +1998,14 @@ const Workspace = () => {
                 <Phone className="h-4 w-4" />
               </Button>
             )}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowSettings(true)}
+              disabled={!selectedChat}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -2006,14 +2014,6 @@ const Workspace = () => {
             >
               <LayoutList className="h-4 w-4" />
               <span className="ml-2">Panels</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setShowSettings(true)}
-              disabled={!selectedChat}
-            >
-              <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
