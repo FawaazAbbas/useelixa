@@ -55,6 +55,7 @@ import { TeamMemberAvatar } from "@/components/TeamMemberAvatar";
 import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
 import { ChatRightPanel } from "@/components/ChatRightPanel";
 import { getChatResponse } from "@/data/mockChatResponses";
+import { WorkspaceWelcomeOverlay } from "@/components/WorkspaceWelcomeOverlay";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -231,7 +232,26 @@ const Workspace = () => {
   const [isTeamGroupSending, setIsTeamGroupSending] = useState(false);
   const [isTeamMemberSending, setIsTeamMemberSending] = useState(false);
   const [isBrianDemoSending, setIsBrianDemoSending] = useState(false);
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(() => {
+    // Check if user has seen the welcome overlay this session
+    const hasSeenWelcome = sessionStorage.getItem('elixa-workspace-welcome-seen');
+    return !hasSeenWelcome;
+  });
 
+  // Handle keyboard shortcut for welcome overlay
+  useEffect(() => {
+    if (!showWelcomeOverlay) return;
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        sessionStorage.setItem('elixa-workspace-welcome-seen', 'true');
+        setShowWelcomeOverlay(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showWelcomeOverlay]);
   useEffect(() => {
     if (workspaceId) {
       fetchAutomations();
@@ -2439,6 +2459,16 @@ const Workspace = () => {
 
       {/* Waitlist Dialog */}
       <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+
+      {/* Welcome Overlay */}
+      {showWelcomeOverlay && (
+        <WorkspaceWelcomeOverlay 
+          onDismiss={() => {
+            sessionStorage.setItem('elixa-workspace-welcome-seen', 'true');
+            setShowWelcomeOverlay(false);
+          }} 
+        />
+      )}
 
       {/* File Preview Dialog */}
       <FilePreviewDialog
