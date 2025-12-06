@@ -1031,24 +1031,21 @@ const Workspace = () => {
                     </div>
                   </div>
                 )}
+                {/* Typing Indicator for Brian Demo - rendered inside scroll area as its own message */}
+                {isBrianDemoSending && (
+                  <div className="flex gap-3 items-start">
+                    <BrianAvatar size="md" rounded="full" />
+                    <div className="inline-block px-4 py-3 rounded-2xl bg-muted/80 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Typing...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div ref={brianMessagesEndRef} />
               </div>
             </ScrollArea>
-
-            {/* Typing Indicator for Brian */}
-            {isBrianDemoSending && (
-              <div className="px-4 py-2">
-                <div className="flex gap-3 max-w-4xl mx-auto">
-                  <BrianAvatar size="md" />
-                  <div className="inline-block px-4 py-2 rounded-2xl bg-muted/80">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Typing...</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Brian Input */}
             <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
