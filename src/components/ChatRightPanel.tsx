@@ -219,8 +219,7 @@ export const ChatRightPanel = ({
               >
                 <TeamMemberAvatar 
                   memberId={team.manager.id} 
-                  size="sm" 
-                  className="h-8 w-8"
+                  size="md"
                 />
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium">{team.manager.name}</p>
@@ -241,8 +240,7 @@ export const ChatRightPanel = ({
                 >
                   <TeamMemberAvatar 
                     memberId={member.id} 
-                    size="sm" 
-                    className="h-8 w-8"
+                    size="md"
                   />
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium">{member.name}</p>
