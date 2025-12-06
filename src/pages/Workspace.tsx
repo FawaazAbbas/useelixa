@@ -223,6 +223,7 @@ const Workspace = () => {
   // Interactive demo chat state
   const [disabledChats, setDisabledChats] = useState<Set<string>>(new Set());
   const [demoMessages, setDemoMessages] = useState<Record<string, any[]>>({});
+  const [brianDemoMessages, setBrianDemoMessages] = useState<Array<{ role: "user" | "assistant"; content: string; timestamp: string }>>([]);
   const [teamGroupInput, setTeamGroupInput] = useState("");
   const [teamMemberInput, setTeamMemberInput] = useState("");
   const [isTeamGroupSending, setIsTeamGroupSending] = useState(false);
@@ -905,23 +906,43 @@ const Workspace = () => {
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
-                ) : brianMessages.length === 0 ? (
+                ) : brianMessages.length === 0 && brianDemoMessages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full gap-3">
                     <p className="text-muted-foreground">Start a conversation with Brian, your AI COO</p>
                   </div>
                 ) : (
-                  brianMessages.map((msg, idx) => {
+                  [...brianMessages, ...brianDemoMessages].map((msg, idx) => {
                     const isUserMessage = msg.role === "user";
                     const isSelected = selectedBrianIndices.has(idx);
                     const msgTimestamp = (msg as any).timestamp ? new Date((msg as any).timestamp) : new Date();
+                    const allMessages = [...brianMessages, ...brianDemoMessages];
+                    
+                    // Check if we need a demo session separator
+                    const isDemoMessage = idx >= brianMessages.length;
+                    const prevIsDemoMessage = idx > 0 && (idx - 1) >= brianMessages.length;
+                    const showDemoSeparator = isDemoMessage && !prevIsDemoMessage;
+                    const currentHour = new Date().getHours();
+                    const sessionText = currentHour < 12 ? "Morning Session" : currentHour < 17 ? "Afternoon Session" : "Evening Session";
+                    
                     return (
-                      <div
-                        key={idx}
-                        className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""} ${
-                          isSelected ? "bg-primary/10 rounded-lg p-2" : ""
-                        }`}
-                        onClick={() => isSelectionMode && handleToggleMessageSelection(idx, true)}
-                      >
+                      <div key={idx}>
+                        {showDemoSeparator && (
+                          <div className="flex items-center gap-4 my-6">
+                            <div className="flex-1 h-px bg-border" />
+                            <div className="flex items-center gap-2 px-4 py-1.5 bg-muted/60 rounded-full border border-border/50">
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {format(new Date(), "d MMM yyyy")} • {sessionText}
+                              </span>
+                            </div>
+                            <div className="flex-1 h-px bg-border" />
+                          </div>
+                        )}
+                        <div
+                          className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""} ${
+                            isSelected ? "bg-primary/10 rounded-lg p-2" : ""
+                          }`}
+                          onClick={() => isSelectionMode && handleToggleMessageSelection(idx, true)}
+                        >
                         {isSelectionMode && (
                           <div className="flex items-start pt-1">
                             <Button
@@ -968,10 +989,10 @@ const Workspace = () => {
                                dangerouslySetInnerHTML={{ __html: msg.content }}
                              />
                            </div>
-                           {msg.metadata?.files && (
+                           {(msg as any).metadata?.files && (
                              <div className="max-w-[85%] mt-2">
                                <FileMessageCard 
-                                 files={msg.metadata.files} 
+                                 files={(msg as any).metadata.files} 
                                  senderName={isUserMessage ? "You" : "Brian"}
                                />
                              </div>
@@ -992,6 +1013,7 @@ const Workspace = () => {
                              <AvatarFallback>U</AvatarFallback>
                            </Avatar>
                          )}
+                      </div>
                       </div>
                     );
                   })
@@ -1065,16 +1087,30 @@ const Workspace = () => {
                             content: brianInput,
                             timestamp: new Date().toISOString()
                           };
-                          // We need to use a different approach for Brian since it uses a different message format
-                          // Just show toast that this is demo mode for now
+                          setBrianDemoMessages(prev => [...prev, userMessage]);
                           setBrianInput("");
                           
-                          // Simulate by adding to brianMessages state - but that's managed by useBrianChat
-                          // Instead we'll show toast and demonstrate with the team/director pattern
-                          toast({ 
-                            title: "Demo Mode", 
-                            description: "Brian would respond here. Try the Team or Director chats for the full interactive demo!",
-                          });
+                          // Wait 3 seconds, then add response 1
+                          await new Promise(r => setTimeout(r, 3000));
+                          const response1 = {
+                            role: "assistant" as const,
+                            content: responses.response1,
+                            timestamp: new Date().toISOString()
+                          };
+                          setBrianDemoMessages(prev => [...prev, response1]);
+                          setIsBrianDemoSending(false);
+                          
+                          // Wait 2 seconds (no typing), then start typing for 2 seconds
+                          await new Promise(r => setTimeout(r, 2000));
+                          setIsBrianDemoSending(true);
+                          await new Promise(r => setTimeout(r, 2000));
+                          const response2 = {
+                            role: "assistant" as const,
+                            content: responses.response2,
+                            timestamp: new Date().toISOString()
+                          };
+                          setBrianDemoMessages(prev => [...prev, response2]);
+                          
                           setDisabledChats(prev => new Set([...prev, "brian"]));
                           setIsBrianDemoSending(false);
                         }
@@ -1091,12 +1127,35 @@ const Workspace = () => {
                         }
                         
                         setIsBrianDemoSending(true);
+                        const userMessage = {
+                          role: "user" as const,
+                          content: brianInput,
+                          timestamp: new Date().toISOString()
+                        };
+                        setBrianDemoMessages(prev => [...prev, userMessage]);
                         setBrianInput("");
                         
-                        toast({ 
-                          title: "Demo Mode", 
-                          description: "Brian would respond here. Try the Team or Director chats for the full interactive demo!",
-                        });
+                        // Wait 3 seconds, then add response 1
+                        await new Promise(r => setTimeout(r, 3000));
+                        const response1 = {
+                          role: "assistant" as const,
+                          content: responses.response1,
+                          timestamp: new Date().toISOString()
+                        };
+                        setBrianDemoMessages(prev => [...prev, response1]);
+                        setIsBrianDemoSending(false);
+                        
+                        // Wait 2 seconds (no typing), then start typing for 2 seconds
+                        await new Promise(r => setTimeout(r, 2000));
+                        setIsBrianDemoSending(true);
+                        await new Promise(r => setTimeout(r, 2000));
+                        const response2 = {
+                          role: "assistant" as const,
+                          content: responses.response2,
+                          timestamp: new Date().toISOString()
+                        };
+                        setBrianDemoMessages(prev => [...prev, response2]);
+                        
                         setDisabledChats(prev => new Set([...prev, "brian"]));
                         setIsBrianDemoSending(false);
                       }}
