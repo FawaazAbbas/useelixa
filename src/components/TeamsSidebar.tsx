@@ -12,11 +12,11 @@ interface TeamsSidebarProps {
   searchQuery?: string;
 }
 
-// Mock unread counts for demo
+// Mock unread counts for demo - using actual team IDs from mockTeams
 const mockUnreadCounts: Record<string, number> = {
-  "marketing": 3,
-  "development": 5,
-  "customer-service": 2,
+  "team-marketing": 3,
+  "team-development": 5,
+  "team-customer-service": 2,
 };
 
 export const TeamsSidebar = ({ 

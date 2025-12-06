@@ -14,11 +14,11 @@ interface DirectorWithTeam {
   team: Team;
 }
 
-// Mock unread counts for demo - some directors have unread messages
+// Mock unread counts for demo - using actual director IDs from mockTeams managers
 const mockDirectorUnreads: Record<string, number> = {
-  "marketing-manager": 2,
-  "finance-manager": 1,
-  "creative-manager": 4,
+  "marketing-director": 2,
+  "finance-director": 1,
+  "creative-director": 4,
 };
 
 export const DirectorsSidebar = ({
