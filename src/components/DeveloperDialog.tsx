@@ -85,6 +85,8 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const isFormValid = name.trim() && email.trim() && selectedLanguages.length > 0 && selectedTools.length > 0;
+
   const toggleLanguage = (lang: string) => {
     setSelectedLanguages(prev =>
       prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]
@@ -99,14 +101,16 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
+    
     setIsLoading(true);
     
     try {
       const { error } = await supabase
         .from('developer_applications')
         .insert({
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
           skills: selectedLanguages,
           message: `AI Tools: ${selectedTools.join(', ')}`,
         });
@@ -141,7 +145,7 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[90vh] p-0 overflow-hidden border border-border/50 bg-background shadow-2xl rounded-2xl">
+      <DialogContent className="sm:max-w-[640px] max-h-[90vh] p-0 overflow-hidden border border-border/50 bg-background shadow-2xl rounded-2xl">
         {!submitted ? (
           <div className="relative bg-background rounded-2xl overflow-hidden">
             {/* Subtle gradient accent at top */}
@@ -160,98 +164,103 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
                 </DialogDescription>
               </DialogHeader>
               
-              <form onSubmit={handleSubmit} className="space-y-5 mt-6">
-                <div className="space-y-1.5">
-                  <Label htmlFor="dev-name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Name
-                  </Label>
-                  <Input
-                    id="dev-name"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-emerald-500/50 focus:ring-emerald-500/20"
-                  />
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="dev-email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Email
-                  </Label>
-                  <Input
-                    id="dev-email"
-                    type="email"
-                    placeholder="you@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-emerald-500/50 focus:ring-emerald-500/20"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Languages You Know
-                  </Label>
-                  <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border max-h-[120px] overflow-y-auto">
-                    {codingLanguages.map((lang) => (
-                      <Badge
-                        key={lang}
-                        variant="outline"
-                        className={cn(
-                          "cursor-pointer transition-all hover:scale-105",
-                          selectedLanguages.includes(lang)
-                            ? "bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                            : "bg-transparent border-border text-muted-foreground hover:border-muted-foreground"
-                        )}
-                        onClick={() => toggleLanguage(lang)}
-                      >
-                        {lang}
-                        {selectedLanguages.includes(lang) && (
-                          <X className="w-3 h-3 ml-1" />
-                        )}
-                      </Badge>
-                    ))}
+              <form onSubmit={handleSubmit} className="mt-6">
+                {/* Two column layout on desktop, stacked on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="dev-name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="dev-name"
+                      placeholder="Your name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-emerald-500/50 focus:ring-emerald-500/20"
+                    />
                   </div>
-                  {selectedLanguages.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{selectedLanguages.length} selected</p>
-                  )}
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="dev-email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Email <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="dev-email"
+                      type="email"
+                      placeholder="you@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-emerald-500/50 focus:ring-emerald-500/20"
+                    />
+                  </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    AI Agent Tools You Use
-                  </Label>
-                  <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border max-h-[140px] overflow-y-auto">
-                    {aiAgentTools.map((tool) => (
-                      <Badge
-                        key={tool}
-                        variant="outline"
-                        className={cn(
-                          "cursor-pointer transition-all hover:scale-105",
-                          selectedTools.includes(tool)
-                            ? "bg-cyan-500/20 border-cyan-500 text-cyan-600 dark:text-cyan-400"
-                            : "bg-transparent border-border text-muted-foreground hover:border-muted-foreground"
-                        )}
-                        onClick={() => toggleTool(tool)}
-                      >
-                        {tool}
-                        {selectedTools.includes(tool) && (
-                          <X className="w-3 h-3 ml-1" />
-                        )}
-                      </Badge>
-                    ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Languages You Know <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border max-h-[140px] overflow-y-auto">
+                      {codingLanguages.map((lang) => (
+                        <Badge
+                          key={lang}
+                          variant="outline"
+                          className={cn(
+                            "cursor-pointer transition-all hover:scale-105",
+                            selectedLanguages.includes(lang)
+                              ? "bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400"
+                              : "bg-transparent border-border text-muted-foreground hover:border-muted-foreground"
+                          )}
+                          onClick={() => toggleLanguage(lang)}
+                        >
+                          {lang}
+                          {selectedLanguages.includes(lang) && (
+                            <X className="w-3 h-3 ml-1" />
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                    {selectedLanguages.length > 0 && (
+                      <p className="text-xs text-emerald-600">{selectedLanguages.length} selected</p>
+                    )}
                   </div>
-                  {selectedTools.length > 0 && (
-                    <p className="text-xs text-muted-foreground">{selectedTools.length} selected</p>
-                  )}
+                  
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      AI Agent Tools You Use <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border max-h-[140px] overflow-y-auto">
+                      {aiAgentTools.map((tool) => (
+                        <Badge
+                          key={tool}
+                          variant="outline"
+                          className={cn(
+                            "cursor-pointer transition-all hover:scale-105",
+                            selectedTools.includes(tool)
+                              ? "bg-cyan-500/20 border-cyan-500 text-cyan-600 dark:text-cyan-400"
+                              : "bg-transparent border-border text-muted-foreground hover:border-muted-foreground"
+                          )}
+                          onClick={() => toggleTool(tool)}
+                        >
+                          {tool}
+                          {selectedTools.includes(tool) && (
+                            <X className="w-3 h-3 ml-1" />
+                          )}
+                        </Badge>
+                      ))}
+                    </div>
+                    {selectedTools.length > 0 && (
+                      <p className="text-xs text-cyan-600">{selectedTools.length} selected</p>
+                    )}
+                  </div>
                 </div>
                 
                 <Button 
                   type="submit" 
-                  disabled={isLoading || selectedLanguages.length === 0 || selectedTools.length === 0}
-                  className="w-full h-12 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-[1.02]"
+                  disabled={isLoading || !isFormValid}
+                  className="w-full h-12 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-[1.02] mt-6"
                   size="lg"
                 >
                   {isLoading ? (

@@ -81,16 +81,20 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
+  const isFormValid = name.trim() && email.trim() && industry;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
+    
     setIsLoading(true);
     
     try {
       const { error } = await supabase
         .from('waitlist_signups')
         .insert({
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
           company: industry || null,
           use_case: `Max monthly budget: £${maxPay[0]}`,
         });
@@ -125,7 +129,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border border-border/50 bg-background shadow-2xl rounded-2xl">
+      <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden border border-border/50 bg-background shadow-2xl rounded-2xl">
         {!submitted ? (
           <div className="relative bg-background rounded-2xl overflow-hidden">
             {/* Subtle gradient accent at top */}
@@ -144,85 +148,90 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                 </DialogDescription>
               </DialogHeader>
               
-              <form onSubmit={handleSubmit} className="space-y-4 mt-6">
-                <div className="space-y-1.5">
-                  <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20"
-                  />
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20"
-                  />
-                </div>
-                
-                <div className="space-y-1.5">
-                  <Label htmlFor="industry" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Industry
-                  </Label>
-                  <Select value={industry} onValueChange={setIndustry} required>
-                    <SelectTrigger className="bg-muted/50 border-border text-foreground focus:ring-primary/20">
-                      <SelectValue placeholder="Select your industry" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border-border max-h-[280px]">
-                      {industries.map((ind) => (
-                        <SelectItem 
-                          key={ind} 
-                          value={ind}
-                          className="text-foreground focus:bg-primary/10 focus:text-foreground cursor-pointer"
-                        >
-                          {ind}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Monthly Budget
+              <form onSubmit={handleSubmit} className="mt-6">
+                {/* Two column layout on desktop, stacked on mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Name <span className="text-red-500">*</span>
                     </Label>
-                    <span className="text-lg font-bold text-primary">£{maxPay[0]}</span>
-                  </div>
-                  <div className="pt-2 px-1">
-                    <Slider
-                      value={maxPay}
-                      onValueChange={setMaxPay}
-                      min={20}
-                      max={50}
-                      step={1}
-                      className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-primary/50"
+                    <Input
+                      id="name"
+                      placeholder="Your name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20"
                     />
                   </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>£20</span>
-                    <span>£50</span>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Email <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="industry" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Industry <span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={industry} onValueChange={setIndustry} required>
+                      <SelectTrigger className="bg-muted/50 border-border text-foreground focus:ring-primary/20">
+                        <SelectValue placeholder="Select your industry" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border-border max-h-[280px] z-50">
+                        {industries.map((ind) => (
+                          <SelectItem 
+                            key={ind} 
+                            value={ind}
+                            className="text-foreground focus:bg-primary/10 focus:text-foreground cursor-pointer"
+                          >
+                            {ind}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Max Monthly Budget
+                      </Label>
+                      <span className="text-lg font-bold text-primary">£{maxPay[0]}</span>
+                    </div>
+                    <div className="pt-2 px-1">
+                      <Slider
+                        value={maxPay}
+                        onValueChange={setMaxPay}
+                        min={20}
+                        max={50}
+                        step={1}
+                        className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-primary/50"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>£20</span>
+                      <span>£50</span>
+                    </div>
                   </div>
                 </div>
                 
                 <Button 
                   type="submit" 
-                  disabled={isLoading || !industry}
-                  className="w-full h-12 bg-gradient-to-r from-primary to-violet-500 hover:from-primary/90 hover:to-violet-500/90 text-primary-foreground font-semibold shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] mt-2"
+                  disabled={isLoading || !isFormValid}
+                  className="w-full h-12 bg-gradient-to-r from-primary to-violet-500 hover:from-primary/90 hover:to-violet-500/90 text-primary-foreground font-semibold shadow-lg shadow-primary/30 transition-all hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] mt-6"
                   size="lg"
                 >
                   {isLoading ? (

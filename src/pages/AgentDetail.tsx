@@ -991,8 +991,8 @@ const AgentDetail = () => {
                   
                   {/* Developer CTA */}
                   <Button 
-                    variant="ghost"
-                    className="w-full text-sm text-muted-foreground hover:text-primary"
+                    variant="outline"
+                    className="w-full text-sm border-emerald-500/50 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all"
                     onClick={() => setDeveloperDialogOpen(true)}
                   >
                     <Code className="h-4 w-4 mr-2" />
