@@ -708,7 +708,7 @@ const Workspace = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pb-16 md:pb-0">
       {/* Demo banner */}
       {isDemoMode && <DemoBanner />}
       
