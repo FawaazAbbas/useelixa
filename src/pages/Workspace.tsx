@@ -2319,7 +2319,7 @@ const Workspace = () => {
       {/* Panels Drawer for Mobile/Tablet */}
       {(selectedChat || showBrian || selectedTeamMemberId || selectedTeamGroupId) && (
         <Sheet open={showAutomations} onOpenChange={setShowAutomations}>
-          <SheetContent side="right" className="w-full sm:w-96 p-0">
+          <SheetContent side="right" className="w-full sm:w-96 p-0 [&>button:first-child]:hidden">
             <div className="h-full flex flex-col">
               <ChatRightPanel
                 showBrian={showBrian}
@@ -2339,6 +2339,8 @@ const Workspace = () => {
                   setSelectedTeamMemberId(memberId);
                   setShowAutomations(false);
                 }}
+                showCloseButton={true}
+                onClose={() => setShowAutomations(false)}
               />
             </div>
           </SheetContent>
