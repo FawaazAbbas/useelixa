@@ -1314,12 +1314,12 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
+                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : "items-start"}`}>
                               {!isUserMessage && (
                                 <TeamMemberAvatar
                                   memberId={msg.agent_id || member.id}
-                                  size="md"
-                                  className="flex-shrink-0"
+                                  size="lg"
+                                  className="flex-shrink-0 mt-1"
                                 />
                               )}
                               <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
@@ -1693,14 +1693,14 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
+                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : "items-start"}`}>
                                 {!isUserMessage && (
                                   <TeamMemberAvatar
                                     memberId={msg.agent_id}
                                     name={msg.sender_name}
                                     isManager={msg.isManager}
-                                    size="md"
-                                    className="flex-shrink-0"
+                                    size="lg"
+                                    className="flex-shrink-0 mt-1"
                                   />
                                 )}
                                 <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
