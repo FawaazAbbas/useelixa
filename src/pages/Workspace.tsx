@@ -380,6 +380,22 @@ const Workspace = () => {
     }
   }, [demoMessages, selectedTeamGroupId, selectedTeamMemberId]);
 
+  // Scroll to bottom when waitlist button appears
+  useEffect(() => {
+    if (showWaitlistButton.size > 0) {
+      setTimeout(() => {
+        // Scroll the appropriate ref based on which chat is active
+        if (showBrian && showWaitlistButton.has("brian")) {
+          brianMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        } else if (selectedTeamMemberId && showWaitlistButton.has(selectedTeamMemberId)) {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        } else if (selectedTeamGroupId && showWaitlistButton.has(selectedTeamGroupId)) {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+    }
+  }, [showWaitlistButton, showBrian, selectedTeamMemberId, selectedTeamGroupId]);
+
   const handleSendMessage = async () => {
     if (!selectedChat || (!message.trim() && selectedFiles.length === 0) || sending) return;
 
