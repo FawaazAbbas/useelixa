@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -1235,9 +1235,18 @@ const Workspace = () => {
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-full ${bgColor} flex items-center justify-center`}>
-                        <Bot className={`h-6 w-6 ${iconColor}`} />
-                      </div>
+                      {member.avatarUrl ? (
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
+                          <AvatarFallback className={`${bgColor} ${iconColor}`}>
+                            {member.name.split(' ')[0]?.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <div className={`h-10 w-10 rounded-full ${bgColor} flex items-center justify-center`}>
+                          <Bot className={`h-6 w-6 ${iconColor}`} />
+                        </div>
+                      )}
                       <div>
                         <div className="font-semibold">{member.name}</div>
                         <div className="text-xs text-muted-foreground">
@@ -1314,9 +1323,18 @@ const Workspace = () => {
                               )}
                               <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                               {!isUserMessage && (
-                                <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
-                                  <Bot className={`h-6 w-6 ${msgIconColor}`} />
-                                </div>
+                                member.avatarUrl ? (
+                                  <Avatar className="h-10 w-10 flex-shrink-0">
+                                    <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
+                                    <AvatarFallback className={`${msgBgColor} ${msgIconColor}`}>
+                                      {member.name.split(' ')[0]?.slice(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ) : (
+                                  <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
+                                    <Bot className={`h-6 w-6 ${msgIconColor}`} />
+                                  </div>
+                                )
                               )}
                               <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                                 <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
