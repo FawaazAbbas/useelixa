@@ -17,6 +17,7 @@ import { RelatedAgents } from "@/components/RelatedAgents";
 import { TalentPoolNavbar, TalentPoolBreadcrumb } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { DeveloperDialog } from "@/components/DeveloperDialog";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
 
@@ -287,6 +288,7 @@ const AgentDetail = () => {
   const [requiredCredentials, setRequiredCredentials] = useState<string[]>([]);
   const [hasAICapabilities, setHasAICapabilities] = useState(false);
   const [developerDialogOpen, setDeveloperDialogOpen] = useState(false);
+  const [waitlistDialogOpen, setWaitlistDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAgent = async () => {
@@ -974,7 +976,7 @@ const AgentDetail = () => {
                     <Button 
                       variant="outline"
                       className="w-full gap-2 text-sm"
-                      onClick={() => toast({ title: "Coming Soon", description: "Slack integration will be available soon!" })}
+                      onClick={() => setWaitlistDialogOpen(true)}
                     >
                       <img src="/logos/SlackLogo.svg" alt="Slack" className="h-4 w-4" />
                       Add to Slack
@@ -982,7 +984,7 @@ const AgentDetail = () => {
                     <Button 
                       variant="outline"
                       className="w-full gap-2 text-sm"
-                      onClick={() => toast({ title: "Coming Soon", description: "Microsoft Teams integration will be available soon!" })}
+                      onClick={() => setWaitlistDialogOpen(true)}
                     >
                       <img src="/logos/TeamsLogo.svg" alt="Teams" className="h-4 w-4" />
                       Add to Teams
@@ -1016,6 +1018,7 @@ const AgentDetail = () => {
       
       {/* Developer Dialog */}
       <DeveloperDialog open={developerDialogOpen} onOpenChange={setDeveloperDialogOpen} />
+      <WaitlistDialog open={waitlistDialogOpen} onOpenChange={setWaitlistDialogOpen} />
     </div>
   );
 };
