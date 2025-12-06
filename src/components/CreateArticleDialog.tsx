@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface CreateArticleDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
   const [category, setCategory] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -49,10 +51,8 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
       return;
     }
 
-    toast.success("Demo Mode", {
-      description: "Article creation is not available in demo mode",
-    });
     onOpenChange(false);
+    setShowWaitlistDialog(true);
     
     // Reset form
     setTitle("");
@@ -63,6 +63,7 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -151,5 +152,8 @@ export function CreateArticleDialog({ open, onOpenChange }: CreateArticleDialogP
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 }

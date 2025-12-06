@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { AgentSelector } from "./AgentSelector";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 const taskSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200),
@@ -48,6 +49,7 @@ interface ManualTaskDialogProps {
 export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTaskDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -129,80 +131,14 @@ export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-    setSubmitting(true);
-
-    try {
-      const validatedData = taskSchema.parse(formData);
-
-      const { data: task, error: taskError } = await supabase
-        .from("tasks")
-        .insert({
-          title: validatedData.title,
-          description: validatedData.description || null,
-          priority: validatedData.priority,
-          due_date: validatedData.due_date || null,
-          is_asap: formData.is_asap,
-          user_id: user?.id!,
-          status: "pending"
-        })
-        .select()
-        .single();
-
-      if (taskError) throw taskError;
-
-      if (automations.length > 0) {
-        const automationsToInsert = automations.map(auto => ({
-          name: auto.name,
-          action: auto.instruction,
-          trigger: auto.trigger,
-          task_id: task.id,
-          workspace_id: user?.id!,
-          created_by: user?.id!,
-          agent_id: auto.agentId,
-          status: "active"
-        }));
-
-        const { error: autoError } = await supabase
-          .from("automations")
-          .insert(automationsToInsert);
-
-        if (autoError) throw autoError;
-      }
-
-      toast({
-        title: "Success",
-        description: `Task created successfully${automations.length > 0 ? " with automations" : ""}!`
-      });
-
-      onTaskCreated();
-      onOpenChange(false);
-      
-      setFormData({ title: "", description: "", priority: "medium", due_date: "", is_asap: false });
-      setAutomations([]);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0].toString()] = err.message;
-          }
-        });
-        setErrors(fieldErrors);
-      } else {
-        console.error("Error creating task:", error);
-        toast({
-          title: "Error",
-          description: "Failed to create task",
-          variant: "destructive"
-        });
-      }
-    } finally {
-      setSubmitting(false);
-    }
+    
+    // Show waitlist dialog instead of actually creating the task
+    onOpenChange(false);
+    setShowWaitlistDialog(true);
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -426,5 +362,8 @@ export const ManualTaskDialog = ({ open, onOpenChange, onTaskCreated }: ManualTa
         </form>
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 };

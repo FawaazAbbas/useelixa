@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Calendar, Eye, Copy, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 const categoryColors: Record<string, string> = {
   "Company Policies": "border-l-blue-500",
@@ -25,6 +27,8 @@ interface ArticleDetailDialogProps {
 }
 
 export function ArticleDetailDialog({ article, open, onOpenChange }: ArticleDetailDialogProps) {
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
+  
   if (!article) return null;
 
   const categoryColor = article.category ? categoryColors[article.category] : "border-l-gray-500";
@@ -35,18 +39,15 @@ export function ArticleDetailDialog({ article, open, onOpenChange }: ArticleDeta
   };
 
   const handleEdit = () => {
-    toast.info("Demo Mode", {
-      description: "Editing is not available in demo mode",
-    });
+    setShowWaitlistDialog(true);
   };
 
   const handleDelete = () => {
-    toast.info("Demo Mode", {
-      description: "Deletion is not available in demo mode",
-    });
+    setShowWaitlistDialog(true);
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`max-w-4xl max-h-[85vh] overflow-y-auto border-l-4 ${categoryColor}`}>
         <DialogHeader>
@@ -106,5 +107,8 @@ export function ArticleDetailDialog({ article, open, onOpenChange }: ArticleDeta
         )}
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 }
