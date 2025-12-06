@@ -215,7 +215,7 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
         </ScrollArea>
 
         {/* Input */}
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border p-4 pb-20 md:pb-4">
           <div className="space-y-2 max-w-3xl mx-auto">
             {/* File Preview */}
             {selectedFiles.length > 0 && (
