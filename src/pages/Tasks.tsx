@@ -458,7 +458,7 @@ const Tasks = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full w-full min-w-0 bg-gradient-to-b from-background to-muted/20 pb-20 md:pb-0">
-      <DemoBanner />
+      <div className="hidden md:block"><DemoBanner /></div>
       
       {/* Top Navigation Bar */}
       <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">

@@ -708,9 +708,9 @@ const Workspace = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 pb-20 md:pb-0">
-      {/* Demo banner */}
-      {isDemoMode && <DemoBanner />}
+    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Demo banner - hidden on mobile when in chat */}
+      {isDemoMode && !isMobile && <DemoBanner />}
       
       <div className="flex-1 flex overflow-hidden">
       {/* Group Chat Dialog */}
@@ -734,6 +734,8 @@ const Workspace = () => {
             setSelectedChat(null);
             setSelectedTeamMemberId(null);
           }}
+          onSelectTeamGroup={handleSelectTeamGroup}
+          selectedTeamGroupId={selectedTeamGroupId}
         />
       )}
 
@@ -916,11 +918,11 @@ const Workspace = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className={`flex-1 flex flex-col min-h-0 ${isMobile ? 'pt-14' : ''}`}>
         {showBrian ? (
           <>
             {/* Brian Chat Header */}
-            <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
+            <div className="h-14 border-b flex items-center justify-between px-4 bg-card/50 backdrop-blur-sm shrink-0">
               <div className="flex items-center gap-3">
                 <BrianAvatar size="md" />
                 <div>
@@ -944,20 +946,22 @@ const Workspace = () => {
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="lg:hidden"
-                  onClick={() => setShowAutomations(!showAutomations)}
-                >
-                  <LayoutList className="h-4 w-4" />
-                  <span className="ml-2">Panels</span>
-                </Button>
+                {!isMobile && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="lg:hidden"
+                    onClick={() => setShowAutomations(!showAutomations)}
+                  >
+                    <LayoutList className="h-4 w-4" />
+                    <span className="ml-2">Panels</span>
+                  </Button>
+                )}
               </div>
             </div>
             
             {/* Brian Messages */}
-            <ScrollArea className={`flex-1 p-4 ${isMobile ? 'pb-20' : ''}`}>
+            <ScrollArea className="flex-1 p-4">
               <div className="space-y-4 max-w-4xl mx-auto">
                 {brianLoading ? (
                   <div className="flex items-center justify-center py-8">
@@ -1118,7 +1122,7 @@ const Workspace = () => {
             </ScrollArea>
 
             {/* Brian Input */}
-            <div className={`p-4 border-t ${isMobile ? 'pb-24' : ''}`}>
+            <div className={`p-4 border-t bg-card/50 backdrop-blur-sm shrink-0 ${isMobile ? 'pb-20' : ''}`} style={isMobile ? { paddingBottom: 'max(80px, calc(env(safe-area-inset-bottom) + 70px))' } : undefined}>
               <div className="space-y-2 max-w-4xl mx-auto">
                 {disabledChats.has("brian") ? (
                   <div className="flex gap-2 w-full">
@@ -1455,7 +1459,7 @@ const Workspace = () => {
                   </ScrollArea>
 
                   {/* Team Member Input */}
-                  <div className={`p-4 border-t ${isMobile ? 'pb-24' : ''}`}>
+                  <div className={`p-4 border-t bg-card/50 backdrop-blur-sm shrink-0`} style={isMobile ? { paddingBottom: 'max(80px, calc(env(safe-area-inset-bottom) + 70px))' } : undefined}>
                     <div className="space-y-2 max-w-4xl mx-auto">
                       {disabledChats.has(selectedTeamMemberId) ? (
                         <div className="flex gap-2 w-full">

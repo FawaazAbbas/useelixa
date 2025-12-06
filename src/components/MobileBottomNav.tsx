@@ -11,13 +11,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
-export const MobileBottomNav = () => {
+interface MobileBottomNavProps {
+  hidden?: boolean;
+}
+
+export const MobileBottomNav = ({ hidden = false }: MobileBottomNavProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [moreOpen, setMoreOpen] = useState(false);
 
   const navItems = [
-    { path: "/workspace", icon: MessageSquare, label: "Messenger" },
+    { path: "/workspace", icon: MessageSquare, label: "Chats" },
     { path: "/tasks", icon: CheckSquare, label: "Tasks" },
     { path: "/calendar", icon: Calendar, label: "Calendar" },
   ];
@@ -30,22 +34,35 @@ export const MobileBottomNav = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  if (hidden) return null;
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="flex items-center justify-around h-14 px-2">
+    <div 
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border shadow-lg"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 flex-1 h-full rounded-lg transition-colors",
+              "flex flex-col items-center justify-center gap-1 flex-1 h-full rounded-xl transition-all active:scale-95",
               isActive(item.path)
                 ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground"
             )}
           >
-            <item.icon className="h-5 w-5" />
-            <span className="text-xs font-medium">{item.label}</span>
+            <item.icon className={cn(
+              "h-6 w-6 transition-transform",
+              isActive(item.path) && "scale-110"
+            )} />
+            <span className={cn(
+              "text-[11px] font-medium",
+              isActive(item.path) && "font-semibold"
+            )}>
+              {item.label}
+            </span>
           </button>
         ))}
 
@@ -53,30 +70,33 @@ export const MobileBottomNav = () => {
           <SheetTrigger asChild>
             <button
               className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full rounded-lg transition-colors",
-                "text-muted-foreground hover:text-foreground"
+                "flex flex-col items-center justify-center gap-1 flex-1 h-full rounded-xl transition-all active:scale-95",
+                "text-muted-foreground"
               )}
             >
-              <MoreHorizontal className="h-5 w-5" />
-              <span className="text-xs font-medium">More</span>
+              <MoreHorizontal className="h-6 w-6" />
+              <span className="text-[11px] font-medium">More</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto pb-safe">
-            <SheetHeader>
-              <SheetTitle>More Options</SheetTitle>
+          <SheetContent 
+            side="bottom" 
+            className="h-auto rounded-t-3xl pb-safe"
+          >
+            <SheetHeader className="pb-4">
+              <SheetTitle className="text-left">More Options</SheetTitle>
             </SheetHeader>
-            <div className="grid gap-2 mt-4">
+            <div className="grid gap-2">
               {moreItems.map((item) => (
                 <Button
                   key={item.path}
                   variant={isActive(item.path) ? "secondary" : "ghost"}
-                  className="justify-start h-12"
+                  className="justify-start h-14 text-base rounded-xl"
                   onClick={() => {
                     navigate(item.path);
                     setMoreOpen(false);
                   }}
                 >
-                  <item.icon className="h-5 w-5 mr-3" />
+                  <item.icon className="h-5 w-5 mr-4" />
                   {item.label}
                 </Button>
               ))}
