@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sparkles, MessageSquare, Zap, Shield, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { ElixaLogo } from "@/components/ElixaLogo";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Index = () => {
         {/* Hero Section */}
         <div className="text-center mb-12 sm:mb-16">
           <div className="flex items-center justify-center mb-6">
-            <img src="/elixa-logo.png" alt="ELIXA" className="h-12 w-12 sm:h-16 sm:w-16" />
+            <ElixaLogo size={48} />
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent px-4">
             Meet Your AI Team

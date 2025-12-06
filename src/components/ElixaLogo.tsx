@@ -16,14 +16,19 @@ export const ElixaLogo: React.FC<ElixaLogoProps> = ({
   size = 48,
 }) => {
   const useGradient = gradientFrom && gradientTo;
-  const gradientId = `elixa-gradient-${Math.random().toString(36).substr(2, 9)}`;
-  const fillColor = useGradient ? `url(#${gradientId})` : (color || '#1E90FF');
+  const gradientId = `elixa-gradient-${React.useId().replace(/:/g, '')}`;
+  const fillColor = useGradient ? `url(#${gradientId})` : (color || '#037CFE');
+
+  // Calculate height based on original aspect ratio (1430:2048)
+  const aspectRatio = 2048 / 1430;
+  const width = typeof size === 'number' ? size : size;
+  const height = typeof size === 'number' ? size * aspectRatio : size;
 
   return (
     <svg
-      viewBox="0 0 140 180"
-      width={size}
-      height={typeof size === 'number' ? (size * 180) / 140 : size}
+      viewBox="0 0 1430 2048"
+      width={width}
+      height={height}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -36,118 +41,26 @@ export const ElixaLogo: React.FC<ElixaLogoProps> = ({
         </defs>
       )}
       
-      {/* Main flask body */}
+      {/* Main flask body with circuits */}
       <path
-        d="M30 165 
-           C10 165 10 145 15 130
-           L40 85
-           L40 70
-           L55 70
-           L55 55
-           L85 55
-           L85 70
-           L100 70
-           L100 85
-           L125 130
-           C130 145 130 165 110 165
-           Z"
+        transform="translate(455,23)"
+        d="m0 0h30l20 4 16 6 17 9 13 10 9 8 9 11 7 10 9 17 6 18 3 17v30l-4 19-6 16-10 18-9 11-11 12-17 13-19 10-13 6v97l1 131 1 32 1 18 24 1h183l18-1 4-1 2-10v-38l-2-53-2-10-12-7-16-8-11-7-15-13-11-13-9-14-8-17-5-18-2-13v-26l4-20 6-17 8-15 8-11 9-10 9-9 14-10 17-9 18-6 17-3h27l17 3 18 6 19 10 13 10 10 9 9 11 9 14 7 14 6 20 2 12v30l-3 15-5 16-8 16-7 11-11 13-7 7-13 10-16 9-24 10-1 7-1 35v36l1 24 2 7 8 2h78l15 1 15 4 16 8 10 9 8 10 6 13 3 11v26l-5 16-7 12-10 12-11 7-12 5-17 5-2 5-1 13-1 39v150l1 22h37l10-3 13-11 12-12 7-8 8-8 7-8 14-15 7-8 11-12 6-7h2v-2h2v-2h2v-2l8-7 9-8 8-4 12-2 59-2 30-1 14-2 3-2 1-3-1-22-1-10v-25l3-17 7-21 9-17 10-13 11-12 14-11 16-9 14-6 16-4 15-2h18l20 3 21 7 15 8 11 8 10 9 10 10 10 14 8 16 5 13 4 19 1 11v11l-2 18-5 19-8 18-10 15-9 10-4 5-11 9-15 10-18 8-18 5-19 3h-12l-21-3-17-5-25-12-5-1-23 6-21 2-79 1-15 2-8 4-10 9-11 11-7 8-12 13-7 8-12 14-11 12-7 8-14 15-11 10-12 6-18 4-42 2-8 2-2 5v16l3 23 3 16 24 1h177l2-5 6-12 8-11 9-10 9-8 14-9 16-7 17-4 11-1h10l16 2 17 5 16 8 12 9 10 9 10 13 8 14 6 17 3 17v19l-3 17-6 17-8 14-10 13-8 8-14 10-16 8-17 5-15 2h-14l-14-2-16-5-16-8-10-7-10-9-9-10-9-14-7-14-9-2-14-1-82-1-35 1-5 2-1 5 6 12 24 38 11 17 32 50 14 22 24 38 28 44 11 17 13 20 15 23 28 44 15 24 36 57 28 44 15 24 13 22 10 21 7 19 8 27 7 29 2 21v18l-2 22-7 35-7 24-8 21-9 19-10 17-8 12-11 15-9 11-12 13-9 9-14 11-15 11-18 11-23 12-23 9-26 8-5 1-18 1-87 1h-206l-461-1-66-1-26-2-15-4-27-11-17-8-27-16-14-10-13-11-12-11-8-8-9-11-10-13-12-19-10-18-10-22-9-25-7-27-2-14-1-16v-38l1-17 4-22 8-27 10-25 8-16 11-20 16-26 16-25 12-19 14-22 12-19 14-22 16-25 28-44 24-38 42-66 16-25 56-88 15-24 12-19 13-21 17-28 12-22 10-19 7-17v-7l-6-8-15-16-8-8-7-8-19-19-7-8-34-34-7-8-45-45-7-8-29-29-7-8-13-13-18-22-5-11-2-11-1-18-1-45-1-138-5-1-16-6-15-8-12-9-12-11-11-13-9-15-7-16-5-19-2-20 1-18 4-19 6-16 9-17 10-13 7-8 8-7 14-10 17-9 15-5 14-3 7-1h25l17 3 21 7 15 8 12 9 10 9 7 7 11 15 8 15 7 21 3 17v26l-4 20-5 15-10 19-9 12-11 12-15 12-16 9-18 7-1 156v44l39 39 5 6 8 7 9 10 75 75 8 7 16 16 8 7 11 8h1l1-5 1-24v-145l-1-54-1-16-1-7-15-2-19-5-15-8-8-7-9-13-6-13-2-9-1-19 2-16 5-12 6-10 9-10 14-9 13-4 35-3 10-2 2-3 1-13v-26l-3-155-2-60-1-15-2-6-20-9-13-7-12-9-10-9-7-8-10-14-8-16-6-18-3-16v-29l4-20 6-16 7-14 10-14 13-14 13-10 15-9 17-7zm90 648-21 2-5 3-2 9-1 347-5 13-6 17-8 16-11 21-5 6-3 7-3 3-4 8-18 28-13 21-14 23-5 7-4 8-8 11-7 12-9 14-10 15-4 7-7 10-3 6-16 25-9 15-7 10-5 9-7 10-10 16-12 19-7 10-6 11-7 10-9 15-11 16-8 14-4 5-6 12-2 11h11l7-3 10-3 16-5 14-4 25-6 24-4 19-3h77l20 2 14 3 18 1 23 6 9 2 8 3 12 3 6 3 10 3 20 8 12 5 14 6 8 4 17 8 16 9 16 8 17 9 18 8 11 5 8 3 6 3 10 3 6 3 9 2 8 4 13 3 10 3 14 4 6 2 16 3 15 4 18 1 12 3 3 1 35 1h21l26-1 17-3 19-2 13-3 4-2 15-2 11-4 13-4 4-2 11-2 10-5 8-3 12-5 4-3 8-3 5-4 6-3v-6l-6-10-10-16-6-10-12-19-6-10-6-8-12-19-8-13-10-15-12-19-14-22-20-32-11-17-6-8-7-14-5-5-10-17-18-28-10-16-10-15-16-26-7-11-14-23-6-9-6-7-10-16-6-9-6-10-6-9-6-10-8-13-4-9-8-15-6-15-3-15-3-9v-165l1-3-1-100-2-78-2-6-3-4-3-1z"
         fill={fillColor}
       />
       
-      {/* Flask neck/stopper */}
-      <rect x="52" y="45" width="36" height="18" rx="4" fill={fillColor} />
-      
-      {/* Liquid level inside flask (white cutout) */}
+      {/* Right node circle */}
       <path
-        d="M25 148
-           Q50 135 70 145
-           Q90 155 115 145
-           L115 160
-           Q115 163 110 163
-           L30 163
-           Q25 163 25 158
-           Z"
-        fill="white"
+        transform="translate(744,1226)"
+        d="m0 0h13l17 3 13 5 11 6 9 7 8 7 9 12 8 16 4 12 2 14v11l-2 15-5 15-8 15-12 14-13 10-16 8-13 4-14 2h-11l-14-2-15-5-13-7-10-8-11-11-9-14-6-14-3-13-1-8v-12l3-18 6-15 7-12 11-13 13-10 15-8 13-4z"
+        fill={fillColor}
       />
       
-      {/* Bubbles inside flask */}
-      <circle cx="60" cy="98" r="6" fill="white" />
-      <circle cx="78" cy="120" r="9" fill="white" />
-      
-      {/* LEFT SIDE CIRCUIT BRANCHES */}
-      
-      {/* Far left branch - diagonal going up-left */}
+      {/* Left node circle */}
       <path
-        d="M35 80 L18 55 L10 48"
-        stroke={fillColor}
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        transform="translate(662,972)"
+        d="m0 0h10l14 3 9 4 11 7 10 10 8 14 4 14v21l-5 16-7 11-9 10-11 7-12 5-9 2h-18l-12-3-15-8-11-10-9-14-4-11-1-5v-22l4-13 6-11 9-10 8-7 12-6 10-3z"
+        fill={fillColor}
       />
-      <circle cx="8" cy="42" r="12" fill={fillColor} />
-      
-      {/* Left-center branch - going up from neck */}
-      <path
-        d="M55 50 L42 25"
-        stroke={fillColor}
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="38" cy="18" r="12" fill={fillColor} />
-      
-      {/* Center-left node - small one */}
-      <path
-        d="M62 45 L55 22"
-        stroke={fillColor}
-        strokeWidth="7"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="53" cy="15" r="9" fill={fillColor} />
-      
-      {/* Center branch - going straight up */}
-      <path
-        d="M70 45 L70 18"
-        stroke={fillColor}
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="70" cy="10" r="12" fill={fillColor} />
-      
-      {/* Right-center branch - going up-right */}
-      <path
-        d="M85 50 L98 25"
-        stroke={fillColor}
-        strokeWidth="8"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="102" cy="18" r="12" fill={fillColor} />
-      
-      {/* RIGHT SIDE CIRCUIT BRANCHES */}
-      
-      {/* Upper right branch */}
-      <path
-        d="M105 75 L120 65"
-        stroke={fillColor}
-        strokeWidth="7"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="128" cy="60" r="10" fill={fillColor} />
-      
-      {/* Lower right branch */}
-      <path
-        d="M110 90 L125 85"
-        stroke={fillColor}
-        strokeWidth="6"
-        fill="none"
-        strokeLinecap="round"
-      />
-      <circle cx="132" cy="82" r="8" fill={fillColor} />
     </svg>
   );
 };

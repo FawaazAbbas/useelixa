@@ -1,6 +1,7 @@
 import { ArrowLeft, ChevronRight, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
+import { ElixaLogo } from "@/components/ElixaLogo";
 
 export const TalentPoolNavbar = () => {
   const navigate = useNavigate();
@@ -18,11 +19,7 @@ export const TalentPoolNavbar = () => {
         <div className="flex items-center gap-8">
           <div className="relative group cursor-pointer" onClick={() => navigate("/talent-pool")}>
             <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-violet-500/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <img 
-              src="/elixa-logo.png" 
-              alt="ELIXA" 
-              className="relative h-8 w-auto object-contain hover:scale-105 transition-transform" 
-            />
+            <ElixaLogo size={24} className="relative hover:scale-105 transition-transform" />
           </div>
           <div className="hidden md:flex gap-1 bg-muted/30 backdrop-blur-sm rounded-full p-1 border border-border/30">
             <button 
