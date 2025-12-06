@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Building2, ArrowRight } from "lucide-react";
+import { Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface WorkspaceWelcomeOverlayProps {
@@ -79,11 +79,11 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
       <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
         {/* Logo/Icon */}
         <div
-          className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-2xl shadow-violet-500/30 mb-8 transition-all duration-700 ${
+          className={`inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-2xl shadow-violet-500/20 mb-8 transition-all duration-700 ${
             showContent ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-90"
           }`}
         >
-          <Sparkles className="w-10 h-10 text-white" />
+          <img src="/elixa-logo.png" alt="Elixa" className="w-16 h-16 object-contain" />
         </div>
 
         {/* Welcome text */}
