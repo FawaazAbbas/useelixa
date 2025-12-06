@@ -8,7 +8,7 @@ interface TeamMemberAvatarProps {
   name?: string;
   avatarUrl?: string;
   isManager?: boolean;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   showStatus?: boolean;
   status?: "online" | "busy" | "offline";
   className?: string;
@@ -18,18 +18,21 @@ const sizeClasses = {
   sm: "h-5 w-5",
   md: "h-10 w-10",
   lg: "h-12 w-12",
+  xl: "h-14 w-14",
 };
 
 const iconSizeClasses = {
   sm: "h-3 w-3",
   md: "h-6 w-6",
   lg: "h-7 w-7",
+  xl: "h-8 w-8",
 };
 
 const statusSizeClasses = {
   sm: "h-2 w-2 -bottom-0.5 -right-0.5",
   md: "h-3 w-3 -bottom-0.5 -right-0.5",
   lg: "h-3.5 w-3.5 -bottom-0.5 -right-0.5",
+  xl: "h-4 w-4 -bottom-0.5 -right-0.5",
 };
 
 const statusColors = {
