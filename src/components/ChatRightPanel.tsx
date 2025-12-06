@@ -195,7 +195,7 @@ export const ChatRightPanel = ({
       return (
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className={`h-12 w-12 rounded-full flex items-center justify-center`} style={{ background: team.gradient }}>
+            <div className={`h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r ${team.gradient}`}>
               <Users className="h-7 w-7 text-white" />
             </div>
             <div>

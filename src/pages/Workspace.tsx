@@ -1598,7 +1598,7 @@ const Workspace = () => {
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: team.gradient }}>
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-r ${team.gradient}`}>
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
