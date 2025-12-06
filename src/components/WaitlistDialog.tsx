@@ -146,17 +146,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   Be among the first to experience the future of AI-powered workspaces
                 </p>
                 
-                {/* Stats */}
-                <div className="flex items-center justify-center gap-4 pt-2">
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 text-violet-500" />
-                    <span>2,400+ waiting</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Zap className="h-4 w-4 text-amber-500" />
-                    <span>Launching Q1 2025</span>
-                  </div>
-                </div>
               </div>
               
               <form onSubmit={handleSubmit}>

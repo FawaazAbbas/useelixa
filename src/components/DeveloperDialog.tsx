@@ -162,17 +162,6 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
                   Create AI agents that power thousands of businesses worldwide
                 </p>
                 
-                {/* Stats */}
-                <div className="flex items-center justify-center gap-4 pt-2">
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Code className="h-4 w-4 text-emerald-500" />
-                    <span>95+ agents live</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Sparkles className="h-4 w-4 text-teal-500" />
-                    <span>Open SDK</span>
-                  </div>
-                </div>
               </div>
               
               <form onSubmit={handleSubmit}>

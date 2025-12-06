@@ -208,11 +208,11 @@ export const financeChatMessages: FinanceMessage[] = [
   },
   {
     id: "fin-23",
-    content: `<p>Nice. That's a tight but doable schedule. You're all clear on what you own. Execute, keep me posted here, and let's close FY3 like professionals.</p>`,
+    content: `<p>Then here it is: Year 3, <strong>£4,000,000 revenue</strong>, first real profit year, clean UK-compliant books, and an engine ready for £7m. I'm genuinely proud of you lot, even if you're lines of code ...other than you Shaun haha!</p>`,
     user_id: "demo-user",
     agent_id: null,
     sender_name: "Liam",
-    created_at: "2025-12-04T14:44:00.000Z",
+    created_at: "2025-12-04T15:04:00.000Z",
   },
 ];
 
