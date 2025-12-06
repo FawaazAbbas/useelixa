@@ -1,8 +1,8 @@
 import { mockTeams, TeamMember, Team } from "@/data/mockTeams";
-import { Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { WaitlistDialog } from "./WaitlistDialog";
+import { TeamMemberAvatar } from "./TeamMemberAvatar";
 
 interface DirectMessagesSidebarProps {
   selectedMemberId: string | null;
@@ -46,12 +46,6 @@ export const DirectMessagesSidebar = ({
     );
   }, [searchQuery]);
 
-  const statusColors = {
-    online: "bg-green-500",
-    busy: "bg-yellow-500",
-    offline: "bg-gray-400",
-  };
-
   const handleAgentClick = () => {
     setShowWaitlist(true);
   };
@@ -72,15 +66,11 @@ export const DirectMessagesSidebar = ({
               )}
               onClick={handleAgentClick}
             >
-              <div className="relative">
-                <Bot className="h-4 w-4 text-orange-400" />
-                <div
-                  className={cn(
-                    "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-slate-900",
-                    statusColors[member.status]
-                  )}
-                />
-              </div>
+              <TeamMemberAvatar
+                memberId={member.id}
+                size="sm"
+                showStatus
+              />
               <span className="text-[13px] truncate text-slate-300 flex-1 text-left">
                 {member.name}
               </span>
