@@ -11,21 +11,21 @@ export const TalentPoolFooter = () => {
 
   return (
     <>
-      <footer className="border-t border-border/50 bg-muted/30 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div className="space-y-4">
-              <ElixaLogo size={28} />
-              <p className="text-sm text-muted-foreground">
+      <footer className="border-t border-border/50 bg-muted/30 mt-12 md:mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-8">
+            {/* Brand - Full width on mobile */}
+            <div className="col-span-2 sm:col-span-1 space-y-3 md:space-y-4">
+              <ElixaLogo size={24} className="md:w-7" />
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Your AI Talent Pool. Hire brilliant AI agents to transform your workspace.
               </p>
             </div>
 
             {/* Resources */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Resources</h3>
-              <ul className="space-y-2 text-sm">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="font-semibold text-sm md:text-base">Resources</h3>
+              <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <li>
                   <button
                     onClick={() => navigate("/talent-pool")}
@@ -54,9 +54,9 @@ export const TalentPoolFooter = () => {
             </div>
 
             {/* Company */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Company</h3>
-              <ul className="space-y-2 text-sm">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="font-semibold text-sm md:text-base">Company</h3>
+              <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <li>
                   <Link
                     to="/about"
@@ -85,9 +85,9 @@ export const TalentPoolFooter = () => {
             </div>
 
             {/* Get Started */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Get Started</h3>
-              <ul className="space-y-2 text-sm">
+            <div className="space-y-3 md:space-y-4">
+              <h3 className="font-semibold text-sm md:text-base">Get Started</h3>
+              <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <li>
                   <button
                     onClick={() => setWaitlistOpen(true)}
@@ -108,7 +108,7 @@ export const TalentPoolFooter = () => {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
+          <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-border/50 text-center text-xs md:text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} ELIXA. All rights reserved.</p>
           </div>
         </div>

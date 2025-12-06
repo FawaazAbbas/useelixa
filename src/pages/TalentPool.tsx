@@ -628,11 +628,11 @@ const TalentPool = () => {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
         </div>
         
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 md:py-20 lg:py-24">
           {/* Main headline */}
-          <div className="text-center space-y-6 mb-10">
+          <div className="text-center space-y-4 md:space-y-6 mb-8 md:mb-10">
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
                 The Team That
               </span>
@@ -642,19 +642,19 @@ const TalentPool = () => {
               </span>
             </h1>
             
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
               Hire AI employees that actually get work done. Your team, reimagined.
             </p>
           </div>
           
           {/* Search bar - Bold style */}
-          <div className="relative max-w-2xl mx-auto mb-8 z-30">
-            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-cyan-500/40 rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity" />
-            <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
+          <div className="relative max-w-2xl mx-auto mb-6 md:mb-8 z-30 px-2 sm:px-0">
+            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-cyan-500/40 rounded-xl md:rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity" />
+            <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-xl md:rounded-2xl border-2 border-white/10 p-1.5 md:p-2 shadow-2xl shadow-black/10">
               <div className="flex-1 relative">
                 <Input 
                   placeholder="Search for AI agents..." 
-                  className="px-5 h-14 text-lg bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
+                  className="px-3 md:px-5 h-11 md:h-14 text-sm md:text-lg bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
@@ -699,17 +699,17 @@ const TalentPool = () => {
                   </div>
                 )}
               </div>
-              <Button className="h-12 px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25">
+              <Button className="h-10 md:h-12 px-4 md:px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-lg md:rounded-xl shadow-lg shadow-purple-500/25 text-sm md:text-base">
                 Search
               </Button>
               
               {/* Mobile filter button */}
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden h-12 w-12 rounded-xl relative border-white/10">
-                    <SlidersHorizontal className="h-5 w-5" />
+                  <Button variant="outline" size="icon" className="lg:hidden h-10 w-10 md:h-12 md:w-12 rounded-lg md:rounded-xl relative border-white/10">
+                    <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5" />
                     {activeFilterCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[11px] text-white flex items-center justify-center font-medium">
+                      <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] md:text-[11px] text-white flex items-center justify-center font-medium">
                         {activeFilterCount}
                       </span>
                     )}
@@ -728,7 +728,7 @@ const TalentPool = () => {
           </div>
 
           {/* Quick category pills */}
-          <div className="relative z-10 flex flex-wrap justify-center gap-2 mb-6">
+          <div className="relative z-10 flex flex-wrap justify-center gap-1.5 md:gap-2 mb-4 md:mb-6 px-2 sm:px-0">
             {categories.slice(0, 6).map((category, i) => {
               const colors = [
                 "from-rose-500/20 to-rose-500/5 border-rose-500/30 hover:border-rose-500/50",
@@ -742,7 +742,7 @@ const TalentPool = () => {
                 <button
                   key={category.id}
                   onClick={() => toggleCategory(category.name)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full bg-gradient-to-r border backdrop-blur-sm transition-all hover:scale-105 ${colors[i % colors.length]} ${selectedCategories.includes(category.name) ? 'ring-2 ring-white/20' : ''}`}
+                  className={`px-2.5 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full bg-gradient-to-r border backdrop-blur-sm transition-all hover:scale-105 ${colors[i % colors.length]} ${selectedCategories.includes(category.name) ? 'ring-2 ring-white/20' : ''}`}
                 >
                   {category.name}
                 </button>
@@ -751,7 +751,7 @@ const TalentPool = () => {
             {categories.length > 6 && (
               <button
                 onClick={() => setSearchQuery(" ")}
-                className="px-4 py-2 text-sm font-medium rounded-full bg-muted/50 border border-border/50 hover:bg-muted transition-all"
+                className="px-2.5 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full bg-muted/50 border border-border/50 hover:bg-muted transition-all"
               >
                 +{categories.length - 6} more
               </button>
