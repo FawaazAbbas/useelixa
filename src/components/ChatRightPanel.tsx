@@ -13,6 +13,7 @@ import { getTeamMemberById, getTeamOnlineCount } from "@/data/mockTeams";
 import { getTeamGroupData, formatRelativeTime } from "@/data/mockTeamGroupData";
 import { mockDirectorChatData } from "@/data/mockTeamMessages";
 import { brianFiles, brianMemories, brianActivity } from "@/data/mockWorkspaceData";
+import { TeamMemberAvatar } from "@/components/TeamMemberAvatar";
 import { useState } from "react";
 
 interface ChatRightPanelProps {
@@ -131,9 +132,10 @@ export const ChatRightPanel = ({
       return (
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className={`h-12 w-12 rounded-full ${bgColor} flex items-center justify-center`}>
-              <Bot className={`h-7 w-7 ${iconColor}`} />
-            </div>
+            <TeamMemberAvatar 
+              memberId={selectedTeamMemberId} 
+              size="lg" 
+            />
             <div>
               <h3 className="text-lg font-semibold">{member.name}</h3>
               <p className="text-sm text-muted-foreground">{member.role}</p>
@@ -215,9 +217,11 @@ export const ChatRightPanel = ({
                 onClick={() => onSelectTeamMember?.(team.manager.id)}
                 className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-blue-500" />
-                </div>
+                <TeamMemberAvatar 
+                  memberId={team.manager.id} 
+                  size="sm" 
+                  className="h-8 w-8"
+                />
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium">{team.manager.name}</p>
                   <p className="text-xs text-muted-foreground">{team.manager.role}</p>
@@ -235,9 +239,11 @@ export const ChatRightPanel = ({
                   onClick={() => setShowWaitlistDialog(true)}
                   className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="h-8 w-8 rounded-full bg-orange-500/20 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-orange-500" />
-                  </div>
+                  <TeamMemberAvatar 
+                    memberId={member.id} 
+                    size="sm" 
+                    className="h-8 w-8"
+                  />
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium">{member.name}</p>
                     <p className="text-xs text-muted-foreground">{member.role}</p>
