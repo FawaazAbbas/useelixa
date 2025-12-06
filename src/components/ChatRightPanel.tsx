@@ -1,4 +1,4 @@
-import { Bot, Users, CheckSquare, Upload, Info, FileText, Brain, Activity, PlayCircle, FolderUp, CircleCheck, Target, ClipboardList, MessageCircle, NotebookPen } from "lucide-react";
+import { Bot, Users, CheckSquare, Upload, Info, FileText, Brain, Activity, PlayCircle, FolderUp, CircleCheck, Target, ClipboardList, MessageCircle, NotebookPen, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,8 @@ interface ChatRightPanelProps {
   userId: string;
   onFilePreview: (file: { name: string; type: string; size: number; uploadedBy?: string; uploadedAt?: string }) => void;
   onSelectTeamMember?: (memberId: string) => void;
+  onClose?: () => void;
+  showCloseButton?: boolean;
 }
 
 export const ChatRightPanel = ({
@@ -39,6 +41,8 @@ export const ChatRightPanel = ({
   userId,
   onFilePreview,
   onSelectTeamMember,
+  onClose,
+  showCloseButton = false,
 }: ChatRightPanelProps) => {
   const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
 
@@ -800,7 +804,15 @@ export const ChatRightPanel = ({
   return (
     <>
       <Tabs value={rightSidebarTab} onValueChange={onTabChange} className="h-full flex flex-col">
-        <div className="px-4 pt-4 pb-2">
+        <div className="px-4 pt-4 pb-2 flex items-center gap-2">
+          {showCloseButton && (
+            <button
+              onClick={onClose}
+              className="h-9 w-9 rounded-md bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors flex-shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           <TabsList className={`w-full grid ${getTabGridCols()}`}>
             {showAboutTab && (
               <TabsTrigger value="about" className="text-xs flex items-center justify-center">
