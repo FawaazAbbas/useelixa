@@ -1072,7 +1072,7 @@ const Workspace = () => {
                 {disabledChats.has("brian") ? (
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Chat completed for this session"
+                      placeholder="Join the Elixa waiting list!"
                       className="flex-1 opacity-60"
                       disabled
                     />
@@ -1385,7 +1385,7 @@ const Workspace = () => {
                       {disabledChats.has(selectedTeamMemberId) ? (
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Chat completed for this session"
+                            placeholder="Join the Elixa waiting list!"
                             className="flex-1 opacity-60"
                             disabled
                           />
@@ -1725,7 +1725,7 @@ const Workspace = () => {
                       {disabledChats.has(selectedTeamGroupId) ? (
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Chat completed for this session"
+                            placeholder="Join the Elixa waiting list!"
                             className="flex-1 opacity-60"
                             disabled
                           />
