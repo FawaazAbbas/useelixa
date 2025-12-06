@@ -5,6 +5,7 @@ export interface TeamMember {
   isManager: boolean;
   status: "online" | "busy" | "offline";
   specialty?: string;
+  avatarUrl?: string;
 }
 
 export interface Team {
@@ -120,11 +121,12 @@ export const mockTeams: Team[] = [
     description: "Delivers exceptional customer experiences and support",
     manager: {
       id: "customer-service-director",
-      name: "Human - Customer Service Director",
+      name: "Elenor - Customer Service Director",
       role: "Department Head",
       isManager: true,
       status: "online",
       specialty: "CX Strategy",
+      avatarUrl: "/avatars/elenor.png",
     },
     members: [
       {
@@ -162,11 +164,12 @@ export const mockTeams: Team[] = [
     description: "Manages financial planning, analysis, and revenue operations",
     manager: {
       id: "finance-director",
-      name: "Human - Finance Director",
+      name: "Shaun - Finance Director",
       role: "Department Head",
       isManager: true,
       status: "online",
       specialty: "Financial Strategy",
+      avatarUrl: "/avatars/shaun.png",
     },
     members: [
       {
