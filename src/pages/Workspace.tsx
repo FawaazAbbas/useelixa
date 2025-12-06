@@ -1118,7 +1118,7 @@ const Workspace = () => {
             </ScrollArea>
 
             {/* Brian Input */}
-            <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+            <div className={`p-4 border-t ${isMobile ? 'pb-20' : ''}`}>
               <div className="space-y-2 max-w-4xl mx-auto">
                 {disabledChats.has("brian") ? (
                   <div className="flex gap-2 w-full">
@@ -1455,7 +1455,7 @@ const Workspace = () => {
                   </ScrollArea>
 
                   {/* Team Member Input */}
-                  <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+                  <div className={`p-4 border-t ${isMobile ? 'pb-20' : ''}`}>
                     <div className="space-y-2 max-w-4xl mx-auto">
                       {disabledChats.has(selectedTeamMemberId) ? (
                         <div className="flex gap-2 w-full">
@@ -1823,7 +1823,7 @@ const Workspace = () => {
                   </ScrollArea>
 
                   {/* Team Group Input */}
-                  <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+                  <div className={`p-4 border-t ${isMobile ? 'pb-20' : ''}`}>
                     <div className="space-y-2 max-w-4xl mx-auto">
                       {disabledChats.has(selectedTeamGroupId) ? (
                         <div className="flex gap-2 w-full">
@@ -2191,7 +2191,7 @@ const Workspace = () => {
         </ScrollArea>
 
         {/* Message Input */}
-        <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
+        <div className={`p-4 border-t ${isMobile ? 'pb-20' : ''}`}>
           <div className="space-y-2 max-w-4xl mx-auto">
             {/* File Preview */}
             {selectedFiles.length > 0 && (
