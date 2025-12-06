@@ -45,9 +45,9 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
       {/* Backdrop with semi-transparent gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-800/80 to-slate-900/85 backdrop-blur-md">
         {/* Animated gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-violet-600/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-500/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-teal-600/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyan-500/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[150px]" />
         
         {/* Grid pattern overlay */}
         <div 
@@ -93,7 +93,7 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
           }`}
         >
           Welcome to the{" "}
-          <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-teal-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
             Elixa Workspace
           </span>
         </h1>
@@ -138,7 +138,7 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
           <Button
             onClick={handleEnter}
             size="lg"
-            className="h-14 px-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold text-lg shadow-xl shadow-violet-500/25 hover:shadow-2xl hover:shadow-violet-500/30 hover:scale-105 transition-all duration-300 rounded-xl group"
+            className="h-14 px-10 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold text-lg shadow-xl shadow-teal-500/25 hover:shadow-2xl hover:shadow-teal-500/30 hover:scale-105 transition-all duration-300 rounded-xl group"
           >
             Enter Workspace
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
