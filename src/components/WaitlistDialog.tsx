@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
+
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -74,7 +74,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("");
-  const [maxPay, setMaxPay] = useState([35]);
+  const [position, setPosition] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -94,7 +94,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           name: name.trim(),
           email: email.trim(),
           company: industry || null,
-          use_case: `Max monthly budget: £${maxPay[0]}`,
+          use_case: position || null,
         });
 
       if (error) throw error;
@@ -110,7 +110,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         setName("");
         setEmail("");
         setIndustry("");
-        setMaxPay([35]);
+        setPosition("");
         onOpenChange(false);
       }, 3000);
     } catch (error) {
@@ -200,25 +200,17 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     </Select>
                   </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Max Monthly Budget</Label>
-                      <span className="text-lg font-bold text-violet-600">£{maxPay[0]}</span>
-                    </div>
-                    <div className="pt-1 px-1">
-                      <Slider
-                        value={maxPay}
-                        onValueChange={setMaxPay}
-                        min={20}
-                        max={50}
-                        step={1}
-                        className="[&_[role=slider]]:bg-violet-500 [&_[role=slider]]:border-violet-500 [&_[role=slider]]:shadow-md"
-                      />
-                    </div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>£20</span>
-                      <span>£50</span>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="position" className="text-sm font-medium">
+                      Position
+                    </Label>
+                    <Input
+                      id="position"
+                      placeholder="e.g. CEO, Marketing Manager"
+                      value={position}
+                      onChange={(e) => setPosition(e.target.value)}
+                      className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
+                    />
                   </div>
                 </div>
                 
