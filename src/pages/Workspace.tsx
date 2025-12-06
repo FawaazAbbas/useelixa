@@ -1317,7 +1317,7 @@ const Workspace = () => {
                               <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                               {!isUserMessage && (
                                 <TeamMemberAvatar
-                                  memberId={member.id}
+                                  memberId={msg.agent_id || member.id}
                                   size="md"
                                   className="flex-shrink-0"
                                 />

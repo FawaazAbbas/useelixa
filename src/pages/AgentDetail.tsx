@@ -16,6 +16,7 @@ import { ReviewCard } from "@/components/ReviewCard";
 import { RelatedAgents } from "@/components/RelatedAgents";
 import { TalentPoolNavbar, TalentPoolBreadcrumb } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
+import { DeveloperDialog } from "@/components/DeveloperDialog";
 import { mockAgents } from "@/data/mockAgents";
 import { getReviewsByAgent, getRatingDistribution } from "@/data/mockReviews";
 
@@ -285,6 +286,7 @@ const AgentDetail = () => {
   const [installationId, setInstallationId] = useState<string | null>(null);
   const [requiredCredentials, setRequiredCredentials] = useState<string[]>([]);
   const [hasAICapabilities, setHasAICapabilities] = useState(false);
+  const [developerDialogOpen, setDeveloperDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAgent = async () => {
@@ -986,6 +988,16 @@ const AgentDetail = () => {
                       Add to Teams
                     </Button>
                   </div>
+                  
+                  {/* Developer CTA */}
+                  <Button 
+                    variant="ghost"
+                    className="w-full text-sm text-muted-foreground hover:text-primary"
+                    onClick={() => setDeveloperDialogOpen(true)}
+                  >
+                    <Code className="h-4 w-4 mr-2" />
+                    Are you an AI agent developer?
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1001,6 +1013,9 @@ const AgentDetail = () => {
 
       {/* Footer */}
       <TalentPoolFooter />
+      
+      {/* Developer Dialog */}
+      <DeveloperDialog open={developerDialogOpen} onOpenChange={setDeveloperDialogOpen} />
     </div>
   );
 };
