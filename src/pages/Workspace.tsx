@@ -1183,6 +1183,8 @@ const Workspace = () => {
                           const prevMsg = index > 0 ? teamMemberMessages[index - 1] : null;
                           const prevIsDemoMessage = prevMsg && (prevMsg.id.startsWith('user-') || prevMsg.id.startsWith('agent1-') || prevMsg.id.startsWith('agent2-'));
                           const showDemoSeparator = isDemoMessage && !prevIsDemoMessage;
+                          const currentHour = new Date().getHours();
+                          const sessionText = currentHour < 12 ? "Morning Session" : currentHour < 17 ? "Afternoon Session" : "Evening Session";
                           
                           return (
                             <div key={msg.id}>
@@ -1191,7 +1193,7 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                   <div className="flex items-center gap-2 px-4 py-1.5 bg-muted/60 rounded-full border border-border/50">
                                     <span className="text-xs font-medium text-muted-foreground">
-                                      {format(new Date(), "d MMM yyyy")} • Demo Session
+                                      {format(new Date(), "d MMM yyyy")} • {sessionText}
                                     </span>
                                   </div>
                                   <div className="flex-1 h-px bg-border" />
@@ -1524,9 +1526,10 @@ const Workspace = () => {
                             showSeparator = true;
                             separatorText = msgHour < 12 ? "Morning Session" : msgHour < 17 ? "Afternoon Session" : "Evening Session";
                           } else if (isDemoMessage && !prevIsDemoMessage) {
-                            // Show "Today • Demo Session" divider before first demo message
+                            // Show session divider before first demo message based on current time
                             showSeparator = true;
-                            separatorText = "Demo Session";
+                            const currentHour = new Date().getHours();
+                            separatorText = currentHour < 12 ? "Morning Session" : currentHour < 17 ? "Afternoon Session" : "Evening Session";
                           } else {
                             const prevDate = new Date(teamGroupMessages[index - 1].created_at);
                             const prevHour = prevDate.getHours();
