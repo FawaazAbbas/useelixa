@@ -984,36 +984,27 @@ export type Database = {
       }
       developer_applications: {
         Row: {
-          company: string | null
           created_at: string
           email: string
-          experience_level: string | null
           id: string
           message: string | null
           name: string
-          portfolio_url: string | null
           skills: string[] | null
         }
         Insert: {
-          company?: string | null
           created_at?: string
           email: string
-          experience_level?: string | null
           id?: string
           message?: string | null
           name: string
-          portfolio_url?: string | null
           skills?: string[] | null
         }
         Update: {
-          company?: string | null
           created_at?: string
           email?: string
-          experience_level?: string | null
           id?: string
           message?: string | null
           name?: string
-          portfolio_url?: string | null
           skills?: string[] | null
         }
         Relationships: []
