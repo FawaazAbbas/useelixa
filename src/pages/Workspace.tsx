@@ -222,6 +222,7 @@ const Workspace = () => {
   
   // Interactive demo chat state
   const [disabledChats, setDisabledChats] = useState<Set<string>>(new Set());
+  const [showWaitlistButton, setShowWaitlistButton] = useState<Set<string>>(new Set());
   const [demoMessages, setDemoMessages] = useState<Record<string, any[]>>({});
   const [brianDemoMessages, setBrianDemoMessages] = useState<Array<{ role: "user" | "assistant"; content: string; timestamp: string }>>([]);
   const [teamGroupInput, setTeamGroupInput] = useState("");
@@ -1070,15 +1071,28 @@ const Workspace = () => {
             <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
               <div className="space-y-2 max-w-4xl mx-auto">
                 {disabledChats.has("brian") ? (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Join the Elixa waiting list!"
-                      className="flex-1 opacity-60"
-                      disabled
-                    />
-                    <Button disabled>
-                      <Send className="h-4 w-4" />
-                    </Button>
+                  <div className="flex flex-col items-center gap-3 py-2">
+                    {showWaitlistButton.has("brian") ? (
+                      <Button
+                        onClick={() => setShowWaitlistDialog(true)}
+                        className="relative overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-blue-500/50 hover:scale-[1.02] transition-all duration-300 animate-fade-in"
+                      >
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+                        <Sparkles className="w-4 h-4 mr-2 animate-pulse" />
+                        Join the waitlist to get early access
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2 w-full">
+                        <Input
+                          placeholder="Join the Elixa waiting list!"
+                          className="flex-1 opacity-60"
+                          disabled
+                        />
+                        <Button disabled>
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -1129,6 +1143,10 @@ const Workspace = () => {
                           
                           setDisabledChats(prev => new Set([...prev, "brian"]));
                           setIsBrianDemoSending(false);
+                          
+                          // Show waitlist button after 1 second
+                          await new Promise(r => setTimeout(r, 1000));
+                          setShowWaitlistButton(prev => new Set([...prev, "brian"]));
                         }
                       }}
                     />
@@ -1174,6 +1192,10 @@ const Workspace = () => {
                         
                         setDisabledChats(prev => new Set([...prev, "brian"]));
                         setIsBrianDemoSending(false);
+                        
+                        // Show waitlist button after 1 second
+                        await new Promise(r => setTimeout(r, 1000));
+                        setShowWaitlistButton(prev => new Set([...prev, "brian"]));
                       }}
                     >
                       {isBrianDemoSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -1383,15 +1405,28 @@ const Workspace = () => {
                   <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
                     <div className="space-y-2 max-w-4xl mx-auto">
                       {disabledChats.has(selectedTeamMemberId) ? (
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Join the Elixa waiting list!"
-                            className="flex-1 opacity-60"
-                            disabled
-                          />
-                          <Button disabled>
-                            <Send className="h-4 w-4" />
-                          </Button>
+                        <div className="flex flex-col items-center gap-3 py-2">
+                          {showWaitlistButton.has(selectedTeamMemberId) ? (
+                            <Button
+                              onClick={() => setShowWaitlistDialog(true)}
+                              className="relative overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-blue-500/50 hover:scale-[1.02] transition-all duration-300 animate-fade-in"
+                            >
+                              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+                              <Sparkles className="w-4 h-4 mr-2 animate-pulse" />
+                              Join the waitlist to get early access
+                            </Button>
+                          ) : (
+                            <div className="flex gap-2 w-full">
+                              <Input
+                                placeholder="Join the Elixa waiting list!"
+                                className="flex-1 opacity-60"
+                                disabled
+                              />
+                              <Button disabled>
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex gap-2">
@@ -1455,6 +1490,10 @@ const Workspace = () => {
                                 
                                 setDisabledChats(prev => new Set([...prev, selectedTeamMemberId]));
                                 setIsTeamMemberSending(false);
+                                
+                                // Show waitlist button after 1 second
+                                await new Promise(r => setTimeout(r, 1000));
+                                setShowWaitlistButton(prev => new Set([...prev, selectedTeamMemberId]));
                               }
                             }}
                           />
@@ -1513,6 +1552,10 @@ const Workspace = () => {
                               
                               setDisabledChats(prev => new Set([...prev, selectedTeamMemberId]));
                               setIsTeamMemberSending(false);
+                              
+                              // Show waitlist button after 1 second
+                              await new Promise(r => setTimeout(r, 1000));
+                              setShowWaitlistButton(prev => new Set([...prev, selectedTeamMemberId]));
                             }}
                           >
                             {isTeamMemberSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -1723,15 +1766,28 @@ const Workspace = () => {
                   <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
                     <div className="space-y-2 max-w-4xl mx-auto">
                       {disabledChats.has(selectedTeamGroupId) ? (
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="Join the Elixa waiting list!"
-                            className="flex-1 opacity-60"
-                            disabled
-                          />
-                          <Button disabled>
-                            <Send className="h-4 w-4" />
-                          </Button>
+                        <div className="flex flex-col items-center gap-3 py-2">
+                          {showWaitlistButton.has(selectedTeamGroupId) ? (
+                            <Button
+                              onClick={() => setShowWaitlistDialog(true)}
+                              className="relative overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 text-white font-semibold px-8 py-3 rounded-xl shadow-lg shadow-blue-500/40 hover:shadow-xl hover:shadow-blue-500/50 hover:scale-[1.02] transition-all duration-300 animate-fade-in"
+                            >
+                              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+                              <Sparkles className="w-4 h-4 mr-2 animate-pulse" />
+                              Join the waitlist to get early access
+                            </Button>
+                          ) : (
+                            <div className="flex gap-2 w-full">
+                              <Input
+                                placeholder="Join the Elixa waiting list!"
+                                className="flex-1 opacity-60"
+                                disabled
+                              />
+                              <Button disabled>
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="flex gap-2">
@@ -1795,6 +1851,10 @@ const Workspace = () => {
                                 
                                 setDisabledChats(prev => new Set([...prev, selectedTeamGroupId]));
                                 setIsTeamGroupSending(false);
+                                
+                                // Show waitlist button after 1 second
+                                await new Promise(r => setTimeout(r, 1000));
+                                setShowWaitlistButton(prev => new Set([...prev, selectedTeamGroupId]));
                               }
                             }}
                           />
@@ -1853,6 +1913,10 @@ const Workspace = () => {
                               
                               setDisabledChats(prev => new Set([...prev, selectedTeamGroupId]));
                               setIsTeamGroupSending(false);
+                              
+                              // Show waitlist button after 1 second
+                              await new Promise(r => setTimeout(r, 1000));
+                              setShowWaitlistButton(prev => new Set([...prev, selectedTeamGroupId]));
                             }}
                           >
                             {isTeamGroupSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
