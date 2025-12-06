@@ -109,7 +109,7 @@ export const TalentPoolFooter = () => {
           </div>
 
           <div className="mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
-            <p>© 2024 ELIXA. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} ELIXA. All rights reserved.</p>
           </div>
         </div>
       </footer>
