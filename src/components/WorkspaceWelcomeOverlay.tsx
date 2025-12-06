@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ElixaLogo } from "@/components/ElixaLogo";
 
 interface WorkspaceWelcomeOverlayProps {
   onDismiss: () => void;
@@ -84,7 +83,7 @@ export const WorkspaceWelcomeOverlay = ({ onDismiss }: WorkspaceWelcomeOverlayPr
             showContent ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-8 scale-90"
           }`}
         >
-          <ElixaLogo size={80} gradientFrom="#3B82F6" gradientTo="#60A5FA" />
+          <img src="/elixa-logo.png" alt="Elixa" className="w-20 h-20 object-contain" />
         </div>
 
         {/* Welcome text */}
