@@ -1314,16 +1314,16 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={`flex gap-4 group ${isUserMessage ? "justify-end" : ""}`}>
+                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                               {!isUserMessage && (
-                                <div className="flex-shrink-0 self-center">
+                                <div className="flex-shrink-0">
                                   <TeamMemberAvatar
                                     memberId={msg.agent_id || member.id}
-                                    size="xl"
+                                    size="md"
                                   />
                                 </div>
                               )}
-                              <div className={`${isUserMessage ? "flex flex-col items-end" : "flex-1"} self-center`}>
+                              <div className={`${isUserMessage ? "flex flex-col items-end" : "flex-1"}`}>
                                 <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                                   <span className="font-semibold">
                                     {isUserMessage ? "You" : (msg.sender_name || member.name)}
@@ -1694,18 +1694,18 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={`flex gap-4 group ${isUserMessage ? "justify-end" : ""}`}>
+                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                                 {!isUserMessage && (
-                                  <div className="flex-shrink-0 self-center">
+                                  <div className="flex-shrink-0">
                                     <TeamMemberAvatar
                                       memberId={msg.agent_id}
                                       name={msg.sender_name}
                                       isManager={msg.isManager}
-                                      size="xl"
+                                      size="md"
                                     />
                                   </div>
                                 )}
-                                <div className={`${isUserMessage ? "flex flex-col items-end" : "flex-1"} self-center`}>
+                                <div className={`${isUserMessage ? "flex flex-col items-end" : "flex-1"}`}>
                                   <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                                     <span className="font-semibold">
                                       {isUserMessage ? "You" : displayName}
