@@ -1263,26 +1263,27 @@ const Workspace = () => {
                           );
                         })
                       )}
+                      
+                      {/* Typing Indicator */}
+                      {isTeamMemberSending && (
+                        <div className="px-4 py-2">
+                          <div className="flex gap-3 max-w-4xl mx-auto">
+                            <div className={`h-10 w-10 rounded-full ${member.isManager ? 'bg-blue-500/20' : 'bg-orange-500/20'} flex items-center justify-center`}>
+                              <Bot className={`h-6 w-6 ${member.isManager ? 'text-blue-500' : 'text-orange-500'}`} />
+                            </div>
+                            <div className="inline-block px-4 py-2 rounded-2xl bg-muted/80">
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-sm text-muted-foreground">Typing...</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div ref={messagesEndRef} />
                     </div>
                   </ScrollArea>
-
-                  {/* Typing Indicator */}
-                  {isTeamMemberSending && (
-                    <div className="px-4 py-2">
-                      <div className="flex gap-3 max-w-4xl mx-auto">
-                        <div className={`h-10 w-10 rounded-full ${member.isManager ? 'bg-blue-500/20' : 'bg-orange-500/20'} flex items-center justify-center`}>
-                          <Bot className={`h-6 w-6 ${member.isManager ? 'text-blue-500' : 'text-orange-500'}`} />
-                        </div>
-                        <div className="inline-block px-4 py-2 rounded-2xl bg-muted/80">
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm text-muted-foreground">Typing...</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Team Member Input */}
                   <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
@@ -1593,26 +1594,27 @@ const Workspace = () => {
                           );
                         })
                       )}
+                      
+                      {/* Typing Indicator */}
+                      {isTeamGroupSending && (
+                        <div className="px-4 py-2">
+                          <div className="flex gap-3 max-w-4xl mx-auto">
+                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                              <Bot className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="inline-block px-4 py-2 rounded-2xl bg-muted/80">
+                              <div className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="text-sm text-muted-foreground">Typing...</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div ref={messagesEndRef} />
                     </div>
                   </ScrollArea>
-
-                  {/* Typing Indicator */}
-                  {isTeamGroupSending && (
-                    <div className="px-4 py-2">
-                      <div className="flex gap-3 max-w-4xl mx-auto">
-                        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Bot className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="inline-block px-4 py-2 rounded-2xl bg-muted/80">
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm text-muted-foreground">Typing...</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Team Group Input */}
                   <div className={`p-4 border-t ${isMobile ? 'pb-safe' : ''}`}>
