@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Upload, X, FileText } from "lucide-react";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface UploadDocumentDialogProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -48,11 +50,8 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
       return;
     }
 
-    const targetFolder = isNewFolder ? newFolderName : folder;
-    toast.success("Document Uploaded", {
-      description: `"${fileName}" has been uploaded to the ${targetFolder} folder`,
-    });
     onOpenChange(false);
+    setShowWaitlistDialog(true);
     
     // Reset form
     setFileName("");
@@ -90,6 +89,7 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -232,5 +232,8 @@ export function UploadDocumentDialog({ open, onOpenChange }: UploadDocumentDialo
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 }

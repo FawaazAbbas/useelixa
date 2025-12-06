@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { MockDocument } from "@/data/mockKnowledge";
 import { Download, Trash2, Eye, Calendar, User, Folder } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface DocumentPreviewDialogProps {
   document: MockDocument | null;
@@ -13,6 +15,8 @@ interface DocumentPreviewDialogProps {
 }
 
 export function DocumentPreviewDialog({ document, open, onOpenChange }: DocumentPreviewDialogProps) {
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
+  
   if (!document) return null;
 
   const formatFileSize = (bytes: number) => {
@@ -22,24 +26,19 @@ export function DocumentPreviewDialog({ document, open, onOpenChange }: Document
   };
 
   const handleDownload = () => {
-    toast.info("Demo Mode", {
-      description: "Download is not available in demo mode",
-    });
+    setShowWaitlistDialog(true);
   };
 
   const handlePreview = () => {
-    toast.info("Demo Mode", {
-      description: "Preview is not available in demo mode",
-    });
+    setShowWaitlistDialog(true);
   };
 
   const handleDelete = () => {
-    toast.info("Demo Mode", {
-      description: "Deletion is not available in demo mode",
-    });
+    setShowWaitlistDialog(true);
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -126,5 +125,8 @@ export function DocumentPreviewDialog({ document, open, onOpenChange }: Document
         </div>
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 }

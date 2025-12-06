@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bot, Edit3 } from "lucide-react";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface TaskCreationModeDialogProps {
   open: boolean;
@@ -10,22 +12,25 @@ interface TaskCreationModeDialogProps {
 }
 
 export const TaskCreationModeDialog = ({ open, onOpenChange, onSelectMode }: TaskCreationModeDialogProps) => {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
-          <DialogDescription>Choose how you'd like to create your task</DialogDescription>
-        </DialogHeader>
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
 
-        <div className="grid md:grid-cols-2 gap-4 mt-4">
-          <Card 
-            className="cursor-pointer hover:border-primary transition-colors"
-            onClick={() => {
-              onSelectMode("brian");
-              onOpenChange(false);
-            }}
-          >
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Task</DialogTitle>
+            <DialogDescription>Choose how you'd like to create your task</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid md:grid-cols-2 gap-4 mt-4">
+            <Card 
+              className="cursor-pointer hover:border-primary transition-colors"
+              onClick={() => {
+                onOpenChange(false);
+                setShowWaitlistDialog(true);
+              }}
+            >
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">
@@ -74,8 +79,11 @@ export const TaskCreationModeDialog = ({ open, onOpenChange, onSelectMode }: Tas
               </ul>
             </CardContent>
           </Card>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 };

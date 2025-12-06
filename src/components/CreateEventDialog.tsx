@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { mockTeams, Team, TeamMember } from "@/data/mockTeams";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -64,6 +65,7 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
   const [isAllDay, setIsAllDay] = useState(false);
   const [title, setTitle] = useState("");
   const [eventType, setEventType] = useState("meeting");
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
   const [startTime, setStartTime] = useState(() => {
     if (initialDate) {
       return format(initialDate, "HH:mm");
@@ -97,8 +99,8 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Event creation is disabled in demo mode");
     onOpenChange(false);
+    setShowWaitlistDialog(true);
   };
 
   const addAttendee = (attendeeId: string) => {
@@ -116,6 +118,7 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -295,6 +298,9 @@ const CreateEventDialog = ({ open, onOpenChange, initialDate }: CreateEventDialo
         </form>
       </DialogContent>
     </Dialog>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 };
 

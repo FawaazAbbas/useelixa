@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { format } from "date-fns";
 import { Clock, MapPin, Video, Users, Calendar as CalendarIcon, Repeat, X } from "lucide-react";
 import { MockCalendarEvent } from "@/data/mockCalendarEvents";
@@ -12,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BrianAvatar } from "@/components/BrianAvatar";
 import { toast } from "sonner";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 // List of AI agent names that should use robot avatars
 const AI_AGENT_NAMES = [
@@ -43,6 +45,8 @@ const getEventTypeLabel = (type: string) => {
 };
 
 const EventDetailSheet = ({ event, open, onOpenChange }: EventDetailSheetProps) => {
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
+  
   if (!event) return null;
 
   const startDate = new Date(event.start_time);
@@ -50,18 +54,19 @@ const EventDetailSheet = ({ event, open, onOpenChange }: EventDetailSheetProps) 
   const duration = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60));
 
   const handleEdit = () => {
-    toast.info("Event editing is disabled in demo mode");
+    setShowWaitlistDialog(true);
   };
 
   const handleDelete = () => {
-    toast.info("Event deletion is disabled in demo mode");
+    setShowWaitlistDialog(true);
   };
 
   const handleDuplicate = () => {
-    toast.info("Event duplication is disabled in demo mode");
+    setShowWaitlistDialog(true);
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
@@ -210,6 +215,9 @@ const EventDetailSheet = ({ event, open, onOpenChange }: EventDetailSheetProps) 
         </div>
       </SheetContent>
     </Sheet>
+    
+    <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 };
 

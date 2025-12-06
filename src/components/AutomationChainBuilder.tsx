@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 interface Agent {
   id: string;
@@ -63,6 +64,7 @@ export const AutomationChainBuilder = ({
 }: AutomationChainBuilderProps) => {
   const { toast } = useToast();
   const [executing, setExecuting] = useState(false);
+  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -115,97 +117,90 @@ export const AutomationChainBuilder = ({
     }
   };
 
-  const handleExecuteChain = async () => {
-    if (sortedAutomations.length === 0) {
-      toast({
-        title: "No Automations",
-        description: "Add automations to execute",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleExecuteChain = () => {
+    setShowWaitlistDialog(true);
+  };
 
-    setExecuting(true);
-    toast({
-      title: "Executing Chain",
-      description: `Running ${sortedAutomations.length} automation(s) in sequence...`
-    });
+  const handleAddNewWithWaitlist = () => {
+    setShowWaitlistDialog(true);
+  };
 
-    // TODO: Implement actual execution logic via edge function
-    // For now, just simulate
-    setTimeout(() => {
-      setExecuting(false);
-      toast({
-        title: "Execution Complete",
-        description: "Automation chain completed successfully"
-      });
-    }, 2000);
+  const handleEditWithWaitlist = () => {
+    setShowWaitlistDialog(true);
+  };
+
+  const handleDeleteWithWaitlist = () => {
+    setShowWaitlistDialog(true);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <CardTitle>Automation Chain</CardTitle>
-              <CardDescription className="mt-1">
-                Drag to reorder • Automations execute sequentially
-              </CardDescription>
-            </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={onAddNew}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Automation
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleExecuteChain}
-                disabled={executing || sortedAutomations.length === 0}
-              >
-                <Play className="h-4 w-4 mr-2" />
-                Execute Chain
-              </Button>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {sortedAutomations.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No automations in this chain yet</p>
-            <p className="text-sm mt-1">Click "Add Automation" to get started</p>
-          </div>
-        ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={sortedAutomations.map(a => a.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-2">
-                {sortedAutomations.map((automation, index) => (
-                  <SortableAutomationCard
-                    key={automation.id}
-                    automation={automation}
-                    index={index}
-                    total={sortedAutomations.length}
-                    onEdit={() => onEdit(automation)}
-                    onDelete={() => onDelete(automation.id)}
-                  />
-                ))}
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <CardTitle>Automation Chain</CardTitle>
+                <CardDescription className="mt-1">
+                  Drag to reorder • Automations execute sequentially
+                </CardDescription>
               </div>
-            </SortableContext>
-          </DndContext>
-        )}
-      </CardContent>
-    </Card>
+              <div className="flex gap-2 flex-shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleAddNewWithWaitlist}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Automation
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleExecuteChain}
+                  disabled={executing || sortedAutomations.length === 0}
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Execute Chain
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {sortedAutomations.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No automations in this chain yet</p>
+              <p className="text-sm mt-1">Click "Add Automation" to get started</p>
+            </div>
+          ) : (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={sortedAutomations.map(a => a.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {sortedAutomations.map((automation, index) => (
+                    <SortableAutomationCard
+                      key={automation.id}
+                      automation={automation}
+                      index={index}
+                      total={sortedAutomations.length}
+                      onEdit={handleEditWithWaitlist}
+                      onDelete={handleDeleteWithWaitlist}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
+        </CardContent>
+      </Card>
+      
+      <WaitlistDialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog} />
+    </>
   );
 };
