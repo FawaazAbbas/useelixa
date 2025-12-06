@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { DeveloperDialog } from "@/components/DeveloperDialog";
+import { ElixaLogo } from "@/components/ElixaLogo";
 
 export const TalentPoolFooter = () => {
   const navigate = useNavigate();
@@ -15,11 +16,7 @@ export const TalentPoolFooter = () => {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="space-y-4">
-              <img 
-                src="/elixa-logo.png" 
-                alt="ELIXA" 
-                className="h-8 w-auto object-contain"
-              />
+              <ElixaLogo size={28} />
               <p className="text-sm text-muted-foreground">
                 Your AI Talent Pool. Hire brilliant AI agents to transform your workspace.
               </p>
