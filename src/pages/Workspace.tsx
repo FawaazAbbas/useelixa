@@ -222,6 +222,7 @@ const Workspace = () => {
   
   // Interactive demo chat state
   const [disabledChats, setDisabledChats] = useState<Set<string>>(new Set());
+  const [demoMessages, setDemoMessages] = useState<Record<string, any[]>>({});
   const [teamGroupInput, setTeamGroupInput] = useState("");
   const [teamMemberInput, setTeamMemberInput] = useState("");
   const [isTeamGroupSending, setIsTeamGroupSending] = useState(false);
@@ -547,18 +548,19 @@ const Workspace = () => {
     
     // Check if this is a director with full chat data
     const directorData = mockDirectorChatData[memberId as keyof typeof mockDirectorChatData];
+    let baseMessages: any[] = [];
     if (directorData) {
-      // Use the full director chat data with HTML content and files
-      setTeamMemberMessages(directorData.messages as any);
+      baseMessages = directorData.messages as any;
     } else {
-      // Fall back to regular team member messages
       const memberData = mockTeamMemberMessages[memberId];
       if (memberData) {
-        setTeamMemberMessages(memberData.messages);
-      } else {
-        setTeamMemberMessages([]);
+        baseMessages = memberData.messages;
       }
     }
+    
+    // Merge with any demo messages for this chat
+    const chatDemoMessages = demoMessages[memberId] || [];
+    setTeamMemberMessages([...baseMessages, ...chatDemoMessages]);
     
     // Scroll to bottom
     setTimeout(() => {
@@ -575,8 +577,8 @@ const Workspace = () => {
     
     // Get team key for mock data lookup
     const team = mockTeams.find((t: any) => t.id === teamId);
+    let baseMessages: any[] = [];
     if (team) {
-      // Map team ID to mock data key (team IDs in mockTeams are like "team-marketing")
       const teamKeyMap: Record<string, string> = {
         'team-marketing': 'marketing',
         'team-product': 'product',
@@ -589,18 +591,16 @@ const Workspace = () => {
       const teamKey = teamKeyMap[teamId] || teamId;
       const groupMessages = mockTeamGroupMessages[teamKey];
       if (groupMessages) {
-        // Map messages to include isManager flag based on agent_id
-        const messagesWithManagerFlag = groupMessages.messages.map(msg => ({
+        baseMessages = groupMessages.messages.map(msg => ({
           ...msg,
           isManager: msg.agent_id?.includes('director') || msg.agent_id?.includes('lead') || msg.agent_id?.includes('cs-director') || msg.agent_id === 'marketing-director' || msg.agent_id === 'product-director' || msg.agent_id === 'finance-director' || msg.agent_id === 'tech-lead' || msg.agent_id === 'creative-director' || msg.agent_id === 'legal-director',
         }));
-        setTeamGroupMessages(messagesWithManagerFlag);
-      } else {
-        setTeamGroupMessages([]);
       }
-    } else {
-      setTeamGroupMessages([]);
     }
+    
+    // Merge with any demo messages for this chat
+    const chatDemoMessages = demoMessages[teamId] || [];
+    setTeamGroupMessages([...baseMessages, ...chatDemoMessages]);
     
     // Scroll to bottom
     setTimeout(() => {
@@ -1352,6 +1352,12 @@ const Workspace = () => {
                                 };
                                 setTeamMemberMessages(prev => [...prev, response2]);
                                 
+                                // Store demo messages for persistence
+                                setDemoMessages(prev => ({
+                                  ...prev,
+                                  [selectedTeamMemberId]: [userMessage, response1, response2]
+                                }));
+                                
                                 setDisabledChats(prev => new Set([...prev, selectedTeamMemberId]));
                                 setIsTeamMemberSending(false);
                               }
@@ -1403,6 +1409,12 @@ const Workspace = () => {
                                 created_at: new Date().toISOString()
                               };
                               setTeamMemberMessages(prev => [...prev, response2]);
+                              
+                              // Store demo messages for persistence
+                              setDemoMessages(prev => ({
+                                ...prev,
+                                [selectedTeamMemberId]: [userMessage, response1, response2]
+                              }));
                               
                               setDisabledChats(prev => new Set([...prev, selectedTeamMemberId]));
                               setIsTeamMemberSending(false);
@@ -1670,6 +1682,12 @@ const Workspace = () => {
                                 };
                                 setTeamGroupMessages(prev => [...prev, response2]);
                                 
+                                // Store demo messages for persistence
+                                setDemoMessages(prev => ({
+                                  ...prev,
+                                  [selectedTeamGroupId]: [userMessage, response1, response2]
+                                }));
+                                
                                 setDisabledChats(prev => new Set([...prev, selectedTeamGroupId]));
                                 setIsTeamGroupSending(false);
                               }
@@ -1721,6 +1739,12 @@ const Workspace = () => {
                                 created_at: new Date().toISOString()
                               };
                               setTeamGroupMessages(prev => [...prev, response2]);
+                              
+                              // Store demo messages for persistence
+                              setDemoMessages(prev => ({
+                                ...prev,
+                                [selectedTeamGroupId]: [userMessage, response1, response2]
+                              }));
                               
                               setDisabledChats(prev => new Set([...prev, selectedTeamGroupId]));
                               setIsTeamGroupSending(false);
