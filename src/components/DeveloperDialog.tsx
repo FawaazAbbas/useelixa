@@ -2,14 +2,11 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Code, Check, Loader2, X } from "lucide-react";
+import { Code, Check, Loader2, X, Sparkles, Terminal, Cpu, GitBranch } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -145,31 +142,55 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[640px] max-h-[90vh] p-0 overflow-hidden border border-border/50 bg-background shadow-2xl rounded-2xl">
+      <DialogContent className="sm:max-w-[680px] max-h-[90vh] p-0 overflow-hidden border-0 bg-transparent shadow-2xl rounded-3xl">
         {!submitted ? (
-          <div className="relative bg-background rounded-2xl overflow-hidden">
-            {/* Subtle gradient accent at top */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-500" />
+          <div className="relative bg-gradient-to-br from-slate-900 via-emerald-900/80 to-slate-900 rounded-3xl overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/30 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500/30 rounded-full blur-3xl animate-pulse delay-1000" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+            </div>
             
-            <div className="relative p-6 overflow-y-auto max-h-[85vh]">
-              <DialogHeader className="space-y-3 text-center">
-                <div className="mx-auto w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center">
-                  <img src="/elixa-logo.png" alt="Elixa" className="h-14 w-14 object-contain" />
+            {/* Code pattern overlay */}
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-50" />
+            
+            <div className="relative p-8 overflow-y-auto max-h-[85vh]">
+              {/* Header */}
+              <div className="text-center space-y-4 mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium">
+                  <Terminal className="h-4 w-4 text-emerald-400" />
+                  Developer Program
                 </div>
-                <DialogTitle className="text-2xl font-bold text-foreground">
-                  Build with Elixa
-                </DialogTitle>
-                <DialogDescription className="text-muted-foreground text-sm">
-                  Join our developer community and create AI agents
-                </DialogDescription>
-              </DialogHeader>
+                
+                <div className="space-y-2">
+                  <h2 className="text-3xl md:text-4xl font-bold text-white">
+                    Build the Future
+                  </h2>
+                  <p className="text-white/60 text-base max-w-md mx-auto">
+                    Create AI agents that power thousands of businesses worldwide
+                  </p>
+                </div>
+                
+                {/* Stats */}
+                <div className="flex items-center justify-center gap-6 pt-2">
+                  <div className="flex items-center gap-2 text-white/70">
+                    <Cpu className="h-4 w-4 text-emerald-400" />
+                    <span className="text-sm">95+ agents live</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/70">
+                    <GitBranch className="h-4 w-4 text-cyan-400" />
+                    <span className="text-sm">Open SDK</span>
+                  </div>
+                </div>
+              </div>
               
-              <form onSubmit={handleSubmit} className="mt-6">
+              <form onSubmit={handleSubmit}>
                 {/* Two column layout on desktop, stacked on mobile */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="dev-name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Name <span className="text-red-500">*</span>
+                  <div className="space-y-2">
+                    <Label htmlFor="dev-name" className="text-sm font-medium text-white/80">
+                      Name <span className="text-emerald-400">*</span>
                     </Label>
                     <Input
                       id="dev-name"
@@ -177,114 +198,127 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-emerald-500/50 focus:ring-emerald-500/20"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:ring-emerald-400/20 h-12 rounded-xl"
                     />
                   </div>
                   
-                  <div className="space-y-1.5">
-                    <Label htmlFor="dev-email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Email <span className="text-red-500">*</span>
+                  <div className="space-y-2">
+                    <Label htmlFor="dev-email" className="text-sm font-medium text-white/80">
+                      Email <span className="text-emerald-400">*</span>
                     </Label>
                     <Input
                       id="dev-email"
                       type="email"
-                      placeholder="you@email.com"
+                      placeholder="you@company.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-emerald-500/50 focus:ring-emerald-500/20"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus:border-emerald-400 focus:ring-emerald-400/20 h-12 rounded-xl"
                     />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Languages You Know <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border max-h-[140px] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-white/80">
+                        Languages <span className="text-emerald-400">*</span>
+                      </Label>
+                      {selectedLanguages.length > 0 && (
+                        <span className="text-xs text-emerald-400 font-medium">{selectedLanguages.length} selected</span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 p-4 bg-white/5 rounded-xl border border-white/10 max-h-[160px] overflow-y-auto">
                       {codingLanguages.map((lang) => (
                         <Badge
                           key={lang}
                           variant="outline"
                           className={cn(
-                            "cursor-pointer transition-all hover:scale-105",
+                            "cursor-pointer transition-all hover:scale-105 rounded-lg px-3 py-1",
                             selectedLanguages.includes(lang)
-                              ? "bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                              : "bg-transparent border-border text-muted-foreground hover:border-muted-foreground"
+                              ? "bg-emerald-500/30 border-emerald-400 text-emerald-300"
+                              : "bg-transparent border-white/20 text-white/60 hover:border-white/40 hover:text-white/80"
                           )}
                           onClick={() => toggleLanguage(lang)}
                         >
                           {lang}
                           {selectedLanguages.includes(lang) && (
-                            <X className="w-3 h-3 ml-1" />
+                            <X className="w-3 h-3 ml-1.5" />
                           )}
                         </Badge>
                       ))}
                     </div>
-                    {selectedLanguages.length > 0 && (
-                      <p className="text-xs text-emerald-600">{selectedLanguages.length} selected</p>
-                    )}
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      AI Agent Tools You Use <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border border-border max-h-[140px] overflow-y-auto">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-white/80">
+                        AI Tools <span className="text-emerald-400">*</span>
+                      </Label>
+                      {selectedTools.length > 0 && (
+                        <span className="text-xs text-cyan-400 font-medium">{selectedTools.length} selected</span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 p-4 bg-white/5 rounded-xl border border-white/10 max-h-[160px] overflow-y-auto">
                       {aiAgentTools.map((tool) => (
                         <Badge
                           key={tool}
                           variant="outline"
                           className={cn(
-                            "cursor-pointer transition-all hover:scale-105",
+                            "cursor-pointer transition-all hover:scale-105 rounded-lg px-3 py-1",
                             selectedTools.includes(tool)
-                              ? "bg-cyan-500/20 border-cyan-500 text-cyan-600 dark:text-cyan-400"
-                              : "bg-transparent border-border text-muted-foreground hover:border-muted-foreground"
+                              ? "bg-cyan-500/30 border-cyan-400 text-cyan-300"
+                              : "bg-transparent border-white/20 text-white/60 hover:border-white/40 hover:text-white/80"
                           )}
                           onClick={() => toggleTool(tool)}
                         >
                           {tool}
                           {selectedTools.includes(tool) && (
-                            <X className="w-3 h-3 ml-1" />
+                            <X className="w-3 h-3 ml-1.5" />
                           )}
                         </Badge>
                       ))}
                     </div>
-                    {selectedTools.length > 0 && (
-                      <p className="text-xs text-cyan-600">{selectedTools.length} selected</p>
-                    )}
                   </div>
                 </div>
                 
                 <Button 
                   type="submit" 
                   disabled={isLoading || !isFormValid}
-                  className="w-full h-12 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-semibold shadow-lg shadow-emerald-500/30 transition-all hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-[1.02] mt-6"
+                  className="w-full h-14 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:via-teal-400 hover:to-cyan-400 text-white font-semibold shadow-2xl shadow-emerald-500/40 transition-all hover:shadow-emerald-500/60 hover:scale-[1.02] mt-8 rounded-xl text-base"
                   size="lg"
                 >
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      <Code className="w-5 h-5 mr-2" />
-                      Submit Application
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Apply to Build
                     </>
                   )}
                 </Button>
+                
+                <p className="text-center text-white/40 text-xs mt-4">
+                  We review all applications within 48 hours.
+                </p>
               </form>
             </div>
           </div>
         ) : (
-          <div className="relative bg-background rounded-2xl overflow-hidden">
-            <div className="relative py-16 px-6 flex flex-col items-center justify-center space-y-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-500/40 animate-scale-in">
-                <Check className="w-10 h-10 text-white" strokeWidth={3} />
+          <div className="relative bg-gradient-to-br from-slate-900 via-green-900/50 to-slate-900 rounded-3xl overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-500/30 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500/30 rounded-full blur-3xl animate-pulse" />
+            </div>
+            
+            <div className="relative py-20 px-8 flex flex-col items-center justify-center space-y-6">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-600 flex items-center justify-center shadow-2xl shadow-emerald-500/50 animate-scale-in">
+                <Check className="w-12 h-12 text-white" strokeWidth={3} />
               </div>
-              <div className="text-center space-y-2">
-                <h3 className="text-2xl font-bold text-foreground">Application Sent!</h3>
-                <p className="text-muted-foreground">
-                  We'll review and get back to you.
+              <div className="text-center space-y-3">
+                <h3 className="text-3xl font-bold text-white">Application Sent!</h3>
+                <p className="text-white/60 text-lg">
+                  We'll review and be in touch soon.
                 </p>
               </div>
             </div>
