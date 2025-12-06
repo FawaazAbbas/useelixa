@@ -333,6 +333,15 @@ const Workspace = () => {
     }
   }, [brianMessages, showBrian, brianLoading]);
 
+  // Scroll Brian chat to bottom when demo messages are added
+  useEffect(() => {
+    if (showBrian && brianDemoMessages.length > 0) {
+      setTimeout(() => {
+        brianMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [brianDemoMessages, showBrian]);
+
   // Scroll to bottom immediately when selecting a chat
   useEffect(() => {
     if (selectedChat?.id) {
