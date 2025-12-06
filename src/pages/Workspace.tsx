@@ -932,7 +932,7 @@ const Workspace = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => setShowCallingDisabled(true)}
+                onClick={() => setShowWaitlistDialog(true)}
                 title="Voice calling"
               >
                 <Phone className="h-4 w-4" />
@@ -940,7 +940,7 @@ const Workspace = () => {
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => setShowSettings(true)}
+                  onClick={() => setShowWaitlistDialog(true)}
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
@@ -1271,7 +1271,7 @@ const Workspace = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => setShowCallingDisabled(true)}
+                        onClick={() => setShowWaitlistDialog(true)}
                         title="Voice calling"
                       >
                         <Phone className="h-4 w-4" />
@@ -1279,7 +1279,7 @@ const Workspace = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => setShowSettings(true)}
+                        onClick={() => setShowWaitlistDialog(true)}
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
@@ -1632,7 +1632,7 @@ const Workspace = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => setShowCallingDisabled(true)}
+                        onClick={() => setShowWaitlistDialog(true)}
                         title="Voice calling"
                       >
                         <Phone className="h-4 w-4" />
@@ -1640,7 +1640,7 @@ const Workspace = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => setShowSettings(true)}
+                        onClick={() => setShowWaitlistDialog(true)}
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
@@ -2025,7 +2025,7 @@ const Workspace = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => setShowCallingDisabled(true)}
+                onClick={() => setShowWaitlistDialog(true)}
                 title="Voice calling"
               >
                 <Phone className="h-4 w-4" />
@@ -2034,7 +2034,7 @@ const Workspace = () => {
             <Button 
               variant="ghost" 
               size="icon"
-              onClick={() => setShowSettings(true)}
+              onClick={() => setShowWaitlistDialog(true)}
               disabled={!selectedChat}
             >
               <Settings className="h-4 w-4" />
