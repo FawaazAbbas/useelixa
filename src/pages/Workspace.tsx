@@ -51,6 +51,7 @@ import { getTeamGroupData, formatRelativeTime } from "@/data/mockTeamGroupData";
 import { FileIcon } from "@/components/FileIcon";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { BrianAvatar } from "@/components/BrianAvatar";
+import { TeamMemberAvatar } from "@/components/TeamMemberAvatar";
 import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
 import { ChatRightPanel } from "@/components/ChatRightPanel";
 import { getChatResponse } from "@/data/mockChatResponses";
@@ -1235,18 +1236,10 @@ const Workspace = () => {
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      {member.avatarUrl ? (
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
-                          <AvatarFallback className={`${bgColor} ${iconColor}`}>
-                            {member.name.split(' ')[0]?.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <div className={`h-10 w-10 rounded-full ${bgColor} flex items-center justify-center`}>
-                          <Bot className={`h-6 w-6 ${iconColor}`} />
-                        </div>
-                      )}
+                      <TeamMemberAvatar
+                        memberId={member.id}
+                        size="md"
+                      />
                       <div>
                         <div className="font-semibold">{member.name}</div>
                         <div className="text-xs text-muted-foreground">
@@ -1323,18 +1316,11 @@ const Workspace = () => {
                               )}
                               <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                               {!isUserMessage && (
-                                member.avatarUrl ? (
-                                  <Avatar className="h-10 w-10 flex-shrink-0">
-                                    <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
-                                    <AvatarFallback className={`${msgBgColor} ${msgIconColor}`}>
-                                      {member.name.split(' ')[0]?.slice(0, 2).toUpperCase()}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                ) : (
-                                  <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
-                                    <Bot className={`h-6 w-6 ${msgIconColor}`} />
-                                  </div>
-                                )
+                                <TeamMemberAvatar
+                                  memberId={member.id}
+                                  size="md"
+                                  className="flex-shrink-0"
+                                />
                               )}
                               <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                                 <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
@@ -1661,6 +1647,9 @@ const Workspace = () => {
                         teamGroupMessages.map((msg, index) => {
                           // Liam is the user (You) - treat his messages as user messages (blue bubbles)
                           const isUserMessage = msg.user_id !== null || msg.sender_name === "Liam";
+                          // Look up member info for proper name and avatar
+                          const memberInfo = msg.agent_id ? getTeamMemberById(msg.agent_id) : null;
+                          const displayName = memberInfo?.member.name || msg.sender_name;
                           const msgIconColor = msg.isManager ? "text-blue-500" : "text-orange-500";
                           const msgBgColor = msg.isManager ? "bg-blue-500/20" : "bg-orange-500/20";
                           const msgDate = new Date(msg.created_at);
@@ -1706,14 +1695,18 @@ const Workspace = () => {
                               )}
                               <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : ""}`}>
                                 {!isUserMessage && (
-                                  <div className={`h-10 w-10 rounded-full ${msgBgColor} flex items-center justify-center flex-shrink-0`}>
-                                    <Bot className={`h-6 w-6 ${msgIconColor}`} />
-                                  </div>
+                                  <TeamMemberAvatar
+                                    memberId={msg.agent_id}
+                                    name={msg.sender_name}
+                                    isManager={msg.isManager}
+                                    size="md"
+                                    className="flex-shrink-0"
+                                  />
                                 )}
                                 <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
                                   <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                                     <span className="font-semibold">
-                                      {isUserMessage ? "You" : msg.sender_name}
+                                      {isUserMessage ? "You" : displayName}
                                     </span>
                                     <span className="text-xs text-muted-foreground">
                                       {format(msgDate, "d MMM, h:mm a")}

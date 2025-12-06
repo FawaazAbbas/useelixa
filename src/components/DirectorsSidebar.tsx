@@ -1,8 +1,7 @@
 import { mockTeams, TeamMember, Team } from "@/data/mockTeams";
-import { Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo, useState, useEffect } from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { TeamMemberAvatar } from "@/components/TeamMemberAvatar";
 
 interface DirectorsSidebarProps {
   selectedMemberId: string | null;
@@ -53,12 +52,6 @@ export const DirectorsSidebar = ({
     );
   }, [searchQuery]);
 
-  const statusColors = {
-    online: "bg-green-500",
-    busy: "bg-yellow-500",
-    offline: "bg-gray-400",
-  };
-
   return (
     <div className="space-y-0.5 px-2 py-1">
       {directors.map(({ member }) => {
@@ -74,24 +67,12 @@ export const DirectorsSidebar = ({
             )}
             onClick={() => onSelectMember(member.id)}
           >
-            <div className="relative">
-              {member.avatarUrl ? (
-                <Avatar className="h-5 w-5">
-                  <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
-                  <AvatarFallback className="text-[8px] bg-blue-500/20 text-blue-400">
-                    {member.name.split(' ')[0]?.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
-                <Bot className="h-4 w-4 text-blue-400" />
-              )}
-              <div
-                className={cn(
-                  "absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-slate-900",
-                  statusColors[member.status]
-                )}
-              />
-            </div>
+            <TeamMemberAvatar
+              memberId={member.id}
+              size="sm"
+              showStatus={true}
+              className="flex-shrink-0"
+            />
             <span className="text-[13px] truncate text-slate-300 flex-1 text-left">
               {member.name}
             </span>
