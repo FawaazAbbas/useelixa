@@ -1314,15 +1314,16 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : "items-start"}`}>
+                              <div className={`flex gap-4 group ${isUserMessage ? "justify-end" : ""}`}>
                               {!isUserMessage && (
-                                <TeamMemberAvatar
-                                  memberId={msg.agent_id || member.id}
-                                  size="lg"
-                                  className="flex-shrink-0 mt-1"
-                                />
+                                <div className="flex-shrink-0 self-center">
+                                  <TeamMemberAvatar
+                                    memberId={msg.agent_id || member.id}
+                                    size="xl"
+                                  />
+                                </div>
                               )}
-                              <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                              <div className={`${isUserMessage ? "flex flex-col items-end" : "flex-1"} self-center`}>
                                 <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                                   <span className="font-semibold">
                                     {isUserMessage ? "You" : (msg.sender_name || member.name)}
@@ -1597,8 +1598,8 @@ const Workspace = () => {
                 <>
                   <div className={`${isMobile ? 'h-14 mt-14' : 'h-14'} border-b flex items-center justify-between px-4`}>
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-primary" />
+                      <div className="h-10 w-10 rounded-full flex items-center justify-center" style={{ background: team.gradient }}>
+                        <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
                         <div className="font-semibold">{team.name}</div>
@@ -1693,17 +1694,18 @@ const Workspace = () => {
                                   <div className="flex-1 h-px bg-border" />
                                 </div>
                               )}
-                              <div className={`flex gap-3 group ${isUserMessage ? "justify-end" : "items-start"}`}>
+                              <div className={`flex gap-4 group ${isUserMessage ? "justify-end" : ""}`}>
                                 {!isUserMessage && (
-                                  <TeamMemberAvatar
-                                    memberId={msg.agent_id}
-                                    name={msg.sender_name}
-                                    isManager={msg.isManager}
-                                    size="lg"
-                                    className="flex-shrink-0 mt-1"
-                                  />
+                                  <div className="flex-shrink-0 self-center">
+                                    <TeamMemberAvatar
+                                      memberId={msg.agent_id}
+                                      name={msg.sender_name}
+                                      isManager={msg.isManager}
+                                      size="xl"
+                                    />
+                                  </div>
                                 )}
-                                <div className={isUserMessage ? "flex flex-col items-end" : "flex-1"}>
+                                <div className={`${isUserMessage ? "flex flex-col items-end" : "flex-1"} self-center`}>
                                   <div className={`flex items-center gap-2 ${isUserMessage ? "mb-0.5 flex-row-reverse" : "mb-2"}`}>
                                     <span className="font-semibold">
                                       {isUserMessage ? "You" : displayName}
