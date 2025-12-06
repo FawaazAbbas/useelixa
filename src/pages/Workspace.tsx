@@ -964,7 +964,7 @@ const Workspace = () => {
                              }`}
                            >
                              <div 
-                               className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                               className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? 'text-white [&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
                                dangerouslySetInnerHTML={{ __html: msg.content }}
                              />
                            </div>
@@ -1203,14 +1203,14 @@ const Workspace = () => {
                                       : "bg-muted/80"
                                   }`}
                                 >
-                                  {hasHtmlContent ? (
-                                    <div 
-                                      className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
-                                      dangerouslySetInnerHTML={{ __html: msg.content }}
-                                    />
-                                  ) : (
-                                    <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
-                                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {hasHtmlContent ? (
+                                      <div 
+                                        className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? 'text-white [&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                                        dangerouslySetInnerHTML={{ __html: msg.content }}
+                                      />
+                                    ) : (
+                                      <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? 'text-white [&_*]:!text-white' : 'dark:prose-invert'}`}>
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {msg.content}
                                       </ReactMarkdown>
                                     </div>
@@ -1535,7 +1535,7 @@ const Workspace = () => {
                                   }`}
                                 >
                                   <div 
-                                    className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
+                                    className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? 'text-white [&_*]:!text-white' : 'dark:prose-invert'} [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:my-1`}
                                     dangerouslySetInnerHTML={{ __html: msg.content }}
                                   />
                                 </div>
@@ -1886,7 +1886,7 @@ const Workspace = () => {
                                : "bg-muted/80"
                            }`}
                          >
-                           <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? '[&_*]:!text-white' : 'dark:prose-invert'}`}>
+                           <div className={`text-sm prose prose-sm max-w-none text-left ${isMobile ? 'break-words' : ''} ${isUserMessage ? 'text-white [&_*]:!text-white' : 'dark:prose-invert'}`}>
                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                {msg.content}
                              </ReactMarkdown>
