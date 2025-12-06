@@ -709,7 +709,7 @@ const Workspace = () => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Demo banner - hidden on mobile */}
+      {/* Demo banner - hidden on mobile when in chat */}
       {isDemoMode && !isMobile && <DemoBanner />}
       
       <div className="flex-1 flex overflow-hidden">
@@ -723,22 +723,24 @@ const Workspace = () => {
         editingGroup={editingGroup}
       />
 
-      {/* Mobile Chat Selector Sheet */}
-      <MobileChatNav
-        selectedMemberId={selectedTeamMemberId}
-        onSelectMember={handleSelectTeamMember}
-        showBrian={showBrian}
-        onSelectBrian={() => {
-          setShowBrian(true);
-          setSelectedChat(null);
-          setSelectedTeamMemberId(null);
-        }}
-        onSelectTeamGroup={handleSelectTeamGroup}
-        selectedTeamGroupId={selectedTeamGroupId}
-      />
+      {/* Mobile Navigation */}
+      {isMobile && (
+        <MobileChatNav
+          selectedMemberId={selectedTeamMemberId}
+          onSelectMember={handleSelectTeamMember}
+          showBrian={showBrian}
+          onSelectBrian={() => {
+            setShowBrian(true);
+            setSelectedChat(null);
+            setSelectedTeamMemberId(null);
+          }}
+          onSelectTeamGroup={handleSelectTeamGroup}
+          selectedTeamGroupId={selectedTeamGroupId}
+        />
+      )}
 
-      {/* Chat Sidebar - Hidden on mobile, shown on desktop */}
-      <div className={`hidden md:flex w-72 bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-700/50 flex-col shadow-xl`}>
+      {/* Desktop Sidebar */}
+      <div className={`${isMobile ? 'hidden' : 'w-72'} bg-gradient-to-b from-slate-900 to-slate-950 border-r border-slate-700/50 flex flex-col shadow-xl`}>
         {/* Workspace Header */}
         <div className="p-4 border-b border-slate-700/50 bg-slate-800/50">
           <DropdownMenu>
@@ -916,7 +918,7 @@ const Workspace = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className={`flex-1 flex flex-col min-h-0 ${isMobile ? 'pt-14' : ''}`}>
         {showBrian ? (
           <>
             {/* Brian Chat Header */}
@@ -1120,7 +1122,7 @@ const Workspace = () => {
             </ScrollArea>
 
             {/* Brian Input */}
-            <div className="p-4 border-t bg-card/50 backdrop-blur-sm shrink-0">
+            <div className={`p-4 border-t bg-card/50 backdrop-blur-sm shrink-0 ${isMobile ? 'pb-20' : ''}`} style={isMobile ? { paddingBottom: 'max(80px, calc(env(safe-area-inset-bottom) + 70px))' } : undefined}>
               <div className="space-y-2 max-w-4xl mx-auto">
                 {disabledChats.has("brian") ? (
                   <div className="flex gap-2 w-full">
@@ -1457,7 +1459,7 @@ const Workspace = () => {
                   </ScrollArea>
 
                   {/* Team Member Input */}
-                  <div className="p-4 border-t bg-card/50 backdrop-blur-sm shrink-0">
+                  <div className={`p-4 border-t bg-card/50 backdrop-blur-sm shrink-0`} style={isMobile ? { paddingBottom: 'max(80px, calc(env(safe-area-inset-bottom) + 70px))' } : undefined}>
                     <div className="space-y-2 max-w-4xl mx-auto">
                       {disabledChats.has(selectedTeamMemberId) ? (
                         <div className="flex gap-2 w-full">
