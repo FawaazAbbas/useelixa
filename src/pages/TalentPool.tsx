@@ -106,19 +106,7 @@ const TalentPool = () => {
     return searches;
   }, [categories, agents]);
 
-  // Search suggestions based on query
-  const searchSuggestions = useMemo(() => {
-    if (!searchQuery || searchQuery.length < 2) return [];
 
-    const query = searchQuery.toLowerCase();
-    const suggestions: { type: "category" | "capability" | "plugin"; value: string; count: number }[] = [];
-
-    // Category suggestions
-    categories.forEach((cat) => {
-      if (cat.name.toLowerCase().includes(query) && cat.agentCount) {
-        suggestions.push({ type: "category", value: cat.name, count: cat.agentCount });
-      }
-    });
 
     // Capability suggestions
     const capCounts: Record<string, number> = {};
