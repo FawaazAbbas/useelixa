@@ -69,7 +69,7 @@ export const MobileRedirect = () => {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               View on Laptop
             </h1>
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-foreground leading-relaxed">
               The Elixa Workspace is designed for larger screens to give you the best experience managing your AI team.
             </p>
           </div>
