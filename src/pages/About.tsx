@@ -129,27 +129,6 @@ const About = () => {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary mb-1">95+</div>
-              <div className="text-sm text-muted-foreground">AI Agents</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary mb-1">13</div>
-              <div className="text-sm text-muted-foreground">Categories</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary mb-1">24/7</div>
-              <div className="text-sm text-muted-foreground">Availability</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary mb-1">Free</div>
-              <div className="text-sm text-muted-foreground">Forever</div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <TalentPoolFooter />

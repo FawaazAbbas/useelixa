@@ -1,16 +1,103 @@
-import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Monitor, Sparkles } from 'lucide-react';
+import { WaitlistDialog } from './WaitlistDialog';
+import { ElixaLogo } from './ElixaLogo';
+
+// Workspace routes that require larger screens
+const WORKSPACE_ROUTES = [
+  '/workspace',
+  '/tasks',
+  '/calendar',
+  '/logs',
+  '/connections',
+  '/knowledge-base',
+  '/settings'
+];
 
 export const MobileRedirect = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useIsMobile();
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1000
+  );
 
-  // Mobile redirect removed - all pages are now mobile-friendly
   useEffect(() => {
-    // No redirects - allow access to all pages on mobile
-  }, [isMobile, location.pathname, navigate]);
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
 
-  return null;
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const isWorkspaceRoute = WORKSPACE_ROUTES.some(route => 
+      location.pathname.startsWith(route)
+    );
+    const isTooSmall = windowWidth < 850;
+    
+    setShowOverlay(isWorkspaceRoute && isTooSmall);
+  }, [location.pathname, windowWidth]);
+
+  if (!showOverlay) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[9999] bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center">
+        {/* Background gradient */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-gradient-to-b from-primary/20 via-purple-500/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[300px] bg-gradient-to-tr from-rose-500/10 via-transparent to-transparent rounded-full blur-3xl" />
+        </div>
+        
+        <div className="relative z-10 max-w-md mx-auto space-y-8">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <ElixaLogo size={64} className="text-primary" />
+          </div>
+          
+          {/* Monitor icon */}
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 border border-primary/20 flex items-center justify-center">
+            <Monitor className="w-10 h-10 text-primary" />
+          </div>
+          
+          {/* Messaging */}
+          <div className="space-y-3">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              View on Laptop
+            </h1>
+            <p className="text-muted-foreground leading-relaxed">
+              The Elixa Workspace is designed for larger screens to give you the best experience managing your AI team.
+            </p>
+          </div>
+          
+          {/* Divider */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <span className="text-xs text-muted-foreground uppercase tracking-wider">or</span>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          </div>
+          
+          {/* Waitlist CTA */}
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Get notified when mobile workspace launches
+            </p>
+            <Button
+              onClick={() => setShowWaitlist(true)}
+              className="w-full h-14 text-base font-semibold bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 hover:from-rose-600 hover:via-purple-600 hover:to-cyan-600 text-white rounded-xl shadow-2xl shadow-purple-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-purple-500/40"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Join the Waiting List
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <WaitlistDialog open={showWaitlist} onOpenChange={setShowWaitlist} />
+    </>
+  );
 };
