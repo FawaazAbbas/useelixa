@@ -512,105 +512,103 @@ const TalentPool = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 overflow-x-hidden">
       <TalentPoolNavbar />
 
-      {/* Sticky Search Bar - appears when searching with delay */}
-      <div className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'opacity-100 scale-100 delay-300' : 'opacity-0 scale-95 pointer-events-none delay-0'}`}>
-        <div className="bg-background border-b border-white/10 shadow-xl pt-[50px] md:pt-[56px]">
-          <div className="max-w-2xl mx-auto px-4 py-4">
-            <div className="relative">
-              {/* Gradient glow */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/30 via-purple-500/30 to-cyan-500/30 rounded-2xl blur-lg opacity-60" />
+      {/* Search Bar - slides up when filtering */}
+      <div className={`transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'py-6' : 'py-0 max-h-0 opacity-0 overflow-hidden'}`}>
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="relative">
+            {/* Gradient glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/30 via-purple-500/30 to-cyan-500/30 rounded-2xl blur-lg opacity-60" />
+            
+            <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
+              {/* Back button */}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={clearFilters} 
+                className="h-12 w-12 rounded-xl hover:bg-white/10 shrink-0"
+              >
+                <X className="h-5 w-5" />
+              </Button>
               
-              <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
-                {/* Back button */}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={clearFilters} 
-                  className="h-12 w-12 rounded-xl hover:bg-white/10 shrink-0"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
+              <div className="flex-1 relative">
+                <Input 
+                  placeholder="Search for AI agents..." 
+                  className="px-4 h-12 text-base bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onKeyDown={handleSearchKeyDown}
+                />
                 
-                <div className="flex-1 relative">
-                  <Input 
-                    placeholder="Search for AI agents..." 
-                    className="px-4 h-12 text-base bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                    onKeyDown={handleSearchKeyDown}
-                  />
-                  
-                  {/* Suggestions dropdown */}
-                  {showSuggestions && dropdownSuggestions.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[100]">
-                      {!searchQuery && (
-                        <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
-                          <TrendingUp className="h-3 w-3" />
-                          Popular Searches
+                {/* Suggestions dropdown */}
+                {showSuggestions && dropdownSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[100]">
+                    {!searchQuery && (
+                      <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
+                        <TrendingUp className="h-3 w-3" />
+                        Popular Searches
+                      </div>
+                    )}
+                    {dropdownSuggestions.map((suggestion, index) => (
+                      <button
+                        key={`sticky-${suggestion.type}-${suggestion.value}`}
+                        className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
+                          index === selectedSuggestionIndex ? 'bg-white/15' : 'hover:bg-white/10'
+                        }`}
+                        onMouseDown={() => {
+                          setSearchQuery(suggestion.value);
+                          setShowSuggestions(false);
+                        }}
+                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
+                            suggestion.type === 'capability' ? 'bg-cyan-500/20 text-cyan-400' :
+                            'bg-amber-500/20 text-amber-400'
+                          }`}>
+                            {suggestion.type}
+                          </span>
+                          <span className="font-medium">{suggestion.value}</span>
                         </div>
-                      )}
-                      {dropdownSuggestions.map((suggestion, index) => (
-                        <button
-                          key={`sticky-${suggestion.type}-${suggestion.value}`}
-                          className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
-                            index === selectedSuggestionIndex ? 'bg-white/15' : 'hover:bg-white/10'
-                          }`}
-                          onMouseDown={() => {
-                            setSearchQuery(suggestion.value);
-                            setShowSuggestions(false);
-                          }}
-                          onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${
-                              suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
-                              suggestion.type === 'capability' ? 'bg-cyan-500/20 text-cyan-400' :
-                              'bg-amber-500/20 text-amber-400'
-                            }`}>
-                              {suggestion.type}
-                            </span>
-                            <span className="font-medium">{suggestion.value}</span>
-                          </div>
-                          <span className="text-xs text-muted-foreground">{suggestion.count} agents</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                
-                {activeFilterCount > 0 && (
-                  <Badge className="gap-1 hidden sm:flex bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
-                    {activeFilterCount} filters
-                  </Badge>
+                        <span className="text-xs text-muted-foreground">{suggestion.count} agents</span>
+                      </button>
+                    ))}
+                  </div>
                 )}
-                
-                <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" className="lg:hidden h-12 w-12 rounded-xl relative border-white/10 bg-white/5">
-                      <SlidersHorizontal className="h-5 w-5" />
-                      {activeFilterCount > 0 && (
-                        <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] text-white flex items-center justify-center font-medium">
-                          {activeFilterCount}
-                        </span>
-                      )}
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-80 bg-background">
-                    <SheetHeader>
-                      <SheetTitle>Filters</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-6">
-                      <FilterPanel />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-                
-                <Button className="h-12 px-5 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hidden sm:flex">
-                  Search
-                </Button>
               </div>
+              
+              {activeFilterCount > 0 && (
+                <Badge className="gap-1 hidden sm:flex bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
+                  {activeFilterCount} filters
+                </Badge>
+              )}
+              
+              <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="lg:hidden h-12 w-12 rounded-xl relative border-white/10 bg-white/5">
+                    <SlidersHorizontal className="h-5 w-5" />
+                    {activeFilterCount > 0 && (
+                      <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] text-white flex items-center justify-center font-medium">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80 bg-background">
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FilterPanel />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              
+              <Button className="h-12 px-5 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hidden sm:flex">
+                Search
+              </Button>
             </div>
           </div>
         </div>
