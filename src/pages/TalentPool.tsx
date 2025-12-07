@@ -560,7 +560,7 @@ const TalentPool = () => {
                     {dropdownSuggestions.map((suggestion, index) => (
                       <button
                         key={`sticky-${suggestion.type}-${suggestion.value}`}
-                        className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
+                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left ${
                           index === selectedSuggestionIndex ? "bg-white/15" : "hover:bg-white/10"
                         }`}
                         onMouseDown={() => {
@@ -569,21 +569,18 @@ const TalentPool = () => {
                         }}
                         onMouseEnter={() => setSelectedSuggestionIndex(index)}
                       >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              suggestion.type === "category"
-                                ? "bg-purple-500/20 text-purple-400"
-                                : suggestion.type === "capability"
-                                  ? "bg-cyan-500/20 text-cyan-400"
-                                  : "bg-amber-500/20 text-amber-400"
-                            }`}
-                          >
-                            {suggestion.type}
-                          </span>
-                          <span className="font-medium">{suggestion.value}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{suggestion.count} agents</span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            suggestion.type === "category"
+                              ? "bg-purple-500/20 text-purple-400"
+                              : suggestion.type === "capability"
+                                ? "bg-cyan-500/20 text-cyan-400"
+                                : "bg-amber-500/20 text-amber-400"
+                          }`}
+                        >
+                          {suggestion.type}
+                        </span>
+                        <span className="font-medium">{suggestion.value}</span>
                       </button>
                     ))}
                   </div>
@@ -694,7 +691,7 @@ const TalentPool = () => {
                     {dropdownSuggestions.map((suggestion, index) => (
                       <button
                         key={`hero-${suggestion.type}-${suggestion.value}`}
-                        className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
+                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left ${
                           index === selectedSuggestionIndex ? "bg-white/15" : "hover:bg-white/10"
                         }`}
                         onMouseDown={() => {
@@ -703,21 +700,18 @@ const TalentPool = () => {
                         }}
                         onMouseEnter={() => setSelectedSuggestionIndex(index)}
                       >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full ${
-                              suggestion.type === "category"
-                                ? "bg-purple-500/20 text-purple-400"
-                                : suggestion.type === "capability"
-                                  ? "bg-cyan-500/20 text-cyan-400"
-                                  : "bg-amber-500/20 text-amber-400"
-                            }`}
-                          >
-                            {suggestion.type}
-                          </span>
-                          <span className="font-medium">{suggestion.value}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{suggestion.count} agents</span>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            suggestion.type === "category"
+                              ? "bg-purple-500/20 text-purple-400"
+                              : suggestion.type === "capability"
+                                ? "bg-cyan-500/20 text-cyan-400"
+                                : "bg-amber-500/20 text-amber-400"
+                          }`}
+                        >
+                          {suggestion.type}
+                        </span>
+                        <span className="font-medium">{suggestion.value}</span>
                       </button>
                     ))}
                   </div>
