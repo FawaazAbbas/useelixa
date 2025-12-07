@@ -76,7 +76,7 @@ const TalentPool = () => {
   // Popular searches - trending categories and top capabilities
   const popularSearches = useMemo(() => {
     const searches: { type: "category" | "capability" | "trending"; value: string; count: number }[] = [];
-    search;
+
     // Top 4 categories by agent count
     const topCategories = [...categories]
       .filter((c) => c.agentCount && c.agentCount > 0)
