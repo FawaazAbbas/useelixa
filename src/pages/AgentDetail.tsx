@@ -1075,7 +1075,7 @@ const AgentDetail = () => {
                       ) : (
                         <Zap className="h-4 w-4 mr-2" />
                       )}
-                      Add to Workspace
+                      View My Workspace
                     </Button>
                   )}
 
