@@ -76,7 +76,7 @@ const TalentPool = () => {
   // Popular searches - trending categories and top capabilities
   const popularSearches = useMemo(() => {
     const searches: { type: "category" | "capability" | "trending"; value: string; count: number }[] = [];
-
+    search;
     // Top 4 categories by agent count
     const topCategories = [...categories]
       .filter((c) => c.agentCount && c.agentCount > 0)
@@ -106,7 +106,19 @@ const TalentPool = () => {
     return searches;
   }, [categories, agents]);
 
+  // Search suggestions based on query
+  const searchSuggestions = useMemo(() => {
+    if (!searchQuery || searchQuery.length < 2) return [];
 
+    const query = searchQuery.toLowerCase();
+    const suggestions: { type: "category" | "capability" | "plugin"; value: string; count: number }[] = [];
+
+    // Category suggestions
+    categories.forEach((cat) => {
+      if (cat.name.toLowerCase().includes(query) && cat.agentCount) {
+        suggestions.push({ type: "category", value: cat.name, count: cat.agentCount });
+      }
+    });
 
     // Capability suggestions
     const capCounts: Record<string, number> = {};
