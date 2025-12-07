@@ -790,7 +790,7 @@ const TalentPool = () => {
 
       {/* Main Content */}
       <div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 transition-all duration-700 ${isFiltering ? "pt-20" : ""}`}
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 transition-all duration-700 ${isFiltering ? "pt-10" : ""}`}
       >
         <div className={`flex gap-8 ${isFiltering ? "" : ""}`}>
           {/* Desktop Filter Sidebar - Only shown when filtering */}
