@@ -1,5 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Search, Sparkles, TrendingUp, Clock, Filter, X, SlidersHorizontal, Star, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Search,
+  Sparkles,
+  TrendingUp,
+  Clock,
+  Filter,
+  X,
+  SlidersHorizontal,
+  Star,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
@@ -56,7 +67,7 @@ const TalentPool = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  
+
   // Collapsible states
   const [categoriesOpen, setCategoriesOpen] = useState(true);
   const [ratingsOpen, setRatingsOpen] = useState(true);
@@ -64,77 +75,77 @@ const TalentPool = () => {
 
   // Popular searches - trending categories and top capabilities
   const popularSearches = useMemo(() => {
-    const searches: { type: 'category' | 'capability' | 'trending'; value: string; count: number }[] = [];
-    
+    const searches: { type: "category" | "capability" | "trending"; value: string; count: number }[] = [];
+
     // Top 4 categories by agent count
     const topCategories = [...categories]
-      .filter(c => c.agentCount && c.agentCount > 0)
+      .filter((c) => c.agentCount && c.agentCount > 0)
       .sort((a, b) => (b.agentCount || 0) - (a.agentCount || 0))
       .slice(0, 4);
-    
-    topCategories.forEach(cat => {
-      searches.push({ type: 'category', value: cat.name, count: cat.agentCount || 0 });
+
+    topCategories.forEach((cat) => {
+      searches.push({ type: "category", value: cat.name, count: cat.agentCount || 0 });
     });
-    
+
     // Top 4 capabilities by usage
     const capCounts: Record<string, number> = {};
-    agents.forEach(agent => {
-      agent.capabilities?.forEach(cap => {
+    agents.forEach((agent) => {
+      agent.capabilities?.forEach((cap) => {
         capCounts[cap] = (capCounts[cap] || 0) + 1;
       });
     });
-    
+
     const topCaps = Object.entries(capCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 4);
-    
+
     topCaps.forEach(([cap, count]) => {
-      searches.push({ type: 'capability', value: cap, count });
+      searches.push({ type: "capability", value: cap, count });
     });
-    
+
     return searches;
   }, [categories, agents]);
 
   // Search suggestions based on query
   const searchSuggestions = useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
-    
+
     const query = searchQuery.toLowerCase();
-    const suggestions: { type: 'category' | 'capability' | 'plugin'; value: string; count: number }[] = [];
-    
+    const suggestions: { type: "category" | "capability" | "plugin"; value: string; count: number }[] = [];
+
     // Category suggestions
-    categories.forEach(cat => {
+    categories.forEach((cat) => {
       if (cat.name.toLowerCase().includes(query) && cat.agentCount) {
-        suggestions.push({ type: 'category', value: cat.name, count: cat.agentCount });
+        suggestions.push({ type: "category", value: cat.name, count: cat.agentCount });
       }
     });
-    
+
     // Capability suggestions
     const capCounts: Record<string, number> = {};
-    agents.forEach(agent => {
-      agent.capabilities?.forEach(cap => {
+    agents.forEach((agent) => {
+      agent.capabilities?.forEach((cap) => {
         if (cap.toLowerCase().includes(query)) {
           capCounts[cap] = (capCounts[cap] || 0) + 1;
         }
       });
     });
     Object.entries(capCounts).forEach(([cap, count]) => {
-      suggestions.push({ type: 'capability', value: cap, count });
+      suggestions.push({ type: "capability", value: cap, count });
     });
-    
+
     // Plugin suggestions
     const pluginCounts: Record<string, number> = {};
-    agents.forEach(agent => {
-      agent.plugins?.forEach(plugin => {
+    agents.forEach((agent) => {
+      agent.plugins?.forEach((plugin) => {
         if (plugin.toLowerCase().includes(query)) {
           pluginCounts[plugin] = (pluginCounts[plugin] || 0) + 1;
         }
       });
     });
     Object.entries(pluginCounts).forEach(([plugin, count]) => {
-      suggestions.push({ type: 'plugin', value: plugin, count });
+      suggestions.push({ type: "plugin", value: plugin, count });
     });
-    
+
     // Sort by count and limit
     return suggestions.sort((a, b) => b.count - a.count).slice(0, 8);
   }, [searchQuery, categories, agents]);
@@ -145,29 +156,28 @@ const TalentPool = () => {
   }, [searchSuggestions, popularSearches]);
 
   // Keyboard navigation handler
-  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showSuggestions || dropdownSuggestions.length === 0) return;
-    
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedSuggestionIndex(prev => 
-        prev < dropdownSuggestions.length - 1 ? prev + 1 : 0
-      );
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedSuggestionIndex(prev => 
-        prev > 0 ? prev - 1 : dropdownSuggestions.length - 1
-      );
-    } else if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
-      e.preventDefault();
-      setSearchQuery(dropdownSuggestions[selectedSuggestionIndex].value);
-      setShowSuggestions(false);
-      setSelectedSuggestionIndex(-1);
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-      setSelectedSuggestionIndex(-1);
-    }
-  }, [showSuggestions, dropdownSuggestions, selectedSuggestionIndex]);
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!showSuggestions || dropdownSuggestions.length === 0) return;
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev < dropdownSuggestions.length - 1 ? prev + 1 : 0));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : dropdownSuggestions.length - 1));
+      } else if (e.key === "Enter" && selectedSuggestionIndex >= 0) {
+        e.preventDefault();
+        setSearchQuery(dropdownSuggestions[selectedSuggestionIndex].value);
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      } else if (e.key === "Escape") {
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+      }
+    },
+    [showSuggestions, dropdownSuggestions, selectedSuggestionIndex],
+  );
 
   // Reset selection when suggestions change
   useEffect(() => {
@@ -177,14 +187,16 @@ const TalentPool = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      
+
       const { data: agentsData, error: agentsError } = await supabase
         .from("agents")
-        .select(`
+        .select(
+          `
           id, name, description, short_description, rating, total_reviews,
           total_installs, image_url, capabilities, category_id, required_credentials,
           agent_categories(id, name, description, icon)
-        `)
+        `,
+        )
         .eq("status", "active")
         .or("is_system.is.null,is_system.eq.false")
         .order("total_installs", { ascending: false });
@@ -195,12 +207,15 @@ const TalentPool = () => {
         setAgents(
           agentsData.map((agent: any) => {
             // Extract plugin names from required_credentials
-            const plugins = agent.required_credentials 
-              ? Object.keys(agent.required_credentials).map((key: string) => 
-                  key.replace(/_/g, ' ').replace(/credentials?$/i, '').trim()
+            const plugins = agent.required_credentials
+              ? Object.keys(agent.required_credentials).map((key: string) =>
+                  key
+                    .replace(/_/g, " ")
+                    .replace(/credentials?$/i, "")
+                    .trim(),
                 )
               : [];
-            
+
             return {
               id: agent.id,
               name: agent.name,
@@ -214,7 +229,7 @@ const TalentPool = () => {
               capabilities: agent.capabilities || [],
               plugins,
             };
-          })
+          }),
         );
       }
 
@@ -237,7 +252,7 @@ const TalentPool = () => {
             description: cat.description || "",
             icon: cat.icon || "🤖",
             agentCount: categoryCounts[cat.name] || 0,
-          }))
+          })),
         );
       }
 
@@ -250,8 +265,8 @@ const TalentPool = () => {
   // Extract all unique capabilities from agents
   const allCapabilities = useMemo(() => {
     const caps = new Set<string>();
-    agents.forEach(agent => {
-      agent.capabilities?.forEach(cap => caps.add(cap));
+    agents.forEach((agent) => {
+      agent.capabilities?.forEach((cap) => caps.add(cap));
     });
     return Array.from(caps).sort();
   }, [agents]);
@@ -259,68 +274,71 @@ const TalentPool = () => {
   // Calculate relevance score for an agent
   const calculateRelevance = (agent: Agent, searchTerms: string[]): number => {
     if (searchTerms.length === 0) return 0;
-    
+
     let score = 0;
     const nameLower = agent.name.toLowerCase();
     const descLower = agent.description.toLowerCase();
     const categoryLower = agent.category.toLowerCase();
-    
-    searchTerms.forEach(term => {
+
+    searchTerms.forEach((term) => {
       // Name matches are highest priority (exact > starts with > contains)
       if (nameLower === term) score += 100;
       else if (nameLower.startsWith(term)) score += 50;
       else if (nameLower.includes(term)) score += 25;
-      
+
       // Category exact match is high priority
       if (categoryLower === term) score += 80;
       else if (categoryLower.includes(term)) score += 40;
-      
+
       // Capability exact match
-      if (agent.capabilities?.some(cap => cap.toLowerCase() === term)) score += 60;
-      else if (agent.capabilities?.some(cap => cap.toLowerCase().includes(term))) score += 30;
-      
+      if (agent.capabilities?.some((cap) => cap.toLowerCase() === term)) score += 60;
+      else if (agent.capabilities?.some((cap) => cap.toLowerCase().includes(term))) score += 30;
+
       // Plugin match
-      if (agent.plugins?.some(p => p.toLowerCase().includes(term))) score += 35;
-      
+      if (agent.plugins?.some((p) => p.toLowerCase().includes(term))) score += 35;
+
       // Description match (lower priority)
       if (descLower.includes(term)) score += 10;
     });
-    
+
     // Boost popular agents slightly
     score += Math.min((agent.total_installs || 0) / 100, 20);
     score += agent.rating * 2;
-    
+
     return score;
   };
 
   // Filter and sort agents with relevance scoring
   const filteredAgents = useMemo(() => {
-    const searchTerms = searchQuery.toLowerCase().split(/\s+/).filter(term => term.length > 0);
-    
-    let result = agents.filter(agent => {
+    const searchTerms = searchQuery
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((term) => term.length > 0);
+
+    let result = agents.filter((agent) => {
       // Build searchable content from all agent fields
       const searchableContent = [
         agent.name,
         agent.description,
-        agent.short_description || '',
+        agent.short_description || "",
         agent.category,
         ...(agent.capabilities || []),
         ...(agent.plugins || []),
-      ].join(' ').toLowerCase();
-      
+      ]
+        .join(" ")
+        .toLowerCase();
+
       // Match if ANY search term is found in the searchable content
-      const matchesSearch = searchTerms.length === 0 || 
-        searchTerms.some(term => searchableContent.includes(term));
-      
+      const matchesSearch = searchTerms.length === 0 || searchTerms.some((term) => searchableContent.includes(term));
+
       // Also match if search query matches category exactly (for category quick filters)
-      const matchesCategorySearch = searchQuery && 
-        agent.category.toLowerCase().includes(searchQuery.toLowerCase());
-      
+      const matchesCategorySearch = searchQuery && agent.category.toLowerCase().includes(searchQuery.toLowerCase());
+
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(agent.category);
       const matchesRating = agent.rating >= minRating;
-      const matchesCapabilities = selectedCapabilities.length === 0 || 
-        selectedCapabilities.some(cap => agent.capabilities?.includes(cap));
-      
+      const matchesCapabilities =
+        selectedCapabilities.length === 0 || selectedCapabilities.some((cap) => agent.capabilities?.includes(cap));
+
       return (matchesSearch || matchesCategorySearch) && matchesCategory && matchesRating && matchesCapabilities;
     });
 
@@ -367,7 +385,7 @@ const TalentPool = () => {
       setHasMore(false);
       return;
     }
-    setTimeout(() => setDisplayedCount(prev => prev + 12), 500);
+    setTimeout(() => setDisplayedCount((prev) => prev + 12), 500);
   }, [displayedCount, filteredAgents.length]);
 
   useEffect(() => {
@@ -376,18 +394,14 @@ const TalentPool = () => {
   }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
   const toggleCategory = (categoryName: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryName) 
-        ? prev.filter(c => c !== categoryName)
-        : [...prev, categoryName]
+    setSelectedCategories((prev) =>
+      prev.includes(categoryName) ? prev.filter((c) => c !== categoryName) : [...prev, categoryName],
     );
   };
 
   const toggleCapability = (capability: string) => {
-    setSelectedCapabilities(prev => 
-      prev.includes(capability) 
-        ? prev.filter(c => c !== capability)
-        : [...prev, capability]
+    setSelectedCapabilities((prev) =>
+      prev.includes(capability) ? prev.filter((c) => c !== capability) : [...prev, capability],
     );
   };
 
@@ -437,10 +451,7 @@ const TalentPool = () => {
                   checked={selectedCategories.includes(category.name)}
                   onCheckedChange={() => toggleCategory(category.name)}
                 />
-                <Label 
-                  htmlFor={`cat-${category.id}`} 
-                  className="text-sm cursor-pointer flex-1 flex justify-between"
-                >
+                <Label htmlFor={`cat-${category.id}`} className="text-sm cursor-pointer flex-1 flex justify-between">
                   <span>{category.name}</span>
                   <span className="text-muted-foreground text-xs">{category.agentCount}</span>
                 </Label>
@@ -461,13 +472,7 @@ const TalentPool = () => {
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-medium">{minRating.toFixed(1)}+</span>
           </div>
-          <Slider
-            value={[minRating]}
-            onValueChange={([v]) => setMinRating(v)}
-            max={5}
-            step={0.5}
-            className="w-full"
-          />
+          <Slider value={[minRating]} onValueChange={([v]) => setMinRating(v)} max={5} step={0.5} className="w-full" />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Any</span>
             <span>5.0</span>
@@ -513,26 +518,28 @@ const TalentPool = () => {
       <TalentPoolNavbar />
 
       {/* Search Bar - slides up when filtering */}
-      <div className={`transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'py-6' : 'py-0 max-h-0 opacity-0 overflow-hidden'}`}>
+      <div
+        className={`transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? "py-6" : "py-0 max-h-0 opacity-0 overflow-hidden"}`}
+      >
         <div className="max-w-2xl mx-auto px-4">
           <div className="relative">
             {/* Gradient glow */}
             <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/30 via-purple-500/30 to-cyan-500/30 rounded-2xl blur-lg opacity-60" />
-            
+
             <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-2 shadow-2xl shadow-black/10">
               {/* Back button */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={clearFilters} 
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={clearFilters}
                 className="h-12 w-12 rounded-xl hover:bg-white/10 shrink-0"
               >
                 <X className="h-5 w-5" />
               </Button>
-              
+
               <div className="flex-1 relative">
-                <Input 
-                  placeholder="Search for AI agents..." 
+                <Input
+                  placeholder="Search for AI agents..."
                   className="px-4 h-12 text-base bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -540,7 +547,7 @@ const TalentPool = () => {
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   onKeyDown={handleSearchKeyDown}
                 />
-                
+
                 {/* Suggestions dropdown */}
                 {showSuggestions && dropdownSuggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[100]">
@@ -554,7 +561,7 @@ const TalentPool = () => {
                       <button
                         key={`sticky-${suggestion.type}-${suggestion.value}`}
                         className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
-                          index === selectedSuggestionIndex ? 'bg-white/15' : 'hover:bg-white/10'
+                          index === selectedSuggestionIndex ? "bg-white/15" : "hover:bg-white/10"
                         }`}
                         onMouseDown={() => {
                           setSearchQuery(suggestion.value);
@@ -563,11 +570,15 @@ const TalentPool = () => {
                         onMouseEnter={() => setSelectedSuggestionIndex(index)}
                       >
                         <div className="flex items-center gap-3">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
-                            suggestion.type === 'capability' ? 'bg-cyan-500/20 text-cyan-400' :
-                            'bg-amber-500/20 text-amber-400'
-                          }`}>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${
+                              suggestion.type === "category"
+                                ? "bg-purple-500/20 text-purple-400"
+                                : suggestion.type === "capability"
+                                  ? "bg-cyan-500/20 text-cyan-400"
+                                  : "bg-amber-500/20 text-amber-400"
+                            }`}
+                          >
                             {suggestion.type}
                           </span>
                           <span className="font-medium">{suggestion.value}</span>
@@ -578,16 +589,20 @@ const TalentPool = () => {
                   </div>
                 )}
               </div>
-              
+
               {activeFilterCount > 0 && (
                 <Badge className="gap-1 hidden sm:flex bg-gradient-to-r from-rose-500/20 to-purple-500/20 border-white/10">
                   {activeFilterCount} filters
                 </Badge>
               )}
-              
+
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden h-12 w-12 rounded-xl relative border-white/10 bg-white/5">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="lg:hidden h-12 w-12 rounded-xl relative border-white/10 bg-white/5"
+                  >
                     <SlidersHorizontal className="h-5 w-5" />
                     {activeFilterCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] text-white flex items-center justify-center font-medium">
@@ -605,7 +620,7 @@ const TalentPool = () => {
                   </div>
                 </SheetContent>
               </Sheet>
-              
+
               <Button className="h-12 px-5 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-purple-500/25 hidden sm:flex">
                 Search
               </Button>
@@ -615,21 +630,28 @@ const TalentPool = () => {
       </div>
 
       {/* Hero - Bold & Vibrant - Collapses when searching */}
-      <section className={`relative transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? 'max-h-0 opacity-0 overflow-hidden py-0' : 'max-h-[800px] opacity-100'}`}>
+      <section
+        className={`relative transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${isFiltering ? "max-h-0 opacity-0 overflow-hidden py-0" : "max-h-[800px] opacity-100"}`}
+      >
         {/* Animated gradient background - extends beyond section */}
         <div className="absolute inset-0 -bottom-32 pointer-events-none">
           <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-gradient-to-br from-rose-500/30 via-pink-500/20 to-transparent rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-violet-500/30 via-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute bottom-0 left-1/3 w-[600px] h-[400px] bg-gradient-to-t from-cyan-500/15 via-blue-500/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          <div
+            className="absolute top-20 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-violet-500/30 via-purple-500/20 to-transparent rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          />
+          <div
+            className="absolute bottom-0 left-1/3 w-[600px] h-[400px] bg-gradient-to-t from-cyan-500/15 via-blue-500/10 to-transparent rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "2s" }}
+          />
           <div className="absolute -bottom-40 right-1/4 w-[500px] h-[300px] bg-gradient-to-t from-purple-500/10 via-violet-500/5 to-transparent rounded-full blur-3xl" />
           {/* Grid pattern overlay - fades out at bottom */}
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
         </div>
-        
+
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 md:py-20 lg:py-24">
           {/* Main headline */}
           <div className="text-center space-y-4 md:space-y-6 mb-8 md:mb-10">
-            
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
                 The Team That
@@ -639,19 +661,19 @@ const TalentPool = () => {
                 Never Sleeps
               </span>
             </h1>
-            
+
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
               Hire AI employees that actually get work done. Your team, reimagined.
             </p>
           </div>
-          
+
           {/* Search bar - Bold style */}
           <div className="relative max-w-2xl mx-auto mb-6 md:mb-8 z-30 px-2 sm:px-0">
             <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-cyan-500/40 rounded-xl md:rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity" />
             <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-xl md:rounded-2xl border-2 border-white/10 p-1.5 md:p-2 shadow-2xl shadow-black/10">
               <div className="flex-1 relative">
-                <Input 
-                  placeholder="Search for AI agents..." 
+                <Input
+                  placeholder="Search for AI agents..."
                   className="px-3 md:px-5 h-11 md:h-14 text-sm md:text-lg bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -659,7 +681,7 @@ const TalentPool = () => {
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   onKeyDown={handleSearchKeyDown}
                 />
-                
+
                 {/* Suggestions dropdown */}
                 {showSuggestions && dropdownSuggestions.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[100]">
@@ -673,7 +695,7 @@ const TalentPool = () => {
                       <button
                         key={`hero-${suggestion.type}-${suggestion.value}`}
                         className={`w-full px-4 py-3 flex items-center justify-between transition-colors text-left ${
-                          index === selectedSuggestionIndex ? 'bg-white/15' : 'hover:bg-white/10'
+                          index === selectedSuggestionIndex ? "bg-white/15" : "hover:bg-white/10"
                         }`}
                         onMouseDown={() => {
                           setSearchQuery(suggestion.value);
@@ -682,11 +704,15 @@ const TalentPool = () => {
                         onMouseEnter={() => setSelectedSuggestionIndex(index)}
                       >
                         <div className="flex items-center gap-3">
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            suggestion.type === 'category' ? 'bg-purple-500/20 text-purple-400' :
-                            suggestion.type === 'capability' ? 'bg-cyan-500/20 text-cyan-400' :
-                            'bg-amber-500/20 text-amber-400'
-                          }`}>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full ${
+                              suggestion.type === "category"
+                                ? "bg-purple-500/20 text-purple-400"
+                                : suggestion.type === "capability"
+                                  ? "bg-cyan-500/20 text-cyan-400"
+                                  : "bg-amber-500/20 text-amber-400"
+                            }`}
+                          >
                             {suggestion.type}
                           </span>
                           <span className="font-medium">{suggestion.value}</span>
@@ -700,11 +726,15 @@ const TalentPool = () => {
               <Button className="h-10 md:h-12 px-4 md:px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-lg md:rounded-xl shadow-lg shadow-purple-500/25 text-sm md:text-base">
                 Search
               </Button>
-              
+
               {/* Mobile filter button */}
               <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="lg:hidden h-10 w-10 md:h-12 md:w-12 rounded-lg md:rounded-xl relative border-white/10">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="lg:hidden h-10 w-10 md:h-12 md:w-12 rounded-lg md:rounded-xl relative border-white/10"
+                  >
                     <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5" />
                     {activeFilterCount > 0 && (
                       <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] md:text-[11px] text-white flex items-center justify-center font-medium">
@@ -740,7 +770,7 @@ const TalentPool = () => {
                 <button
                   key={category.id}
                   onClick={() => toggleCategory(category.name)}
-                  className={`px-2.5 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full bg-gradient-to-r border backdrop-blur-sm transition-all hover:scale-105 ${colors[i % colors.length]} ${selectedCategories.includes(category.name) ? 'ring-2 ring-white/20' : ''}`}
+                  className={`px-2.5 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full bg-gradient-to-r border backdrop-blur-sm transition-all hover:scale-105 ${colors[i % colors.length]} ${selectedCategories.includes(category.name) ? "ring-2 ring-white/20" : ""}`}
                 >
                   {category.name}
                 </button>
@@ -759,8 +789,10 @@ const TalentPool = () => {
       </section>
 
       {/* Main Content */}
-      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 transition-all duration-700 ${isFiltering ? 'pt-36' : ''}`}>
-        <div className={`flex gap-8 ${isFiltering ? '' : ''}`}>
+      <div
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 transition-all duration-700 ${isFiltering ? "" : ""}`}
+      >
+        <div className={`flex gap-8 ${isFiltering ? "" : ""}`}>
           {/* Desktop Filter Sidebar - Only shown when filtering */}
           {isFiltering && (
             <aside className="hidden lg:block w-64 shrink-0">
@@ -795,11 +827,9 @@ const TalentPool = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-xl font-semibold">
-                      {searchQuery ? `Results for "${searchQuery}"` : 'Filtered Results'}
+                      {searchQuery ? `Results for "${searchQuery}"` : "Filtered Results"}
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {filteredAgents.length} agents found
-                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">{filteredAgents.length} agents found</p>
                   </div>
                 </div>
 
@@ -813,8 +843,16 @@ const TalentPool = () => {
                     dataLength={displayedAgents.length}
                     next={loadMore}
                     hasMore={hasMore}
-                    loader={<div className="text-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary mx-auto" /></div>}
-                    endMessage={<p className="text-center py-6 text-sm text-muted-foreground">All {filteredAgents.length} agents loaded</p>}
+                    loader={
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted border-t-primary mx-auto" />
+                      </div>
+                    }
+                    endMessage={
+                      <p className="text-center py-6 text-sm text-muted-foreground">
+                        All {filteredAgents.length} agents loaded
+                      </p>
+                    }
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                       {displayedAgents.map((agent, i) => (
