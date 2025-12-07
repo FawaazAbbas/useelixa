@@ -81,17 +81,21 @@ export const MobileRedirect = () => {
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           </div>
           
-          {/* Waitlist CTA */}
+          {/* CTA Buttons */}
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Get notified when mobile workspace launches
-            </p>
             <Button
               onClick={() => setShowWaitlist(true)}
               className="w-full h-14 text-base font-semibold bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 hover:from-rose-600 hover:via-purple-600 hover:to-cyan-600 text-white rounded-xl shadow-2xl shadow-purple-500/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-purple-500/40"
             >
               <Sparkles className="w-5 h-5 mr-2" />
               Join the Waiting List
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/talent-pool'}
+              className="w-full h-12 text-base font-medium border-border/50 hover:bg-muted/50"
+            >
+              Back to AI Talent Pool
             </Button>
           </div>
         </div>
