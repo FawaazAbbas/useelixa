@@ -44,15 +44,13 @@ export const MobileRedirect = () => {
         <div className="relative z-10 max-w-md mx-auto space-y-8">
           {/* Logo */}
           <div className="flex justify-center">
-            <ElixaLogo size={64} className="text-primary" />
+            <ElixaLogo size={64} color="#fff" />
           </div>
 
           {/* Messaging */}
           <div className="space-y-3">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-              View on Laptop
-            </h1>
-            <p className="text-foreground leading-relaxed">
+            <h1 className="text-2xl font-bold text-white">View on Laptop</h1>
+            <p className="text-white leading-relaxed">
               The Elixa Workspace is designed for larger screens to give you the best experience managing your AI team.
             </p>
           </div>
