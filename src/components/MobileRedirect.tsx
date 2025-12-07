@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Monitor, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { WaitlistDialog } from './WaitlistDialog';
 import { ElixaLogo } from './ElixaLogo';
 
@@ -57,11 +57,6 @@ export const MobileRedirect = () => {
           {/* Logo */}
           <div className="flex justify-center">
             <ElixaLogo size={64} className="text-primary" />
-          </div>
-          
-          {/* Monitor icon */}
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 border border-primary/20 flex items-center justify-center">
-            <Monitor className="w-10 h-10 text-primary" />
           </div>
           
           {/* Messaging */}
