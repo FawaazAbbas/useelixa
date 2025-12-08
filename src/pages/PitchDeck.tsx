@@ -46,6 +46,10 @@ const PitchDeck = () => {
   const currentSlideRef = useRef(0);
   const isAnimatingRef = useRef(false);
   const animationTimeoutRef = useRef<number | null>(null);
+  const scrollAccumulatorRef = useRef(0);
+  const lastScrollTimeRef = useRef(0);
+  const SCROLL_THRESHOLD = 30;
+  const SCROLL_COOLDOWN_MS = 900;
 
   const handleExportPDF = () => {
     window.print();
@@ -60,6 +64,7 @@ const PitchDeck = () => {
     if (!targetSection) return;
 
     isAnimatingRef.current = true;
+    lastScrollTimeRef.current = Date.now();
     currentSlideRef.current = clampedIndex;
     setCurrentSlide(clampedIndex);
 
@@ -76,7 +81,7 @@ const PitchDeck = () => {
       () => {
         isAnimatingRef.current = false;
       },
-      smooth ? 800 : 0,
+      smooth ? SCROLL_COOLDOWN_MS : 0,
     );
   };
 
@@ -100,13 +105,17 @@ const PitchDeck = () => {
     const handleWheel = (event: WheelEvent) => {
       if (!slideSectionsRef.current.length) return;
       event.preventDefault();
-      if (isAnimatingRef.current) return;
 
-      if (event.deltaY > 0) {
-        scrollToSlide(currentSlideRef.current + 1);
-      } else if (event.deltaY < 0) {
-        scrollToSlide(currentSlideRef.current - 1);
-      }
+      if (isAnimatingRef.current) return;
+      const now = Date.now();
+      if (now - lastScrollTimeRef.current < SCROLL_COOLDOWN_MS) return;
+
+      scrollAccumulatorRef.current += event.deltaY;
+      if (Math.abs(scrollAccumulatorRef.current) < SCROLL_THRESHOLD) return;
+
+      const direction = scrollAccumulatorRef.current > 0 ? 1 : -1;
+      scrollAccumulatorRef.current = 0;
+      scrollToSlide(currentSlideRef.current + direction);
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
