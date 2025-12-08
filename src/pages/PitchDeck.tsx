@@ -47,9 +47,11 @@ const PitchDeck = () => {
   const isAnimatingRef = useRef(false);
   const animationTimeoutRef = useRef<number | null>(null);
   const scrollAccumulatorRef = useRef(0);
+  const wheelUnlockTimeoutRef = useRef<number | null>(null);
   const lastScrollTimeRef = useRef(0);
   const SCROLL_THRESHOLD = 30;
-  const SCROLL_COOLDOWN_MS = 900;
+  const SCROLL_COOLDOWN_MS = 650;
+  const WHEEL_UNLOCK_DELAY_MS = 280;
 
   const handleExportPDF = () => {
     window.print();
@@ -107,15 +109,29 @@ const PitchDeck = () => {
       event.preventDefault();
 
       if (isAnimatingRef.current) return;
-      const now = Date.now();
-      if (now - lastScrollTimeRef.current < SCROLL_COOLDOWN_MS) return;
 
       scrollAccumulatorRef.current += event.deltaY;
-      if (Math.abs(scrollAccumulatorRef.current) < SCROLL_THRESHOLD) return;
+      if (Math.abs(scrollAccumulatorRef.current) < SCROLL_THRESHOLD) {
+        if (wheelUnlockTimeoutRef.current) {
+          window.clearTimeout(wheelUnlockTimeoutRef.current);
+        }
+        wheelUnlockTimeoutRef.current = window.setTimeout(() => {
+          scrollAccumulatorRef.current = 0;
+        }, WHEEL_UNLOCK_DELAY_MS);
+        return;
+      }
 
       const direction = scrollAccumulatorRef.current > 0 ? 1 : -1;
       scrollAccumulatorRef.current = 0;
+
       scrollToSlide(currentSlideRef.current + direction);
+
+      if (wheelUnlockTimeoutRef.current) {
+        window.clearTimeout(wheelUnlockTimeoutRef.current);
+      }
+      wheelUnlockTimeoutRef.current = window.setTimeout(() => {
+        scrollAccumulatorRef.current = 0;
+      }, SCROLL_COOLDOWN_MS);
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -178,6 +194,9 @@ const PitchDeck = () => {
       window.removeEventListener("touchend", handleTouchEnd);
       if (animationTimeoutRef.current) {
         window.clearTimeout(animationTimeoutRef.current);
+      }
+      if (wheelUnlockTimeoutRef.current) {
+        window.clearTimeout(wheelUnlockTimeoutRef.current);
       }
     };
   }, []);
