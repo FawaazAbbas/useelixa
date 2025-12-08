@@ -14,7 +14,7 @@ const slideLabels = [
   "Revenue",
   "GTM",
   "Traction",
-  "Team & Ask"
+  "Team & Ask",
 ];
 
 export const SlideProgressIndicator = () => {
@@ -25,10 +25,7 @@ export const SlideProgressIndicator = () => {
   useEffect(() => {
     const updateActiveSlide = () => {
       const progress = scrollYProgress.get();
-      const slideIndex = Math.min(
-        Math.floor(progress * slideLabels.length),
-        slideLabels.length - 1
-      );
+      const slideIndex = Math.min(Math.floor(progress * slideLabels.length), slideLabels.length - 1);
       setActiveSlide(slideIndex);
     };
 
@@ -37,10 +34,21 @@ export const SlideProgressIndicator = () => {
   }, [scrollYProgress]);
 
   const scrollToSlide = (index: number) => {
+    const slides = document.querySelectorAll<HTMLElement>(".pitch-deck-wrapper section");
+    const targetSection = slides[index];
+
+    if (targetSection) {
+      targetSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      return;
+    }
+
     const slideHeight = window.innerHeight;
     window.scrollTo({
       top: index * slideHeight,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   };
 
@@ -48,10 +56,7 @@ export const SlideProgressIndicator = () => {
     <div className="slide-progress-container print:hidden">
       {/* Progress bar */}
       <div className="slide-progress-bar-track">
-        <motion.div 
-          className="slide-progress-bar-fill"
-          style={{ scaleY }}
-        />
+        <motion.div className="slide-progress-bar-fill" style={{ scaleY }} />
       </div>
 
       {/* Slide dots */}
