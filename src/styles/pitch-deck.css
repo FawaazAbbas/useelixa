@@ -122,6 +122,20 @@
 }
 
 /* ============================================
+   FULL-PAGE SLIDE LAYOUT
+   ============================================ */
+
+.pitch-deck-wrapper {
+  position: relative;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+}
+
+.pitch-deck-wrapper section {
+  min-height: 100vh;
+}
+
+/* ============================================
    SLIDE BACKGROUNDS
    ============================================ */
 
@@ -339,11 +353,11 @@
   .slide-grid-2 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .slide-grid-3 {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .slide-grid-4 {
     grid-template-columns: repeat(4, 1fr);
   }
@@ -398,12 +412,24 @@
 }
 
 /* Stagger children animation delays */
-.slide-stagger > *:nth-child(1) { transition-delay: 0s; }
-.slide-stagger > *:nth-child(2) { transition-delay: 0.1s; }
-.slide-stagger > *:nth-child(3) { transition-delay: 0.2s; }
-.slide-stagger > *:nth-child(4) { transition-delay: 0.3s; }
-.slide-stagger > *:nth-child(5) { transition-delay: 0.4s; }
-.slide-stagger > *:nth-child(6) { transition-delay: 0.5s; }
+.slide-stagger > *:nth-child(1) {
+  transition-delay: 0s;
+}
+.slide-stagger > *:nth-child(2) {
+  transition-delay: 0.1s;
+}
+.slide-stagger > *:nth-child(3) {
+  transition-delay: 0.2s;
+}
+.slide-stagger > *:nth-child(4) {
+  transition-delay: 0.3s;
+}
+.slide-stagger > *:nth-child(5) {
+  transition-delay: 0.4s;
+}
+.slide-stagger > *:nth-child(6) {
+  transition-delay: 0.5s;
+}
 
 /* ============================================
    PRINT STYLES
@@ -414,20 +440,20 @@
     size: landscape;
     margin: 0.5in;
   }
-  
+
   body {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
-  
+
   .slide-section {
     page-break-after: always;
   }
-  
+
   .slide-progress-container {
     display: none !important;
   }
-  
+
   .slide-blur {
     display: none;
   }
@@ -441,11 +467,11 @@
   .slide-progress-container {
     right: 0.75rem;
   }
-  
+
   .slide-dot-tooltip {
     display: none;
   }
-  
+
   .slide-section {
     padding: 4rem 1rem;
   }
