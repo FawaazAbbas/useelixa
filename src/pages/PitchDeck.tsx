@@ -47,11 +47,14 @@ const PitchDeck = () => {
   const isAnimatingRef = useRef(false);
   const animationTimeoutRef = useRef<number | null>(null);
   const scrollAccumulatorRef = useRef(0);
+  const wheelLockedRef = useRef(false);
+  const wheelLockTimeoutRef = useRef<number | null>(null);
   const wheelUnlockTimeoutRef = useRef<number | null>(null);
   const lastScrollTimeRef = useRef(0);
-  const SCROLL_THRESHOLD = 30;
-  const SCROLL_COOLDOWN_MS = 650;
-  const WHEEL_UNLOCK_DELAY_MS = 280;
+  const SCROLL_THRESHOLD = 60;
+  const SCROLL_COOLDOWN_MS = 800;
+  const WHEEL_UNLOCK_DELAY_MS = 300;
+  const WHEEL_LOCK_MS = 800;
 
   const handleExportPDF = () => {
     window.print();
@@ -108,7 +111,7 @@ const PitchDeck = () => {
       if (!slideSectionsRef.current.length) return;
       event.preventDefault();
 
-      if (isAnimatingRef.current) return;
+      if (isAnimatingRef.current || wheelLockedRef.current) return;
 
       scrollAccumulatorRef.current += event.deltaY;
       if (Math.abs(scrollAccumulatorRef.current) < SCROLL_THRESHOLD) {
@@ -124,6 +127,7 @@ const PitchDeck = () => {
       const direction = scrollAccumulatorRef.current > 0 ? 1 : -1;
       scrollAccumulatorRef.current = 0;
 
+      wheelLockedRef.current = true;
       scrollToSlide(currentSlideRef.current + direction);
 
       if (wheelUnlockTimeoutRef.current) {
@@ -132,6 +136,13 @@ const PitchDeck = () => {
       wheelUnlockTimeoutRef.current = window.setTimeout(() => {
         scrollAccumulatorRef.current = 0;
       }, SCROLL_COOLDOWN_MS);
+
+      if (wheelLockTimeoutRef.current) {
+        window.clearTimeout(wheelLockTimeoutRef.current);
+      }
+      wheelLockTimeoutRef.current = window.setTimeout(() => {
+        wheelLockedRef.current = false;
+      }, WHEEL_LOCK_MS);
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -197,6 +208,9 @@ const PitchDeck = () => {
       }
       if (wheelUnlockTimeoutRef.current) {
         window.clearTimeout(wheelUnlockTimeoutRef.current);
+      }
+      if (wheelLockTimeoutRef.current) {
+        window.clearTimeout(wheelLockTimeoutRef.current);
       }
     };
   }, []);
