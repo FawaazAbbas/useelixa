@@ -67,6 +67,14 @@ export const TalentPoolFooter = () => {
                 </li>
                 <li>
                   <Link
+                    to="/pitch-deck"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Pitch Deck
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/privacy"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >

@@ -24,6 +24,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Developers from "./pages/Developers";
+import PitchDeck from "./pages/PitchDeck";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
@@ -112,6 +113,7 @@ const App = () => (
           <Route path="/terms" element={<Terms />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/developers" element={<Developers />} />
+          <Route path="/pitch-deck" element={<PitchDeck />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
