@@ -94,6 +94,19 @@ const PitchDeck = () => {
     if (!deckRef.current) return;
     slideSectionsRef.current = Array.from(deckRef.current.querySelectorAll("section")) as HTMLElement[];
 
+    const computeSlideScale = () => {
+      const sections = slideSectionsRef.current;
+      if (!sections.length) return;
+
+      const availableHeight = Math.max(window.innerHeight - 40, 480);
+
+      sections.forEach((section) => {
+        const contentHeight = section.scrollHeight;
+        const scale = contentHeight > availableHeight ? Math.max(0.7, availableHeight / contentHeight) : 1;
+        section.style.setProperty("--slide-scale", scale.toString());
+      });
+    };
+
     const handleScroll = () => {
       const sections = slideSectionsRef.current;
       if (!sections.length) return;
@@ -182,10 +195,18 @@ const PitchDeck = () => {
     };
 
     const handleResize = () => {
+      computeSlideScale();
       scrollToSlide(currentSlideRef.current, false);
     };
 
+    computeSlideScale();
     handleScroll();
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(computeSlideScale);
+      slideSectionsRef.current.forEach((section) => resizeObserver?.observe(section));
+    }
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("wheel", handleWheel, { passive: false });
@@ -203,6 +224,9 @@ const PitchDeck = () => {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       if (animationTimeoutRef.current) {
         window.clearTimeout(animationTimeoutRef.current);
       }
