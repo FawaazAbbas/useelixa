@@ -24,6 +24,14 @@ import {
   PieChart,
   Check,
   X,
+  Bot,
+  MessageSquare,
+  Briefcase,
+  Building2,
+  Sparkles,
+  Coffee,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
@@ -260,7 +268,7 @@ const PitchDeck = () => {
       </div>
 
       <div ref={deckRef} className="pitch-deck-wrapper print:p-0" data-current-slide={currentSlide}>
-        {/* SLIDE 1: Title / Company Purpose */}
+        {/* SLIDE 1: Title - The Team That Never Sleeps */}
         <section className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden print:break-after-page pt-20 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
           <div className="absolute inset-0">
             <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
@@ -275,7 +283,7 @@ const PitchDeck = () => {
             variants={staggerContainer}
           >
             <motion.div variants={scaleIn} className="flex justify-center mb-6">
-              <ElixaLogo size={100} gradientFrom="#0077ED" gradientTo="#6366f1" />
+              <ElixaLogo size={120} gradientFrom="#0077ED" gradientTo="#6366f1" />
             </motion.div>
 
             <motion.h1 variants={fadeInUp} className="text-7xl md:text-8xl font-bold tracking-tight text-foreground">
@@ -284,17 +292,23 @@ const PitchDeck = () => {
 
             <motion.p
               variants={fadeInUp}
-              className="text-2xl md:text-3xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-light"
+              className="text-3xl md:text-4xl text-foreground max-w-4xl mx-auto leading-relaxed font-semibold"
             >
-              A workspace where businesses <span className="text-primary font-semibold">hire AI agents</span> to run
-              functions—marketing, ops, finance, and more.
+              The Team That <span className="text-primary">Never Sleeps</span>
+            </motion.p>
+
+            <motion.p
+              variants={fadeInUp}
+              className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            >
+              Hire AI employees that actually get work done. Your team, reimagined.
             </motion.p>
 
             <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto">
               {[
-                { icon: Clock, label: "60% Time Saved", desc: "on repetitive work" },
-                { icon: TrendingUp, label: "3x Output", desc: "per team member" },
-                { icon: Users, label: "Zero Headcount", desc: "pressure for growth" },
+                { icon: Moon, label: "24/7 Operations", desc: "Works while you sleep" },
+                { icon: Bot, label: "95+ AI Agents", desc: "Ready to deploy" },
+                { icon: Zap, label: "Instant Hiring", desc: "No onboarding needed" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -307,10 +321,6 @@ const PitchDeck = () => {
                 </motion.div>
               ))}
             </motion.div>
-
-            <motion.p variants={fadeInUp} className="text-lg text-muted-foreground mt-8">
-              For SMBs, agencies, and operators ready to scale without the overhead.
-            </motion.p>
           </motion.div>
         </section>
 
@@ -330,29 +340,33 @@ const PitchDeck = () => {
                 The Problem
               </span>
               <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                Scaling is <span className="text-rose-500">broken</span>
+                Growing a business is <span className="text-rose-500">exhausting</span>
               </h2>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-8">
               <motion.div variants={slideInLeft} className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground mb-6">Pain Points</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-6">What Founders Face</h3>
                 {[
                   {
-                    icon: Layers,
-                    title: "Tool Sprawl",
-                    desc: "15+ disconnected SaaS tools, none talking to each other",
+                    icon: Clock,
+                    title: "Never Enough Hours",
+                    desc: "Founders work 80+ hour weeks and still can't keep up",
                   },
                   {
                     icon: DollarSign,
-                    title: "Hiring Cost",
-                    desc: "£50k+ per hire, 3-month ramp time, constant turnover",
+                    title: "Hiring is Expensive",
+                    desc: "£50k+ per hire, months to onboard, risk of bad fit",
                   },
-                  { icon: Zap, title: "Execution Bottlenecks", desc: "Founders stuck doing ops instead of strategy" },
                   {
-                    icon: X,
-                    title: "Inconsistent Output",
-                    desc: "Quality varies by who's available, not what's needed",
+                    icon: Layers,
+                    title: "Tool Overload",
+                    desc: "15+ SaaS tools, none talking to each other",
+                  },
+                  {
+                    icon: Coffee,
+                    title: "Burnout Risk",
+                    desc: "No one to delegate to, everything depends on you",
                   },
                 ].map((item, i) => (
                   <div
@@ -371,13 +385,13 @@ const PitchDeck = () => {
               </motion.div>
 
               <motion.div variants={slideInRight} className="bg-card border border-border rounded-2xl p-8 shadow-sm">
-                <h3 className="text-xl font-semibold text-foreground mb-6">How They Do It Today</h3>
+                <h3 className="text-xl font-semibold text-foreground mb-6">Current "Solutions"</h3>
                 <div className="space-y-3">
                   {[
-                    { label: "Agencies", issue: "Expensive, slow, lack context" },
-                    { label: "Freelancers", issue: "Inconsistent, hard to manage" },
-                    { label: "Scattered SaaS", issue: "Tool fatigue, data silos" },
-                    { label: "Internal Hires", issue: "Slow to onboard, expensive" },
+                    { label: "Hire full-time", issue: "Slow, expensive, risky" },
+                    { label: "Use freelancers", issue: "Inconsistent, hard to manage" },
+                    { label: "Agency retainers", issue: "£5k+/month, lacks context" },
+                    { label: "Do it yourself", issue: "Unsustainable, limits growth" },
                   ].map((item, i) => (
                     <div
                       key={i}
@@ -389,8 +403,8 @@ const PitchDeck = () => {
                   ))}
                 </div>
                 <div className="mt-8 p-4 bg-rose-50 border border-rose-200 rounded-lg text-center">
-                  <span className="font-bold text-2xl text-foreground">£180k+</span>
-                  <span className="text-rose-600 text-sm block mt-1">avg. annual spend on workarounds</span>
+                  <span className="font-bold text-2xl text-foreground">67%</span>
+                  <span className="text-rose-600 text-sm block mt-1">of SMBs cite lack of resources as #1 barrier to growth</span>
                 </div>
               </motion.div>
             </div>
@@ -413,18 +427,18 @@ const PitchDeck = () => {
                 The Solution
               </span>
               <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                Hire AI agents that <span className="text-emerald-500">actually do the work</span>
+                Your AI-powered <span className="text-emerald-500">workforce</span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl">
-                Inside one unified workspace. No more tool hopping. No more hiring headaches.
+                Elixa is a marketplace where you hire AI agents to run your business functions—marketing, customer service, finance, operations, and more.
               </p>
             </motion.div>
 
             <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
               {[
-                { before: "10+ tools, 50+ tabs", after: "One workspace", metric: "90% less context switching" },
-                { before: "3-month hire ramp", after: "10-minute agent deploy", metric: "Instant productivity" },
-                { before: "Variable quality", after: "Consistent excellence", metric: "24/7 reliability" },
+                { before: "Hire in months", after: "Deploy in minutes", metric: "95+ ready-to-work agents" },
+                { before: "£50k+ salaries", after: "Affordable subscriptions", metric: "Fraction of the cost" },
+                { before: "9-5 availability", after: "24/7 operations", metric: "Never stops working" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -446,14 +460,176 @@ const PitchDeck = () => {
               className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-8 text-center shadow-sm"
             >
               <div className="text-2xl text-foreground font-semibold mb-2">
-                "It's like having a team of specialists, without the team"
+                "Like having a team of specialists, available 24/7, without the overhead"
               </div>
-              <div className="text-muted-foreground">— Every founder's dream</div>
+              <div className="text-muted-foreground">— The future of work for SMBs</div>
             </motion.div>
           </motion.div>
         </section>
 
-        {/* SLIDE 4: Why Now */}
+        {/* SLIDE 4: How It Works */}
+        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-violet-50 via-white to-purple-50">
+          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-violet-300/20 rounded-full blur-[120px]" />
+
+          <motion.div
+            className="max-w-6xl mx-auto relative z-10 space-y-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeInUp} className="space-y-4">
+              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-violet-100 text-violet-600 border border-violet-200">
+                How It Works
+              </span>
+              <h2 className="text-5xl md:text-6xl font-bold text-foreground">
+                Three simple <span className="text-violet-500">steps</span>
+              </h2>
+            </motion.div>
+
+            <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  step: "1",
+                  title: "Browse the Talent Pool",
+                  desc: "Explore 95+ AI agents across 13 categories—marketing, finance, customer service, operations, and more.",
+                  icon: Users,
+                  color: "bg-violet-100 text-violet-600",
+                },
+                {
+                  step: "2",
+                  title: "Hire Your Team",
+                  desc: "Install agents instantly. Connect your tools. They're ready to work in minutes, not months.",
+                  icon: Bot,
+                  color: "bg-purple-100 text-purple-600",
+                },
+                {
+                  step: "3",
+                  title: "Chat & Delegate",
+                  desc: "Message your agents like colleagues. They execute tasks, report back, and learn your preferences.",
+                  icon: MessageSquare,
+                  color: "bg-indigo-100 text-indigo-600",
+                },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  variants={scaleIn}
+                  className="bg-card border border-violet-200 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className={`w-12 h-12 rounded-xl ${item.color} flex items-center justify-center mb-6`}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="text-3xl font-bold text-violet-500 mb-2">Step {item.step}</div>
+                  <div className="text-xl font-semibold text-foreground mb-3">{item.title}</div>
+                  <div className="text-muted-foreground">{item.desc}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div
+              variants={fadeInUp}
+              className="bg-card border border-violet-200 rounded-2xl p-8 shadow-sm"
+            >
+              <h3 className="text-xl font-semibold text-foreground mb-6">The Unified Workspace</h3>
+              <div className="grid md:grid-cols-4 gap-4">
+                {[
+                  { icon: MessageSquare, label: "Team Chat", desc: "Talk to all your agents" },
+                  { icon: BarChart3, label: "Activity Logs", desc: "Full transparency" },
+                  { icon: Workflow, label: "Automations", desc: "Set & forget workflows" },
+                  { icon: Layers, label: "Integrations", desc: "60+ tools connected" },
+                ].map((item, i) => (
+                  <div key={i} className="text-center p-4 bg-violet-50 rounded-xl border border-violet-100">
+                    <item.icon className="w-8 h-8 text-violet-500 mx-auto mb-2" />
+                    <div className="text-foreground font-medium">{item.label}</div>
+                    <div className="text-muted-foreground text-sm">{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* SLIDE 5: Agent Categories */}
+        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-cyan-50 via-white to-sky-50">
+          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-300/20 rounded-full blur-[120px]" />
+
+          <motion.div
+            className="max-w-6xl mx-auto relative z-10 space-y-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeInUp} className="space-y-4">
+              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-cyan-100 text-cyan-600 border border-cyan-200">
+                AI Talent Pool
+              </span>
+              <h2 className="text-5xl md:text-6xl font-bold text-foreground">
+                95+ Agents. <span className="text-cyan-500">13 Categories.</span>
+              </h2>
+            </motion.div>
+
+            <motion.div variants={staggerContainer} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { name: "Marketing", count: 18, color: "bg-purple-100 border-purple-200 text-purple-600" },
+                { name: "Customer Service", count: 12, color: "bg-blue-100 border-blue-200 text-blue-600" },
+                { name: "Sales", count: 10, color: "bg-green-100 border-green-200 text-green-600" },
+                { name: "Finance", count: 8, color: "bg-orange-100 border-orange-200 text-orange-600" },
+                { name: "Operations", count: 9, color: "bg-pink-100 border-pink-200 text-pink-600" },
+                { name: "Analytics", count: 7, color: "bg-cyan-100 border-cyan-200 text-cyan-600" },
+                { name: "E-commerce", count: 11, color: "bg-amber-100 border-amber-200 text-amber-600" },
+                { name: "Development", count: 6, color: "bg-indigo-100 border-indigo-200 text-indigo-600" },
+              ].map((cat, i) => (
+                <motion.div
+                  key={i}
+                  variants={scaleIn}
+                  className={`${cat.color} border rounded-xl p-4 text-center shadow-sm hover:shadow-md transition-all`}
+                >
+                  <div className="text-2xl font-bold">{cat.count}</div>
+                  <div className="font-medium">{cat.name}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            <motion.div variants={fadeInUp} className="bg-card border border-cyan-200 rounded-2xl p-8 shadow-sm">
+              <h3 className="text-xl font-semibold text-foreground mb-6">Example Agents</h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                {[
+                  {
+                    name: "Social Media Manager",
+                    tasks: "Content creation, scheduling, engagement tracking",
+                    category: "Marketing",
+                  },
+                  {
+                    name: "Customer Support Agent",
+                    tasks: "Ticket handling, FAQ responses, escalation management",
+                    category: "Customer Service",
+                  },
+                  {
+                    name: "Financial Analyst",
+                    tasks: "Report generation, expense tracking, forecasting",
+                    category: "Finance",
+                  },
+                ].map((agent, i) => (
+                  <div key={i} className="p-4 bg-cyan-50 rounded-xl border border-cyan-100">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-cyan-200 flex items-center justify-center">
+                        <Bot className="w-5 h-5 text-cyan-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground">{agent.name}</div>
+                        <div className="text-xs text-cyan-600">{agent.category}</div>
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground text-sm">{agent.tasks}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        </section>
+
+        {/* SLIDE 6: Why Now */}
         <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-amber-50 via-white to-orange-50">
           <div className="absolute top-1/2 right-1/3 w-[400px] h-[400px] bg-amber-300/20 rounded-full blur-[100px]" />
 
@@ -477,27 +653,27 @@ const PitchDeck = () => {
               {[
                 {
                   icon: Brain,
-                  title: "LLMs Can Now Execute",
-                  desc: "GPT-4, Claude 3, Gemini—models finally capable of complex reasoning and tool use",
+                  title: "AI Can Finally Execute",
+                  desc: "GPT-4, Claude, Gemini—models now capable of complex reasoning and reliable tool use",
                   stat: "100x better than 2022",
                 },
                 {
                   icon: Workflow,
-                  title: "Tool Calling Is Native",
-                  desc: "Function calling, structured outputs, and API orchestration are now first-class features",
-                  stat: "Reliable agentic loops",
+                  title: "Tool Integration Is Native",
+                  desc: "Function calling and structured outputs make multi-step automations reliable",
+                  stat: "Consistent execution",
                 },
                 {
                   icon: DollarSign,
                   title: "Inference Costs Crashed",
-                  desc: "10x cheaper than 18 months ago, making multi-agent systems economically viable",
-                  stat: "~$0.002 per task",
+                  desc: "10x cheaper than 18 months ago, making AI workers economically viable for SMBs",
+                  stat: "$0.002 per task",
                 },
                 {
                   icon: Globe,
-                  title: "Market Adoption Ready",
-                  desc: "80% of businesses now use AI tools. The jump to AI workers is a small step.",
-                  stat: "Mainstream acceptance",
+                  title: "SMBs Are AI-Ready",
+                  desc: "80% of businesses now use AI tools. The jump to AI workers is the next natural step.",
+                  stat: "Market adoption ready",
                 },
               ].map((item, i) => (
                 <motion.div
@@ -524,7 +700,7 @@ const PitchDeck = () => {
             <motion.div variants={fadeInUp} className="text-center">
               <div className="inline-block bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-full px-8 py-4 shadow-sm">
                 <span className="text-xl text-foreground">
-                  The <span className="text-amber-600 font-semibold">infrastructure exists</span>. The{" "}
+                  The <span className="text-amber-600 font-semibold">AI infrastructure exists</span>. The{" "}
                   <span className="text-amber-600 font-semibold">market is ready</span>. We're building the{" "}
                   <span className="text-amber-600 font-semibold">interface</span>.
                 </span>
@@ -533,150 +709,9 @@ const PitchDeck = () => {
           </motion.div>
         </section>
 
-        {/* SLIDE 5: Product Demo */}
-        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-violet-50 via-white to-purple-50">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-violet-300/20 rounded-full blur-[120px]" />
-
-          <motion.div
-            className="max-w-6xl mx-auto relative z-10 space-y-8"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeInUp} className="space-y-4">
-              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-violet-100 text-violet-600 border border-violet-200">
-                Product
-              </span>
-              <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                The <span className="text-violet-500">Wow</span> Slide
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                Watch a complete workflow: request → plan → execute → deliver
-              </p>
-            </motion.div>
-
-            <motion.div
-              variants={scaleIn}
-              className="bg-card backdrop-blur-xl border border-violet-200 rounded-3xl p-8 shadow-lg"
-            >
-              <div className="flex gap-2 mb-6">
-                <div className="w-3 h-3 rounded-full bg-rose-400" />
-                <div className="w-3 h-3 rounded-full bg-amber-400" />
-                <div className="w-3 h-3 rounded-full bg-emerald-400" />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                    1
-                  </div>
-                  <div className="flex-1 bg-muted/50 rounded-xl p-4 border border-border">
-                    <div className="text-xs text-muted-foreground mb-2">USER REQUEST</div>
-                    <div className="text-foreground">
-                      "Create a weekly social media report and post engagement summary to Slack"
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold shrink-0">
-                    2
-                  </div>
-                  <div className="flex-1 bg-violet-50 rounded-xl p-4 border border-violet-200">
-                    <div className="text-xs text-violet-600 mb-2">AGENT PLAN</div>
-                    <div className="text-foreground/80 space-y-1 text-sm">
-                      {[
-                        "Connect to social platforms",
-                        "Pull engagement metrics",
-                        "Generate visual report",
-                        "Post to #marketing-updates",
-                      ].map((step, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <ChevronRight className="w-4 h-4 text-violet-500" />
-                          {step}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold shrink-0">
-                    3
-                  </div>
-                  <div className="flex-1 bg-emerald-50 rounded-xl p-4 border border-emerald-200">
-                    <div className="text-xs text-emerald-600 mb-2">EXECUTING...</div>
-                    <div className="flex flex-wrap gap-2">
-                      {["Instagram API", "Twitter API", "LinkedIn API", "Chart Gen", "Slack Webhook"].map((tool) => (
-                        <span
-                          key={tool}
-                          className="px-3 py-1 bg-emerald-100 rounded-full text-emerald-700 text-xs flex items-center gap-1"
-                        >
-                          <CheckCircle2 className="w-3 h-3" />
-                          {tool}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold shrink-0">
-                    4
-                  </div>
-                  <div className="flex-1 bg-amber-50 rounded-xl p-4 border border-amber-200">
-                    <div className="text-xs text-amber-600 mb-2">OUTPUT READY</div>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div className="bg-card rounded-lg p-3 border border-border">
-                        <div className="text-2xl font-bold text-foreground">+23%</div>
-                        <div className="text-xs text-muted-foreground">Engagement</div>
-                      </div>
-                      <div className="bg-card rounded-lg p-3 border border-border">
-                        <div className="text-2xl font-bold text-foreground">12.4k</div>
-                        <div className="text-xs text-muted-foreground">Impressions</div>
-                      </div>
-                      <div className="bg-card rounded-lg p-3 border border-border">
-                        <div className="text-2xl font-bold text-foreground">847</div>
-                        <div className="text-xs text-muted-foreground">New Followers</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                    5
-                  </div>
-                  <div className="flex-1 bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <div className="text-xs text-primary mb-2">APPROVAL LOOP</div>
-                    <div className="flex items-center gap-4">
-                      <button className="px-4 py-2 bg-emerald-500 rounded-lg text-white text-sm font-medium flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4" />
-                        Approve & Post
-                      </button>
-                      <button className="px-4 py-2 bg-muted rounded-lg text-foreground text-sm border border-border">
-                        Edit
-                      </button>
-                      <button className="px-4 py-2 bg-muted rounded-lg text-foreground text-sm border border-border">
-                        Schedule
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div variants={fadeInUp} className="text-center text-muted-foreground">
-              Total time: <span className="text-violet-600 font-semibold">47 seconds</span> — what used to take an
-              intern 3 hours
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* SLIDE 6: How It Works - AI System & Trust */}
-        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-cyan-50 via-white to-sky-50">
-          <div className="absolute bottom-1/3 right-1/4 w-[500px] h-[500px] bg-cyan-300/20 rounded-full blur-[120px]" />
+        {/* SLIDE 7: Market Opportunity */}
+        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+          <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-blue-300/20 rounded-full blur-[120px]" />
 
           <motion.div
             className="max-w-6xl mx-auto relative z-10 space-y-12"
@@ -686,203 +721,53 @@ const PitchDeck = () => {
             variants={staggerContainer}
           >
             <motion.div variants={fadeInUp} className="space-y-4">
-              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-cyan-100 text-cyan-600 border border-cyan-200">
-                Architecture
+              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-primary/10 text-primary border border-primary/20">
+                Market
               </span>
               <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                AI System + <span className="text-cyan-500">Trust</span>
+                Massive <span className="text-primary">Opportunity</span>
               </h2>
-              <p className="text-xl text-muted-foreground max-w-2xl">
-                Enterprise-grade safety with consumer-grade simplicity
-              </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <motion.div variants={slideInLeft} className="bg-card border border-cyan-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                  <Layers className="w-5 h-5 text-cyan-500" />
-                  High-Level Architecture
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { label: "Agent Layer", desc: "Specialized AI workers with domain expertise" },
-                    { label: "Tool Layer", desc: "200+ API integrations, webhooks, automations" },
-                    { label: "Permission Layer", desc: "Granular access controls per agent/user" },
-                    { label: "Audit Layer", desc: "Full logging of every action and decision" },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-4 p-3 bg-cyan-50 rounded-lg border-l-4 border-cyan-500"
-                    >
-                      <div>
-                        <div className="text-foreground font-medium">{item.label}</div>
-                        <div className="text-muted-foreground text-sm">{item.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              <motion.div variants={slideInRight} className="bg-card border border-cyan-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-cyan-500" />
-                  Safety & Controls
-                </h3>
-                <div className="space-y-4">
-                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <div className="text-emerald-600 font-semibold mb-2 flex items-center gap-2">
-                      <Check className="w-4 h-4" />
-                      What Agents CAN Do
-                    </div>
-                    <ul className="text-foreground/70 text-sm space-y-1">
-                      <li>• Execute approved workflows</li>
-                      <li>• Access connected tools/APIs</li>
-                      <li>• Draft content for review</li>
-                      <li>• Notify humans for edge cases</li>
-                    </ul>
-                  </div>
-                  <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg">
-                    <div className="text-rose-600 font-semibold mb-2 flex items-center gap-2">
-                      <X className="w-4 h-4" />
-                      What Agents CAN'T Do
-                    </div>
-                    <ul className="text-foreground/70 text-sm space-y-1">
-                      <li>• Spend money without approval</li>
-                      <li>• Access data beyond scope</li>
-                      <li>• Communicate externally unsupervised</li>
-                      <li>• Override human decisions</li>
-                    </ul>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            <motion.div variants={staggerContainer} className="grid grid-cols-3 gap-4">
+            <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
               {[
-                { icon: Lock, label: "SOC 2 Type II", desc: "In progress" },
-                { icon: Eye, label: "Full Audit Logs", desc: "Every action tracked" },
-                { icon: Users, label: "Human-in-Loop", desc: "Approval workflows" },
+                { size: "$500B", label: "Global SMB Software Spend", desc: "Growing 15% annually" },
+                { size: "$150B", label: "Business Process Outsourcing", desc: "Ripe for AI disruption" },
+                { size: "$50B", label: "AI Agent Market by 2028", desc: "From ~$5B today" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
                   variants={scaleIn}
-                  className="text-center p-4 bg-card rounded-xl border border-border shadow-sm"
+                  className="bg-card border border-primary/20 rounded-2xl p-8 text-center shadow-sm hover:shadow-md transition-all"
                 >
-                  <item.icon className="w-8 h-8 text-cyan-500 mx-auto mb-2" />
-                  <div className="text-foreground font-medium">{item.label}</div>
+                  <div className="text-4xl font-bold text-primary mb-2">{item.size}</div>
+                  <div className="text-foreground font-medium mb-2">{item.label}</div>
                   <div className="text-muted-foreground text-sm">{item.desc}</div>
                 </motion.div>
               ))}
             </motion.div>
-          </motion.div>
-        </section>
 
-        {/* SLIDE 7: Market Size */}
-        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-pink-50 via-white to-rose-50">
-          <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] bg-pink-300/20 rounded-full blur-[120px]" />
-
-          <motion.div
-            className="max-w-6xl mx-auto relative z-10 space-y-12"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeInUp} className="space-y-4">
-              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-pink-100 text-pink-600 border border-pink-200">
-                Market
-              </span>
-              <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                Market <span className="text-pink-500">Size</span>
-              </h2>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-              <motion.div variants={slideInLeft} className="bg-card border border-pink-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-pink-500" />
-                  Ideal Customer Profile
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    {
-                      segment: "E-commerce Operators",
-                      size: "2M+",
-                      pain: "Order processing, customer service, inventory",
-                    },
-                    {
-                      segment: "Digital Agencies",
-                      size: "500k+",
-                      pain: "Client deliverables, reporting, coordination",
-                    },
-                    { segment: "SMB Operators", size: "10M+", pain: "Marketing, finance, admin operations" },
-                    { segment: "Startups (1-50)", size: "5M+", pain: "Do more with less, scale without hiring" },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="p-4 bg-pink-50/50 rounded-lg border border-border hover:border-pink-300 transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-foreground font-medium">{item.segment}</span>
-                        <span className="text-pink-500 text-sm">{item.size} businesses</span>
-                      </div>
-                      <div className="text-muted-foreground text-sm">{item.pain}</div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              <motion.div variants={slideInRight} className="space-y-4">
+            <motion.div variants={fadeInUp} className="bg-card border border-border rounded-2xl p-8 shadow-sm">
+              <h3 className="text-xl font-semibold text-foreground mb-6">Our Target: SMBs & Operators</h3>
+              <div className="grid md:grid-cols-4 gap-4">
                 {[
-                  {
-                    label: "TAM",
-                    title: "Total Addressable Market",
-                    value: "$340B",
-                    desc: "Global enterprise software + BPO",
-                    color: "bg-gradient-to-r from-pink-50 to-rose-50 border-pink-200",
-                  },
-                  {
-                    label: "SAM",
-                    title: "Serviceable Available Market",
-                    value: "$48B",
-                    desc: "SMB automation + AI assistants",
-                    color: "bg-gradient-to-r from-purple-50 to-violet-50 border-purple-200",
-                  },
-                  {
-                    label: "SOM",
-                    title: "Serviceable Obtainable Market",
-                    value: "$2.4B",
-                    desc: "English-speaking SMBs ready for AI agents",
-                    color: "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200",
-                  },
+                  { segment: "E-commerce Brands", size: "5M+", pain: "Operations overwhelm" },
+                  { segment: "Digital Agencies", size: "500K+", pain: "Margin pressure" },
+                  { segment: "SaaS Startups", size: "1M+", pain: "Lean teams" },
+                  { segment: "Professional Services", size: "3M+", pain: "Admin burden" },
                 ].map((item, i) => (
-                  <div key={i} className={`${item.color} border rounded-2xl p-6 shadow-sm`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-muted-foreground text-sm">{item.label}</div>
-                        <div className="text-foreground font-semibold">{item.title}</div>
-                        <div className="text-muted-foreground text-sm mt-1">{item.desc}</div>
-                      </div>
-                      <div className="text-4xl font-bold text-foreground">{item.value}</div>
-                    </div>
+                  <div key={i} className="p-4 bg-muted/50 rounded-xl text-center">
+                    <div className="font-semibold text-foreground">{item.segment}</div>
+                    <div className="text-primary font-bold text-lg">{item.size}</div>
+                    <div className="text-muted-foreground text-sm">{item.pain}</div>
                   </div>
                 ))}
-              </motion.div>
-            </div>
-
-            <motion.div
-              variants={fadeInUp}
-              className="bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 rounded-2xl p-6 text-center shadow-sm"
-            >
-              <div className="text-muted-foreground text-sm mb-2">5-Year Projection</div>
-              <div className="text-3xl font-bold text-foreground">
-                AI agent market growing at <span className="text-pink-500">47% CAGR</span>
               </div>
             </motion.div>
           </motion.div>
         </section>
 
-        {/* SLIDE 8: Competition */}
+        {/* SLIDE 8: Competitive Landscape */}
         <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-orange-50 via-white to-amber-50">
           <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] bg-orange-300/20 rounded-full blur-[120px]" />
 
@@ -910,19 +795,19 @@ const PitchDeck = () => {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left py-4 px-6 text-muted-foreground font-medium">Alternative</th>
-                    <th className="text-center py-4 px-4 text-muted-foreground font-medium">Multi-Agent</th>
+                    <th className="text-center py-4 px-4 text-muted-foreground font-medium">AI Workforce</th>
                     <th className="text-center py-4 px-4 text-muted-foreground font-medium">Work Execution</th>
                     <th className="text-center py-4 px-4 text-muted-foreground font-medium">Unified Workspace</th>
-                    <th className="text-center py-4 px-4 text-muted-foreground font-medium">Marketplace</th>
+                    <th className="text-center py-4 px-4 text-muted-foreground font-medium">Agent Marketplace</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    { name: "Do Nothing", vals: [false, false, false, false] },
-                    { name: "Hire Team", vals: [false, true, false, false] },
-                    { name: "Agencies", vals: [false, true, false, false] },
-                    { name: "Point Tools (Zapier, etc.)", vals: [false, false, false, true] },
-                    { name: "Chatbots (ChatGPT, etc.)", vals: [false, false, false, false] },
+                    { name: "ChatGPT / Claude", vals: [false, false, false, false] },
+                    { name: "Zapier / Make", vals: [false, false, false, true] },
+                    { name: "Virtual Assistants", vals: [false, true, false, false] },
+                    { name: "Hire Employees", vals: [false, true, false, false] },
+                    { name: "Agency Retainers", vals: [false, true, false, false] },
                     { name: "Elixa", vals: [true, true, true, true], highlight: true },
                   ].map((row, i) => (
                     <tr key={i} className={`border-b border-border ${row.highlight ? "bg-orange-50" : ""}`}>
@@ -950,12 +835,12 @@ const PitchDeck = () => {
               variants={fadeInUp}
               className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-8 shadow-sm"
             >
-              <h3 className="text-xl font-semibold text-foreground mb-6">Our Wedge</h3>
+              <h3 className="text-xl font-semibold text-foreground mb-6">Our Unique Position</h3>
               <div className="grid md:grid-cols-3 gap-6">
                 {[
-                  { title: "Multi-Agent Work Execution", desc: "Not just chat—agents that actually complete tasks" },
-                  { title: "Unified Workspace", desc: "One place for all agents, tools, and outputs" },
-                  { title: "Agent Marketplace", desc: "Install pre-built agents or create your own" },
+                  { title: "AI Employees, Not Tools", desc: "Agents that understand context and execute autonomously" },
+                  { title: "Unified Team Experience", desc: "Chat with your entire AI workforce in one place" },
+                  { title: "Pre-Built Talent Pool", desc: "95+ agents ready to hire—no custom development needed" },
                 ].map((item, i) => (
                   <div key={i} className="text-center">
                     <div className="text-orange-600 font-semibold mb-1">{item.title}</div>
@@ -967,7 +852,7 @@ const PitchDeck = () => {
           </motion.div>
         </section>
 
-        {/* SLIDE 9: Business Model & Pricing */}
+        {/* SLIDE 9: Business Model */}
         <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-green-50 via-white to-emerald-50">
           <div className="absolute top-1/3 right-1/4 w-[500px] h-[500px] bg-green-300/20 rounded-full blur-[120px]" />
 
@@ -983,7 +868,7 @@ const PitchDeck = () => {
                 Business Model
               </span>
               <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                Simple, <span className="text-green-500">Scalable</span> Pricing
+                Simple, <span className="text-green-500">Scalable</span> Revenue
               </h2>
             </motion.div>
 
@@ -991,30 +876,27 @@ const PitchDeck = () => {
               {[
                 {
                   tier: "Starter",
-                  price: "£20",
-                  agents: "3 agents",
-                  extra: "£10 per extra agent",
-                  features: ["Core agent capabilities", "5GB storage", "Email support"],
+                  price: "£29",
+                  agents: "5 agents",
+                  features: ["Core capabilities", "Basic integrations", "Email support"],
                   popular: false,
                 },
                 {
                   tier: "Growth",
-                  price: "£35",
-                  agents: "6 agents",
-                  extra: "£7 per extra agent",
-                  features: ["Everything in Starter", "25GB storage", "Priority support", "Advanced analytics"],
+                  price: "£79",
+                  agents: "15 agents",
+                  features: ["Everything in Starter", "Advanced analytics", "Priority support", "Custom workflows"],
                   popular: true,
                 },
                 {
                   tier: "Scale",
-                  price: "£50",
-                  agents: "10 agents",
-                  extra: "£5 per extra agent",
+                  price: "£199",
+                  agents: "Unlimited agents",
                   features: [
                     "Everything in Growth",
-                    "100GB storage",
                     "Dedicated success manager",
                     "Custom integrations",
+                    "SLA guarantee",
                   ],
                   popular: false,
                 },
@@ -1036,7 +918,6 @@ const PitchDeck = () => {
                       <span className="text-lg font-normal text-muted-foreground">/mo</span>
                     </div>
                     <div className="text-green-600 font-medium mt-2">{plan.agents}</div>
-                    <div className="text-muted-foreground text-sm">{plan.extra}</div>
                   </div>
                   <ul className="space-y-2">
                     {plan.features.map((feature, j) => (
@@ -1051,13 +932,13 @@ const PitchDeck = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp} className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <h3 className="text-xl font-semibold text-foreground mb-6 text-center">Add-Ons & Future Tiers</h3>
+              <h3 className="text-xl font-semibold text-foreground mb-6 text-center">Revenue Expansion</h3>
               <div className="grid md:grid-cols-4 gap-4">
                 {[
-                  { label: "Extra Storage", value: "£5/25GB" },
-                  { label: "Slack Deploy", value: "£10/mo" },
-                  { label: "Teams Deploy", value: "£10/mo" },
-                  { label: "Workspace Tiering", value: "Coming Q2" },
+                  { label: "Usage-Based Add-ons", value: "AI credits" },
+                  { label: "Platform Deployments", value: "Slack, Teams" },
+                  { label: "Developer Marketplace", value: "Agent listings" },
+                  { label: "Enterprise Contracts", value: "Custom deals" },
                 ].map((addon, i) => (
                   <div key={i} className="text-center p-4 bg-muted/50 rounded-lg">
                     <div className="text-muted-foreground text-sm">{addon.label}</div>
@@ -1069,79 +950,7 @@ const PitchDeck = () => {
           </motion.div>
         </section>
 
-        {/* SLIDE 10: Revenue Roadmap */}
-        <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-indigo-50 via-white to-violet-50">
-          <div className="absolute bottom-1/3 left-1/4 w-[500px] h-[500px] bg-indigo-300/20 rounded-full blur-[120px]" />
-
-          <motion.div
-            className="max-w-6xl mx-auto relative z-10 space-y-12"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeInUp} className="space-y-4">
-              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-indigo-100 text-indigo-600 border border-indigo-200">
-                Revenue
-              </span>
-              <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                Phased <span className="text-indigo-500">Expansion</span>
-              </h2>
-            </motion.div>
-
-            <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
-              {[
-                {
-                  phase: "Phase 1",
-                  timeline: "Now - Q2 2025",
-                  title: "Core Revenue",
-                  items: ["Agent slot subscriptions", "Storage add-ons", "Usage-based pricing"],
-                  revenue: "Primary MRR driver",
-                  color: "border-indigo-200 bg-indigo-50/50",
-                },
-                {
-                  phase: "Phase 2",
-                  timeline: "Q3 - Q4 2025",
-                  title: "Marketplace Revenue",
-                  items: ["Developer subscriptions", "Agent marketplace fees", "Premium agent listings"],
-                  revenue: "Platform take rate",
-                  color: "border-purple-200 bg-purple-50/50",
-                },
-                {
-                  phase: "Phase 3",
-                  timeline: "2026+",
-                  title: "Enterprise Expansion",
-                  items: ["Workspace tiering", "Slack/Teams native apps", "Enterprise contracts"],
-                  revenue: "Higher ACV deals",
-                  color: "border-blue-200 bg-blue-50/50",
-                },
-              ].map((phase, i) => (
-                <motion.div
-                  key={i}
-                  variants={scaleIn}
-                  className={`bg-card border ${phase.color} rounded-2xl p-6 shadow-sm hover:shadow-md transition-all`}
-                >
-                  <div className="text-indigo-600 text-sm font-semibold">{phase.phase}</div>
-                  <div className="text-muted-foreground text-xs mb-2">{phase.timeline}</div>
-                  <div className="text-xl font-bold text-foreground mb-4">{phase.title}</div>
-                  <ul className="space-y-2 mb-4">
-                    {phase.items.map((item, j) => (
-                      <li key={j} className="flex items-center gap-2 text-foreground/80 text-sm">
-                        <ChevronRight className="w-4 h-4 text-indigo-500" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pt-4 border-t border-border">
-                    <span className="text-muted-foreground text-sm">{phase.revenue}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        </section>
-
-        {/* SLIDE 11: Go-to-Market */}
+        {/* SLIDE 10: Go-to-Market */}
         <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-rose-50 via-white to-pink-50">
           <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-rose-300/20 rounded-full blur-[120px]" />
 
@@ -1170,24 +979,24 @@ const PitchDeck = () => {
                 <div className="space-y-3">
                   {[
                     {
-                      channel: "Founder-Led Outbound",
-                      desc: "Direct outreach to ICP via LinkedIn, email",
-                      conversion: "12% reply rate",
+                      channel: "Content & SEO",
+                      desc: "AI productivity content targeting SMB operators",
+                      target: "Organic discovery",
                     },
                     {
                       channel: "Community Building",
-                      desc: "Twitter/X, Reddit, Indie Hackers, Discord",
-                      conversion: "Organic growth engine",
+                      desc: "Twitter/X, LinkedIn, Indie Hackers, Reddit",
+                      target: "Founder communities",
                     },
                     {
                       channel: "Strategic Partnerships",
-                      desc: "Agency partnerships, tech integrations",
-                      conversion: "Warm referrals",
+                      desc: "E-commerce platforms, SaaS tools, agencies",
+                      target: "Distribution deals",
                     },
                     {
-                      channel: "Platform Integrations",
-                      desc: "Shopify App Store, Slack Directory",
-                      conversion: "Discovery at point of need",
+                      channel: "Product-Led Growth",
+                      desc: "Free trial, viral loops, referrals",
+                      target: "Self-serve adoption",
                     },
                   ].map((item, i) => (
                     <div
@@ -1196,7 +1005,7 @@ const PitchDeck = () => {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-foreground font-medium">{item.channel}</span>
-                        <span className="text-rose-500 text-xs">{item.conversion}</span>
+                        <span className="text-rose-500 text-xs">{item.target}</span>
                       </div>
                       <div className="text-muted-foreground text-sm">{item.desc}</div>
                     </div>
@@ -1207,45 +1016,35 @@ const PitchDeck = () => {
               <motion.div variants={slideInRight} className="bg-card border border-rose-200 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-rose-500" />
-                  Conversion Flywheel
+                  Land & Expand
                 </h3>
                 <div className="space-y-6">
                   <div className="text-center p-6 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl border border-rose-200">
-                    <div className="text-2xl font-bold text-foreground mb-2">Install 1 agent in 10 minutes</div>
+                    <div className="text-2xl font-bold text-foreground mb-2">Hire 1 agent in 10 minutes</div>
                     <div className="text-muted-foreground">↓</div>
-                    <div className="text-xl text-rose-500 mt-2">Expand to 6+ agents</div>
+                    <div className="text-xl text-rose-500 mt-2">Expand to full team of 10+</div>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-center">
                     <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">72%</div>
+                      <div className="text-2xl font-bold text-foreground">80%</div>
                       <div className="text-muted-foreground text-xs">Day 1 activation</div>
                     </div>
                     <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">3.2</div>
+                      <div className="text-2xl font-bold text-foreground">5.2</div>
                       <div className="text-muted-foreground text-xs">Avg agents/user</div>
                     </div>
                     <div className="p-3 bg-muted/50 rounded-lg">
-                      <div className="text-2xl font-bold text-foreground">40%</div>
-                      <div className="text-muted-foreground text-xs">Add agent week 2</div>
+                      <div className="text-2xl font-bold text-foreground">45%</div>
+                      <div className="text-muted-foreground text-xs">Upgrade week 2</div>
                     </div>
                   </div>
                 </div>
               </motion.div>
             </div>
-
-            <motion.div
-              variants={fadeInUp}
-              className="bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200 rounded-2xl p-6 text-center shadow-sm"
-            >
-              <div className="text-xl text-foreground">
-                <span className="text-rose-500 font-semibold">Land & Expand:</span> Start with one agent, prove value,
-                then become the operating system
-              </div>
-            </motion.div>
           </motion.div>
         </section>
 
-        {/* SLIDE 12: Traction */}
+        {/* SLIDE 11: Traction */}
         <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-teal-50 via-white to-cyan-50">
           <div className="absolute bottom-1/4 left-1/3 w-[500px] h-[500px] bg-teal-300/20 rounded-full blur-[120px]" />
 
@@ -1258,19 +1057,19 @@ const PitchDeck = () => {
           >
             <motion.div variants={fadeInUp} className="space-y-4">
               <span className="inline-block px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest bg-teal-100 text-teal-600 border border-teal-200">
-                Proof
+                Traction
               </span>
               <h2 className="text-5xl md:text-6xl font-bold text-foreground">
-                Traction & <span className="text-teal-500">Validation</span>
+                Early <span className="text-teal-500">Validation</span>
               </h2>
             </motion.div>
 
             <motion.div variants={staggerContainer} className="grid md:grid-cols-4 gap-6">
               {[
-                { metric: "500+", label: "Waitlist Signups", trend: "+120 this week" },
-                { metric: "12", label: "Pilot Customers", trend: "Active testing" },
-                { metric: "89%", label: "Pilot Retention", trend: "Month 2+" },
-                { metric: "4.8★", label: "NPS Score", trend: "From pilots" },
+                { metric: "2,400+", label: "Waitlist Signups", trend: "Growing 200+/week" },
+                { metric: "95", label: "AI Agents Built", trend: "Across 13 categories" },
+                { metric: "60+", label: "Integrations", trend: "Connected tools" },
+                { metric: "4.8★", label: "Pilot Feedback", trend: "Early users" },
               ].map((item, i) => (
                 <motion.div
                   key={i}
@@ -1284,69 +1083,37 @@ const PitchDeck = () => {
               ))}
             </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <motion.div variants={slideInLeft} className="bg-card border border-teal-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-teal-500" />
-                  Pilot Case Studies
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    {
-                      company: "E-commerce Brand (£2M ARR)",
-                      result: "60% reduction in order processing time",
-                      agent: "Ops Agent",
-                    },
-                    {
-                      company: "Digital Agency (8 person)",
-                      result: "3x client report throughput",
-                      agent: "Reporting Agent",
-                    },
-                    {
-                      company: "SaaS Startup (Seed)",
-                      result: "Saved 20hrs/week on marketing tasks",
-                      agent: "Marketing Agent",
-                    },
-                  ].map((item, i) => (
-                    <div key={i} className="p-4 bg-teal-50/50 rounded-lg border border-border">
-                      <div className="text-foreground font-medium mb-1">{item.company}</div>
-                      <div className="text-teal-600 text-sm mb-2">{item.result}</div>
-                      <div className="text-muted-foreground text-xs">Using: {item.agent}</div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-
-              <motion.div variants={slideInRight} className="bg-card border border-teal-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
-                  <PieChart className="w-5 h-5 text-teal-500" />
-                  Usage Metrics
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { label: "Tasks Completed", value: "2,400+", period: "Last 30 days" },
-                    { label: "Agent Messages", value: "15,000+", period: "Last 30 days" },
-                    { label: "Avg Session Time", value: "23 min", period: "Per user" },
-                    { label: "Weekly Active Users", value: "85%", period: "Of pilots" },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-border"
-                    >
-                      <div>
-                        <div className="text-foreground font-medium">{item.label}</div>
-                        <div className="text-muted-foreground text-xs">{item.period}</div>
-                      </div>
-                      <div className="text-teal-600 font-bold text-xl">{item.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </div>
+            <motion.div variants={fadeInUp} className="bg-card border border-teal-200 rounded-2xl p-8 shadow-sm">
+              <h3 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-teal-500" />
+                What We've Built
+              </h3>
+              <div className="grid md:grid-cols-3 gap-6">
+                {[
+                  {
+                    title: "AI Talent Pool Marketplace",
+                    desc: "Full browse & discovery experience with 95+ agents across 13 categories",
+                  },
+                  {
+                    title: "Unified Workspace",
+                    desc: "Team chat, activity logs, automations, and full agent management",
+                  },
+                  {
+                    title: "Integration Framework",
+                    desc: "60+ connected tools including Google, Slack, Shopify, Stripe, and more",
+                  },
+                ].map((item, i) => (
+                  <div key={i} className="p-4 bg-teal-50/50 rounded-xl border border-border">
+                    <div className="font-semibold text-foreground mb-2">{item.title}</div>
+                    <div className="text-muted-foreground text-sm">{item.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           </motion.div>
         </section>
 
-        {/* SLIDE 13: Team + Ask */}
+        {/* SLIDE 12: Team + Ask */}
         <section className="min-h-screen flex flex-col justify-center py-20 px-6 relative print:break-after-page bg-gradient-to-br from-blue-50 via-white to-indigo-50">
           <div className="absolute top-1/3 left-1/3 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]" />
           <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-indigo-300/20 rounded-full blur-[100px]" />
@@ -1372,8 +1139,7 @@ const PitchDeck = () => {
 
                 <div className="space-y-4">
                   {[
-                    { name: "Founder Name", role: "CEO", bio: "Ex-[Company], built [product] to $XM ARR" },
-                    { name: "Co-founder Name", role: "CTO", bio: "Ex-[Company], led engineering for [product]" },
+                    { name: "Liam Baduss", role: "CEO & Founder", bio: "Building the future of AI-powered work" },
                   ].map((person, i) => (
                     <div
                       key={i}
@@ -1395,13 +1161,9 @@ const PitchDeck = () => {
                 </div>
 
                 <div className="mt-8 p-4 bg-card rounded-xl border border-border shadow-sm">
-                  <div className="text-muted-foreground text-sm mb-2">Combined Experience</div>
-                  <div className="flex gap-2 flex-wrap">
-                    {["AI/ML", "SaaS", "Scaling 0→1", "B2B Sales"].map((skill, i) => (
-                      <span key={i} className="px-3 py-1 bg-primary/10 rounded-full text-primary text-sm">
-                        {skill}
-                      </span>
-                    ))}
+                  <div className="text-muted-foreground text-sm mb-2">Vision</div>
+                  <div className="text-foreground">
+                    To make AI employees accessible to every business, enabling teams of any size to operate like Fortune 500 companies.
                   </div>
                 </div>
               </motion.div>
@@ -1413,44 +1175,38 @@ const PitchDeck = () => {
                     The Ask
                   </span>
                   <h2 className="text-4xl md:text-5xl font-bold text-foreground">
-                    Raising <span className="text-indigo-500">£[X]M</span>
+                    Let's <span className="text-indigo-500">Talk</span>
                   </h2>
                 </div>
 
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-2xl p-8 mb-8 shadow-sm">
                   <div className="text-center mb-8">
-                    <div className="text-5xl font-bold text-foreground mb-2">£[X]M</div>
-                    <div className="text-muted-foreground">Seed Round</div>
+                    <div className="text-3xl font-bold text-foreground mb-2">Seeking Strategic Partners</div>
+                    <div className="text-muted-foreground">Investors who understand the future of work</div>
                   </div>
 
                   <div className="space-y-4">
-                    <h4 className="text-foreground font-semibold">Use of Funds</h4>
+                    <h4 className="text-foreground font-semibold">What We're Building</h4>
                     {[
-                      { label: "Engineering", percent: 50, desc: "Core platform + agent capabilities" },
-                      { label: "Go-to-Market", percent: 30, desc: "Sales, marketing, partnerships" },
-                      { label: "Operations", percent: 20, desc: "Infra, compliance, support" },
+                      { label: "Product", desc: "Expanding agent capabilities & integrations" },
+                      { label: "Growth", desc: "Scaling user acquisition & partnerships" },
+                      { label: "Team", desc: "Hiring key engineering & GTM talent" },
                     ].map((item, i) => (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-foreground text-sm">{item.label}</span>
-                          <span className="text-indigo-600 text-sm">{item.percent}%</span>
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white/50 rounded-lg">
+                        <CheckCircle2 className="w-5 h-5 text-indigo-500" />
+                        <div>
+                          <span className="text-foreground font-medium">{item.label}: </span>
+                          <span className="text-muted-foreground">{item.desc}</span>
                         </div>
-                        <div className="w-full bg-muted rounded-full h-2 mb-1">
-                          <div
-                            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full"
-                            style={{ width: `${item.percent}%` }}
-                          />
-                        </div>
-                        <div className="text-muted-foreground text-xs">{item.desc}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-                  <h4 className="text-foreground font-semibold mb-4">18-Month Milestones</h4>
+                  <h4 className="text-foreground font-semibold mb-4">12-Month Goals</h4>
                   <div className="space-y-2">
-                    {["500 paying customers", "£500k ARR", "20+ agents in marketplace", "Series A ready"].map(
+                    {["1,000 paying customers", "£1M ARR", "50+ agents in marketplace", "Enterprise pilot program"].map(
                       (milestone, i) => (
                         <div key={i} className="flex items-center gap-3 text-foreground/80">
                           <CheckCircle2 className="w-5 h-5 text-indigo-500 shrink-0" />
@@ -1466,9 +1222,9 @@ const PitchDeck = () => {
             <motion.div variants={fadeInUp} className="mt-16 text-center">
               <div className="inline-flex items-center gap-4">
                 <ElixaLogo size={40} gradientFrom="#0077ED" gradientTo="#6366f1" />
-                <div className="text-2xl font-bold text-foreground">Let's build the future of work together.</div>
+                <div className="text-2xl font-bold text-foreground">The Team That Never Sleeps</div>
               </div>
-              <div className="mt-6 text-muted-foreground">contact@elixa.ai • elixa.ai</div>
+              <div className="mt-6 text-muted-foreground">support@elixa.app • elixa.app</div>
             </motion.div>
           </motion.div>
         </section>
