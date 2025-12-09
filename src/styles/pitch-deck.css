@@ -133,13 +133,6 @@
 
 .pitch-deck-wrapper section {
   min-height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  transform: scale(var(--slide-scale, 1));
-  transform-origin: top center;
 }
 
 /* ============================================
@@ -463,11 +456,6 @@
 
   .slide-blur {
     display: none;
-  }
-
-  .pitch-deck-wrapper section {
-    transform: none !important;
-    max-height: none;
   }
 }
 
