@@ -1139,7 +1139,7 @@ const PitchDeck = () => {
 
                 <div className="space-y-4">
                   {[
-                    { name: "Liam Baduss", role: "CEO & Founder", bio: "Building the future of AI-powered work" },
+                    { name: "Fawaaz Abbas", role: "CEO & Founder", bio: "Building the future of AI-powered work" },
                   ].map((person, i) => (
                     <div
                       key={i}
