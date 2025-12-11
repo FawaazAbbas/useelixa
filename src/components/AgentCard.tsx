@@ -1,6 +1,7 @@
 import { Star, Download, Megaphone, Headphones, Target, DollarSign, Package, Users, Code, Palette, BarChart3, Scale, Smartphone, ClipboardList, ShoppingCart, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { trackAgentView } from "@/utils/analytics";
 
 interface Agent {
   id: string;
@@ -163,6 +164,7 @@ export const AgentCard = ({ agent }: AgentCardProps) => {
   const config = categoryConfig[agent.category] || defaultConfig;
 
   const handleClick = () => {
+    trackAgentView(agent.name, agent.category);
     navigate(`/agent/${agent.id}`);
   };
 

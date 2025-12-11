@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Search,
   Sparkles,
@@ -27,6 +27,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { trackSearch, trackCategoryFilter } from "@/utils/analytics";
 
 interface Agent {
   id: string;
@@ -393,10 +394,37 @@ const TalentPool = () => {
     setHasMore(filteredAgents.length > 12);
   }, [searchQuery, selectedCategories, minRating, selectedCapabilities, sortBy, filteredAgents.length]);
 
+  // Track search with debounce
+  const searchTrackingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      if (searchTrackingTimeoutRef.current) {
+        clearTimeout(searchTrackingTimeoutRef.current);
+      }
+      searchTrackingTimeoutRef.current = setTimeout(() => {
+        trackSearch(searchQuery.trim(), filteredAgents.length);
+      }, 1000);
+    }
+    return () => {
+      if (searchTrackingTimeoutRef.current) {
+        clearTimeout(searchTrackingTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, filteredAgents.length]);
+
   const toggleCategory = (categoryName: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryName) ? prev.filter((c) => c !== categoryName) : [...prev, categoryName],
-    );
+    setSelectedCategories((prev) => {
+      const newCategories = prev.includes(categoryName) 
+        ? prev.filter((c) => c !== categoryName) 
+        : [...prev, categoryName];
+      
+      // Track category filter
+      if (!prev.includes(categoryName)) {
+        trackCategoryFilter(categoryName);
+      }
+      
+      return newCategories;
+    });
   };
 
   const toggleCapability = (capability: string) => {

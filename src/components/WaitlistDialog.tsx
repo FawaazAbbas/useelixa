@@ -8,6 +8,7 @@ import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { trackWaitlistSignup } from "@/utils/analytics";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -87,6 +88,9 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
       });
 
       if (error) throw error;
+
+      // Track successful signup
+      trackWaitlistSignup(email.trim());
 
       setSubmitted(true);
       toast({

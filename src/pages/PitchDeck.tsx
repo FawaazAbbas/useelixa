@@ -45,6 +45,22 @@ import {
   slideInRight,
 } from "@/components/pitch-deck/slideAnimations";
 import "@/styles/pitch-deck.css";
+import { trackPitchDeckSlide, trackPitchDeckComplete } from "@/utils/analytics";
+
+const slideTitles = [
+  "Title - The Team That Never Sleeps",
+  "The Problem",
+  "Our Solution",
+  "How It Works",
+  "Our Agents",
+  "The Opportunity",
+  "Business Model",
+  "Traction",
+  "Competitive Edge",
+  "The Ask",
+  "Leadership Team",
+  "Thank You",
+];
 
 const PitchDeck = () => {
   const navigate = useNavigate();
@@ -59,10 +75,25 @@ const PitchDeck = () => {
   const wheelLockTimeoutRef = useRef<number | null>(null);
   const wheelUnlockTimeoutRef = useRef<number | null>(null);
   const lastScrollTimeRef = useRef(0);
+  const lastTrackedSlideRef = useRef(-1);
   const SCROLL_THRESHOLD = 60;
   const SCROLL_COOLDOWN_MS = 800;
   const WHEEL_UNLOCK_DELAY_MS = 300;
   const WHEEL_LOCK_MS = 800;
+
+  // Track slide changes
+  useEffect(() => {
+    if (currentSlide !== lastTrackedSlideRef.current) {
+      lastTrackedSlideRef.current = currentSlide;
+      const slideTitle = slideTitles[currentSlide] || `Slide ${currentSlide + 1}`;
+      trackPitchDeckSlide(currentSlide + 1, slideTitle);
+      
+      // Track completion when reaching the last slide
+      if (currentSlide === slideTitles.length - 1) {
+        trackPitchDeckComplete();
+      }
+    }
+  }, [currentSlide]);
 
   const handleExportPDF = () => {
     window.print();
