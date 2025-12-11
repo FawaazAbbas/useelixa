@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { trackDeveloperApplication } from "@/utils/analytics";
 
 interface DeveloperDialogProps {
   open: boolean;
@@ -106,6 +107,9 @@ export const DeveloperDialog = ({ open, onOpenChange }: DeveloperDialogProps) =>
       });
 
       if (error) throw error;
+
+      // Track successful application
+      trackDeveloperApplication();
 
       setSubmitted(true);
       toast({

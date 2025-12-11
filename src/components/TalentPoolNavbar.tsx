@@ -2,6 +2,7 @@ import { ArrowLeft, ChevronRight, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
+import { trackNavClick } from "@/utils/analytics";
 
 export const TalentPoolNavbar = () => {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export const TalentPoolNavbar = () => {
           {/* Desktop nav tabs */}
           <div className="hidden md:flex gap-1 bg-muted/30 backdrop-blur-sm rounded-full p-1 border border-border/30">
             <button 
-              onClick={() => navigate("/talent-pool")}
+              onClick={() => { trackNavClick('Discover'); navigate("/talent-pool"); }}
               className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
                 isDiscoverActive 
                   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
@@ -34,7 +35,7 @@ export const TalentPoolNavbar = () => {
               Discover
             </button>
             <button 
-              onClick={() => navigate("/talent-pool/charts")}
+              onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
               className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
                 isChartsActive 
                   ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
@@ -70,7 +71,7 @@ export const TalentPoolNavbar = () => {
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <Button 
-            onClick={() => navigate("/workspace")} 
+            onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
             size="sm" 
             className="bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-105 transition-all duration-200 text-xs md:text-sm px-3 md:px-4"
           >

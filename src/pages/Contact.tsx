@@ -9,6 +9,7 @@ import { Mail, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { trackContactSubmission } from "@/utils/analytics";
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -50,6 +51,9 @@ const Contact = () => {
         });
 
       if (dbError) throw dbError;
+
+      // Track successful contact submission
+      trackContactSubmission(validatedData.subject);
 
       setIsSubmitted(true);
     } catch (err) {

@@ -30,6 +30,7 @@ import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { FloatingWaitlistButton } from "./components/FloatingWaitlistButton";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { RouteTracker } from "./components/RouteTracker";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <ScrollToTop />
+        <RouteTracker />
         <MobileRedirect />
         <FloatingWaitlistButton />
         <Routes>
