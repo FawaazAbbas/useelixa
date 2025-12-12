@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WaitlistDialog } from "./WaitlistDialog";
 import { Sparkles } from "lucide-react";
 
 export const FloatingWaitlistButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const hasSeenPopup = sessionStorage.getItem("hasSeenWaitlistPopup");
+    if (!hasSeenPopup) {
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+        sessionStorage.setItem("hasSeenWaitlistPopup", "true");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   return (
     <>
