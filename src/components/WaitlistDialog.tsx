@@ -151,7 +151,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           <div className="relative overflow-hidden">
             {/* Progress bar */}
             <div className="h-1 bg-muted">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
                 style={{ width: step === 1 ? "50%" : "100%" }}
               />
@@ -173,10 +173,10 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
 
                 <div>
                   <p className="text-xs sm:text-sm font-semibold text-violet-500 uppercase tracking-wider mb-1">
-                    Elixa is invite only.
+                    Enjoying the Demo?
                   </p>
                   <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                    Be invited to use Elixa in just 2 steps.
+                    Be invited to use Elixa in just 2 steps!
                   </h2>
                 </div>
               </div>
@@ -274,11 +274,12 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               )}
 
               {step === 2 && (
-                <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300"
+                >
                   <div className="text-center mb-2">
-                    <h3 className="text-base sm:text-lg font-semibold text-foreground">
-                      Unlock access
-                    </h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground">Unlock access</h3>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                       Invite one founder to unlock your workspace.
                     </p>
@@ -352,7 +353,9 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               <Check className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={3} />
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">You've successfully joined the waiting list!</h3>
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+                You've successfully joined the waiting list!
+              </h3>
               <p className="text-sm sm:text-base text-muted-foreground">We'll be in touch very soon.</p>
             </div>
 
