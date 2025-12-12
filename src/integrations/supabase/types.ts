@@ -1366,6 +1366,44 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_email: string
+          inviter_email: string
+          inviter_name: string
+          status: string | null
+          waitlist_signup_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_email: string
+          inviter_email: string
+          inviter_name: string
+          status?: string | null
+          waitlist_signup_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_email?: string
+          inviter_email?: string
+          inviter_name?: string
+          status?: string | null
+          waitlist_signup_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_invites_waitlist_signup_id_fkey"
+            columns: ["waitlist_signup_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist_signups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist_signups: {
         Row: {
           company: string | null
