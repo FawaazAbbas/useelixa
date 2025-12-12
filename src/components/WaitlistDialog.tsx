@@ -235,10 +235,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                 >
                   Let me explore first
                 </button>
-
-                <p className="text-center text-muted-foreground text-[10px] sm:text-xs mt-2 sm:mt-3">
-                  No credit card required. We'll only email you about early access.
-                </p>
               </form>
             </div>
           </div>
