@@ -90,14 +90,31 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.from("waitlist_signups").insert({
-        name: name.trim(),
-        email: email.trim(),
-        company: industry || null,
-        use_case: `Position: ${position.trim()} | Invited: ${inviteEmail.trim()}`,
-      });
+      // Insert main signup
+      const { data: signupData, error: signupError } = await supabase
+        .from("waitlist_signups")
+        .insert({
+          name: name.trim(),
+          email: email.trim(),
+          company: industry || null,
+          use_case: position.trim(),
+        })
+        .select('id')
+        .single();
 
-      if (error) throw error;
+      if (signupError) throw signupError;
+
+      // Insert invitee email into separate table
+      const { error: inviteError } = await supabase
+        .from("waitlist_invites" as any)
+        .insert({
+          waitlist_signup_id: signupData.id,
+          invitee_email: inviteEmail.trim(),
+          inviter_email: email.trim(),
+          inviter_name: name.trim(),
+        });
+
+      if (inviteError) throw inviteError;
 
       trackWaitlistSignup(email.trim());
 
@@ -145,46 +162,46 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           event.preventDefault();
           contentRef.current?.focus({ preventScroll: true });
         }}
-        className="sm:max-w-[480px] max-w-[95vw] p-0 overflow-hidden border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl max-h-[90vh] overflow-y-auto"
+        className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-visible"
       >
         {!submitted ? (
-          <div className="relative overflow-hidden">
+          <div className="relative">
             {/* Progress bar */}
-            <div className="h-1 bg-muted">
+            <div className="h-1 bg-muted rounded-t-xl sm:rounded-t-2xl overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
                 style={{ width: step === 1 ? "50%" : "100%" }}
               />
             </div>
 
-            <div className="p-5 sm:p-8">
+            <div className="p-4 sm:p-6">
               {/* Step indicator */}
-              <div className="flex justify-end mb-4">
-                <span className="text-xs text-muted-foreground font-medium px-2 py-1 bg-muted/50 rounded-full">
+              <div className="flex justify-end mb-3">
+                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
                   Step {step} of 2
                 </span>
               </div>
 
               {/* Header */}
-              <div className="text-center space-y-3 mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
-                  <ElixaLogo size={20} color="#ffffff" className="sm:w-6" />
+              <div className="text-center space-y-2 mb-4">
+                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
+                  <ElixaLogo size={16} color="#ffffff" className="sm:w-5" />
                 </div>
 
                 <div>
-                  <p className="text-xs sm:text-sm font-semibold text-violet-500 uppercase tracking-wider mb-1">
+                  <p className="text-[10px] sm:text-xs font-semibold text-violet-500 uppercase tracking-wider mb-0.5">
                     Enjoying the Demo?
                   </p>
-                  <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                  <h2 className="text-base sm:text-lg font-bold text-foreground">
                     Be invited to use Elixa in just 2 steps!
                   </h2>
                 </div>
               </div>
 
               {step === 1 && !step1Complete && (
-                <div className="space-y-3 sm:space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="name" className="text-xs sm:text-sm font-medium">
+                <div className="space-y-2.5 animate-in fade-in duration-300">
+                  <div className="space-y-1">
+                    <Label htmlFor="name" className="text-xs font-medium">
                       Full name <span className="text-violet-500">*</span>
                     </Label>
                     <Input
@@ -193,12 +210,12 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      className="h-9 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email" className="text-xs sm:text-sm font-medium">
+                  <div className="space-y-1">
+                    <Label htmlFor="email" className="text-xs font-medium">
                       Contact email <span className="text-violet-500">*</span>
                     </Label>
                     <Input
@@ -208,19 +225,23 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      className="h-9 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="industry" className="text-xs sm:text-sm font-medium">
+                  <div className="space-y-1">
+                    <Label htmlFor="industry" className="text-xs font-medium">
                       Industry <span className="text-violet-500">*</span>
                     </Label>
-                    <Select value={industry} onValueChange={setIndustry} required>
-                      <SelectTrigger className="h-10 sm:h-11 rounded-lg border-border focus:ring-violet-500/20 text-sm">
+                    <Select value={industry} onValueChange={setIndustry}>
+                      <SelectTrigger className="h-9 rounded-lg border-border focus:ring-violet-500/20 text-sm">
                         <SelectValue placeholder="Select your industry" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[200px] sm:max-h-[280px] z-50 bg-background">
+                      <SelectContent 
+                        className="max-h-[200px] z-[9999] bg-background border border-border shadow-lg"
+                        position="popper"
+                        sideOffset={4}
+                      >
                         {industries.map((ind) => (
                           <SelectItem key={ind} value={ind} className="cursor-pointer text-sm">
                             {ind}
@@ -230,8 +251,8 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     </Select>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="position" className="text-xs sm:text-sm font-medium">
+                  <div className="space-y-1">
+                    <Label htmlFor="position" className="text-xs font-medium">
                       Position <span className="text-violet-500">*</span>
                     </Label>
                     <Input
@@ -240,7 +261,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
                       required
-                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      className="h-9 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
 
@@ -248,7 +269,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     type="button"
                     onClick={handleStep1Continue}
                     disabled={!isStep1Valid}
-                    className="w-full h-11 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] mt-2 rounded-lg text-sm"
+                    className="w-full h-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] mt-1 rounded-lg text-sm"
                   >
                     Continue
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -257,7 +278,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="w-full text-center text-muted-foreground hover:text-foreground text-xs sm:text-sm mt-2 transition-colors"
+                    className="w-full text-center text-muted-foreground hover:text-foreground text-xs mt-1 transition-colors"
                   >
                     Let me explore first
                   </button>
@@ -265,28 +286,28 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
               )}
 
               {step1Complete && step === 1 && (
-                <div className="flex flex-col items-center justify-center py-8 animate-in fade-in duration-300">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
-                    <Check className="w-7 h-7 text-white" strokeWidth={3} />
+                <div className="flex flex-col items-center justify-center py-6 animate-in fade-in duration-300">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
+                    <Check className="w-6 h-6 text-white" strokeWidth={3} />
                   </div>
-                  <p className="text-sm font-semibold text-green-600 mt-3">✓ Step 1 complete</p>
+                  <p className="text-sm font-semibold text-green-600 mt-2">✓ Step 1 complete</p>
                 </div>
               )}
 
               {step === 2 && (
                 <form
                   onSubmit={handleSubmit}
-                  className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300"
+                  className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300"
                 >
-                  <div className="text-center mb-2">
-                    <h3 className="text-base sm:text-lg font-semibold text-foreground">Unlock access</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  <div className="text-center mb-1">
+                    <h3 className="text-sm sm:text-base font-semibold text-foreground">Unlock access</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       Invite one founder to unlock your workspace.
                     </p>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="inviteEmail" className="text-xs sm:text-sm font-medium">
+                  <div className="space-y-1">
+                    <Label htmlFor="inviteEmail" className="text-xs font-medium">
                       Invitee email <span className="text-violet-500">*</span>
                     </Label>
                     <Input
@@ -296,14 +317,14 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
                       required
-                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      className="h-9 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
 
                   <Button
                     type="submit"
                     disabled={isLoading || !isStep2Valid}
-                    className="w-full h-11 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] rounded-lg text-sm"
+                    className="w-full h-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] rounded-lg text-sm"
                   >
                     {isLoading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -318,27 +339,27 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="w-full text-center text-muted-foreground hover:text-foreground text-xs sm:text-sm mt-2 transition-colors"
+                    className="w-full text-center text-muted-foreground hover:text-foreground text-xs mt-1 transition-colors"
                   >
                     Let me explore first
                   </button>
 
                   {/* Access Status */}
-                  <div className="mt-6 pt-4 border-t border-border">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                  <div className="mt-4 pt-3 border-t border-border">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                       Access status
                     </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Check className="w-4 h-4 text-green-500" />
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 text-xs">
+                        <Check className="w-3.5 h-3.5 text-green-500" />
                         <span className="text-green-600 font-medium">Profile complete</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="w-4 h-4 text-amber-500" />
+                      <div className="flex items-center gap-2 text-xs">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
                         <span className="text-muted-foreground">Invite pending</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Lock className="w-4 h-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2 text-xs">
+                        <Lock className="w-3.5 h-3.5 text-muted-foreground" />
                         <span className="text-muted-foreground">Workspace locked</span>
                       </div>
                     </div>
@@ -348,30 +369,30 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
             </div>
           </div>
         ) : (
-          <div className="py-12 sm:py-16 px-6 sm:px-8 flex flex-col items-center justify-center space-y-5">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
-              <Check className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={3} />
+          <div className="py-8 sm:py-10 px-4 sm:px-6 flex flex-col items-center justify-center space-y-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
+              <Check className="w-7 h-7 sm:w-8 sm:h-8 text-white" strokeWidth={3} />
             </div>
-            <div className="text-center space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+            <div className="text-center space-y-1">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground">
                 You've successfully joined the waiting list!
               </h3>
-              <p className="text-sm sm:text-base text-muted-foreground">We'll be in touch very soon.</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">We'll be in touch very soon.</p>
             </div>
 
             {/* Final Access Status */}
-            <div className="mt-4 pt-4 border-t border-border w-full max-w-xs">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
+            <div className="mt-3 pt-3 border-t border-border w-full max-w-xs">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-xs">
+                  <Check className="w-3.5 h-3.5 text-green-500" />
                   <span className="text-green-600 font-medium">Profile complete</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Check className="w-4 h-4 text-green-500" />
+                <div className="flex items-center gap-2 text-xs">
+                  <Check className="w-3.5 h-3.5 text-green-500" />
                   <span className="text-green-600 font-medium">Invite sent</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Unlock className="w-4 h-4 text-violet-500" />
+                <div className="flex items-center gap-2 text-xs">
+                  <Unlock className="w-3.5 h-3.5 text-violet-500" />
                   <span className="text-violet-600 font-medium">Workspace unlocking soon...</span>
                 </div>
               </div>
