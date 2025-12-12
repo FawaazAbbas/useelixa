@@ -233,7 +233,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   onClick={() => onOpenChange(false)}
                   className="w-full text-center text-muted-foreground hover:text-foreground text-xs sm:text-sm mt-3 sm:mt-4 transition-colors"
                 >
-                  Let me explore first
+                  Let me explore first!
                 </button>
               </form>
             </div>
