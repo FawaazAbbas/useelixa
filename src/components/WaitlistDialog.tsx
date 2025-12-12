@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Lock, Clock, Unlock, ArrowRight } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,19 +63,29 @@ const industries = [
 
 export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("");
   const [position, setPosition] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [step1Complete, setStep1Complete] = useState(false);
   const { toast } = useToast();
 
-  const isFormValid = name.trim() && email.trim() && industry;
+  const isStep1Valid = name.trim() && email.trim() && industry && position.trim();
+  const isStep2Valid = inviteEmail.trim() && inviteEmail.includes("@");
+
+  const handleStep1Continue = () => {
+    if (!isStep1Valid) return;
+    setStep1Complete(true);
+    setTimeout(() => setStep(2), 400);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
+    if (!isStep2Valid) return;
 
     setIsLoading(true);
 
@@ -84,12 +94,11 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         name: name.trim(),
         email: email.trim(),
         company: industry || null,
-        use_case: position || null,
+        use_case: `Position: ${position.trim()} | Invited: ${inviteEmail.trim()}`,
       });
 
       if (error) throw error;
 
-      // Track successful signup
       trackWaitlistSignup(email.trim());
 
       setSubmitted(true);
@@ -100,12 +109,15 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
 
       setTimeout(() => {
         setSubmitted(false);
+        setStep(1);
+        setStep1Complete(false);
         setName("");
         setEmail("");
         setIndustry("");
         setPosition("");
+        setInviteEmail("");
         onOpenChange(false);
-      }, 3000);
+      }, 4000);
     } catch (error) {
       console.error("Waitlist signup error:", error);
       toast({
@@ -118,8 +130,14 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
     }
   };
 
+  const handleClose = () => {
+    setStep(1);
+    setStep1Complete(false);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         ref={contentRef}
         tabIndex={-1}
@@ -127,45 +145,61 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           event.preventDefault();
           contentRef.current?.focus({ preventScroll: true });
         }}
-        className="sm:max-w-[560px] max-w-[95vw] p-0 overflow-hidden border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl max-h-[90vh] overflow-y-auto"
+        className="sm:max-w-[480px] max-w-[95vw] p-0 overflow-hidden border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl max-h-[90vh] overflow-y-auto"
       >
         {!submitted ? (
           <div className="relative overflow-hidden">
-            {/* Colorful top accent bar */}
-            <div className="h-1.5 sm:h-2 bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500" />
+            {/* Progress bar */}
+            <div className="h-1 bg-muted">
+              <div 
+                className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
+                style={{ width: step === 1 ? "50%" : "100%" }}
+              />
+            </div>
 
             <div className="p-5 sm:p-8">
-              {/* Header */}
-              <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30 mb-1 sm:mb-2">
-                  <ElixaLogo size={22} color="#ffffff" className="sm:w-7" />
-                </div>
-
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Get Early Access</h2>
-                <p className="text-sm sm:text-base text-muted-foreground max-w-sm mx-auto">
-                  Be among the first to experience the future of AI-powered workspaces
-                </p>
+              {/* Step indicator */}
+              <div className="flex justify-end mb-4">
+                <span className="text-xs text-muted-foreground font-medium px-2 py-1 bg-muted/50 rounded-full">
+                  Step {step} of 2
+                </span>
               </div>
 
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-1.5 sm:space-y-2">
+              {/* Header */}
+              <div className="text-center space-y-3 mb-6">
+                <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
+                  <ElixaLogo size={20} color="#ffffff" className="sm:w-6" />
+                </div>
+
+                <div>
+                  <p className="text-xs sm:text-sm font-semibold text-violet-500 uppercase tracking-wider mb-1">
+                    Elixa is invite only.
+                  </p>
+                  <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                    Be invited to use Elixa in just 2 steps.
+                  </h2>
+                </div>
+              </div>
+
+              {step === 1 && !step1Complete && (
+                <div className="space-y-3 sm:space-y-4 animate-in fade-in duration-300">
+                  <div className="space-y-1.5">
                     <Label htmlFor="name" className="text-xs sm:text-sm font-medium">
-                      Name <span className="text-violet-500">*</span>
+                      Full name <span className="text-violet-500">*</span>
                     </Label>
                     <Input
                       id="name"
-                      placeholder="Your name"
+                      placeholder="Your full name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className="h-10 sm:h-11 rounded-lg sm:rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
 
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="email" className="text-xs sm:text-sm font-medium">
-                      Email <span className="text-violet-500">*</span>
+                      Contact email <span className="text-violet-500">*</span>
                     </Label>
                     <Input
                       id="email"
@@ -174,18 +208,16 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="h-10 sm:h-11 rounded-lg sm:rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="industry" className="text-xs sm:text-sm font-medium">
                       Industry <span className="text-violet-500">*</span>
                     </Label>
                     <Select value={industry} onValueChange={setIndustry} required>
-                      <SelectTrigger className="h-10 sm:h-11 rounded-lg sm:rounded-xl border-border focus:ring-violet-500/20 text-sm">
+                      <SelectTrigger className="h-10 sm:h-11 rounded-lg border-border focus:ring-violet-500/20 text-sm">
                         <SelectValue placeholder="Select your industry" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[200px] sm:max-h-[280px] z-50 bg-background">
@@ -198,54 +230,148 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     </Select>
                   </div>
 
-                  <div className="space-y-1.5 sm:space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="position" className="text-xs sm:text-sm font-medium">
-                      Position
+                      Position <span className="text-violet-500">*</span>
                     </Label>
                     <Input
                       id="position"
                       placeholder="e.g. CEO, Marketing Manager"
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
-                      className="h-10 sm:h-11 rounded-lg sm:rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                      required
+                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
                   </div>
+
+                  <Button
+                    type="button"
+                    onClick={handleStep1Continue}
+                    disabled={!isStep1Valid}
+                    className="w-full h-11 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] mt-2 rounded-lg text-sm"
+                  >
+                    Continue
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="w-full text-center text-muted-foreground hover:text-foreground text-xs sm:text-sm mt-2 transition-colors"
+                  >
+                    Let me explore first
+                  </button>
                 </div>
+              )}
 
-                <Button
-                  type="submit"
-                  disabled={isLoading || !isFormValid}
-                  className="w-full h-11 sm:h-12 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:shadow-violet-500/30 hover:scale-[1.01] mt-5 sm:mt-6 rounded-lg sm:rounded-xl text-sm sm:text-base"
-                  size="lg"
-                >
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      Join the Waitlist
-                    </>
-                  )}
-                </Button>
+              {step1Complete && step === 1 && (
+                <div className="flex flex-col items-center justify-center py-8 animate-in fade-in duration-300">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
+                    <Check className="w-7 h-7 text-white" strokeWidth={3} />
+                  </div>
+                  <p className="text-sm font-semibold text-green-600 mt-3">✓ Step 1 complete</p>
+                </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  className="w-full text-center text-muted-foreground hover:text-foreground text-xs sm:text-sm mt-3 sm:mt-4 transition-colors"
-                >
-                  Let me explore first!
-                </button>
-              </form>
+              {step === 2 && (
+                <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="text-center mb-2">
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground">
+                      Unlock access
+                    </h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                      Invite one founder to unlock your workspace.
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="inviteEmail" className="text-xs sm:text-sm font-medium">
+                      Invitee email <span className="text-violet-500">*</span>
+                    </Label>
+                    <Input
+                      id="inviteEmail"
+                      type="email"
+                      placeholder="founder@company.com"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      required
+                      className="h-10 sm:h-11 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !isStep2Valid}
+                    className="w-full h-11 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] rounded-lg text-sm"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Unlock className="w-4 h-4 mr-2" />
+                        Unlock Elixa
+                      </>
+                    )}
+                  </Button>
+
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="w-full text-center text-muted-foreground hover:text-foreground text-xs sm:text-sm mt-2 transition-colors"
+                  >
+                    Let me explore first
+                  </button>
+
+                  {/* Access Status */}
+                  <div className="mt-6 pt-4 border-t border-border">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      Access status
+                    </p>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span className="text-green-600 font-medium">Profile complete</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Clock className="w-4 h-4 text-amber-500" />
+                        <span className="text-muted-foreground">Invite pending</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Lock className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Workspace locked</span>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         ) : (
-          <div className="py-12 sm:py-16 px-6 sm:px-8 flex flex-col items-center justify-center space-y-4 sm:space-y-5">
+          <div className="py-12 sm:py-16 px-6 sm:px-8 flex flex-col items-center justify-center space-y-5">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
               <Check className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={3} />
             </div>
-            <div className="text-center space-y-1.5 sm:space-y-2">
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">You're In!</h3>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-foreground">You've successfully joined the waiting list!</h3>
               <p className="text-sm sm:text-base text-muted-foreground">We'll be in touch very soon.</p>
+            </div>
+
+            {/* Final Access Status */}
+            <div className="mt-4 pt-4 border-t border-border w-full max-w-xs">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span className="text-green-600 font-medium">Profile complete</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span className="text-green-600 font-medium">Invite sent</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Unlock className="w-4 h-4 text-violet-500" />
+                  <span className="text-violet-600 font-medium">Workspace unlocking soon...</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
