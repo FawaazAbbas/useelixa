@@ -3,12 +3,13 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Loader2, Lock, Clock, Unlock, ArrowRight } from "lucide-react";
+import { Check, Loader2, Lock, Clock, Unlock, ArrowRight, Code2 } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trackWaitlistSignup } from "@/utils/analytics";
+import { DeveloperDialog } from "@/components/DeveloperDialog";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -72,6 +73,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step1Complete, setStep1Complete] = useState(false);
+  const [developerDialogOpen, setDeveloperDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const isStep1Valid = name.trim() && email.trim() && industry && position.trim();
@@ -173,8 +175,19 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
             </div>
 
             <div className="p-4 sm:p-6">
-              {/* Step indicator */}
-              <div className="flex justify-end mb-3">
+              {/* Top row with developer link and step indicator */}
+              <div className="flex justify-between items-center mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    setDeveloperDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-violet-500 transition-colors"
+                >
+                  <Code2 className="w-3 h-3" />
+                  <span>Are you an agent developer?</span>
+                </button>
                 <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
                   Step {step} of 2
                 </span>
@@ -396,6 +409,11 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           </div>
         )}
       </DialogContent>
+      
+      <DeveloperDialog 
+        open={developerDialogOpen} 
+        onOpenChange={setDeveloperDialogOpen} 
+      />
     </Dialog>
   );
 };
