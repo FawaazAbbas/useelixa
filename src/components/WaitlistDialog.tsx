@@ -119,7 +119,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           event.preventDefault();
           contentRef.current?.focus({ preventScroll: true });
         }}
-        className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-visible"
+        className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden"
       >
         {!submitted ? (
           <div className="relative">
