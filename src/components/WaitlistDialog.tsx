@@ -163,16 +163,16 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-visible"
       >
         {!submitted ? (
-          <div className="relative">
-            {/* Progress bar - positioned at absolute top of dialog */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-muted rounded-t-xl sm:rounded-t-2xl overflow-hidden">
+          <>
+            {/* Progress bar - at the very top */}
+            <div className="h-1 bg-muted overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
                 style={{ width: step === 1 ? "50%" : "100%" }}
               />
             </div>
 
-            <div className="p-4 sm:p-6 pt-5 sm:pt-6">
+            <div className="p-4 sm:p-6">
               {/* Step indicator */}
               <div className="flex justify-end mb-3">
                 <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
@@ -363,7 +363,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                 </form>
               )}
             </div>
-          </div>
+          </>
         ) : (
           <div className="py-8 sm:py-10 px-4 sm:px-6 flex flex-col items-center justify-center space-y-4">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
