@@ -3,13 +3,12 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Loader2, Lock, Clock, Unlock, ArrowRight, Code2 } from "lucide-react";
+import { Check, Loader2, Lock, Clock, Unlock, ArrowRight, X } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trackWaitlistSignup } from "@/utils/analytics";
-import { DeveloperDialog } from "@/components/DeveloperDialog";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -73,7 +72,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step1Complete, setStep1Complete] = useState(false);
-  const [developerDialogOpen, setDeveloperDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const isStep1Valid = name.trim() && email.trim() && industry && position.trim();
@@ -156,18 +154,19 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
+        hideCloseButton
         ref={contentRef}
         tabIndex={-1}
         onOpenAutoFocus={(event) => {
           event.preventDefault();
           contentRef.current?.focus({ preventScroll: true });
         }}
-        className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden"
+        className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-visible"
       >
         {!submitted ? (
-          <>
-            {/* Progress bar - at the very top */}
-            <div className="h-1 bg-muted overflow-hidden">
+          <div className="relative">
+            {/* Progress bar */}
+            <div className="h-1 bg-muted rounded-t-xl sm:rounded-t-2xl overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
                 style={{ width: step === 1 ? "50%" : "100%" }}
@@ -175,31 +174,19 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
             </div>
 
             <div className="p-4 sm:p-6">
-              {/* Top row with developer link on left, step + close on right */}
-              <div className="flex justify-between items-center mb-3">
+              {/* Step indicator */}
+              <div className="flex justify-end items-center gap-2 mb-3">
+                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
+                  Step {step} of 2
+                </span>
                 <button
                   type="button"
-                  onClick={() => {
-                    onOpenChange(false);
-                    setDeveloperDialogOpen(true);
-                  }}
-                  className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-violet-500 transition-colors"
+                  onClick={handleClose}
+                  aria-label="Close waitlist"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-muted/60 text-muted-foreground transition hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
                 >
-                  <Code2 className="w-3 h-3" />
-                  <span>Are you an agent developer?</span>
+                  <X className="h-5 w-5" />
                 </button>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
-                    Step {step} of 2
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="w-5 h-5 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <span className="text-xs leading-none">×</span>
-                  </button>
-                </div>
               </div>
 
               {/* Header */}
@@ -258,7 +245,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                         <SelectValue placeholder="Select your industry" />
                       </SelectTrigger>
                       <SelectContent
-                        className="max-h-[200px] bg-background border border-border shadow-lg"
+                        className="max-h-[200px] z-[9999] bg-background border border-border shadow-lg"
                         position="popper"
                         sideOffset={4}
                       >
@@ -385,7 +372,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                 </form>
               )}
             </div>
-          </>
+          </div>
         ) : (
           <div className="py-8 sm:py-10 px-4 sm:px-6 flex flex-col items-center justify-center space-y-4">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
@@ -418,11 +405,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           </div>
         )}
       </DialogContent>
-      
-      <DeveloperDialog 
-        open={developerDialogOpen} 
-        onOpenChange={setDeveloperDialogOpen} 
-      />
     </Dialog>
   );
 };
