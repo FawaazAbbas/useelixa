@@ -175,7 +175,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
             </div>
 
             <div className="p-4 sm:p-6">
-              {/* Top row with developer link and step indicator */}
+              {/* Top row with developer link on left, step + close on right */}
               <div className="flex justify-between items-center mb-3">
                 <button
                   type="button"
@@ -188,9 +188,18 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   <Code2 className="w-3 h-3" />
                   <span>Are you an agent developer?</span>
                 </button>
-                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
-                  Step {step} of 2
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
+                    Step {step} of 2
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="w-5 h-5 flex items-center justify-center rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <span className="text-xs leading-none">×</span>
+                  </button>
+                </div>
               </div>
 
               {/* Header */}
