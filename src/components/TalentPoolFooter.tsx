@@ -59,11 +59,11 @@ export const TalentPoolFooter = () => {
                     About Us
                   </Link>
                 </li>
-                <li>
-                  <Link to="/pitch-deck" className="hide text-muted-foreground hover:text-primary transition-colors">
+                {/* <li>
+                  <Link to="/pitch-deck" className="text-muted-foreground hover:text-primary transition-colors">
                     Pitch Deck
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
                     Privacy Policy
