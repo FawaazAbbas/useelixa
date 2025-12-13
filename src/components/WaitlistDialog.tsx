@@ -7,59 +7,12 @@ import { Check, Loader2, Lock, Clock, Unlock, ArrowRight } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trackWaitlistSignup } from "@/utils/analytics";
 
 interface WaitlistDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const industries = [
-  "Advertising & Marketing",
-  "Aerospace & Defense",
-  "Agriculture & Farming",
-  "Architecture & Design",
-  "Automotive",
-  "Banking & Financial Services",
-  "Biotechnology",
-  "Broadcasting & Media",
-  "Chemicals & Materials",
-  "Construction & Real Estate",
-  "Consulting",
-  "Consumer Goods & Retail",
-  "Education & Training",
-  "Electronics & Hardware",
-  "Energy & Utilities",
-  "Entertainment & Gaming",
-  "Environmental Services",
-  "Event Planning & Hospitality",
-  "Fashion & Apparel",
-  "Food & Beverage",
-  "Government & Public Sector",
-  "Healthcare & Medical",
-  "Human Resources & Recruitment",
-  "Information Technology",
-  "Insurance",
-  "Investment & Venture Capital",
-  "Legal Services",
-  "Logistics & Supply Chain",
-  "Manufacturing",
-  "Mining & Metals",
-  "Non-Profit & NGO",
-  "Oil & Gas",
-  "Pharmaceutical",
-  "Professional Services",
-  "Publishing & Journalism",
-  "SaaS & Software",
-  "Sports & Fitness",
-  "Telecommunications",
-  "Travel & Tourism",
-  "Transportation",
-  "Veterinary & Animal Care",
-  "Wholesale & Distribution",
-  "Other",
-];
 
 export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -237,22 +190,14 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     <Label htmlFor="industry" className="text-xs font-medium">
                       Industry <span className="text-violet-500">*</span>
                     </Label>
-                    <Select value={industry} onValueChange={setIndustry}>
-                      <SelectTrigger className="h-9 rounded-lg border-border focus:ring-violet-500/20 text-sm">
-                        <SelectValue placeholder="Select your industry" />
-                      </SelectTrigger>
-                      <SelectContent
-                        className="max-h-[200px] z-[9999] bg-background border border-border shadow-lg"
-                        position="popper"
-                        sideOffset={4}
-                      >
-                        {industries.map((ind) => (
-                          <SelectItem key={ind} value={ind} className="cursor-pointer text-sm">
-                            {ind}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="industry"
+                      placeholder="Your industry"
+                      value={industry}
+                      onChange={(e) => setIndustry(e.target.value)}
+                      required
+                      className="h-9 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
+                    />
                   </div>
 
                   <div className="space-y-1">
