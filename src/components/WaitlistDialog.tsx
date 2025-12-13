@@ -3,16 +3,64 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Loader2, Lock, Clock, Unlock, ArrowRight } from "lucide-react";
+import { Check, Loader2, Lock, Clock, Unlock, ArrowRight, Code2 } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trackWaitlistSignup } from "@/utils/analytics";
+import { DeveloperDialog } from "@/components/DeveloperDialog";
 
 interface WaitlistDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+const industries = [
+  "Advertising & Marketing",
+  "Aerospace & Defense",
+  "Agriculture & Farming",
+  "Architecture & Design",
+  "Automotive",
+  "Banking & Financial Services",
+  "Biotechnology",
+  "Broadcasting & Media",
+  "Chemicals & Materials",
+  "Construction & Real Estate",
+  "Consulting",
+  "Consumer Goods & Retail",
+  "Education & Training",
+  "Electronics & Hardware",
+  "Energy & Utilities",
+  "Entertainment & Gaming",
+  "Environmental Services",
+  "Event Planning & Hospitality",
+  "Fashion & Apparel",
+  "Food & Beverage",
+  "Government & Public Sector",
+  "Healthcare & Medical",
+  "Human Resources & Recruitment",
+  "Information Technology",
+  "Insurance",
+  "Investment & Venture Capital",
+  "Legal Services",
+  "Logistics & Supply Chain",
+  "Manufacturing",
+  "Mining & Metals",
+  "Non-Profit & NGO",
+  "Oil & Gas",
+  "Pharmaceutical",
+  "Professional Services",
+  "Publishing & Journalism",
+  "SaaS & Software",
+  "Sports & Fitness",
+  "Telecommunications",
+  "Travel & Tourism",
+  "Transportation",
+  "Veterinary & Animal Care",
+  "Wholesale & Distribution",
+  "Other",
+];
 
 export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -25,6 +73,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step1Complete, setStep1Complete] = useState(false);
+  const [developerDialogOpen, setDeveloperDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const isStep1Valid = name.trim() && email.trim() && industry && position.trim();
@@ -43,33 +92,27 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
     setIsLoading(true);
 
     try {
-      // Generate the signup id on the client so we don't need a SELECT policy to get it back
-      const signupId = crypto.randomUUID();
-
       // Insert main signup
-      const { error: signupError } = await supabase.from("waitlist_signups").insert(
-        {
-          id: signupId,
+      const { data: signupData, error: signupError } = await supabase
+        .from("waitlist_signups")
+        .insert({
           name: name.trim(),
           email: email.trim(),
           company: industry || null,
           use_case: position.trim(),
-        },
-        { returning: "minimal" },
-      );
+        })
+        .select("id")
+        .single();
 
       if (signupError) throw signupError;
 
       // Insert invitee email into separate table
-      const { error: inviteError } = await supabase.from("waitlist_invites" as any).insert(
-        {
-          waitlist_signup_id: signupId,
-          invitee_email: inviteEmail.trim(),
-          inviter_email: email.trim(),
-          inviter_name: name.trim(),
-        },
-        { returning: "minimal" },
-      );
+      const { error: inviteError } = await supabase.from("waitlist_invites" as any).insert({
+        waitlist_signup_id: signupData.id,
+        invitee_email: inviteEmail.trim(),
+        inviter_email: email.trim(),
+        inviter_name: name.trim(),
+      });
 
       if (inviteError) throw inviteError;
 
@@ -122,8 +165,8 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden"
       >
         {!submitted ? (
-          <div className="relative">
-            {/* Progress bar */}
+          <>
+            {/* Progress bar - at the very top */}
             <div className="h-1 bg-muted overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
@@ -132,13 +175,23 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
             </div>
 
             <div className="p-4 sm:p-6">
-              {/* Step indicator */}
-              <div className="flex justify-end mb-3">
+              {/* Top row with developer link and step indicator */}
+              <div className="flex justify-between items-center mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    setDeveloperDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-violet-500 transition-colors"
+                >
+                  <Code2 className="w-3 h-3" />
+                  <span>Are you an agent developer?</span>
+                </button>
                 <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
                   Step {step} of 2
                 </span>
               </div>
-
               {/* Header */}
               <div className="text-center space-y-2 mb-4">
                 <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
