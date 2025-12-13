@@ -124,7 +124,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         {!submitted ? (
           <div className="relative">
             {/* Progress bar */}
-            <div className="h-1 bg-muted rounded-t-xl sm:rounded-t-2xl overflow-hidden">
+            <div className="h-1 bg-muted overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
                 style={{ width: step === 1 ? "50%" : "100%" }}
