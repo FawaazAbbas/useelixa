@@ -43,10 +43,7 @@ export const TalentPoolFooter = () => {
                   </button>
                 </li>
                 <li>
-                  <Link
-                    to="/contact"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
                     Contact Support
                   </Link>
                 </li>
@@ -58,34 +55,22 @@ export const TalentPoolFooter = () => {
               <h3 className="font-semibold text-sm md:text-base">Company</h3>
               <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <li>
-                  <Link
-                    to="/about"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    to="/pitch-deck"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to="/pitch-deck" className="hide text-muted-foreground hover:text-primary transition-colors">
                     Pitch Deck
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    to="/privacy"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
                     Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    to="/terms"
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
                     Terms of Service
                   </Link>
                 </li>
@@ -121,7 +106,7 @@ export const TalentPoolFooter = () => {
           </div>
         </div>
       </footer>
-      
+
       <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
       <DeveloperDialog open={developerOpen} onOpenChange={setDeveloperOpen} />
     </>
