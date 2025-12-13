@@ -166,33 +166,28 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
       >
         {!submitted ? (
           <>
-            {/* Top row with developer link (same line as X button) */}
-            <div className="flex items-center justify-between px-4 pt-3 sm:px-6 sm:pt-4">
-              <button
-                type="button"
-                onClick={() => {
-                  onOpenChange(false);
-                  setDeveloperDialogOpen(true);
-                }}
-                className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-violet-500 transition-colors"
-              >
-                <Code2 className="w-3 h-3" />
-                <span>Are you an agent developer?</span>
-              </button>
-              {/* Space for X button on the right (handled by DialogContent) */}
-            </div>
-
-            {/* Progress bar */}
-            <div className="h-1 bg-muted overflow-hidden mt-2">
+            {/* Progress bar - at the very top */}
+            <div className="h-1 bg-muted overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
                 style={{ width: step === 1 ? "50%" : "100%" }}
               />
             </div>
 
-            <div className="p-4 sm:p-6 pt-3 sm:pt-4">
-              {/* Centered step indicator */}
-              <div className="flex justify-center mb-3">
+            <div className="p-4 sm:p-6">
+              {/* Top row with developer link and step indicator */}
+              <div className="flex justify-between items-center mb-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenChange(false);
+                    setDeveloperDialogOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground hover:text-violet-500 transition-colors"
+                >
+                  <Code2 className="w-3 h-3" />
+                  <span>Are you an agent developer?</span>
+                </button>
                 <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
                   Step {step} of 2
                 </span>
