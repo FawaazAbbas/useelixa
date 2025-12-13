@@ -99,20 +99,18 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           company: industry || null,
           use_case: position.trim(),
         })
-        .select('id')
+        .select("id")
         .single();
 
       if (signupError) throw signupError;
 
       // Insert invitee email into separate table
-      const { error: inviteError } = await supabase
-        .from("waitlist_invites" as any)
-        .insert({
-          waitlist_signup_id: signupData.id,
-          invitee_email: inviteEmail.trim(),
-          inviter_email: email.trim(),
-          inviter_name: name.trim(),
-        });
+      const { error: inviteError } = await supabase.from("waitlist_invites" as any).insert({
+        waitlist_signup_id: signupData.id,
+        invitee_email: inviteEmail.trim(),
+        inviter_email: email.trim(),
+        inviter_name: name.trim(),
+      });
 
       if (inviteError) throw inviteError;
 
@@ -165,7 +163,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         className="sm:max-w-[440px] max-w-[92vw] p-0 border border-border bg-background shadow-2xl rounded-xl sm:rounded-2xl overflow-visible"
       >
         {!submitted ? (
-          <div className="relative">
+          <div className="relative pt-3 sm:pt-4">
             {/* Progress bar */}
             <div className="h-1 bg-muted rounded-t-xl sm:rounded-t-2xl overflow-hidden">
               <div
@@ -237,8 +235,8 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       <SelectTrigger className="h-9 rounded-lg border-border focus:ring-violet-500/20 text-sm">
                         <SelectValue placeholder="Select your industry" />
                       </SelectTrigger>
-                      <SelectContent 
-                        className="max-h-[200px] z-[9999] bg-background border border-border shadow-lg"
+                      <SelectContent
+                        className="max-h-[200px] bg-background border border-border shadow-lg"
                         position="popper"
                         sideOffset={4}
                       >
@@ -301,9 +299,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                 >
                   <div className="text-center mb-1">
                     <h3 className="text-sm sm:text-base font-semibold text-foreground">Unlock access</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Invite one founder to unlock your workspace.
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Invite one founder to unlock your workspace.</p>
                   </div>
 
                   <div className="space-y-1">
