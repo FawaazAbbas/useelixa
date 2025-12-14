@@ -688,8 +688,8 @@ const TalentPool = () => {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-              Elixa is an AI talent pool + workspace where founders install ready-made AI employees to help run their
-              businesses — marketing, ops, finance, and more.
+              Elixa is an AI talent pool + workspace where founders install AI employees that execute real work — not
+              basic automations — across marketing, ops, finance, and more.
             </p>
           </div>
 
