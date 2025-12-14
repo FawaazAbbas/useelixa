@@ -31,19 +31,19 @@ import { MobileBottomNav } from "./components/MobileBottomNav";
 import { FloatingWaitlistButton } from "./components/FloatingWaitlistButton";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { RouteTracker } from "./components/RouteTracker";
+import { useGlobalButtonTracking } from "./hooks/useGlobalButtonTracking";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <RouteTracker />
-        <MobileRedirect />
-        <FloatingWaitlistButton />
+const AppContent = () => {
+  useGlobalButtonTracking();
+  
+  return (
+    <>
+      <ScrollToTop />
+      <RouteTracker />
+      <MobileRedirect />
+      <FloatingWaitlistButton />
         <Routes>
           <Route path="/" element={<TalentPool />} />
           <Route path="/talent-pool" element={<TalentPool />} />
@@ -120,6 +120,17 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </>
+    );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AppContent />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

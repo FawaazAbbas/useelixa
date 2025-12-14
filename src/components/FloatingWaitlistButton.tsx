@@ -1,15 +1,24 @@
 import { useState, useEffect } from "react";
 import { WaitlistDialog } from "./WaitlistDialog";
 import { Sparkles } from "lucide-react";
+import { trackWaitlistPopupView } from "@/utils/analytics";
 
 export const FloatingWaitlistButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      trackWaitlistPopupView('manual');
+    }
+    setIsOpen(open);
+  };
 
   useEffect(() => {
     const hasSeenPopup = sessionStorage.getItem("hasSeenWaitlistPopup");
     if (!hasSeenPopup) {
       const timer = setTimeout(() => {
         setIsOpen(true);
+        trackWaitlistPopupView('auto');
         sessionStorage.setItem("hasSeenWaitlistPopup", "true");
       }, 5000);
       return () => clearTimeout(timer);
@@ -19,7 +28,7 @@ export const FloatingWaitlistButton = () => {
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => handleOpenChange(true)}
         className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 group"
         aria-label="Join waitlist"
       >
@@ -41,7 +50,7 @@ export const FloatingWaitlistButton = () => {
         </div>
       </button>
       
-      <WaitlistDialog open={isOpen} onOpenChange={setIsOpen} />
+      <WaitlistDialog open={isOpen} onOpenChange={handleOpenChange} />
     </>
   );
 };

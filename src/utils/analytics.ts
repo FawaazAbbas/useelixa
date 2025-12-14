@@ -14,7 +14,10 @@ type EventCategory =
   | 'search'
   | 'form'
   | 'agent'
-  | 'pitch_deck';
+  | 'pitch_deck'
+  | 'button'
+  | 'popup'
+  | 'workspace';
 
 interface TrackEventParams {
   action: string;
@@ -31,6 +34,80 @@ export const trackEvent = ({ action, category, label, value }: TrackEventParams)
       value: value,
     });
   }
+};
+
+// Button click tracking
+export const trackButtonClick = (buttonText: string, location: string): void => {
+  trackEvent({
+    action: 'button_click',
+    category: 'button',
+    label: `${location}: ${buttonText}`,
+  });
+};
+
+// Popup tracking
+export const trackWaitlistPopupView = (trigger: 'auto' | 'manual'): void => {
+  trackEvent({
+    action: 'waitlist_popup_view',
+    category: 'popup',
+    label: trigger,
+  });
+};
+
+export const trackWaitlistPopupClose = (step: number): void => {
+  trackEvent({
+    action: 'waitlist_popup_close',
+    category: 'popup',
+    label: `closed_at_step_${step}`,
+    value: step,
+  });
+};
+
+export const trackWaitlistStep1Complete = (): void => {
+  trackEvent({
+    action: 'waitlist_step1_complete',
+    category: 'conversion',
+  });
+};
+
+export const trackWaitlistStep2Complete = (): void => {
+  trackEvent({
+    action: 'waitlist_step2_complete',
+    category: 'conversion',
+  });
+};
+
+// Workspace tracking
+export const trackWorkspaceView = (section: string): void => {
+  trackEvent({
+    action: 'workspace_view',
+    category: 'workspace',
+    label: section,
+  });
+};
+
+export const trackWorkspaceChatOpen = (chatType: string, chatName: string): void => {
+  trackEvent({
+    action: 'workspace_chat_open',
+    category: 'workspace',
+    label: `${chatType}: ${chatName}`,
+  });
+};
+
+export const trackWorkspaceMessageSent = (chatType: string): void => {
+  trackEvent({
+    action: 'workspace_message_sent',
+    category: 'workspace',
+    label: chatType,
+  });
+};
+
+export const trackWorkspaceFeatureClick = (feature: string): void => {
+  trackEvent({
+    action: 'workspace_feature_click',
+    category: 'workspace',
+    label: feature,
+  });
 };
 
 // Pre-defined tracking functions for common events
