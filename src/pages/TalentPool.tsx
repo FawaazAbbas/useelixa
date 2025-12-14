@@ -414,15 +414,15 @@ const TalentPool = () => {
 
   const toggleCategory = (categoryName: string) => {
     setSelectedCategories((prev) => {
-      const newCategories = prev.includes(categoryName) 
-        ? prev.filter((c) => c !== categoryName) 
+      const newCategories = prev.includes(categoryName)
+        ? prev.filter((c) => c !== categoryName)
         : [...prev, categoryName];
-      
+
       // Track category filter
       if (!prev.includes(categoryName)) {
         trackCategoryFilter(categoryName);
       }
-      
+
       return newCategories;
     });
   };
@@ -679,16 +679,17 @@ const TalentPool = () => {
           <div className="text-center space-y-4 md:space-y-6 mb-8 md:mb-10">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                The Team That
+                Your company,
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                Never Sleeps
+                staffed with AI.
               </span>
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-              Hire AI employees that actually get work done. Your team, reimagined.
+              Elixa is an AI talent pool + workspace where founders install ready-made AI employees to help run their
+              businesses — marketing, ops, finance, and more.
             </p>
           </div>
 
