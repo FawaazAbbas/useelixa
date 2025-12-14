@@ -7,7 +7,12 @@ import { Check, Loader2, Lock, Clock, Unlock, ArrowRight } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { trackWaitlistSignup, trackWaitlistStep1Complete, trackWaitlistStep2Complete, trackWaitlistPopupClose } from "@/utils/analytics";
+import {
+  trackWaitlistSignup,
+  trackWaitlistStep1Complete,
+  trackWaitlistStep2Complete,
+  trackWaitlistPopupClose,
+} from "@/utils/analytics";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -150,9 +155,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   <p className="text-[10px] sm:text-xs font-semibold text-violet-500 uppercase tracking-wider mb-0.5">
                     Enjoying the Demo?
                   </p>
-                  <h2 className="text-base sm:text-lg font-bold text-foreground">
-                    Be invited to use Elixa in just 2 steps!
-                  </h2>
+                  <h2 className="text-base sm:text-lg font-bold text-foreground">Be invited to use Elixa now!</h2>
                 </div>
               </div>
 
