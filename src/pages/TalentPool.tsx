@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   Sparkles,
@@ -10,6 +11,7 @@ import {
   Star,
   ChevronDown,
   ChevronUp,
+  ArrowRight,
 } from "lucide-react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
@@ -25,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { trackSearch, trackCategoryFilter } from "@/utils/analytics";
@@ -54,6 +57,7 @@ interface Category {
 type SortOption = "popular" | "rating" | "reviews" | "newest" | "name";
 
 const TalentPool = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -68,6 +72,7 @@ const TalentPool = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [showWaitlist, setShowWaitlist] = useState(false);
 
   // Collapsible states
   const [categoriesOpen, setCategoriesOpen] = useState(true);
@@ -692,88 +697,37 @@ const TalentPool = () => {
             </p>
           </div>
 
-          {/* Search bar - Bold style */}
-          <div className="relative max-w-2xl mx-auto mb-6 md:mb-8 z-[2000] px-2 sm:px-0">
-            <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/40 via-purple-500/40 to-cyan-500/40 rounded-xl md:rounded-2xl blur-xl opacity-60 group-hover:opacity-100 transition-opacity" />
-            <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-xl md:rounded-2xl border-2 border-white/10 p-1.5 md:p-2 shadow-2xl shadow-black/10">
-              <div className="flex-1 relative">
-                <Input
-                  placeholder="Search for AI agents..."
-                  className="px-3 md:px-5 h-11 md:h-14 text-sm md:text-lg bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  onKeyDown={handleSearchKeyDown}
-                />
-
-                {/* Suggestions dropdown */}
-                {showSuggestions && dropdownSuggestions.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden z-[2100]">
-                    {!searchQuery && (
-                      <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-white/5 flex items-center gap-2">
-                        <TrendingUp className="h-3 w-3" />
-                        Popular Searches
-                      </div>
-                    )}
-                    {dropdownSuggestions.map((suggestion, index) => (
-                      <button
-                        key={`hero-${suggestion.type}-${suggestion.value}`}
-                        className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left ${
-                          index === selectedSuggestionIndex ? "bg-white/15" : "hover:bg-white/10"
-                        }`}
-                        onMouseDown={() => {
-                          setSearchQuery(suggestion.value);
-                          setShowSuggestions(false);
-                        }}
-                        onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                      >
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            suggestion.type === "category"
-                              ? "bg-purple-500/20 text-purple-400"
-                              : suggestion.type === "capability"
-                                ? "bg-cyan-500/20 text-cyan-400"
-                                : "bg-amber-500/20 text-amber-400"
-                          }`}
-                        >
-                          {suggestion.type}
-                        </span>
-                        <span className="font-medium">{suggestion.value}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <Button className="h-10 md:h-12 px-4 md:px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-lg md:rounded-xl shadow-lg shadow-purple-500/25 text-sm md:text-base">
-                Search
-              </Button>
-
-              {/* Mobile filter button */}
-              <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
-                <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="lg:hidden h-10 w-10 md:h-12 md:w-12 rounded-lg md:rounded-xl relative border-white/10"
-                  >
-                    <SlidersHorizontal className="h-4 w-4 md:h-5 md:w-5" />
-                    {activeFilterCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-4 w-4 md:h-5 md:w-5 rounded-full bg-gradient-to-r from-rose-500 to-purple-500 text-[10px] md:text-[11px] text-white flex items-center justify-center font-medium">
-                        {activeFilterCount}
-                      </span>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-80 bg-background">
-                  <SheetHeader>
-                    <SheetTitle>Filters</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6">
-                    <FilterPanel />
-                  </div>
-                </SheetContent>
-              </Sheet>
+          {/* Primary CTA */}
+          <div className="flex flex-col items-center gap-4 px-4 mb-8 md:mb-10">
+            <Button 
+              size="lg" 
+              onClick={() => setShowWaitlist(true)} 
+              className="text-lg sm:text-xl px-10 sm:px-12 h-14 sm:h-16 font-semibold bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl transition-all"
+            >
+              Get Early Access
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            
+            {/* Secondary Text Links */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
+              <button 
+                onClick={() => navigate("/workspace")}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Explore demo workspace →
+              </button>
+              <button 
+                onClick={() => {
+                  // Scroll to agents section
+                  const agentsSection = document.getElementById('agents-section');
+                  if (agentsSection) {
+                    agentsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Browse AI talent pool →
+              </button>
             </div>
           </div>
 
@@ -812,6 +766,7 @@ const TalentPool = () => {
 
       {/* Main Content */}
       <div
+        id="agents-section"
         className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 transition-all duration-700 ${isFiltering ? "pt-5" : ""}`}
       >
         <div className={`flex gap-8 ${isFiltering ? "" : ""}`}>
@@ -976,6 +931,7 @@ const TalentPool = () => {
         </div>
       </div>
 
+      <WaitlistDialog open={showWaitlist} onOpenChange={setShowWaitlist} />
       <TalentPoolFooter />
     </div>
   );
