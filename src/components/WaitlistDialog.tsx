@@ -7,7 +7,7 @@ import { Check, Loader2, Lock, Clock, Unlock, ArrowRight } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { trackWaitlistSignup } from "@/utils/analytics";
+import { trackWaitlistSignup, trackWaitlistStep1Complete, trackWaitlistStep2Complete, trackWaitlistPopupClose } from "@/utils/analytics";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -33,6 +33,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const handleStep1Continue = () => {
     if (!isStep1Valid) return;
     setStep1Complete(true);
+    trackWaitlistStep1Complete();
     setTimeout(() => setStep(2), 400);
   };
 
@@ -47,7 +48,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
       const signupId = crypto.randomUUID();
 
       // Insert main signup
-      const { error: signupError } = await supabase.from("waitlist_signups").insert(
+      const { error: signupError } = await supabase.from("waitlist_signups").insert([
         {
           id: signupId,
           name: name.trim(),
@@ -55,25 +56,24 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           company: industry || null,
           use_case: position.trim(),
         },
-        { returning: "minimal" },
-      );
+      ]);
 
       if (signupError) throw signupError;
 
       // Insert invitee email into separate table
-      const { error: inviteError } = await supabase.from("waitlist_invites" as any).insert(
+      const { error: inviteError } = await supabase.from("waitlist_invites").insert([
         {
           waitlist_signup_id: signupId,
           invitee_email: inviteEmail.trim(),
           inviter_email: email.trim(),
           inviter_name: name.trim(),
         },
-        { returning: "minimal" },
-      );
+      ]);
 
       if (inviteError) throw inviteError;
 
       trackWaitlistSignup(email.trim());
+      trackWaitlistStep2Complete();
 
       setSubmitted(true);
       toast({
@@ -105,6 +105,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   };
 
   const handleClose = () => {
+    trackWaitlistPopupClose(step);
     setStep(1);
     setStep1Complete(false);
     onOpenChange(false);

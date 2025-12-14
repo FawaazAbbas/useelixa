@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, Plus, Settings, Hash, ChevronDown, Search, LayoutList, X, Loader2, Users, FileText, PlayCircle, Paperclip, Phone, Activity, MessageSquare, Brain, Sparkles, CheckSquare, Info, Building2, Bot, Upload, Download } from "lucide-react";
 import { getAgentColor } from '@/utils/agentColors';
+import { trackWorkspaceView, trackWorkspaceChatOpen, trackWorkspaceMessageSent } from '@/utils/analytics';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from "@/components/ui/button";
@@ -252,6 +253,11 @@ const Workspace = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showWelcomeOverlay]);
+  // Track workspace view on mount
+  useEffect(() => {
+    trackWorkspaceView('main');
+  }, []);
+
   useEffect(() => {
     if (workspaceId) {
       fetchAutomations();
@@ -590,6 +596,7 @@ const Workspace = () => {
     setSelectedTeamMemberId(null);
     if (chat?.id) {
       fetchMessages(chat.id);
+      trackWorkspaceChatOpen('agent', chat.name || 'Unknown');
     }
     // Scroll to bottom when selecting chat
     setTimeout(() => {
@@ -607,13 +614,18 @@ const Workspace = () => {
     // Check if this is a director with full chat data
     const directorData = mockDirectorChatData[memberId as keyof typeof mockDirectorChatData];
     let baseMessages: any[] = [];
+    const memberInfo = getTeamMemberById(memberId);
+    const memberName = memberInfo?.member?.name || memberId;
+    
     if (directorData) {
       baseMessages = directorData.messages as any;
+      trackWorkspaceChatOpen('director', memberName);
     } else {
       const memberData = mockTeamMemberMessages[memberId];
       if (memberData) {
         baseMessages = memberData.messages;
       }
+      trackWorkspaceChatOpen('team_member', memberName);
     }
     
     // Merge with any demo messages for this chat
@@ -637,6 +649,7 @@ const Workspace = () => {
     const team = mockTeams.find((t: any) => t.id === teamId);
     let baseMessages: any[] = [];
     if (team) {
+      trackWorkspaceChatOpen('team_group', team.name);
       const teamKeyMap: Record<string, string> = {
         'team-marketing': 'marketing',
         'team-product': 'product',
@@ -811,6 +824,7 @@ const Workspace = () => {
               setSelectedChat(null);
               setSelectedTeamMemberId(null);
               setSelectedTeamGroupId(null);
+              trackWorkspaceChatOpen('brian', 'Brian');
             }}
             className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 ${
               showBrian 
@@ -1153,6 +1167,7 @@ const Workspace = () => {
                           }
                           
                           setIsBrianDemoSending(true);
+                          trackWorkspaceMessageSent('brian');
                           const userMessage = {
                             role: "user" as const,
                             content: brianInput,
@@ -1202,6 +1217,7 @@ const Workspace = () => {
                         }
                         
                         setIsBrianDemoSending(true);
+                        trackWorkspaceMessageSent('brian');
                         const userMessage = {
                           role: "user" as const,
                           content: brianInput,
