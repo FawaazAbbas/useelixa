@@ -232,7 +232,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     onClick={handleClose}
                     className="w-full text-center text-muted-foreground hover:text-foreground text-xs mt-1 transition-colors"
                   >
-                    Let me explore first
+                    Join the success • No credit card required
                   </button>
                 </div>
               )}
