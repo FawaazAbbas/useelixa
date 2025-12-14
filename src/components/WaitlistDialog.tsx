@@ -225,7 +225,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                     className="w-full h-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] mt-1 rounded-lg text-sm"
                   >
                     Join Elixa
-                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
 
                   <button
