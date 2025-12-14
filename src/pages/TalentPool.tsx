@@ -730,39 +730,71 @@ const TalentPool = () => {
               </button>
             </div>
           </div>
-
-          {/* Quick category pills */}
-          <div className="relative z-10 flex flex-wrap justify-center gap-1.5 md:gap-2 mb-4 md:mb-6 px-2 sm:px-0">
-            {categories.slice(0, 6).map((category, i) => {
-              const colors = [
-                "from-rose-500/20 to-rose-500/5 border-rose-500/30 hover:border-rose-500/50",
-                "from-purple-500/20 to-purple-500/5 border-purple-500/30 hover:border-purple-500/50",
-                "from-cyan-500/20 to-cyan-500/5 border-cyan-500/30 hover:border-cyan-500/50",
-                "from-amber-500/20 to-amber-500/5 border-amber-500/30 hover:border-amber-500/50",
-                "from-emerald-500/20 to-emerald-500/5 border-emerald-500/30 hover:border-emerald-500/50",
-                "from-blue-500/20 to-blue-500/5 border-blue-500/30 hover:border-blue-500/50",
-              ];
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => toggleCategory(category.name)}
-                  className={`px-2.5 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full bg-gradient-to-r border backdrop-blur-sm transition-all hover:scale-105 ${colors[i % colors.length]} ${selectedCategories.includes(category.name) ? "ring-2 ring-white/20" : ""}`}
-                >
-                  {category.name}
-                </button>
-              );
-            })}
-            {categories.length > 6 && (
-              <button
-                onClick={() => setSearchQuery(" ")}
-                className="px-2.5 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full bg-muted/50 border border-border/50 hover:bg-muted transition-all"
-              >
-                +{categories.length - 6} more
-              </button>
-            )}
-          </div>
         </div>
       </section>
+
+      {/* Search Bar Section - Below Hero */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 md:py-8">
+        <div className="relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-rose-500/20 via-purple-500/20 to-cyan-500/20 rounded-xl blur-lg opacity-60" />
+          <div className="relative flex items-center gap-2 bg-background/95 backdrop-blur-xl rounded-xl border border-border/50 p-1.5 md:p-2 shadow-lg">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+              <Input
+                placeholder="Search for AI agents..."
+                className="pl-10 md:pl-12 pr-4 h-11 md:h-12 text-sm md:text-base bg-transparent border-0 focus-visible:ring-0 shadow-none placeholder:text-muted-foreground/60"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                onKeyDown={handleSearchKeyDown}
+              />
+
+              {/* Suggestions dropdown */}
+              {showSuggestions && dropdownSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-background backdrop-blur-xl rounded-xl border border-border/50 shadow-2xl overflow-hidden z-[2100]">
+                  {!searchQuery && (
+                    <div className="px-4 py-2 text-xs font-semibold text-muted-foreground border-b border-border/50 flex items-center gap-2">
+                      <TrendingUp className="h-3 w-3" />
+                      Popular Searches
+                    </div>
+                  )}
+                  {dropdownSuggestions.map((suggestion, index) => (
+                    <button
+                      key={`search-${suggestion.type}-${suggestion.value}`}
+                      className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left ${
+                        index === selectedSuggestionIndex ? "bg-muted" : "hover:bg-muted/50"
+                      }`}
+                      onMouseDown={() => {
+                        setSearchQuery(suggestion.value);
+                        setShowSuggestions(false);
+                      }}
+                      onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                    >
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          suggestion.type === "category"
+                            ? "bg-purple-500/20 text-purple-500"
+                            : suggestion.type === "capability"
+                              ? "bg-cyan-500/20 text-cyan-500"
+                              : "bg-amber-500/20 text-amber-500"
+                        }`}
+                      >
+                        {suggestion.type}
+                      </span>
+                      <span className="font-medium">{suggestion.value}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Button className="h-10 md:h-11 px-4 md:px-6 bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white font-medium rounded-lg shadow-lg shadow-purple-500/25 text-sm md:text-base">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div
