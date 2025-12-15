@@ -1,161 +1,57 @@
-import { ArrowLeft, ChevronRight, Search, X, Menu, Filter } from "lucide-react";
+import { ArrowLeft, ChevronRight, Search, X, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { trackNavClick } from "@/utils/analytics";
-import { useState } from "react";
 
 interface TalentPoolNavbarProps {
   searchQuery?: string;
   onSearchChange?: (value: string) => void;
   onClearSearch?: () => void;
   showSearch?: boolean;
-  onOpenFilters?: () => void;
-  activeFilterCount?: number;
 }
 
 export const TalentPoolNavbar = ({ 
   searchQuery = "", 
   onSearchChange,
   onClearSearch,
-  showSearch = true,
-  onOpenFilters,
-  activeFilterCount = 0
+  showSearch = true 
 }: TalentPoolNavbarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   
   const isChartsPage = location.pathname === "/talent-pool/charts";
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border/30 bg-background/80 backdrop-blur-xl shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16 gap-3">
-          {/* Logo */}
-          <div 
-            className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2" 
-            onClick={() => {
-              onClearSearch?.();
-              navigate("/talent-pool");
-            }}
-          >
-            <ElixaLogo size={28} className="sm:w-8" />
-            <span className="font-semibold text-lg hidden sm:block">Elixa</span>
-          </div>
-
-          {/* Desktop Search Bar - Centered */}
-          {showSearch && !isChartsPage && (
-            <div className="hidden md:flex flex-1 max-w-lg mx-4">
-              <div className="relative w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search AI agents..."
-                  className="pl-10 pr-10 h-10 bg-muted/40 border-border/40 rounded-full text-sm focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary/50 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange?.(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={onClearSearch}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Charts page - show title instead of search */}
-          {isChartsPage && (
-            <div className="flex-1 text-center">
-              <span className="text-sm font-medium text-muted-foreground">Top Charts</span>
-            </div>
-          )}
-
-          {/* Right side actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Mobile Search Toggle */}
-            {showSearch && !isChartsPage && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-                className="md:hidden h-9 w-9"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            )}
-
-            {/* Mobile Filter Button */}
-            {onOpenFilters && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onOpenFilters}
-                className="md:hidden h-9 w-9 relative"
-              >
-                <Filter className="h-4 w-4" />
-                {activeFilterCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-            )}
-
-            {/* Desktop Nav Links */}
-            {!isChartsPage && (
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
-                className="text-muted-foreground hover:text-foreground text-sm hidden md:flex"
-              >
-                Charts
-              </Button>
-            )}
-            {isChartsPage && (
-              <Button 
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/talent-pool")}
-                className="text-muted-foreground hover:text-foreground text-sm hidden md:flex"
-              >
-                Discover
-              </Button>
-            )}
-            
-            {/* CTA Button */}
-            <Button 
-              onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
-              size="sm" 
-              className="bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white text-sm px-3 sm:px-4 h-9 font-medium shadow-sm"
-            >
-              <span className="hidden sm:inline">My Workspace</span>
-              <span className="sm:hidden">Demo</span>
-            </Button>
-          </div>
+    <nav className="border-b border-border/50 bg-background/95 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3 md:gap-4">
+        {/* Logo */}
+        <div 
+          className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity" 
+          onClick={() => {
+            onClearSearch?.();
+            navigate("/talent-pool");
+          }}
+        >
+          <ElixaLogo size={24} />
         </div>
 
-        {/* Mobile Search Bar - Expandable */}
-        {showSearch && !isChartsPage && mobileSearchOpen && (
-          <div className="md:hidden pb-3 animate-in slide-in-from-top-2 duration-200">
+        {/* Search Bar - Centered, takes available space */}
+        {showSearch && !isChartsPage && (
+          <div className="flex-1 max-w-xl">
             <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search AI agents..."
-                className="pl-10 pr-10 h-10 bg-muted/40 border-border/40 rounded-full text-sm focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="pl-9 pr-9 h-10 bg-muted/50 border-border/50 rounded-full text-sm focus-visible:ring-1 focus-visible:ring-primary/50"
                 value={searchQuery}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                autoFocus
               />
               {searchQuery && (
                 <button
                   onClick={onClearSearch}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -163,6 +59,46 @@ export const TalentPoolNavbar = ({
             </div>
           </div>
         )}
+
+        {/* Charts page - show title instead of search */}
+        {isChartsPage && (
+          <div className="flex-1">
+            <span className="text-sm font-medium text-muted-foreground">Top Charts</span>
+          </div>
+        )}
+
+        {/* Right side actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {!isChartsPage && (
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
+              className="text-muted-foreground hover:text-foreground text-xs md:text-sm hidden sm:flex"
+            >
+              Charts
+            </Button>
+          )}
+          {isChartsPage && (
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/talent-pool")}
+              className="text-muted-foreground hover:text-foreground text-xs md:text-sm hidden sm:flex"
+            >
+              Discover
+            </Button>
+          )}
+          <Button 
+            onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
+            size="sm" 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs md:text-sm px-3 md:px-4"
+          >
+            <Zap className="h-3.5 w-3.5 mr-1.5" />
+            <span className="hidden sm:inline">My Workspace</span>
+            <span className="sm:hidden">Workspace</span>
+          </Button>
+        </div>
       </div>
     </nav>
   );
