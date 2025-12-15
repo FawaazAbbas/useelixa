@@ -17,6 +17,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { AgentCard } from "@/components/AgentCard";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
+import { TypingText } from "@/components/TypingText";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -552,7 +553,36 @@ const TalentPool = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClearSearch={clearFilters}
+        onOpenFilters={() => setShowMobileFilters(true)}
+        activeFilterCount={activeFilterCount}
       />
+
+      {/* Mobile Filter Sheet */}
+      <Sheet open={showMobileFilters} onOpenChange={setShowMobileFilters}>
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
+          <SheetHeader className="pb-4">
+            <SheetTitle className="flex items-center justify-between">
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  Clear all
+                </Button>
+              )}
+            </SheetTitle>
+          </SheetHeader>
+          <ScrollArea className="h-[calc(100%-80px)]">
+            <FilterPanel />
+          </ScrollArea>
+          <div className="pt-4 border-t">
+            <Button 
+              className="w-full" 
+              onClick={() => setShowMobileFilters(false)}
+            >
+              Show {filteredAgents.length} results
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Hero - Bold & Vibrant - Collapses when searching */}
       <section
@@ -583,7 +613,7 @@ const TalentPool = () => {
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                staffed with AI.
+                <TypingText text="staffed with AI." typingSpeed={60} startDelay={500} />
               </span>
             </h1>
 
