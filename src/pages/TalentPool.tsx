@@ -547,7 +547,7 @@ const TalentPool = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 overflow-x-hidden pt-16 sm:pt-16">
       <TalentPoolNavbar 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
