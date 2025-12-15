@@ -29,27 +29,26 @@ export const TalentPoolNavbar = ({
   return (
     <nav className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Left: Logo */}
+        <div className="flex items-center h-14 gap-4">
+          {/* Logo */}
           <div 
-            className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-2" 
+            className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity" 
             onClick={() => {
               onClearSearch?.();
               navigate("/");
             }}
           >
-            <ElixaLogo size={28} />
-            <span className="font-semibold text-lg hidden sm:block">Elixa</span>
+            <ElixaLogo size={26} />
           </div>
 
-          {/* Center: Search Bar (Desktop) */}
+          {/* Search Bar - Flexible width */}
           {showSearch && !isChartsPage && (
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="flex-1 max-w-xl">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input
-                  placeholder="Search AI agents..."
-                  className="pl-10 pr-10 h-10 bg-muted/50 border-border/50 rounded-full text-sm focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:border-primary/50 transition-all"
+                  placeholder="Search agents..."
+                  className="w-full pl-9 pr-9 h-9 bg-muted/40 border-0 rounded-lg text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-muted/60 transition-all"
                   value={searchQuery}
                   onChange={(e) => onSearchChange?.(e.target.value)}
                 />
@@ -65,23 +64,23 @@ export const TalentPoolNavbar = ({
             </div>
           )}
 
-          {/* Charts page title */}
+          {/* Charts page - show title */}
           {isChartsPage && (
-            <div className="hidden md:flex flex-1 justify-center">
-              <span className="text-sm font-medium text-muted-foreground">Top Charts</span>
+            <div className="flex-1">
+              <span className="text-sm font-medium">Top Charts</span>
             </div>
           )}
 
           {/* Right: Navigation (Desktop) */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-1 shrink-0">
             {!isChartsPage && (
               <Button 
                 variant="ghost"
                 size="sm"
                 onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-9 px-3"
               >
-                <BarChart3 className="h-4 w-4 mr-2" />
+                <BarChart3 className="h-4 w-4 mr-1.5" />
                 Charts
               </Button>
             )}
@@ -90,7 +89,7 @@ export const TalentPoolNavbar = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/")}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground h-9 px-3"
               >
                 Discover
               </Button>
@@ -98,87 +97,70 @@ export const TalentPoolNavbar = ({
             <Button 
               onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
               size="sm" 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-4 gap-1.5"
             >
-              <Zap className="h-4 w-4" />
+              <Zap className="h-3.5 w-3.5" />
               Workspace
             </Button>
           </div>
 
-          {/* Mobile: Search + Menu */}
-          <div className="flex md:hidden items-center gap-2">
-            {/* Mobile Search */}
-            {showSearch && !isChartsPage && (
-              <div className="relative flex-1 max-w-[200px]">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-8 pr-8 h-9 bg-muted/50 border-border/50 rounded-full text-sm"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange?.(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={onClearSearch}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Mobile Menu */}
+          {/* Mobile Menu Button */}
+          <div className="sm:hidden shrink-0">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0">
+                <Button variant="ghost" size="icon" className="h-9 w-9">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] bg-background border-border">
-                <div className="flex flex-col gap-4 pt-6">
-                  <div className="flex items-center gap-2 mb-4">
+              <SheetContent side="right" className="w-[260px] bg-background border-border p-0">
+                <div className="flex flex-col h-full">
+                  {/* Header */}
+                  <div className="flex items-center gap-3 p-4 border-b border-border/50">
                     <ElixaLogo size={24} />
-                    <span className="font-semibold">Elixa</span>
+                    <span className="font-semibold">Menu</span>
                   </div>
                   
-                  <Button 
-                    variant="ghost"
-                    className="justify-start"
-                    onClick={() => { 
-                      setMobileMenuOpen(false);
-                      navigate("/"); 
-                    }}
-                  >
-                    Discover Agents
-                  </Button>
+                  {/* Navigation */}
+                  <div className="flex flex-col p-2 gap-1">
+                    <Button 
+                      variant="ghost"
+                      className="justify-start h-11 px-3"
+                      onClick={() => { 
+                        setMobileMenuOpen(false);
+                        navigate("/"); 
+                      }}
+                    >
+                      Discover Agents
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost"
+                      className="justify-start h-11 px-3"
+                      onClick={() => { 
+                        trackNavClick('Charts');
+                        setMobileMenuOpen(false);
+                        navigate("/talent-pool/charts"); 
+                      }}
+                    >
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Top Charts
+                    </Button>
+                  </div>
                   
-                  <Button 
-                    variant="ghost"
-                    className="justify-start"
-                    onClick={() => { 
-                      trackNavClick('Charts');
-                      setMobileMenuOpen(false);
-                      navigate("/talent-pool/charts"); 
-                    }}
-                  >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Top Charts
-                  </Button>
-                  
-                  <hr className="border-border/50" />
-                  
-                  <Button 
-                    onClick={() => { 
-                      trackNavClick('Workspace');
-                      setMobileMenuOpen(false);
-                      navigate("/workspace"); 
-                    }} 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                  >
-                    <Zap className="h-4 w-4" />
-                    My Workspace
-                  </Button>
+                  {/* CTA at bottom */}
+                  <div className="mt-auto p-4 border-t border-border/50">
+                    <Button 
+                      onClick={() => { 
+                        trackNavClick('Workspace');
+                        setMobileMenuOpen(false);
+                        navigate("/workspace"); 
+                      }} 
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                    >
+                      <Zap className="h-4 w-4" />
+                      My Workspace
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
