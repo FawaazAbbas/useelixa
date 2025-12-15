@@ -186,9 +186,23 @@ export const AgentRecommendationCard = ({
               <div>
                 <h2 className="text-xl font-bold text-white">{agentName}</h2>
                 {category && (
-                  <Badge className="mt-1 bg-white/20 text-white border-0 text-xs">
-                    {category}
-                  </Badge>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge className="bg-white/20 text-white border-0 text-xs">
+                      {category}
+                    </Badge>
+                    <span className="text-xs text-white/80">
+                      by{" "}
+                      <span 
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          setIsWaitlistOpen(true);
+                        }}
+                        className="underline cursor-pointer hover:text-white transition-colors"
+                      >
+                        Axlerod Agents
+                      </span>
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -240,20 +254,6 @@ export const AgentRecommendationCard = ({
                 <span>Works 24/7 in the background</span>
               </div>
             </div>
-
-            {/* Developer attribution */}
-            <p className="text-xs text-muted-foreground">
-              Developed by{" "}
-              <span 
-                onClick={() => {
-                  setIsDialogOpen(false);
-                  setIsWaitlistOpen(true);
-                }}
-                className="underline cursor-pointer hover:text-primary transition-colors"
-              >
-                Axlerod Agents
-              </span>
-            </p>
 
             {/* CTAs */}
             <div className="flex gap-2">
