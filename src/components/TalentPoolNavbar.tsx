@@ -26,7 +26,7 @@ export const TalentPoolNavbar = ({
   return (
     <nav className="sticky top-0 z-50">
       {/* Main navbar row */}
-      <div className="border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="border-b border-border/60 sm:border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-14 gap-4">
             {/* Logo */}
@@ -127,7 +127,7 @@ export const TalentPoolNavbar = ({
           <div className="relative">
             <Input
               placeholder="Search AI agents..."
-              className="w-full pl-4 pr-10 h-11 bg-muted/30 border border-border/40 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm"
+              className="w-full pl-4 pr-10 h-11 bg-muted/30 border border-border/60 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm"
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
