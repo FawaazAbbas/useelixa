@@ -153,14 +153,14 @@ export const brianMessages = [
   },
   {
     role: "assistant" as const,
-    content: "<p>That is the job.</p><p>You keep pushing the company forward. I will keep putting the right agents in the right places and stop the whole thing from catching fire.</p><p>By the way, I was looking at how our day to day runs and for our operations I also think <strong>Supply Chain &amp; Fulfilment Planner</strong> from the <strong>Elixa AI Talent Pool</strong> would be great – it can own purchase order planning, warehouse capacity, dispatch SLAs and stock risk alerts so ops runs smoother in the background.</p>",
+    content: "<p>That is the job.</p><p>You keep pushing the company forward. I will keep putting the right agents in the right places and stop the whole thing from catching fire.</p><p>By the way — I was looking through our finances and I've noticed you really hate bookkeeping (fair). So I'm pretty sure the best next hire is the <strong>Bookkeeping Assistant</strong> from the <strong>Elixa AI Talent Pool</strong>.</p><p>She'll handle the boring bits: categorising transactions, reconciling accounts, and keeping the books tidy. Basically, she just runs in the background and makes sure you never have to open that cursed Excel sheet again.</p><p>And the best part: on your current plan you've still got space for <strong>3 more agents</strong> at no extra cost… so if you think about it, this one's basically free.</p>",
     timestamp: "2025-12-05T11:13:00.000Z",
     recommendedAgent: {
-      id: "fbc5d753-1060-4bf7-bff7-2457a0dae906",
-      name: "Logistics & Shipping Optimiser",
-      description: "Owns purchase order planning, warehouse capacity, dispatch SLAs and stock risk alerts.",
-      category: "Operations",
-      rating: 4.7,
+      id: "6fa25584-9144-4f9c-86d2-606bff96cacd",
+      name: "Bookkeeping Assistant",
+      description: "Handles categorising transactions, reconciling accounts, and keeping the books tidy so you never have to open that cursed Excel sheet again.",
+      category: "Finance",
+      rating: 4.8,
     },
   },
 ];
@@ -259,8 +259,8 @@ export const brianMemories = [
   {
     id: "brian-mem-6",
     category: "Team",
-    key: "Future Talent Pool Consideration",
-    value: "Supply Chain & Fulfilment Planner recommended for operations optimization. Post Purchase Experience Architect as luxury addition.",
+    key: "Next Recommended Hire",
+    value: "Bookkeeping Assistant recommended from Elixa AI Talent Pool. Handles transaction categorisation, account reconciliation, and bookkeeping. 3 agent slots remaining at no extra cost.",
     scope: "workspace",
     created_at: "2025-12-05T11:13:00.000Z",
   },
