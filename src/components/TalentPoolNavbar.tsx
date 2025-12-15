@@ -1,11 +1,9 @@
-import { Search, X, Zap, Menu, BarChart3 } from "lucide-react";
+import { Search, X, Zap, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { trackNavClick } from "@/utils/analytics";
-import { useState } from "react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface TalentPoolNavbarProps {
   searchQuery?: string;
@@ -22,7 +20,6 @@ export const TalentPoolNavbar = ({
 }: TalentPoolNavbarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const isChartsPage = location.pathname === "/talent-pool/charts";
 
@@ -109,66 +106,16 @@ export const TalentPoolNavbar = ({
               </Button>
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile: My Workspace button */}
             <div className="sm:hidden shrink-0">
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="right" className="w-[260px] bg-background border-border p-0">
-                  <div className="flex flex-col h-full">
-                    {/* Header */}
-                    <div className="flex items-center gap-3 p-4 border-b border-border/50">
-                      <ElixaLogo size={24} />
-                      <span className="font-semibold">Menu</span>
-                    </div>
-                    
-                    {/* Navigation */}
-                    <div className="flex flex-col p-2 gap-1">
-                      <Button 
-                        variant="ghost"
-                        className="justify-start h-11 px-3"
-                        onClick={() => { 
-                          setMobileMenuOpen(false);
-                          navigate("/"); 
-                        }}
-                      >
-                        Discover Agents
-                      </Button>
-                      
-                      <Button 
-                        variant="ghost"
-                        className="justify-start h-11 px-3"
-                        onClick={() => { 
-                          trackNavClick('Charts');
-                          setMobileMenuOpen(false);
-                          navigate("/talent-pool/charts"); 
-                        }}
-                      >
-                        <BarChart3 className="h-4 w-4 mr-2" />
-                        Top Charts
-                      </Button>
-                    </div>
-                    
-                    {/* CTA at bottom */}
-                    <div className="mt-auto p-4 border-t border-border/50">
-                      <Button 
-                        onClick={() => { 
-                          trackNavClick('Workspace');
-                          setMobileMenuOpen(false);
-                          navigate("/workspace"); 
-                        }} 
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-                      >
-                        <Zap className="h-4 w-4" />
-                        My Workspace
-                      </Button>
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <Button 
+                onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
+                size="sm" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5"
+              >
+                <Zap className="h-3.5 w-3.5" />
+                Workspace
+              </Button>
             </div>
           </div>
         </div>
@@ -176,12 +123,12 @@ export const TalentPoolNavbar = ({
 
       {/* Mobile floating search bar */}
       {showSearch && !isChartsPage && (
-        <div className="sm:hidden px-4 py-3 bg-gradient-to-b from-background/80 to-transparent backdrop-blur-sm">
+        <div className="sm:hidden px-4 py-3 bg-gradient-to-b from-background/60 to-transparent">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search AI agents..."
-              className="w-full pl-10 pr-10 h-11 bg-background border border-border/60 rounded-xl text-sm shadow-sm focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all"
+              className="w-full pl-10 pr-10 h-11 bg-muted/30 border border-border/40 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm"
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
@@ -199,7 +146,6 @@ export const TalentPoolNavbar = ({
     </nav>
   );
 };
-
 // Simple back button for sub-pages
 interface TalentPoolBackButtonProps {
   label?: string;
