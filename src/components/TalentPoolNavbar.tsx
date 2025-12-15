@@ -26,35 +26,35 @@ export const TalentPoolNavbar = ({
   return (
     <nav className="sticky top-0 z-50">
       {/* Main navbar row */}
-      <div className="border-b border-border/40 bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80">
+      <div className="border-b border-border/60 sm:border-border/30 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-[60px]">
-            {/* Left: Logo */}
+          <div className="flex items-center h-16 gap-6">
+            {/* Logo */}
             <div 
-              className="shrink-0 cursor-pointer hover:scale-105 transition-transform" 
+              className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity" 
               onClick={() => {
                 onClearSearch?.();
                 navigate("/");
               }}
             >
-              <ElixaLogo size={30} />
+              <ElixaLogo size={28} />
             </div>
 
-            {/* Center: Search Bar - Desktop/Tablet */}
+            {/* Search Bar - Desktop/Tablet */}
             {showSearch && !isChartsPage && (
-              <div className="hidden sm:flex absolute left-1/2 -translate-x-1/2 w-full max-w-md lg:max-w-lg px-4">
+              <div className="hidden sm:flex flex-1 max-w-lg lg:max-w-xl mx-4">
                 <div className="relative w-full group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground/60 group-focus-within:text-primary/80 transition-colors pointer-events-none" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none" />
                   <Input
                     placeholder="Search agents, capabilities..."
-                    className="w-full pl-11 pr-11 h-11 bg-muted/40 border-0 rounded-2xl text-sm placeholder:text-muted-foreground/50 focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:bg-muted/60 transition-all"
+                    className="w-full pl-10 pr-10 h-10 bg-muted/30 border border-border/50 rounded-full text-sm placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary/50 focus-visible:bg-background transition-all shadow-sm"
                     value={searchQuery}
                     onChange={(e) => onSearchChange?.(e.target.value)}
                   />
                   {searchQuery && (
                     <button
                       onClick={onClearSearch}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -63,26 +63,26 @@ export const TalentPoolNavbar = ({
               </div>
             )}
 
-            {/* Charts page - show title in center */}
+            {/* Charts page - show title */}
             {isChartsPage && (
-              <div className="hidden sm:flex absolute left-1/2 -translate-x-1/2">
-                <span className="text-base font-semibold tracking-tight">Top Charts</span>
+              <div className="flex-1">
+                <span className="text-base font-semibold">Top Charts</span>
               </div>
             )}
 
             {/* Spacer for mobile */}
             {!isChartsPage && <div className="flex-1 sm:hidden" />}
 
-            {/* Right: Navigation */}
-            <div className="hidden sm:flex items-center gap-1 shrink-0">
+            {/* Right: Navigation (Desktop/Tablet) */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
               {!isChartsPage && (
                 <Button 
                   variant="ghost"
                   size="sm"
                   onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/60 h-9 px-4 rounded-xl font-medium transition-all"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
                 >
-                  <BarChart3 className="h-4 w-4 mr-1.5" />
+                  <BarChart3 className="h-4 w-4 mr-2" />
                   Charts
                 </Button>
               )}
@@ -91,7 +91,7 @@ export const TalentPoolNavbar = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/")}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/60 h-9 px-4 rounded-xl font-medium transition-all"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
                 >
                   Discover
                 </Button>
@@ -99,9 +99,9 @@ export const TalentPoolNavbar = ({
               <Button 
                 onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
                 size="sm" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-4 rounded-xl gap-1.5 font-medium shadow-sm hover:shadow transition-all ml-1"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-5 rounded-full gap-2 font-medium shadow-sm hover:shadow-md transition-all"
               >
-                <Zap className="h-3.5 w-3.5" />
+                <Zap className="h-4 w-4" />
                 My Workspace
               </Button>
             </div>
@@ -111,7 +111,7 @@ export const TalentPoolNavbar = ({
               <Button 
                 onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
                 size="sm" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-xl"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-full"
               >
                 <Zap className="h-3.5 w-3.5" />
                 Workspace
