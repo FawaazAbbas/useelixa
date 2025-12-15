@@ -26,9 +26,9 @@ export const TalentPoolNavbar = ({
   return (
     <nav className="sticky top-0 z-50">
       {/* Main navbar row */}
-      <div className="border-b border-border/60 sm:border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <div className="border-b border-border/60 sm:border-border/30 bg-background/90 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-14 gap-4">
+          <div className="flex items-center h-16 gap-6">
             {/* Logo */}
             <div 
               className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity" 
@@ -37,24 +37,24 @@ export const TalentPoolNavbar = ({
                 navigate("/");
               }}
             >
-              <ElixaLogo size={26} />
+              <ElixaLogo size={28} />
             </div>
 
-            {/* Search Bar - Desktop only */}
+            {/* Search Bar - Desktop/Tablet */}
             {showSearch && !isChartsPage && (
-              <div className="hidden sm:flex flex-1 max-w-xl">
-                <div className="relative w-full">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <div className="hidden sm:flex flex-1 max-w-lg lg:max-w-xl mx-4">
+                <div className="relative w-full group">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none" />
                   <Input
-                    placeholder="Search agents..."
-                    className="w-full pl-9 pr-9 h-9 bg-muted/40 border-0 rounded-lg text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:bg-muted/60 transition-all"
+                    placeholder="Search agents, capabilities..."
+                    className="w-full pl-10 pr-10 h-10 bg-muted/30 border border-border/50 rounded-full text-sm placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary/50 focus-visible:bg-background transition-all shadow-sm"
                     value={searchQuery}
                     onChange={(e) => onSearchChange?.(e.target.value)}
                   />
                   {searchQuery && (
                     <button
                       onClick={onClearSearch}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -66,23 +66,23 @@ export const TalentPoolNavbar = ({
             {/* Charts page - show title */}
             {isChartsPage && (
               <div className="flex-1">
-                <span className="text-sm font-medium">Top Charts</span>
+                <span className="text-base font-semibold">Top Charts</span>
               </div>
             )}
 
             {/* Spacer for mobile */}
             {!isChartsPage && <div className="flex-1 sm:hidden" />}
 
-            {/* Right: Navigation (Desktop) */}
-            <div className="hidden sm:flex items-center gap-1 shrink-0">
+            {/* Right: Navigation (Desktop/Tablet) */}
+            <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
               {!isChartsPage && (
                 <Button 
                   variant="ghost"
                   size="sm"
                   onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
-                  className="text-muted-foreground hover:text-foreground h-9 px-3"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
                 >
-                  <BarChart3 className="h-4 w-4 mr-1.5" />
+                  <BarChart3 className="h-4 w-4 mr-2" />
                   Charts
                 </Button>
               )}
@@ -91,7 +91,7 @@ export const TalentPoolNavbar = ({
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/")}
-                  className="text-muted-foreground hover:text-foreground h-9 px-3"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
                 >
                   Discover
                 </Button>
@@ -99,10 +99,10 @@ export const TalentPoolNavbar = ({
               <Button 
                 onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
                 size="sm" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-4 gap-1.5"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-5 rounded-full gap-2 font-medium shadow-sm hover:shadow-md transition-all"
               >
-                <Zap className="h-3.5 w-3.5" />
-                Workspace
+                <Zap className="h-4 w-4" />
+                My Workspace
               </Button>
             </div>
 
@@ -111,7 +111,7 @@ export const TalentPoolNavbar = ({
               <Button 
                 onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
                 size="sm" 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-full"
               >
                 <Zap className="h-3.5 w-3.5" />
                 Workspace
@@ -127,7 +127,7 @@ export const TalentPoolNavbar = ({
           <div className="relative">
             <Input
               placeholder="Search AI agents..."
-              className="w-full pl-4 pr-10 h-11 bg-muted/30 border border-border/60 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm"
+              className="w-full pl-4 pr-10 h-11 bg-muted/30 border border-border/60 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm shadow-sm"
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
@@ -147,29 +147,6 @@ export const TalentPoolNavbar = ({
     </nav>
   );
 };
-// Simple back button for sub-pages
-interface TalentPoolBackButtonProps {
-  label?: string;
-  to?: string;
-}
-
-export const TalentPoolBackButton = ({ 
-  label = "Back to Talent Pool", 
-  to = "/" 
-}: TalentPoolBackButtonProps) => {
-  const navigate = useNavigate();
-  
-  return (
-    <button 
-      onClick={() => navigate(to)}
-      className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-    >
-      <span className="h-4 w-4">←</span>
-      {label}
-    </button>
-  );
-};
-
 // Breadcrumb navigation for agent details
 interface BreadcrumbItem {
   label: string;
