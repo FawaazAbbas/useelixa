@@ -579,7 +579,7 @@ const AgentDetail = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20 md:pb-0 pt-20 sm:pt-16">
       <TalentPoolNavbar />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8">
