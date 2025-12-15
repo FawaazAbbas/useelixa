@@ -125,20 +125,21 @@ export const TalentPoolNavbar = ({
       {showSearch && !isChartsPage && (
         <div className="sm:hidden px-4 py-3 bg-gradient-to-b from-background/60 to-transparent">
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search AI agents..."
-              className="w-full pl-10 pr-10 h-11 bg-muted/30 border border-border/40 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm"
+              className="w-full pl-4 pr-10 h-11 bg-muted/30 border border-border/40 rounded-xl text-sm placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-primary/40 focus-visible:border-primary/40 transition-all backdrop-blur-sm"
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
-            {searchQuery && (
+            {searchQuery ? (
               <button
                 onClick={onClearSearch}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
+            ) : (
+              <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             )}
           </div>
         </div>
