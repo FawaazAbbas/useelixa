@@ -552,6 +552,7 @@ const TalentPool = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClearSearch={clearFilters}
+        showSearch={true}
       />
 
       {/* Hero - Bold & Vibrant - Collapses when searching */}
