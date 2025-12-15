@@ -576,7 +576,7 @@ const TalentPool = () => {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:linear-gradient(to_bottom,black_60%,transparent_100%)]" />
         </div>
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16 md:py-20 lg:py-24">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-14 sm:py-16 md:py-20 lg:py-24">
           {/* Main headline */}
           <div className="text-center space-y-4 md:space-y-6 mb-8 md:mb-10">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
