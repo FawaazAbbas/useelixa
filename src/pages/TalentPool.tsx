@@ -549,7 +549,7 @@ const TalentPool = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 overflow-x-hidden pt-32 sm:pt-16">
-      <TalentPoolNavbar 
+      <TalentPoolNavbar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onClearSearch={clearFilters}
@@ -596,29 +596,29 @@ const TalentPool = () => {
 
           {/* Primary CTA */}
           <div className="flex flex-col items-center gap-4 px-4 mb-8 md:mb-10">
-            <Button 
-              size="lg" 
-              onClick={() => setShowWaitlist(true)} 
+            <Button
+              size="lg"
+              onClick={() => setShowWaitlist(true)}
               className="text-lg sm:text-xl px-10 sm:px-12 h-14 sm:h-16 font-semibold bg-gradient-to-r from-rose-500 to-purple-500 hover:from-rose-600 hover:to-purple-600 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl transition-all"
             >
-              Get Early Access
+              Get Early Access Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            
+
             {/* Secondary Text Links */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
-              <button 
+              <button
                 onClick={() => navigate("/workspace")}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Explore demo workspace →
               </button>
-              <button 
+              <button
                 onClick={() => {
                   // Scroll to agents section
-                  const agentsSection = document.getElementById('agents-section');
+                  const agentsSection = document.getElementById("agents-section");
                   if (agentsSection) {
-                    agentsSection.scrollIntoView({ behavior: 'smooth' });
+                    agentsSection.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
