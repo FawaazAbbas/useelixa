@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Star, ArrowRight, Sparkles, Bot, Megaphone, Headphones, Target, DollarSign, Package, Users, Code, Palette, BarChart3, Scale, Smartphone, ClipboardList, ShoppingCart, X, ExternalLink } from "lucide-react";
+import { Star, ArrowRight, Sparkles, Bot, Megaphone, Headphones, Target, DollarSign, Package, Users, Code, Palette, BarChart3, Scale, Smartphone, ClipboardList, ShoppingCart, X, ExternalLink, Plus, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { WaitlistDialog } from "@/components/WaitlistDialog";
 
 // Category visual config matching AgentDetail page
 const categoryConfig: Record<string, { 
@@ -86,6 +87,7 @@ export const AgentRecommendationCard = ({
 }: AgentRecommendationCardProps) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const config = category ? (categoryConfig[category] || defaultCategoryConfig) : defaultCategoryConfig;
 
   const handleClick = () => {
@@ -94,6 +96,16 @@ export const AgentRecommendationCard = ({
 
   const handleViewFullProfile = () => {
     navigate(`/agent/${agentId}`);
+  };
+
+  const handleAddToWorkspace = () => {
+    setIsDialogOpen(false);
+    setIsWaitlistOpen(true);
+  };
+
+  const handleDeveloperClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsWaitlistOpen(true);
   };
 
   return (
@@ -135,6 +147,17 @@ export const AgentRecommendationCard = ({
             {description && (
               <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
             )}
+
+            {/* Developer attribution */}
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              Developed by{" "}
+              <span 
+                onClick={handleDeveloperClick}
+                className="underline cursor-pointer hover:text-primary transition-colors"
+              >
+                Axlerod Agents
+              </span>
+            </p>
           </div>
 
           {/* Arrow */}
@@ -197,11 +220,20 @@ export const AgentRecommendationCard = ({
               </div>
             )}
 
-            {/* Key highlights */}
+            {/* Key highlights - specific capabilities */}
             <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Capabilities</h3>
               <div className="flex items-center gap-2 text-sm">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span>AI-powered automation</span>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Transaction categorisation</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Account reconciliation</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <CheckCircle className="h-4 w-4 text-green-500" />
+                <span>Financial reporting</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Bot className="h-4 w-4 text-primary" />
@@ -209,17 +241,47 @@ export const AgentRecommendationCard = ({
               </div>
             </div>
 
-            {/* CTA */}
-            <Button 
-              onClick={handleViewFullProfile}
-              className="w-full gap-2"
-            >
-              View Full Profile
-              <ExternalLink className="h-4 w-4" />
-            </Button>
+            {/* Developer attribution */}
+            <p className="text-xs text-muted-foreground">
+              Developed by{" "}
+              <span 
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setIsWaitlistOpen(true);
+                }}
+                className="underline cursor-pointer hover:text-primary transition-colors"
+              >
+                Axlerod Agents
+              </span>
+            </p>
+
+            {/* CTAs */}
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleAddToWorkspace}
+                className="flex-1 gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add to Workspace
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={handleViewFullProfile}
+                className="gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Full Profile
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Waitlist Dialog */}
+      <WaitlistDialog 
+        open={isWaitlistOpen} 
+        onOpenChange={setIsWaitlistOpen} 
+      />
     </>
   );
 };
