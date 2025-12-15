@@ -30,29 +30,21 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step1Complete, setStep1Complete] = useState(false);
+  const [currentSignupId, setCurrentSignupId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const isStep1Valid = name.trim() && email.trim() && industry && position.trim();
   const isStep2Valid = inviteEmail.trim() && inviteEmail.includes("@");
 
-  const handleStep1Continue = () => {
+  const handleStep1Continue = async () => {
     if (!isStep1Valid) return;
-    setStep1Complete(true);
-    trackWaitlistStep1Complete();
-    setTimeout(() => setStep(2), 400);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isStep2Valid) return;
-
     setIsLoading(true);
-
+    
     try {
-      // Generate the signup id on the client so we don't need a SELECT policy to get it back
+      // Submit step 1 data immediately
       const signupId = crypto.randomUUID();
-
-      // Insert main signup
+      setCurrentSignupId(signupId);
+      
       const { error: signupError } = await supabase.from("waitlist_signups").insert([
         {
           id: signupId,
@@ -64,11 +56,33 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
       ]);
 
       if (signupError) throw signupError;
+      
+      trackWaitlistStep1Complete();
+      setStep1Complete(true);
+      setTimeout(() => setStep(2), 400);
+    } catch (error) {
+      console.error("Step 1 signup error:", error);
+      toast({
+        title: "Something went wrong",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isStep2Valid || !currentSignupId) return;
+
+    setIsLoading(true);
+
+    try {
       // Insert invitee email into separate table
       const { error: inviteError } = await supabase.from("waitlist_invites").insert([
         {
-          waitlist_signup_id: signupId,
+          waitlist_signup_id: currentSignupId,
           invitee_email: inviteEmail.trim(),
           inviter_email: email.trim(),
           inviter_name: name.trim(),
@@ -90,6 +104,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         setSubmitted(false);
         setStep(1);
         setStep1Complete(false);
+        setCurrentSignupId(null);
         setName("");
         setEmail("");
         setIndustry("");
@@ -113,6 +128,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
     trackWaitlistPopupClose(step);
     setStep(1);
     setStep1Complete(false);
+    setCurrentSignupId(null);
     onOpenChange(false);
   };
 
@@ -138,13 +154,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
             </div>
 
             <div className="p-4 sm:p-6">
-              {/* Step indicator */}
-              <div className="flex justify-end mb-3">
-                <span className="text-[10px] sm:text-xs text-muted-foreground font-medium px-2 py-0.5 bg-muted/50 rounded-full">
-                  Step {step} of 2
-                </span>
-              </div>
-
               {/* Header */}
               <div className="text-center space-y-2 mb-4">
                 <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/30">
@@ -221,10 +230,14 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   <Button
                     type="button"
                     onClick={handleStep1Continue}
-                    disabled={!isStep1Valid}
+                    disabled={!isStep1Valid || isLoading}
                     className="w-full h-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:scale-[1.01] mt-1 rounded-lg text-sm"
                   >
-                    Join Elixa
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Join Elixa"
+                    )}
                   </Button>
 
                   <button
@@ -251,24 +264,33 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   onSubmit={handleSubmit}
                   className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300"
                 >
-                  <div className="text-center mb-1">
-                    <h3 className="text-sm sm:text-base font-semibold text-foreground">Unlock access</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">Invite one founder to unlock your workspace.</p>
+                  {/* Invite-only messaging */}
+                  <div className="text-center mb-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                      <Lock className="w-4 h-4 text-amber-600" />
+                      <h3 className="text-sm font-semibold text-foreground">Elixa is invite-only</h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      To be invited, you must invite someone else. Pay it forward!
+                    </p>
                   </div>
 
                   <div className="space-y-1">
                     <Label htmlFor="inviteEmail" className="text-xs font-medium">
-                      Invitee email <span className="text-violet-500">*</span>
+                      Who would benefit from Elixa? <span className="text-violet-500">*</span>
                     </Label>
                     <Input
                       id="inviteEmail"
                       type="email"
-                      placeholder="founder@company.com"
+                      placeholder="colleague@company.com"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
                       required
                       className="h-9 rounded-lg border-border focus:border-violet-500 focus:ring-violet-500/20 text-sm"
                     />
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      They'll receive an invite to join the waitlist too
+                    </p>
                   </div>
 
                   <Button
@@ -280,8 +302,8 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
-                        <Unlock className="w-4 h-4 mr-2" />
-                        Unlock Elixa
+                        <ArrowRight className="w-4 h-4 mr-2" />
+                        Send Invite & Join Waitlist
                       </>
                     )}
                   </Button>
@@ -293,27 +315,6 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   >
                     Let me explore first
                   </button>
-
-                  {/* Access Status */}
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Access status
-                    </p>
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2 text-xs">
-                        <Check className="w-3.5 h-3.5 text-green-500" />
-                        <span className="text-green-600 font-medium">Profile complete</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <Clock className="w-3.5 h-3.5 text-amber-500" />
-                        <span className="text-muted-foreground">Invite pending</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs">
-                        <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-muted-foreground">Workspace locked</span>
-                      </div>
-                    </div>
-                  </div>
                 </form>
               )}
             </div>
