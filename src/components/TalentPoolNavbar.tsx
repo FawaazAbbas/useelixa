@@ -42,7 +42,7 @@ export const TalentPoolNavbar = ({
 
             {/* Search Bar - Desktop/Tablet */}
             {showSearch && !isChartsPage && (
-              <div className="hidden sm:flex flex-1 max-w-lg lg:max-w-xl mx-4">
+              <div className="hidden sm:flex flex-1 max-w-[200px] lg:max-w-xs mx-4">
                 <div className="relative w-full group">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none" />
                   <Input
