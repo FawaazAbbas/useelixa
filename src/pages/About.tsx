@@ -8,7 +8,7 @@ const About = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <TalentPoolNavbar />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-28 sm:pt-24 pb-16">
         {/* Hero Section */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
