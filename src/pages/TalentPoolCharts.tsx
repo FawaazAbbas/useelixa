@@ -192,7 +192,7 @@ const TalentPoolCharts = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-20 md:pb-0 pt-20 sm:pt-16">
-      <TalentPoolNavbar />
+      <TalentPoolNavbar showSearch={false} />
 
       {/* Animated background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">

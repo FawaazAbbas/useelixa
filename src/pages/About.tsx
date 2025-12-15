@@ -6,7 +6,7 @@ import { Users, Zap, Shield, Target, Sparkles, Bot } from "lucide-react";
 const About = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      <TalentPoolNavbar />
+      <TalentPoolNavbar showSearch={false} />
       
       <main className="pt-28 sm:pt-24 pb-16">
         {/* Hero Section */}
