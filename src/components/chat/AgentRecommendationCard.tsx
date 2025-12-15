@@ -139,25 +139,25 @@ export const AgentRecommendationCard = ({
             </div>
             
             {category && (
-              <Badge variant="secondary" className="text-[10px] px-2 py-0 mb-1.5 bg-primary/10 text-primary border-0">
-                {category}
-              </Badge>
+              <div className="flex items-center gap-2 mb-1.5">
+                <Badge variant="secondary" className="text-[10px] px-2 py-0 bg-primary/10 text-primary border-0">
+                  {category}
+                </Badge>
+                <span className="text-[10px] text-muted-foreground">
+                  by{" "}
+                  <span 
+                    onClick={handleDeveloperClick}
+                    className="underline cursor-pointer hover:text-primary transition-colors"
+                  >
+                    Axlerod Agents
+                  </span>
+                </span>
+              </div>
             )}
             
             {description && (
               <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
             )}
-
-            {/* Developer attribution */}
-            <p className="text-[10px] text-muted-foreground mt-1.5">
-              Developed by{" "}
-              <span 
-                onClick={handleDeveloperClick}
-                className="underline cursor-pointer hover:text-primary transition-colors"
-              >
-                Axlerod Agents
-              </span>
-            </p>
           </div>
 
           {/* Arrow */}
