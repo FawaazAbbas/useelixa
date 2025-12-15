@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { WaitlistDialog } from "@/components/WaitlistDialog";
+import { TypingText } from "@/components/TypingText";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { trackSearch, trackCategoryFilter } from "@/utils/analytics";
@@ -584,7 +585,7 @@ const TalentPool = () => {
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                staffed with AI.
+                <TypingText text="staffed with AI." typingSpeed={70} startDelay={400} />
               </span>
             </h1>
 
