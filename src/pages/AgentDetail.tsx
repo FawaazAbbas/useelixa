@@ -632,6 +632,15 @@ const AgentDetail = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         {agent.short_description || agent.description}
                       </p>
+                      <p className="text-sm text-muted-foreground">
+                        Developed by{" "}
+                        <span 
+                          onClick={() => setWaitlistDialogOpen(true)}
+                          className="underline cursor-pointer hover:text-primary transition-colors"
+                        >
+                          Axlerod Agents
+                        </span>
+                      </p>
                     </div>
                   </div>
 
