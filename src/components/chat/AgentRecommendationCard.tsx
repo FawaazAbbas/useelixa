@@ -1,6 +1,9 @@
-import { useNavigate } from "react-router-dom";
-import { Star, ArrowRight, Sparkles, Bot, Megaphone, Headphones, Target, DollarSign, Package, Users, Code, Palette, BarChart3, Scale, Smartphone, ClipboardList, ShoppingCart } from "lucide-react";
+import React, { useState } from "react";
+import { Star, ArrowRight, Sparkles, Bot, Megaphone, Headphones, Target, DollarSign, Package, Users, Code, Palette, BarChart3, Scale, Smartphone, ClipboardList, ShoppingCart, X, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 // Category visual config matching AgentDetail page
 const categoryConfig: Record<string, { 
@@ -82,57 +85,141 @@ export const AgentRecommendationCard = ({
   rating = 4.8,
 }: AgentRecommendationCardProps) => {
   const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const config = category ? (categoryConfig[category] || defaultCategoryConfig) : defaultCategoryConfig;
 
   const handleClick = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleViewFullProfile = () => {
     navigate(`/agent/${agentId}`);
   };
 
   return (
-    <div 
-      onClick={handleClick}
-      className="group mt-3 max-w-[85%] cursor-pointer overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-3 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]"
-    >
-      {/* Header with sparkle */}
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
-        <span className="text-xs font-medium text-primary">Recommended from Talent Pool</span>
-      </div>
-
-      <div className="flex items-start gap-3">
-        {/* Agent Icon - matching agent details page style */}
-        <div className={`flex-shrink-0 h-10 w-10 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-          {config.icon}
+    <>
+      <div 
+        onClick={handleClick}
+        className="group mt-3 max-w-[85%] cursor-pointer overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5 p-3 transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]"
+      >
+        {/* Header with sparkle */}
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+          <span className="text-xs font-medium text-primary">Recommended from Talent Pool</span>
         </div>
 
-        {/* Agent Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold text-foreground truncate">{agentName}</h4>
-            {rating && (
-              <div className="flex items-center gap-1 text-amber-500">
-                <Star className="h-3.5 w-3.5 fill-current" />
-                <span className="text-xs font-medium">{rating.toFixed(1)}</span>
-              </div>
+        <div className="flex items-start gap-3">
+          {/* Agent Icon - matching agent details page style */}
+          <div className={`flex-shrink-0 h-10 w-10 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+            {config.icon}
+          </div>
+
+          {/* Agent Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h4 className="font-semibold text-foreground truncate">{agentName}</h4>
+              {rating && (
+                <div className="flex items-center gap-1 text-amber-500">
+                  <Star className="h-3.5 w-3.5 fill-current" />
+                  <span className="text-xs font-medium">{rating.toFixed(1)}</span>
+                </div>
+              )}
+            </div>
+            
+            {category && (
+              <Badge variant="secondary" className="text-[10px] px-2 py-0 mb-1.5 bg-primary/10 text-primary border-0">
+                {category}
+              </Badge>
+            )}
+            
+            {description && (
+              <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
             )}
           </div>
-          
-          {category && (
-            <Badge variant="secondary" className="text-[10px] px-2 py-0 mb-1.5 bg-primary/10 text-primary border-0">
-              {category}
-            </Badge>
-          )}
-          
-          {description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
-          )}
-        </div>
 
-        {/* Arrow */}
-        <div className="flex-shrink-0 self-center">
-          <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+          {/* Arrow */}
+          <div className="flex-shrink-0 self-center">
+            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Agent Preview Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-primary/20">
+          {/* Header with gradient */}
+          <div className={`${config.iconBg} p-6 relative`}>
+            <button 
+              onClick={() => setIsDialogOpen(false)}
+              className="absolute top-3 right-3 p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            >
+              <X className="h-4 w-4 text-white" />
+            </button>
+            
+            <div className="flex items-center gap-4">
+              <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl">
+                {React.cloneElement(config.icon as React.ReactElement, { className: "h-8 w-8 text-white" })}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">{agentName}</h2>
+                {category && (
+                  <Badge className="mt-1 bg-white/20 text-white border-0 text-xs">
+                    {category}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-4">
+            {/* Rating */}
+            {rating && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i} 
+                      className={`h-4 w-4 ${i < Math.floor(rating) ? 'text-amber-500 fill-amber-500' : 'text-muted'}`} 
+                    />
+                  ))}
+                </div>
+                <span className="text-sm font-medium">{rating.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">rating</span>
+              </div>
+            )}
+
+            {/* Description */}
+            {description && (
+              <div>
+                <h3 className="text-sm font-semibold mb-1">About</h3>
+                <p className="text-sm text-muted-foreground">{description}</p>
+              </div>
+            )}
+
+            {/* Key highlights */}
+            <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span>AI-powered automation</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Bot className="h-4 w-4 text-primary" />
+                <span>Works 24/7 in the background</span>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Button 
+              onClick={handleViewFullProfile}
+              className="w-full gap-2"
+            >
+              View Full Profile
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

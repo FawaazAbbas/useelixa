@@ -158,7 +158,7 @@ export const brianMessages = [
     recommendedAgent: {
       id: "6fa25584-9144-4f9c-86d2-606bff96cacd",
       name: "Bookkeeping Assistant",
-      description: "Handles categorising transactions, reconciling accounts, and keeping the books tidy so you never have to open that cursed Excel sheet again.",
+      description: "Financial records specialist keeping books accurate and current",
       category: "Finance",
       rating: 4.8,
     },
