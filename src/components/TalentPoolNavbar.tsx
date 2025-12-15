@@ -12,15 +12,15 @@ interface TalentPoolNavbarProps {
   showSearch?: boolean;
 }
 
-export const TalentPoolNavbar = ({ 
-  searchQuery = "", 
+export const TalentPoolNavbar = ({
+  searchQuery = "",
   onSearchChange,
   onClearSearch,
-  showSearch = true 
+  showSearch = true,
 }: TalentPoolNavbarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const isChartsPage = location.pathname === "/talent-pool/charts";
 
   return (
@@ -30,8 +30,8 @@ export const TalentPoolNavbar = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16 gap-6">
             {/* Logo */}
-            <div 
-              className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity" 
+            <div
+              className="shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => {
                 onClearSearch?.();
                 navigate("/");
@@ -45,7 +45,7 @@ export const TalentPoolNavbar = ({
               <div className="hidden sm:flex flex-1 max-w-[200px] lg:max-w-xs mx-4">
                 <div className="relative w-full group">
                   <Input
-                    placeholder="Search agents, capabilities..."
+                    placeholder="Search AI agents..."
                     className="w-full pl-4 pr-10 h-10 bg-muted/30 border border-border/50 rounded-full text-sm placeholder:text-muted-foreground/60 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary/50 focus-visible:bg-background transition-all shadow-sm"
                     value={searchQuery}
                     onChange={(e) => onSearchChange?.(e.target.value)}
@@ -77,10 +77,13 @@ export const TalentPoolNavbar = ({
             {/* Right: Navigation (Desktop/Tablet) */}
             <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
               {!isChartsPage && (
-                <Button 
+                <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => { trackNavClick('Charts'); navigate("/talent-pool/charts"); }}
+                  onClick={() => {
+                    trackNavClick("Charts");
+                    navigate("/talent-pool/charts");
+                  }}
                   className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
@@ -88,7 +91,7 @@ export const TalentPoolNavbar = ({
                 </Button>
               )}
               {isChartsPage && (
-                <Button 
+                <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate("/")}
@@ -97,9 +100,12 @@ export const TalentPoolNavbar = ({
                   Discover
                 </Button>
               )}
-              <Button 
-                onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
-                size="sm" 
+              <Button
+                onClick={() => {
+                  trackNavClick("Workspace");
+                  navigate("/workspace");
+                }}
+                size="sm"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-5 rounded-full gap-2 font-medium shadow-sm hover:shadow-md transition-all"
               >
                 <Zap className="h-4 w-4" />
@@ -109,9 +115,12 @@ export const TalentPoolNavbar = ({
 
             {/* Mobile: My Workspace button */}
             <div className="sm:hidden shrink-0">
-              <Button 
-                onClick={() => { trackNavClick('Workspace'); navigate("/workspace"); }} 
-                size="sm" 
+              <Button
+                onClick={() => {
+                  trackNavClick("Workspace");
+                  navigate("/workspace");
+                }}
+                size="sm"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-full"
               >
                 <Zap className="h-3.5 w-3.5" />
@@ -160,14 +169,12 @@ interface TalentPoolBreadcrumbProps {
 
 export const TalentPoolBreadcrumb = ({ items }: TalentPoolBreadcrumbProps) => {
   const navigate = useNavigate();
-  
+
   return (
     <nav className="flex items-center gap-1 text-sm mb-6" aria-label="Breadcrumb">
       {items.map((item, index) => (
         <div key={index} className="flex items-center gap-1">
-          {index > 0 && (
-            <span className="h-4 w-4 text-muted-foreground/50">›</span>
-          )}
+          {index > 0 && <span className="h-4 w-4 text-muted-foreground/50">›</span>}
           {item.href ? (
             <button
               onClick={() => navigate(item.href!)}
@@ -176,9 +183,7 @@ export const TalentPoolBreadcrumb = ({ items }: TalentPoolBreadcrumbProps) => {
               {item.label}
             </button>
           ) : (
-            <span className="text-foreground font-medium truncate max-w-[200px]">
-              {item.label}
-            </span>
+            <span className="text-foreground font-medium truncate max-w-[200px]">{item.label}</span>
           )}
         </div>
       ))}
