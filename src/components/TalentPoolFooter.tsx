@@ -1,13 +1,8 @@
-import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { WaitlistDialog } from "@/components/WaitlistDialog";
-import { DeveloperDialog } from "@/components/DeveloperDialog";
 import { ElixaLogo } from "@/components/ElixaLogo";
 
 export const TalentPoolFooter = () => {
   const navigate = useNavigate();
-  const [waitlistOpen, setWaitlistOpen] = useState(false);
-  const [developerOpen, setDeveloperOpen] = useState(false);
 
   return (
     <>
@@ -82,20 +77,20 @@ export const TalentPoolFooter = () => {
               <h3 className="font-semibold text-sm md:text-base">Get Started</h3>
               <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <li>
-                  <button
-                    onClick={() => setWaitlistOpen(true)}
+                  <Link
+                    to="/waitlist"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     Join the Waitlist
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button
-                    onClick={() => setDeveloperOpen(true)}
+                  <Link
+                    to="/developers"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
                     Become an Agent Developer
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -106,9 +101,6 @@ export const TalentPoolFooter = () => {
           </div>
         </div>
       </footer>
-
-      <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
-      <DeveloperDialog open={developerOpen} onOpenChange={setDeveloperOpen} />
     </>
   );
 };
