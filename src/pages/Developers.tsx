@@ -294,7 +294,7 @@ const Developers = () => {
         </div>
       </section>
 
-      <TalentPoolFooter />
+      <TalentPoolFooter hideTopSpacing />
     </div>
   );
 };
