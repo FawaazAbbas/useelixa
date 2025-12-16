@@ -116,7 +116,7 @@ const Waitlist = () => {
       <TalentPoolNavbar showSearch={false} />
       
       {/* Main Section - Hero + Form integrated */}
-      <section className="relative min-h-[calc(100vh-80px)] pt-20 sm:pt-24 pb-12 overflow-hidden">
+      <section className="relative pt-20 sm:pt-24 pb-12 overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-background" />
         <div className="absolute top-20 left-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-violet-500/20 rounded-full blur-[100px] animate-pulse" />
