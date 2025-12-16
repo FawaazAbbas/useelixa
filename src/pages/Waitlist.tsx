@@ -246,77 +246,72 @@ const Waitlist = () => {
                         <ElixaLogo size={24} color="#ffffff" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-foreground">
-                          {step === 1 ? "Join the Waitlist" : "One More Step"}
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                          {step === 1 
-                            ? "Be among the first to access Elixa" 
-                            : "Invite someone to unlock your spot"
-                          }
+                        <p className="text-xs font-semibold text-violet-500 uppercase tracking-wider mb-1">
+                          Enjoying the Demo?
                         </p>
+                        <h2 className="text-xl font-bold text-foreground">
+                          {step === 1 ? "Be invited to use Elixa now!" : "One More Step"}
+                        </h2>
                       </div>
                     </div>
 
                     {step === 1 && !step1Complete && (
                       <div className="space-y-4 animate-in fade-in duration-300">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="name" className="text-sm font-medium">
-                              Full name <span className="text-violet-500">*</span>
-                            </Label>
-                            <Input
-                              id="name"
-                              placeholder="Your full name"
-                              value={name}
-                              onChange={(e) => setName(e.target.value)}
-                              required
-                              className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-medium">
-                              Email <span className="text-violet-500">*</span>
-                            </Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="you@company.com"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              required
-                              className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="name" className="text-sm font-medium">
+                            Full name <span className="text-violet-500">*</span>
+                          </Label>
+                          <Input
+                            id="name"
+                            placeholder="Your full name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                            className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
+                          />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="industry" className="text-sm font-medium">
-                              Industry <span className="text-violet-500">*</span>
-                            </Label>
-                            <Input
-                              id="industry"
-                              placeholder="e.g. E-commerce, SaaS"
-                              value={industry}
-                              onChange={(e) => setIndustry(e.target.value)}
-                              required
-                              className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="position" className="text-sm font-medium">
-                              Position <span className="text-violet-500">*</span>
-                            </Label>
-                            <Input
-                              id="position"
-                              placeholder="e.g. CEO, Manager"
-                              value={position}
-                              onChange={(e) => setPosition(e.target.value)}
-                              required
-                              className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
-                            />
-                          </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email" className="text-sm font-medium">
+                            Contact email <span className="text-violet-500">*</span>
+                          </Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="you@company.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="industry" className="text-sm font-medium">
+                            Industry <span className="text-violet-500">*</span>
+                          </Label>
+                          <Input
+                            id="industry"
+                            placeholder="Your industry"
+                            value={industry}
+                            onChange={(e) => setIndustry(e.target.value)}
+                            required
+                            className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="position" className="text-sm font-medium">
+                            Position <span className="text-violet-500">*</span>
+                          </Label>
+                          <Input
+                            id="position"
+                            placeholder="e.g. CEO, Marketing Manager"
+                            value={position}
+                            onChange={(e) => setPosition(e.target.value)}
+                            required
+                            className="h-11 rounded-xl border-border focus:border-violet-500 focus:ring-violet-500/20"
+                          />
                         </div>
 
                         <Button
@@ -328,12 +323,13 @@ const Waitlist = () => {
                           {isLoading ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
                           ) : (
-                            <>
-                              Continue
-                              <ArrowRight className="w-4 h-4 ml-2" />
-                            </>
+                            "Join Elixa"
                           )}
                         </Button>
+
+                        <p className="text-center text-muted-foreground text-xs">
+                          Scale your success with Elixa • No credit card required
+                        </p>
                       </div>
                     )}
 
@@ -342,7 +338,7 @@ const Waitlist = () => {
                         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30 animate-scale-in">
                           <Check className="w-8 h-8 text-white" strokeWidth={3} />
                         </div>
-                        <p className="text-base font-semibold text-green-600 mt-3">Step 1 complete!</p>
+                        <p className="text-base font-semibold text-green-600 mt-3">✓ Step 1 complete</p>
                       </div>
                     )}
 
@@ -357,13 +353,13 @@ const Waitlist = () => {
                             <h3 className="text-base font-semibold text-foreground">Elixa is invite-only</h3>
                           </div>
                           <p className="text-sm text-muted-foreground">
-                            To secure your spot, invite someone who would benefit from Elixa. Pay it forward!
+                            To be invited, you must invite someone else. Pay it forward!
                           </p>
                         </div>
 
                         <div className="space-y-2">
                           <Label htmlFor="inviteEmail" className="text-sm font-medium">
-                            Invite a colleague or friend <span className="text-violet-500">*</span>
+                            Who would benefit from Elixa? <span className="text-violet-500">*</span>
                           </Label>
                           <Input
                             id="inviteEmail"
@@ -388,7 +384,7 @@ const Waitlist = () => {
                             <Loader2 className="w-5 h-5 animate-spin" />
                           ) : (
                             <>
-                              <Sparkles className="w-4 h-4 mr-2" />
+                              <ArrowRight className="w-4 h-4 mr-2" />
                               Send Invite & Join Waitlist
                             </>
                           )}
@@ -403,11 +399,9 @@ const Waitlist = () => {
                     </div>
                     <div className="text-center space-y-2">
                       <h3 className="text-2xl font-bold text-foreground">
-                        You're on the list!
+                        You've successfully joined the waiting list!
                       </h3>
-                      <p className="text-muted-foreground">
-                        We'll be in touch soon with early access details.
-                      </p>
+                      <p className="text-muted-foreground">We'll be in touch very soon.</p>
                     </div>
 
                     <div className="pt-4 border-t border-border w-full max-w-xs">
