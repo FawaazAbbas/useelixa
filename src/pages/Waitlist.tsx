@@ -348,7 +348,7 @@ const Waitlist = () => {
         </div>
       </section>
 
-      <TalentPoolFooter />
+      <TalentPoolFooter hideTopSpacing />
     </div>
   );
 };

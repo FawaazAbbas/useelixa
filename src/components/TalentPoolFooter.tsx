@@ -1,12 +1,16 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
 
-export const TalentPoolFooter = () => {
+interface TalentPoolFooterProps {
+  hideTopSpacing?: boolean;
+}
+
+export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterProps) => {
   const navigate = useNavigate();
 
   return (
     <>
-      <footer className="border-t border-border/50 bg-muted/30 mt-12 md:mt-20">
+      <footer className={`border-t border-border/50 bg-muted/30 ${hideTopSpacing ? '' : 'mt-12 md:mt-20'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 md:gap-8">
             {/* Brand - Full width on mobile */}
