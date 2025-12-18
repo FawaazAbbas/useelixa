@@ -63,19 +63,6 @@ export const trackWaitlistPopupClose = (step: number): void => {
   });
 };
 
-export const trackWaitlistStep1Complete = (): void => {
-  trackEvent({
-    action: 'waitlist_step1_complete',
-    category: 'conversion',
-  });
-};
-
-export const trackWaitlistStep2Complete = (): void => {
-  trackEvent({
-    action: 'waitlist_step2_complete',
-    category: 'conversion',
-  });
-};
 
 // Workspace tracking
 export const trackWorkspaceView = (section: string): void => {

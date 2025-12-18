@@ -8,47 +8,35 @@ import { Card, CardContent } from "@/components/ui/card";
 import { 
   Check, 
   Loader2, 
-  ArrowRight, 
   Users, 
   Bot,
-  Sparkles
+  Sparkles,
+  Unlock
 } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  trackWaitlistSignup,
-  trackWaitlistStep1Complete,
-  trackWaitlistStep2Complete,
-} from "@/utils/analytics";
+import { trackWaitlistSignup } from "@/utils/analytics";
 
 const Waitlist = () => {
-  const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("");
   const [position, setPosition] = useState("");
-  const [inviteEmail, setInviteEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [step1Complete, setStep1Complete] = useState(false);
-  const [currentSignupId, setCurrentSignupId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const isStep1Valid = name.trim() && email.trim() && industry.trim() && position.trim();
-  const isStep2Valid = inviteEmail.trim() && inviteEmail.includes("@");
+  const isFormValid = name.trim() && email.trim() && industry.trim() && position.trim();
 
-  const handleStep1Continue = async () => {
-    if (!isStep1Valid) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid) return;
     setIsLoading(true);
     
     try {
-      const signupId = crypto.randomUUID();
-      setCurrentSignupId(signupId);
-      
       const { error: signupError } = await supabase.from("waitlist_signups").insert([
         {
-          id: signupId,
           name: name.trim(),
           email: email.trim(),
           company: industry || null,
@@ -56,44 +44,20 @@ const Waitlist = () => {
         },
       ]);
 
-      if (signupError) throw signupError;
+      if (signupError) {
+        // Check for duplicate email error (unique constraint violation)
+        if (signupError.code === '23505') {
+          toast({
+            title: "Already on the list!",
+            description: "This email is already registered for early access.",
+          });
+          setIsLoading(false);
+          return;
+        }
+        throw signupError;
+      }
       
-      trackWaitlistStep1Complete();
-      setStep1Complete(true);
-      setTimeout(() => setStep(2), 400);
-    } catch (error) {
-      console.error("Step 1 signup error:", error);
-      toast({
-        title: "Something went wrong",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isStep2Valid || !currentSignupId) return;
-
-    setIsLoading(true);
-
-    try {
-      const { error: inviteError } = await supabase.from("waitlist_invites").insert([
-        {
-          waitlist_signup_id: currentSignupId,
-          invitee_email: inviteEmail.trim(),
-          inviter_email: email.trim(),
-          inviter_name: name.trim(),
-        },
-      ]);
-
-      if (inviteError) throw inviteError;
-
       trackWaitlistSignup(email.trim());
-      trackWaitlistStep2Complete();
-
       setSubmitted(true);
       toast({
         title: "You're on the list!",
@@ -171,7 +135,7 @@ const Waitlist = () => {
                 <div className="h-1 bg-muted overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-violet-500 to-purple-600 transition-all duration-500"
-                    style={{ width: submitted ? "100%" : step === 1 ? "50%" : "75%" }}
+                    style={{ width: "100%" }}
                   />
                 </div>
 
@@ -184,141 +148,90 @@ const Waitlist = () => {
                           <ElixaLogo size={22} color="#ffffff" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-semibold text-violet-500 uppercase tracking-widest mb-1">
-                            Step {step} of 2
-                          </p>
                           <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                            {step === 1 ? "Join the Waitlist" : "Almost There!"}
+                            Join the Waitlist
                           </h2>
                         </div>
                       </div>
 
-                      {step === 1 && !step1Complete && (
-                        <div className="space-y-4 animate-in fade-in duration-300">
-                          <div className="space-y-3">
-                            <div className="space-y-1.5">
-                              <Label htmlFor="name" className="text-xs font-medium">
-                                Full name <span className="text-violet-500">*</span>
-                              </Label>
-                              <Input
-                                id="name"
-                                placeholder="Your full name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                required
-                                className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
-                              />
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label htmlFor="email" className="text-xs font-medium">
-                                Email <span className="text-violet-500">*</span>
-                              </Label>
-                              <Input
-                                id="email"
-                                type="email"
-                                placeholder="you@company.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-1.5">
-                                <Label htmlFor="industry" className="text-xs font-medium">
-                                  Industry <span className="text-violet-500">*</span>
-                                </Label>
-                                <Input
-                                  id="industry"
-                                  placeholder="e.g. Tech"
-                                  value={industry}
-                                  onChange={(e) => setIndustry(e.target.value)}
-                                  required
-                                  className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
-                                />
-                              </div>
-
-                              <div className="space-y-1.5">
-                                <Label htmlFor="position" className="text-xs font-medium">
-                                  Position <span className="text-violet-500">*</span>
-                                </Label>
-                                <Input
-                                  id="position"
-                                  placeholder="e.g. CEO"
-                                  value={position}
-                                  onChange={(e) => setPosition(e.target.value)}
-                                  required
-                                  className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          <Button
-                            type="button"
-                            onClick={handleStep1Continue}
-                            disabled={!isStep1Valid || isLoading}
-                            className="w-full h-11 text-sm bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl rounded-lg"
-                          >
-                            {isLoading ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <>
-                                Continue
-                                <ArrowRight className="w-4 h-4 ml-2" />
-                              </>
-                            )}
-                          </Button>
-
-                          <p className="text-center text-muted-foreground text-[10px]">
-                            No credit card required • Free forever
-                          </p>
-                        </div>
-                      )}
-
-                      {step === 2 && (
-                        <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-300">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-violet-500/10 border border-violet-500/20 text-xs">
-                            <Check className="w-4 h-4 text-violet-500 flex-shrink-0" />
-                            <span className="text-violet-700 dark:text-violet-300">Profile saved for {name}</span>
-                          </div>
-
+                      <form onSubmit={handleSubmit} className="space-y-4 animate-in fade-in duration-300">
+                        <div className="space-y-3">
                           <div className="space-y-1.5">
-                            <Label htmlFor="inviteEmail" className="text-xs font-medium">
-                              Invite a founder to unlock access <span className="text-violet-500">*</span>
+                            <Label htmlFor="name" className="text-xs font-medium">
+                              Full name <span className="text-violet-500">*</span>
                             </Label>
                             <Input
-                              id="inviteEmail"
-                              type="email"
-                              placeholder="founder@company.com"
-                              value={inviteEmail}
-                              onChange={(e) => setInviteEmail(e.target.value)}
+                              id="name"
+                              placeholder="Your full name"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
                               required
                               className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
                             />
-                            <p className="text-[10px] text-muted-foreground">
-                              Elixa is invite-only. Invite someone to complete your application.
-                            </p>
                           </div>
 
-                          <Button
-                            type="submit"
-                            disabled={!isStep2Valid || isLoading}
-                            className="w-full h-11 text-sm bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl rounded-lg"
-                          >
-                            {isLoading ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <>
-                                Unlock Elixa
-                                <Sparkles className="w-4 h-4 ml-2" />
-                              </>
-                            )}
-                          </Button>
-                        </form>
-                      )}
+                          <div className="space-y-1.5">
+                            <Label htmlFor="email" className="text-xs font-medium">
+                              Email <span className="text-violet-500">*</span>
+                            </Label>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="you@company.com"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              required
+                              className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label htmlFor="industry" className="text-xs font-medium">
+                                Industry <span className="text-violet-500">*</span>
+                              </Label>
+                              <Input
+                                id="industry"
+                                placeholder="e.g. Tech"
+                                value={industry}
+                                onChange={(e) => setIndustry(e.target.value)}
+                                required
+                                className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label htmlFor="position" className="text-xs font-medium">
+                                Position <span className="text-violet-500">*</span>
+                              </Label>
+                              <Input
+                                id="position"
+                                placeholder="e.g. CEO"
+                                value={position}
+                                onChange={(e) => setPosition(e.target.value)}
+                                required
+                                className="h-10 rounded-lg border-border bg-background text-sm focus:border-violet-500 focus:ring-violet-500/20"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          type="submit"
+                          disabled={!isFormValid || isLoading}
+                          className="w-full h-11 text-sm bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl rounded-lg"
+                        >
+                          {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            "Join Elixa"
+                          )}
+                        </Button>
+
+                        <p className="text-center text-muted-foreground text-[10px]">
+                          No credit card required • Free forever
+                        </p>
+                      </form>
                     </>
                   ) : (
                     <div className="text-center py-6 animate-in fade-in duration-500">
@@ -335,8 +248,8 @@ const Waitlist = () => {
                           <span>Profile complete</span>
                         </div>
                         <div className="flex items-center justify-center gap-2">
-                          <Check className="w-3 h-3 text-violet-500" />
-                          <span>Invite sent</span>
+                          <Unlock className="w-3 h-3 text-violet-500" />
+                          <span>Workspace unlocking soon...</span>
                         </div>
                       </div>
                     </div>
