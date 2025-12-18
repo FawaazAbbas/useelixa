@@ -5,14 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Check, 
-  Loader2, 
-  Users, 
-  Bot,
-  Sparkles,
-  Unlock
-} from "lucide-react";
+import { Check, Loader2, Users, Bot, Sparkles, Unlock } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +26,7 @@ const Waitlist = () => {
     e.preventDefault();
     if (!isFormValid) return;
     setIsLoading(true);
-    
+
     try {
       const { error: signupError } = await supabase.from("waitlist_signups").insert([
         {
@@ -46,7 +39,7 @@ const Waitlist = () => {
 
       if (signupError) {
         // Check for duplicate email error (unique constraint violation)
-        if (signupError.code === '23505') {
+        if (signupError.code === "23505") {
           toast({
             title: "Already on the list!",
             description: "This email is already registered for early access.",
@@ -56,7 +49,7 @@ const Waitlist = () => {
         }
         throw signupError;
       }
-      
+
       trackWaitlistSignup(email.trim());
       setSubmitted(true);
       toast({
@@ -78,26 +71,30 @@ const Waitlist = () => {
   return (
     <div className="min-h-screen bg-background">
       <TalentPoolNavbar showSearch={false} />
-      
+
       {/* Main Section - Hero + Form integrated */}
       <section className="relative pt-20 sm:pt-24 pb-12 overflow-hidden">
         {/* Background effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-background" />
         <div className="absolute top-20 left-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-violet-500/20 rounded-full blur-[100px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bg-purple-500/15 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className="absolute bottom-0 right-1/4 w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bg-purple-500/15 rounded-full blur-[80px] animate-pulse"
+          style={{ animationDelay: "1s" }}
+        />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
-        
+
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-            
             {/* Left: Content */}
             <div className="text-center lg:text-left pt-4 lg:pt-12">
               {/* Badge */}
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 mb-6 backdrop-blur-sm">
                 <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
-                <span className="text-xs sm:text-sm font-medium text-violet-600 dark:text-violet-400">Limited Early Access</span>
+                <span className="text-xs sm:text-sm font-medium text-violet-600 dark:text-violet-400">
+                  Limited Early Access
+                </span>
               </div>
-              
+
               {/* Headline */}
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight mb-4 sm:mb-6">
                 <span className="bg-gradient-to-r from-violet-500 via-purple-500 to-violet-600 bg-clip-text text-transparent">
@@ -106,7 +103,7 @@ const Waitlist = () => {
                 <br />
                 <span className="text-foreground">Never Sleeps</span>
               </h1>
-              
+
               <p className="text-base sm:text-lg lg:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed">
                 Join thousands waiting to transform their operations with AI employees that actually get work done.
               </p>
@@ -120,10 +117,6 @@ const Waitlist = () => {
                 <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border text-sm">
                   <Bot className="w-4 h-4 text-violet-500" />
                   <span className="font-medium">95+ agents</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card/80 backdrop-blur-sm border border-border text-sm">
-                  <Sparkles className="w-4 h-4 text-violet-500" />
-                  <span className="font-medium">Q1 2025</span>
                 </div>
               </div>
             </div>
@@ -148,9 +141,7 @@ const Waitlist = () => {
                           <ElixaLogo size={22} color="#ffffff" />
                         </div>
                         <div>
-                          <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                            Join the Waitlist
-                          </h2>
+                          <h2 className="text-lg sm:text-xl font-bold text-foreground">Join the Waitlist</h2>
                         </div>
                       </div>
 
@@ -221,11 +212,7 @@ const Waitlist = () => {
                           disabled={!isFormValid || isLoading}
                           className="w-full h-11 text-sm bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl rounded-lg"
                         >
-                          {isLoading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            "Join Elixa"
-                          )}
+                          {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Join Elixa"}
                         </Button>
 
                         <p className="text-center text-muted-foreground text-[10px]">
