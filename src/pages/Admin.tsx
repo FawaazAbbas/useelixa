@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -34,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2 } from "lucide-react";
+import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,6 +84,13 @@ const Admin = () => {
   const [deletingWaitlist, setDeletingWaitlist] = useState<WaitlistSignup | null>(null);
   const [deletingDeveloper, setDeletingDeveloper] = useState<DeveloperApplication | null>(null);
 
+  // Bulk selection state
+  const [selectedWaitlist, setSelectedWaitlist] = useState<Set<string>>(new Set());
+  const [selectedDevelopers, setSelectedDevelopers] = useState<Set<string>>(new Set());
+  const [bulkDeleteWaitlist, setBulkDeleteWaitlist] = useState(false);
+  const [bulkDeleteDevelopers, setBulkDeleteDevelopers] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
   const fetchData = async () => {
     setRefreshing(true);
     try {
@@ -99,6 +107,10 @@ const Admin = () => {
 
       if (waitlistRes.data) setWaitlistSignups(waitlistRes.data);
       if (developerRes.data) setDeveloperApplications(developerRes.data);
+      
+      // Clear selections on refresh
+      setSelectedWaitlist(new Set());
+      setSelectedDevelopers(new Set());
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch data");
@@ -162,6 +174,34 @@ const Admin = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `${filename}_${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
+  };
+
+  const downloadTemplate = (type: "waitlist" | "developers") => {
+    let csvContent: string;
+    let filename: string;
+
+    if (type === "waitlist") {
+      csvContent = [
+        "name,email,company,use_case",
+        "John Doe,john@example.com,Acme Inc,Looking to automate customer support",
+        "Jane Smith,jane@example.com,StartupXYZ,Want to streamline workflows"
+      ].join("\n");
+      filename = "waitlist_template.csv";
+    } else {
+      csvContent = [
+        "name,email,skills,message",
+        "Alex Developer,alex@example.com,\"React; TypeScript; Node.js\",Excited to contribute to the platform",
+        "Sam Coder,sam@example.com,\"Python; Machine Learning\",Looking to build AI integrations"
+      ].join("\n");
+      filename = "developers_template.csv";
+    }
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    toast.success("Template downloaded");
   };
 
   const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,6 +313,47 @@ const Admin = () => {
     return result;
   };
 
+  // Selection handlers
+  const toggleWaitlistSelection = (id: string) => {
+    setSelectedWaitlist(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleDeveloperSelection = (id: string) => {
+    setSelectedDevelopers(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllWaitlist = () => {
+    if (selectedWaitlist.size === filteredWaitlist.length) {
+      setSelectedWaitlist(new Set());
+    } else {
+      setSelectedWaitlist(new Set(filteredWaitlist.map(s => s.id)));
+    }
+  };
+
+  const toggleAllDevelopers = () => {
+    if (selectedDevelopers.size === filteredDevelopers.length) {
+      setSelectedDevelopers(new Set());
+    } else {
+      setSelectedDevelopers(new Set(filteredDevelopers.map(d => d.id)));
+    }
+  };
+
   // Edit handlers
   const handleEditWaitlist = (signup: WaitlistSignup) => {
     setEditingWaitlist(signup);
@@ -377,6 +458,51 @@ const Admin = () => {
     }
   };
 
+  // Bulk delete handlers
+  const handleBulkDeleteWaitlist = async () => {
+    if (selectedWaitlist.size === 0) return;
+    setBulkDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from("waitlist_signups")
+        .delete()
+        .in("id", Array.from(selectedWaitlist));
+
+      if (error) throw error;
+      toast.success(`Deleted ${selectedWaitlist.size} waitlist signups`);
+      setBulkDeleteWaitlist(false);
+      setSelectedWaitlist(new Set());
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleBulkDeleteDevelopers = async () => {
+    if (selectedDevelopers.size === 0) return;
+    setBulkDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from("developer_applications")
+        .delete()
+        .in("id", Array.from(selectedDevelopers));
+
+      if (error) throw error;
+      toast.success(`Deleted ${selectedDevelopers.size} developer applications`);
+      setBulkDeleteDevelopers(false);
+      setSelectedDevelopers(new Set());
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   if (adminLoading || loadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -466,47 +592,80 @@ const Admin = () => {
           <TabsContent value="waitlist" className="space-y-4">
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <CardTitle className="text-base sm:text-lg">Waitlist Signups</CardTitle>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search..."
-                        value={waitlistSearch}
-                        onChange={(e) => setWaitlistSearch(e.target.value)}
-                        className="pl-9 w-full sm:w-64"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        accept=".csv"
-                        ref={fileInputRef}
-                        onChange={handleCSVImport}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={importing}
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {importing ? "Importing..." : "Import CSV"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToCSV(filteredWaitlist, "waitlist")}
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                      </Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="text-base sm:text-lg">Waitlist Signups</CardTitle>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search..."
+                          value={waitlistSearch}
+                          onChange={(e) => setWaitlistSearch(e.target.value)}
+                          className="pl-9 w-full sm:w-64"
+                        />
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <input
+                          type="file"
+                          accept=".csv"
+                          ref={fileInputRef}
+                          onChange={handleCSVImport}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadTemplate("waitlist")}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Template
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={importing}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {importing ? "..." : "Import"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportToCSV(filteredWaitlist, "waitlist")}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                  {selectedWaitlist.size > 0 && (
+                    <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedWaitlist.size} selected
+                      </span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setBulkDeleteWaitlist(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Selected
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedWaitlist(new Set())}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
@@ -514,6 +673,13 @@ const Admin = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-[40px]">
+                          <Checkbox
+                            checked={filteredWaitlist.length > 0 && selectedWaitlist.size === filteredWaitlist.length}
+                            onCheckedChange={toggleAllWaitlist}
+                            aria-label="Select all"
+                          />
+                        </TableHead>
                         <TableHead className="whitespace-nowrap">Name</TableHead>
                         <TableHead className="whitespace-nowrap">Email</TableHead>
                         <TableHead className="whitespace-nowrap hidden md:table-cell">Company</TableHead>
@@ -525,13 +691,20 @@ const Admin = () => {
                     <TableBody>
                       {filteredWaitlist.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             No waitlist signups found
                           </TableCell>
                         </TableRow>
                       ) : (
                         filteredWaitlist.map((signup) => (
-                          <TableRow key={signup.id}>
+                          <TableRow key={signup.id} className={selectedWaitlist.has(signup.id) ? "bg-muted/50" : ""}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedWaitlist.has(signup.id)}
+                                onCheckedChange={() => toggleWaitlistSelection(signup.id)}
+                                aria-label={`Select ${signup.name}`}
+                              />
+                            </TableCell>
                             <TableCell className="font-medium whitespace-nowrap">{signup.name}</TableCell>
                             <TableCell className="whitespace-nowrap text-xs sm:text-sm">{signup.email}</TableCell>
                             <TableCell className="hidden md:table-cell">{signup.company || "-"}</TableCell>
@@ -575,47 +748,80 @@ const Admin = () => {
           <TabsContent value="developers" className="space-y-4">
             <Card>
               <CardHeader className="p-3 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <CardTitle className="text-base sm:text-lg">Developer Applications</CardTitle>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search..."
-                        value={developerSearch}
-                        onChange={(e) => setDeveloperSearch(e.target.value)}
-                        className="pl-9 w-full sm:w-64"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        accept=".csv"
-                        ref={fileInputRef}
-                        onChange={handleCSVImport}
-                        className="hidden"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={importing}
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {importing ? "Importing..." : "Import CSV"}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => exportToCSV(filteredDevelopers, "developers")}
-                        className="flex-1 sm:flex-none"
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                      </Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <CardTitle className="text-base sm:text-lg">Developer Applications</CardTitle>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search..."
+                          value={developerSearch}
+                          onChange={(e) => setDeveloperSearch(e.target.value)}
+                          className="pl-9 w-full sm:w-64"
+                        />
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <input
+                          type="file"
+                          accept=".csv"
+                          ref={fileInputRef}
+                          onChange={handleCSVImport}
+                          className="hidden"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadTemplate("developers")}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Template
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={importing}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {importing ? "..." : "Import"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => exportToCSV(filteredDevelopers, "developers")}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Export
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                  {selectedDevelopers.size > 0 && (
+                    <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                      <span className="text-sm text-muted-foreground">
+                        {selectedDevelopers.size} selected
+                      </span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setBulkDeleteDevelopers(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Selected
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedDevelopers(new Set())}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
@@ -623,6 +829,13 @@ const Admin = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-[40px]">
+                          <Checkbox
+                            checked={filteredDevelopers.length > 0 && selectedDevelopers.size === filteredDevelopers.length}
+                            onCheckedChange={toggleAllDevelopers}
+                            aria-label="Select all"
+                          />
+                        </TableHead>
                         <TableHead className="whitespace-nowrap">Name</TableHead>
                         <TableHead className="whitespace-nowrap">Email</TableHead>
                         <TableHead className="whitespace-nowrap hidden md:table-cell">Skills</TableHead>
@@ -634,13 +847,20 @@ const Admin = () => {
                     <TableBody>
                       {filteredDevelopers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             No developer applications found
                           </TableCell>
                         </TableRow>
                       ) : (
                         filteredDevelopers.map((app) => (
-                          <TableRow key={app.id}>
+                          <TableRow key={app.id} className={selectedDevelopers.has(app.id) ? "bg-muted/50" : ""}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedDevelopers.has(app.id)}
+                                onCheckedChange={() => toggleDeveloperSelection(app.id)}
+                                aria-label={`Select ${app.name}`}
+                              />
+                            </TableCell>
                             <TableCell className="font-medium whitespace-nowrap">{app.name}</TableCell>
                             <TableCell className="whitespace-nowrap text-xs sm:text-sm">{app.email}</TableCell>
                             <TableCell className="hidden md:table-cell">
@@ -833,6 +1053,50 @@ const Admin = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteDeveloper} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Waitlist Confirmation */}
+      <AlertDialog open={bulkDeleteWaitlist} onOpenChange={setBulkDeleteWaitlist}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedWaitlist.size} Waitlist Signups</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedWaitlist.size} selected waitlist signups? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBulkDeleteWaitlist} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={bulkDeleting}
+            >
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedWaitlist.size} entries`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Developers Confirmation */}
+      <AlertDialog open={bulkDeleteDevelopers} onOpenChange={setBulkDeleteDevelopers}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedDevelopers.size} Developer Applications</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedDevelopers.size} selected developer applications? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBulkDeleteDevelopers} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={bulkDeleting}
+            >
+              {bulkDeleting ? "Deleting..." : `Delete ${selectedDevelopers.size} entries`}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
