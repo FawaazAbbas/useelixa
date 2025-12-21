@@ -144,26 +144,27 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">
               Manage waitlist signups and developer applications
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={fetchData}
               disabled={refreshing}
+              className="flex-1 sm:flex-none"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="flex-1 sm:flex-none">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -171,32 +172,32 @@ const Admin = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-6 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
                 Waitlist Signups
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{waitlistSignups.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-2xl sm:text-3xl font-bold">{waitlistSignups.length}</div>
+              <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 Total people on the waitlist
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Developer Applications
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-3 sm:p-6 sm:pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Developer Apps
               </CardTitle>
               <Code className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{developerApplications.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+              <div className="text-2xl sm:text-3xl font-bold">{developerApplications.length}</div>
+              <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
                 Total developer applications
               </p>
             </CardContent>
@@ -205,11 +206,11 @@ const Admin = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="waitlist" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="waitlist">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="waitlist" className="flex-1 sm:flex-none text-xs sm:text-sm">
               Waitlist ({waitlistSignups.length})
             </TabsTrigger>
-            <TabsTrigger value="developers">
+            <TabsTrigger value="developers" className="flex-1 sm:flex-none text-xs sm:text-sm">
               Developers ({developerApplications.length})
             </TabsTrigger>
           </TabsList>
@@ -217,23 +218,24 @@ const Admin = () => {
           {/* Waitlist Tab */}
           <TabsContent value="waitlist" className="space-y-4">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Waitlist Signups</CardTitle>
-                  <div className="flex items-center gap-2">
+              <CardHeader className="p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <CardTitle className="text-base sm:text-lg">Waitlist Signups</CardTitle>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search..."
                         value={waitlistSearch}
                         onChange={(e) => setWaitlistSearch(e.target.value)}
-                        className="pl-9 w-64"
+                        className="pl-9 w-full sm:w-64"
                       />
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => exportToCSV(filteredWaitlist, "waitlist")}
+                      className="w-full sm:w-auto"
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Export CSV
@@ -241,16 +243,16 @@ const Admin = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
+              <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Company</TableHead>
-                        <TableHead>Use Case</TableHead>
-                        <TableHead>Signed Up</TableHead>
+                        <TableHead className="whitespace-nowrap">Name</TableHead>
+                        <TableHead className="whitespace-nowrap">Email</TableHead>
+                        <TableHead className="whitespace-nowrap hidden md:table-cell">Company</TableHead>
+                        <TableHead className="whitespace-nowrap hidden lg:table-cell">Use Case</TableHead>
+                        <TableHead className="whitespace-nowrap">Signed Up</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -263,13 +265,13 @@ const Admin = () => {
                       ) : (
                         filteredWaitlist.map((signup) => (
                           <TableRow key={signup.id}>
-                            <TableCell className="font-medium">{signup.name}</TableCell>
-                            <TableCell>{signup.email}</TableCell>
-                            <TableCell>{signup.company || "-"}</TableCell>
-                            <TableCell className="max-w-xs truncate">
+                            <TableCell className="font-medium whitespace-nowrap">{signup.name}</TableCell>
+                            <TableCell className="whitespace-nowrap text-xs sm:text-sm">{signup.email}</TableCell>
+                            <TableCell className="hidden md:table-cell">{signup.company || "-"}</TableCell>
+                            <TableCell className="max-w-xs truncate hidden lg:table-cell">
                               {signup.use_case || "-"}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                               {format(new Date(signup.created_at), "MMM d, yyyy")}
                             </TableCell>
                           </TableRow>
@@ -285,23 +287,24 @@ const Admin = () => {
           {/* Developers Tab */}
           <TabsContent value="developers" className="space-y-4">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Developer Applications</CardTitle>
-                  <div className="flex items-center gap-2">
+              <CardHeader className="p-3 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <CardTitle className="text-base sm:text-lg">Developer Applications</CardTitle>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Search..."
                         value={developerSearch}
                         onChange={(e) => setDeveloperSearch(e.target.value)}
-                        className="pl-9 w-64"
+                        className="pl-9 w-full sm:w-64"
                       />
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => exportToCSV(filteredDevelopers, "developers")}
+                      className="w-full sm:w-auto"
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Export CSV
@@ -309,16 +312,16 @@ const Admin = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
+              <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Skills</TableHead>
-                        <TableHead>Message</TableHead>
-                        <TableHead>Applied</TableHead>
+                        <TableHead className="whitespace-nowrap">Name</TableHead>
+                        <TableHead className="whitespace-nowrap">Email</TableHead>
+                        <TableHead className="whitespace-nowrap hidden md:table-cell">Skills</TableHead>
+                        <TableHead className="whitespace-nowrap hidden lg:table-cell">Message</TableHead>
+                        <TableHead className="whitespace-nowrap">Applied</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -331,9 +334,9 @@ const Admin = () => {
                       ) : (
                         filteredDevelopers.map((app) => (
                           <TableRow key={app.id}>
-                            <TableCell className="font-medium">{app.name}</TableCell>
-                            <TableCell>{app.email}</TableCell>
-                            <TableCell>
+                            <TableCell className="font-medium whitespace-nowrap">{app.name}</TableCell>
+                            <TableCell className="whitespace-nowrap text-xs sm:text-sm">{app.email}</TableCell>
+                            <TableCell className="hidden md:table-cell">
                               <div className="flex flex-wrap gap-1 max-w-xs">
                                 {app.skills?.slice(0, 3).map((skill) => (
                                   <Badge key={skill} variant="secondary" className="text-xs">
@@ -347,10 +350,10 @@ const Admin = () => {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="max-w-xs truncate">
+                            <TableCell className="max-w-xs truncate hidden lg:table-cell">
                               {app.message || "-"}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                               {format(new Date(app.created_at), "MMM d, yyyy")}
                             </TableCell>
                           </TableRow>
