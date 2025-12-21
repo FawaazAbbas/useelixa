@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown } from "lucide-react";
+import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
@@ -60,6 +60,10 @@ interface DeveloperApplication {
   created_at: string;
 }
 
+type SortDirection = "asc" | "desc" | null;
+type WaitlistSortKey = "name" | "email" | "company" | "created_at";
+type DeveloperSortKey = "name" | "email" | "created_at";
+
 const Admin = () => {
   const { isAdmin, loading: adminLoading } = useAdminAuth();
   const { signOut } = useAuth();
@@ -74,6 +78,19 @@ const Admin = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [importing, setImporting] = useState(false);
   const [activeTab, setActiveTab] = useState("waitlist");
+
+  // Sorting state
+  const [waitlistSortKey, setWaitlistSortKey] = useState<WaitlistSortKey | null>(null);
+  const [waitlistSortDir, setWaitlistSortDir] = useState<SortDirection>(null);
+  const [developerSortKey, setDeveloperSortKey] = useState<DeveloperSortKey | null>(null);
+  const [developerSortDir, setDeveloperSortDir] = useState<SortDirection>(null);
+
+  // Add new entry state
+  const [addingWaitlist, setAddingWaitlist] = useState(false);
+  const [addingDeveloper, setAddingDeveloper] = useState(false);
+  const [newWaitlistForm, setNewWaitlistForm] = useState({ name: "", email: "", company: "", use_case: "" });
+  const [newDeveloperForm, setNewDeveloperForm] = useState({ name: "", email: "", skills: "", message: "" });
+  const [saving, setSaving] = useState(false);
 
   // Edit state
   const [editingWaitlist, setEditingWaitlist] = useState<WaitlistSignup | null>(null);
@@ -131,21 +148,94 @@ const Admin = () => {
     navigate("/");
   };
 
-  const filteredWaitlist = waitlistSignups.filter(
-    (signup) =>
-      signup.name.toLowerCase().includes(waitlistSearch.toLowerCase()) ||
-      signup.email.toLowerCase().includes(waitlistSearch.toLowerCase()) ||
-      (signup.company?.toLowerCase().includes(waitlistSearch.toLowerCase()) ?? false)
-  );
+  // Sorting logic
+  const handleWaitlistSort = (key: WaitlistSortKey) => {
+    if (waitlistSortKey === key) {
+      if (waitlistSortDir === "asc") {
+        setWaitlistSortDir("desc");
+      } else if (waitlistSortDir === "desc") {
+        setWaitlistSortKey(null);
+        setWaitlistSortDir(null);
+      }
+    } else {
+      setWaitlistSortKey(key);
+      setWaitlistSortDir("asc");
+    }
+  };
 
-  const filteredDevelopers = developerApplications.filter(
-    (app) =>
-      app.name.toLowerCase().includes(developerSearch.toLowerCase()) ||
-      app.email.toLowerCase().includes(developerSearch.toLowerCase()) ||
-      (app.skills?.some((skill) =>
-        skill.toLowerCase().includes(developerSearch.toLowerCase())
-      ) ?? false)
-  );
+  const handleDeveloperSort = (key: DeveloperSortKey) => {
+    if (developerSortKey === key) {
+      if (developerSortDir === "asc") {
+        setDeveloperSortDir("desc");
+      } else if (developerSortDir === "desc") {
+        setDeveloperSortKey(null);
+        setDeveloperSortDir(null);
+      }
+    } else {
+      setDeveloperSortKey(key);
+      setDeveloperSortDir("asc");
+    }
+  };
+
+  const getSortIcon = (isActive: boolean, direction: SortDirection) => {
+    if (!isActive) return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+    if (direction === "asc") return <ArrowUp className="h-4 w-4 ml-1" />;
+    return <ArrowDown className="h-4 w-4 ml-1" />;
+  };
+
+  const filteredAndSortedWaitlist = useMemo(() => {
+    let result = waitlistSignups.filter(
+      (signup) =>
+        signup.name.toLowerCase().includes(waitlistSearch.toLowerCase()) ||
+        signup.email.toLowerCase().includes(waitlistSearch.toLowerCase()) ||
+        (signup.company?.toLowerCase().includes(waitlistSearch.toLowerCase()) ?? false)
+    );
+
+    if (waitlistSortKey && waitlistSortDir) {
+      result = [...result].sort((a, b) => {
+        let aVal = a[waitlistSortKey] ?? "";
+        let bVal = b[waitlistSortKey] ?? "";
+        
+        if (waitlistSortKey === "created_at") {
+          aVal = new Date(aVal).getTime().toString();
+          bVal = new Date(bVal).getTime().toString();
+        }
+        
+        const comparison = aVal.toString().localeCompare(bVal.toString());
+        return waitlistSortDir === "asc" ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [waitlistSignups, waitlistSearch, waitlistSortKey, waitlistSortDir]);
+
+  const filteredAndSortedDevelopers = useMemo(() => {
+    let result = developerApplications.filter(
+      (app) =>
+        app.name.toLowerCase().includes(developerSearch.toLowerCase()) ||
+        app.email.toLowerCase().includes(developerSearch.toLowerCase()) ||
+        (app.skills?.some((skill) =>
+          skill.toLowerCase().includes(developerSearch.toLowerCase())
+        ) ?? false)
+    );
+
+    if (developerSortKey && developerSortDir) {
+      result = [...result].sort((a, b) => {
+        let aVal = a[developerSortKey] ?? "";
+        let bVal = b[developerSortKey] ?? "";
+        
+        if (developerSortKey === "created_at") {
+          aVal = new Date(aVal).getTime().toString();
+          bVal = new Date(bVal).getTime().toString();
+        }
+        
+        const comparison = aVal.toString().localeCompare(bVal.toString());
+        return developerSortDir === "asc" ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [developerApplications, developerSearch, developerSortKey, developerSortDir]);
 
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
@@ -313,6 +403,65 @@ const Admin = () => {
     return result;
   };
 
+  // Add new entry handlers
+  const handleAddWaitlist = async () => {
+    if (!newWaitlistForm.name || !newWaitlistForm.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("waitlist_signups")
+        .insert({
+          name: newWaitlistForm.name,
+          email: newWaitlistForm.email,
+          company: newWaitlistForm.company || null,
+          use_case: newWaitlistForm.use_case || null,
+        });
+
+      if (error) throw error;
+      toast.success("Waitlist signup added");
+      setAddingWaitlist(false);
+      setNewWaitlistForm({ name: "", email: "", company: "", use_case: "" });
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAddDeveloper = async () => {
+    if (!newDeveloperForm.name || !newDeveloperForm.email) {
+      toast.error("Name and email are required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("developer_applications")
+        .insert({
+          name: newDeveloperForm.name,
+          email: newDeveloperForm.email,
+          skills: newDeveloperForm.skills ? newDeveloperForm.skills.split(",").map(s => s.trim()).filter(Boolean) : null,
+          message: newDeveloperForm.message || null,
+        });
+
+      if (error) throw error;
+      toast.success("Developer application added");
+      setAddingDeveloper(false);
+      setNewDeveloperForm({ name: "", email: "", skills: "", message: "" });
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to add");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Selection handlers
   const toggleWaitlistSelection = (id: string) => {
     setSelectedWaitlist(prev => {
@@ -339,18 +488,18 @@ const Admin = () => {
   };
 
   const toggleAllWaitlist = () => {
-    if (selectedWaitlist.size === filteredWaitlist.length) {
+    if (selectedWaitlist.size === filteredAndSortedWaitlist.length) {
       setSelectedWaitlist(new Set());
     } else {
-      setSelectedWaitlist(new Set(filteredWaitlist.map(s => s.id)));
+      setSelectedWaitlist(new Set(filteredAndSortedWaitlist.map(s => s.id)));
     }
   };
 
   const toggleAllDevelopers = () => {
-    if (selectedDevelopers.size === filteredDevelopers.length) {
+    if (selectedDevelopers.size === filteredAndSortedDevelopers.length) {
       setSelectedDevelopers(new Set());
     } else {
-      setSelectedDevelopers(new Set(filteredDevelopers.map(d => d.id)));
+      setSelectedDevelopers(new Set(filteredAndSortedDevelopers.map(d => d.id)));
     }
   };
 
@@ -614,6 +763,14 @@ const Admin = () => {
                           className="hidden"
                         />
                         <Button
+                          size="sm"
+                          onClick={() => setAddingWaitlist(true)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => downloadTemplate("waitlist")}
@@ -635,7 +792,7 @@ const Admin = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => exportToCSV(filteredWaitlist, "waitlist")}
+                          onClick={() => exportToCSV(filteredAndSortedWaitlist, "waitlist")}
                           className="flex-1 sm:flex-none"
                         >
                           <Download className="h-4 w-4 mr-2" />
@@ -675,28 +832,60 @@ const Admin = () => {
                       <TableRow>
                         <TableHead className="w-[40px]">
                           <Checkbox
-                            checked={filteredWaitlist.length > 0 && selectedWaitlist.size === filteredWaitlist.length}
+                            checked={filteredAndSortedWaitlist.length > 0 && selectedWaitlist.size === filteredAndSortedWaitlist.length}
                             onCheckedChange={toggleAllWaitlist}
                             aria-label="Select all"
                           />
                         </TableHead>
-                        <TableHead className="whitespace-nowrap">Name</TableHead>
-                        <TableHead className="whitespace-nowrap">Email</TableHead>
-                        <TableHead className="whitespace-nowrap hidden md:table-cell">Company</TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleWaitlistSort("name")}
+                        >
+                          <div className="flex items-center">
+                            Name
+                            {getSortIcon(waitlistSortKey === "name", waitlistSortDir)}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleWaitlistSort("email")}
+                        >
+                          <div className="flex items-center">
+                            Email
+                            {getSortIcon(waitlistSortKey === "email", waitlistSortDir)}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap hidden md:table-cell cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleWaitlistSort("company")}
+                        >
+                          <div className="flex items-center">
+                            Company
+                            {getSortIcon(waitlistSortKey === "company", waitlistSortDir)}
+                          </div>
+                        </TableHead>
                         <TableHead className="whitespace-nowrap hidden lg:table-cell">Use Case</TableHead>
-                        <TableHead className="whitespace-nowrap">Date</TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleWaitlistSort("created_at")}
+                        >
+                          <div className="flex items-center">
+                            Date
+                            {getSortIcon(waitlistSortKey === "created_at", waitlistSortDir)}
+                          </div>
+                        </TableHead>
                         <TableHead className="whitespace-nowrap w-[100px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredWaitlist.length === 0 ? (
+                      {filteredAndSortedWaitlist.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             No waitlist signups found
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredWaitlist.map((signup) => (
+                        filteredAndSortedWaitlist.map((signup) => (
                           <TableRow key={signup.id} className={selectedWaitlist.has(signup.id) ? "bg-muted/50" : ""}>
                             <TableCell>
                               <Checkbox
@@ -770,6 +959,14 @@ const Admin = () => {
                           className="hidden"
                         />
                         <Button
+                          size="sm"
+                          onClick={() => setAddingDeveloper(true)}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => downloadTemplate("developers")}
@@ -791,7 +988,7 @@ const Admin = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => exportToCSV(filteredDevelopers, "developers")}
+                          onClick={() => exportToCSV(filteredAndSortedDevelopers, "developers")}
                           className="flex-1 sm:flex-none"
                         >
                           <Download className="h-4 w-4 mr-2" />
@@ -831,28 +1028,52 @@ const Admin = () => {
                       <TableRow>
                         <TableHead className="w-[40px]">
                           <Checkbox
-                            checked={filteredDevelopers.length > 0 && selectedDevelopers.size === filteredDevelopers.length}
+                            checked={filteredAndSortedDevelopers.length > 0 && selectedDevelopers.size === filteredAndSortedDevelopers.length}
                             onCheckedChange={toggleAllDevelopers}
                             aria-label="Select all"
                           />
                         </TableHead>
-                        <TableHead className="whitespace-nowrap">Name</TableHead>
-                        <TableHead className="whitespace-nowrap">Email</TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleDeveloperSort("name")}
+                        >
+                          <div className="flex items-center">
+                            Name
+                            {getSortIcon(developerSortKey === "name", developerSortDir)}
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleDeveloperSort("email")}
+                        >
+                          <div className="flex items-center">
+                            Email
+                            {getSortIcon(developerSortKey === "email", developerSortDir)}
+                          </div>
+                        </TableHead>
                         <TableHead className="whitespace-nowrap hidden md:table-cell">Skills</TableHead>
                         <TableHead className="whitespace-nowrap hidden lg:table-cell">Message</TableHead>
-                        <TableHead className="whitespace-nowrap">Date</TableHead>
+                        <TableHead 
+                          className="whitespace-nowrap cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleDeveloperSort("created_at")}
+                        >
+                          <div className="flex items-center">
+                            Date
+                            {getSortIcon(developerSortKey === "created_at", developerSortDir)}
+                          </div>
+                        </TableHead>
                         <TableHead className="whitespace-nowrap w-[100px]">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredDevelopers.length === 0 ? (
+                      {filteredAndSortedDevelopers.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             No developer applications found
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredDevelopers.map((app) => (
+                        filteredAndSortedDevelopers.map((app) => (
                           <TableRow key={app.id} className={selectedDevelopers.has(app.id) ? "bg-muted/50" : ""}>
                             <TableCell>
                               <Checkbox
@@ -914,6 +1135,124 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Add Waitlist Dialog */}
+      <Dialog open={addingWaitlist} onOpenChange={setAddingWaitlist}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Waitlist Signup</DialogTitle>
+            <DialogDescription>
+              Add a new person to the waitlist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-name">Name *</Label>
+              <Input
+                id="new-name"
+                value={newWaitlistForm.name}
+                onChange={(e) => setNewWaitlistForm({ ...newWaitlistForm, name: e.target.value })}
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-email">Email *</Label>
+              <Input
+                id="new-email"
+                type="email"
+                value={newWaitlistForm.email}
+                onChange={(e) => setNewWaitlistForm({ ...newWaitlistForm, email: e.target.value })}
+                placeholder="john@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-company">Company</Label>
+              <Input
+                id="new-company"
+                value={newWaitlistForm.company}
+                onChange={(e) => setNewWaitlistForm({ ...newWaitlistForm, company: e.target.value })}
+                placeholder="Acme Inc"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-use-case">Use Case</Label>
+              <Textarea
+                id="new-use-case"
+                value={newWaitlistForm.use_case}
+                onChange={(e) => setNewWaitlistForm({ ...newWaitlistForm, use_case: e.target.value })}
+                placeholder="What they want to use the product for..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddingWaitlist(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddWaitlist} disabled={saving}>
+              {saving ? "Adding..." : "Add Signup"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Developer Dialog */}
+      <Dialog open={addingDeveloper} onOpenChange={setAddingDeveloper}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Developer Application</DialogTitle>
+            <DialogDescription>
+              Add a new developer application.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-dev-name">Name *</Label>
+              <Input
+                id="new-dev-name"
+                value={newDeveloperForm.name}
+                onChange={(e) => setNewDeveloperForm({ ...newDeveloperForm, name: e.target.value })}
+                placeholder="Jane Developer"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-dev-email">Email *</Label>
+              <Input
+                id="new-dev-email"
+                type="email"
+                value={newDeveloperForm.email}
+                onChange={(e) => setNewDeveloperForm({ ...newDeveloperForm, email: e.target.value })}
+                placeholder="jane@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-skills">Skills (comma-separated)</Label>
+              <Input
+                id="new-skills"
+                value={newDeveloperForm.skills}
+                onChange={(e) => setNewDeveloperForm({ ...newDeveloperForm, skills: e.target.value })}
+                placeholder="React, TypeScript, Node.js"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-message">Message</Label>
+              <Textarea
+                id="new-message"
+                value={newDeveloperForm.message}
+                onChange={(e) => setNewDeveloperForm({ ...newDeveloperForm, message: e.target.value })}
+                placeholder="Why they want to join..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddingDeveloper(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddDeveloper} disabled={saving}>
+              {saving ? "Adding..." : "Add Application"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Waitlist Dialog */}
       <Dialog open={!!editingWaitlist} onOpenChange={() => setEditingWaitlist(null)}>
