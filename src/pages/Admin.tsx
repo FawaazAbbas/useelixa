@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -35,12 +37,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface WaitlistSignup {
   id: string;
@@ -511,6 +514,7 @@ const Admin = () => {
       email: signup.email,
       company: signup.company || "",
       use_case: signup.use_case || "",
+      created_at: new Date(signup.created_at),
     });
   };
 
@@ -521,6 +525,7 @@ const Admin = () => {
       email: app.email,
       skills: app.skills?.join(", ") || "",
       message: app.message || "",
+      created_at: new Date(app.created_at),
     });
   };
 
@@ -535,6 +540,7 @@ const Admin = () => {
           email: editForm.email,
           company: editForm.company || null,
           use_case: editForm.use_case || null,
+          created_at: editForm.created_at instanceof Date ? editForm.created_at.toISOString() : editForm.created_at,
         })
         .eq("id", editingWaitlist.id);
 
@@ -558,6 +564,7 @@ const Admin = () => {
           email: editForm.email,
           skills: editForm.skills ? editForm.skills.split(",").map((s: string) => s.trim()).filter(Boolean) : null,
           message: editForm.message || null,
+          created_at: editForm.created_at instanceof Date ? editForm.created_at.toISOString() : editForm.created_at,
         })
         .eq("id", editingDeveloper.id);
 
@@ -1297,6 +1304,32 @@ const Admin = () => {
                 onChange={(e) => setEditForm({ ...editForm, use_case: e.target.value })}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Signup Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !editForm.created_at && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editForm.created_at ? format(editForm.created_at, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={editForm.created_at}
+                    onSelect={(date) => setEditForm({ ...editForm, created_at: date })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingWaitlist(null)}>
@@ -1350,6 +1383,32 @@ const Admin = () => {
                 value={editForm.message || ""}
                 onChange={(e) => setEditForm({ ...editForm, message: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Application Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !editForm.created_at && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editForm.created_at ? format(editForm.created_at, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={editForm.created_at}
+                    onSelect={(date) => setEditForm({ ...editForm, created_at: date })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <DialogFooter>
