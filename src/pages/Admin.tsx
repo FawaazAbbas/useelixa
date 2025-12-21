@@ -91,8 +91,8 @@ const Admin = () => {
   // Add new entry state
   const [addingWaitlist, setAddingWaitlist] = useState(false);
   const [addingDeveloper, setAddingDeveloper] = useState(false);
-  const [newWaitlistForm, setNewWaitlistForm] = useState({ name: "", email: "", company: "", use_case: "" });
-  const [newDeveloperForm, setNewDeveloperForm] = useState({ name: "", email: "", skills: "", message: "" });
+  const [newWaitlistForm, setNewWaitlistForm] = useState({ name: "", email: "", company: "", use_case: "", created_at: null as Date | null });
+  const [newDeveloperForm, setNewDeveloperForm] = useState({ name: "", email: "", skills: "", message: "", created_at: null as Date | null });
   const [saving, setSaving] = useState(false);
 
   // Edit state
@@ -275,16 +275,16 @@ const Admin = () => {
 
     if (type === "waitlist") {
       csvContent = [
-        "name,email,company,use_case",
-        "John Doe,john@example.com,Acme Inc,Looking to automate customer support",
-        "Jane Smith,jane@example.com,StartupXYZ,Want to streamline workflows"
+        "name,email,company,use_case,created_at",
+        "John Doe,john@example.com,Acme Inc,Looking to automate customer support,2024-01-15",
+        "Jane Smith,jane@example.com,StartupXYZ,Want to streamline workflows,2024-02-20"
       ].join("\n");
       filename = "waitlist_template.csv";
     } else {
       csvContent = [
-        "name,email,skills,message",
-        "Alex Developer,alex@example.com,\"React; TypeScript; Node.js\",Excited to contribute to the platform",
-        "Sam Coder,sam@example.com,\"Python; Machine Learning\",Looking to build AI integrations"
+        "name,email,skills,message,created_at",
+        "Alex Developer,alex@example.com,\"React; TypeScript; Node.js\",Excited to contribute to the platform,2024-01-10",
+        "Sam Coder,sam@example.com,\"Python; Machine Learning\",Looking to build AI integrations,2024-03-05"
       ].join("\n");
       filename = "developers_template.csv";
     }
@@ -347,6 +347,7 @@ const Admin = () => {
               email: r.email,
               company: r.company || null,
               use_case: r.use_case || null,
+              ...(r.created_at ? { created_at: new Date(r.created_at).toISOString() } : {}),
             })));
 
           if (error) throw error;
@@ -359,6 +360,7 @@ const Admin = () => {
               email: r.email,
               skills: r.skills || null,
               message: r.message || null,
+              ...(r.created_at ? { created_at: new Date(r.created_at).toISOString() } : {}),
             })));
 
           if (error) throw error;
@@ -422,12 +424,13 @@ const Admin = () => {
           email: newWaitlistForm.email,
           company: newWaitlistForm.company || null,
           use_case: newWaitlistForm.use_case || null,
+          ...(newWaitlistForm.created_at ? { created_at: newWaitlistForm.created_at.toISOString() } : {}),
         });
 
       if (error) throw error;
       toast.success("Waitlist signup added");
       setAddingWaitlist(false);
-      setNewWaitlistForm({ name: "", email: "", company: "", use_case: "" });
+      setNewWaitlistForm({ name: "", email: "", company: "", use_case: "", created_at: null });
       fetchData();
     } catch (error: any) {
       toast.error(error.message || "Failed to add");
@@ -451,12 +454,13 @@ const Admin = () => {
           email: newDeveloperForm.email,
           skills: newDeveloperForm.skills ? newDeveloperForm.skills.split(",").map(s => s.trim()).filter(Boolean) : null,
           message: newDeveloperForm.message || null,
+          ...(newDeveloperForm.created_at ? { created_at: newDeveloperForm.created_at.toISOString() } : {}),
         });
 
       if (error) throw error;
       toast.success("Developer application added");
       setAddingDeveloper(false);
-      setNewDeveloperForm({ name: "", email: "", skills: "", message: "" });
+      setNewDeveloperForm({ name: "", email: "", skills: "", message: "", created_at: null });
       fetchData();
     } catch (error: any) {
       toast.error(error.message || "Failed to add");
@@ -1190,6 +1194,32 @@ const Admin = () => {
                 placeholder="What they want to use the product for..."
               />
             </div>
+            <div className="space-y-2">
+              <Label>Signup Date (optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !newWaitlistForm.created_at && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {newWaitlistForm.created_at ? format(newWaitlistForm.created_at, "PPP") : <span>Defaults to now</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={newWaitlistForm.created_at || undefined}
+                    onSelect={(date) => setNewWaitlistForm({ ...newWaitlistForm, created_at: date || null })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddingWaitlist(false)} disabled={saving}>
@@ -1248,6 +1278,32 @@ const Admin = () => {
                 onChange={(e) => setNewDeveloperForm({ ...newDeveloperForm, message: e.target.value })}
                 placeholder="Why they want to join..."
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Application Date (optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !newDeveloperForm.created_at && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {newDeveloperForm.created_at ? format(newDeveloperForm.created_at, "PPP") : <span>Defaults to now</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={newDeveloperForm.created_at || undefined}
+                    onSelect={(date) => setNewDeveloperForm({ ...newDeveloperForm, created_at: date || null })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <DialogFooter>
