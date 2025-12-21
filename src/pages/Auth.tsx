@@ -17,8 +17,23 @@ const Auth = () => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    // Auto-redirect to workspace in demo mode
-    navigate("/workspace");
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/workspace");
+      }
+    };
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/workspace");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
