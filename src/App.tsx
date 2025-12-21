@@ -26,6 +26,7 @@ import Contact from "./pages/Contact";
 import Developers from "./pages/Developers";
 import Waitlist from "./pages/Waitlist";
 import PitchDeck from "./pages/PitchDeck";
+import Admin from "./pages/Admin";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
@@ -118,6 +119,7 @@ const AppContent = () => {
           <Route path="/developers" element={<Developers />} />
           <Route path="/waitlist" element={<Waitlist />} />
           <Route path="/pitch-deck" element={<PitchDeck />} />
+          <Route path="/admin" element={<Admin />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
