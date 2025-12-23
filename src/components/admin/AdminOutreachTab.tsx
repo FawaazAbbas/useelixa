@@ -58,6 +58,8 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  Users,
+  Tag,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -73,6 +75,7 @@ interface OutreachContact {
   last_contacted_at: string | null;
   email_count: number;
   created_at: string;
+  audience: string | null;
 }
 
 interface EmailCampaign {
@@ -117,6 +120,8 @@ export const AdminOutreachTab = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [audienceFilter, setAudienceFilter] = useState("all");
+  const [availableAudiences, setAvailableAudiences] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<OutreachSortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
   const [importing, setImporting] = useState(false);
@@ -133,6 +138,8 @@ export const AdminOutreachTab = () => {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [assignAudienceOpen, setAssignAudienceOpen] = useState(false);
+  const [emailAllMode, setEmailAllMode] = useState(false);
 
   // Forms
   const [contactForm, setContactForm] = useState({
@@ -141,6 +148,7 @@ export const AdminOutreachTab = () => {
     company: "",
     source: "",
     notes: "",
+    audience: "",
   });
   const [emailForm, setEmailForm] = useState({
     name: "",
@@ -148,17 +156,20 @@ export const AdminOutreachTab = () => {
     body_html: "",
   });
   const [sending, setSending] = useState(false);
+  const [newAudience, setNewAudience] = useState("");
+  const [selectedAudience, setSelectedAudience] = useState("");
 
   const fetchData = async () => {
     try {
-      // Get total count and status counts
-      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes] = await Promise.all([
+      // Get total count, status counts, and audiences
+      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes, audiencesRes] = await Promise.all([
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "contacted"),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "responded"),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "converted"),
         supabase.from("email_campaigns").select("*").order("created_at", { ascending: false }),
+        supabase.from("outreach_contacts").select("audience").not("audience", "is", null),
       ]);
 
       setTotalCount(countRes.count ?? 0);
@@ -169,6 +180,12 @@ export const AdminOutreachTab = () => {
         converted: convertedRes.count ?? 0,
       });
       if (campaignsRes.data) setCampaigns(campaignsRes.data);
+      
+      // Extract unique audiences
+      if (audiencesRes.data) {
+        const uniqueAudiences = [...new Set(audiencesRes.data.map((c) => c.audience).filter(Boolean))] as string[];
+        setAvailableAudiences(uniqueAudiences.sort());
+      }
     } catch (error) {
       console.error("Error fetching outreach data:", error);
       toast.error("Failed to fetch data");
@@ -192,7 +209,7 @@ export const AdminOutreachTab = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      if (data) setContacts(data);
+      if (data) setContacts(data as OutreachContact[]);
       setSelectedContacts(new Set());
     } catch (error) {
       console.error("Error fetching contacts:", error);
@@ -234,7 +251,9 @@ export const AdminOutreachTab = () => {
         (c.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
         (c.company?.toLowerCase().includes(search.toLowerCase()) ?? false);
       const matchesStatus = statusFilter === "all" || c.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesAudience = audienceFilter === "all" || 
+        (audienceFilter === "none" ? !c.audience : c.audience === audienceFilter);
+      return matchesSearch && matchesStatus && matchesAudience;
     });
 
     if (sortKey && sortDir) {
@@ -262,7 +281,7 @@ export const AdminOutreachTab = () => {
     }
 
     return result;
-  }, [contacts, search, statusFilter, sortKey, sortDir]);
+  }, [contacts, search, statusFilter, audienceFilter, sortKey, sortDir]);
 
   // Selection handlers
   const toggleSelection = (id: string) => {
@@ -445,12 +464,13 @@ export const AdminOutreachTab = () => {
         company: contactForm.company || null,
         source: contactForm.source || null,
         notes: contactForm.notes || null,
+        audience: contactForm.audience || null,
       });
 
       if (error) throw error;
       toast.success("Contact added");
       setAddingContact(false);
-      setContactForm({ email: "", name: "", company: "", source: "", notes: "" });
+      setContactForm({ email: "", name: "", company: "", source: "", notes: "", audience: "" });
       fetchData();
       fetchContacts();
     } catch (error: any) {
@@ -470,6 +490,7 @@ export const AdminOutreachTab = () => {
           company: contactForm.company || null,
           source: contactForm.source || null,
           notes: contactForm.notes || null,
+          audience: contactForm.audience || null,
         })
         .eq("id", editingContact.id);
 
@@ -582,6 +603,42 @@ export const AdminOutreachTab = () => {
     }
   };
 
+  // Assign audience to selected contacts
+  const handleAssignAudience = async () => {
+    if (selectedContacts.size === 0) {
+      toast.error("Please select at least one contact");
+      return;
+    }
+
+    const audienceToAssign = newAudience.trim() || selectedAudience || null;
+    
+    try {
+      const idsToUpdate = Array.from(selectedContacts);
+      const BATCH_SIZE = 100;
+
+      for (let i = 0; i < idsToUpdate.length; i += BATCH_SIZE) {
+        const batch = idsToUpdate.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase
+          .from("outreach_contacts")
+          .update({ audience: audienceToAssign })
+          .in("id", batch);
+
+        if (error) throw error;
+      }
+
+      toast.success(`Assigned ${audienceToAssign ? `"${audienceToAssign}"` : "no audience"} to ${selectedContacts.size} contacts`);
+      setAssignAudienceOpen(false);
+      setNewAudience("");
+      setSelectedAudience("");
+      setSelectedContacts(new Set());
+      fetchData();
+      fetchContacts();
+    } catch (error: any) {
+      console.error("Assign audience error:", error);
+      toast.error(error.message || "Failed to assign audience");
+    }
+  };
+
   // Email sending
   const handleSendEmail = async () => {
     if (!emailForm.name || !emailForm.subject || !emailForm.body_html) {
@@ -589,26 +646,87 @@ export const AdminOutreachTab = () => {
       return;
     }
 
-    if (selectedContacts.size === 0) {
-      toast.error("Please select at least one contact");
-      return;
-    }
-
     setSending(true);
     try {
-      const recipients = filteredAndSortedContacts
-        .filter((c) => selectedContacts.has(c.id))
-        .map((c) => ({
+      let recipients: { email: string; name?: string; outreach_contact_id: string }[] = [];
+
+      if (emailAllMode) {
+        // Fetch ALL contacts matching current filters (not just current page)
+        let allContacts: OutreachContact[] = [];
+        let page = 0;
+        let hasMore = true;
+
+        while (hasMore) {
+          const from = page * 1000;
+          const to = from + 999;
+          
+          let query = supabase
+            .from("outreach_contacts")
+            .select("*")
+            .range(from, to);
+
+          if (statusFilter !== "all") {
+            query = query.eq("status", statusFilter);
+          }
+          if (audienceFilter !== "all" && audienceFilter !== "none") {
+            query = query.eq("audience", audienceFilter);
+          } else if (audienceFilter === "none") {
+            query = query.is("audience", null);
+          }
+
+          const { data, error } = await query;
+          if (error) throw error;
+          
+          if (data && data.length > 0) {
+            allContacts = [...allContacts, ...(data as OutreachContact[])];
+            if (data.length < 1000) hasMore = false;
+            page++;
+          } else {
+            hasMore = false;
+          }
+        }
+
+        // Apply search filter client-side
+        const filtered = allContacts.filter((c) => {
+          if (!search) return true;
+          return c.email.toLowerCase().includes(search.toLowerCase()) ||
+            (c.name?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
+            (c.company?.toLowerCase().includes(search.toLowerCase()) ?? false);
+        });
+
+        recipients = filtered.map((c) => ({
           email: c.email,
           name: c.name || undefined,
           outreach_contact_id: c.id,
         }));
+      } else {
+        if (selectedContacts.size === 0) {
+          toast.error("Please select at least one contact");
+          setSending(false);
+          return;
+        }
+        
+        recipients = filteredAndSortedContacts
+          .filter((c) => selectedContacts.has(c.id))
+          .map((c) => ({
+            email: c.email,
+            name: c.name || undefined,
+            outreach_contact_id: c.id,
+          }));
+      }
+
+      if (recipients.length === 0) {
+        toast.error("No recipients found");
+        setSending(false);
+        return;
+      }
 
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
 
       if (!token) {
         toast.error("Not authenticated");
+        setSending(false);
         return;
       }
 
@@ -630,6 +748,7 @@ export const AdminOutreachTab = () => {
       setComposerOpen(false);
       setEmailForm({ name: "", subject: "", body_html: "" });
       setSelectedContacts(new Set());
+      setEmailAllMode(false);
       fetchData();
     } catch (error: any) {
       console.error("Error sending campaign:", error);
@@ -730,6 +849,21 @@ export const AdminOutreachTab = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    <Select value={audienceFilter} onValueChange={setAudienceFilter}>
+                      <SelectTrigger className="w-full sm:w-40">
+                        <Users className="h-4 w-4 mr-2" />
+                        <SelectValue placeholder="Audience" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Audiences</SelectItem>
+                        <SelectItem value="none">No Audience</SelectItem>
+                        {availableAudiences.map((a) => (
+                          <SelectItem key={a} value={a}>
+                            {a}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -762,24 +896,49 @@ export const AdminOutreachTab = () => {
                     Export
                   </Button>
                   {totalCount > 0 && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => setDeleteAllOpen(true)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete All ({totalCount.toLocaleString()})
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEmailAllMode(true);
+                          setComposerOpen(true);
+                        }}
+                        className="border-green-600 text-green-600 hover:bg-green-50"
+                      >
+                        <Send className="h-4 w-4 mr-2" />
+                        Email All ({totalCount.toLocaleString()})
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteAllOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete All
+                      </Button>
+                    </>
                   )}
                   {selectedContacts.size > 0 && (
                     <>
                       <Button
                         size="sm"
-                        onClick={() => setComposerOpen(true)}
+                        onClick={() => {
+                          setEmailAllMode(false);
+                          setComposerOpen(true);
+                        }}
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <Send className="h-4 w-4 mr-2" />
                         Email ({selectedContacts.size})
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAssignAudienceOpen(true)}
+                      >
+                        <Tag className="h-4 w-4 mr-2" />
+                        Assign Audience
                       </Button>
                       <Button
                         variant="destructive"
@@ -845,6 +1004,7 @@ export const AdminOutreachTab = () => {
                           {getSortIcon(sortKey === "email_count", sortDir)}
                         </div>
                       </TableHead>
+                      <TableHead className="hidden xl:table-cell">Audience</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -884,6 +1044,15 @@ export const AdminOutreachTab = () => {
                           <TableCell className="hidden lg:table-cell">
                             {contact.email_count}
                           </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            {contact.audience ? (
+                              <Badge variant="outline" className="text-xs">
+                                {contact.audience}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">-</span>
+                            )}
+                          </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
                               <Button
@@ -898,6 +1067,7 @@ export const AdminOutreachTab = () => {
                                     company: contact.company || "",
                                     source: contact.source || "",
                                     notes: contact.notes || "",
+                                    audience: contact.audience || "",
                                   });
                                 }}
                               >
@@ -1059,6 +1229,14 @@ export const AdminOutreachTab = () => {
                 placeholder="Any notes about this contact..."
               />
             </div>
+            <div className="space-y-2">
+              <Label>Audience</Label>
+              <Input
+                value={contactForm.audience}
+                onChange={(e) => setContactForm({ ...contactForm, audience: e.target.value })}
+                placeholder="e.g. VCs, Founders, Enterprise..."
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddingContact(false)}>
@@ -1182,7 +1360,10 @@ export const AdminOutreachTab = () => {
           <DialogHeader>
             <DialogTitle>Send Email Campaign</DialogTitle>
             <DialogDescription>
-              Send an email to {selectedContacts.size} selected contacts. Use {"{{name}}"} to personalize.
+              {emailAllMode 
+                ? `Send an email to all ${totalCount.toLocaleString()} contacts. Use {{name}} to personalize.`
+                : `Send an email to ${selectedContacts.size} selected contacts. Use {{name}} to personalize.`
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1213,11 +1394,57 @@ export const AdminOutreachTab = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setComposerOpen(false)} disabled={sending}>
+            <Button variant="outline" onClick={() => { setComposerOpen(false); setEmailAllMode(false); }} disabled={sending}>
               Cancel
             </Button>
             <Button onClick={handleSendEmail} disabled={sending}>
-              {sending ? "Sending..." : `Send to ${selectedContacts.size} Contacts`}
+              {sending ? "Sending..." : emailAllMode ? `Send to All (${totalCount.toLocaleString()})` : `Send to ${selectedContacts.size} Contacts`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Audience Dialog */}
+      <Dialog open={assignAudienceOpen} onOpenChange={setAssignAudienceOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Audience</DialogTitle>
+            <DialogDescription>
+              Assign an audience to {selectedContacts.size} selected contacts.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {availableAudiences.length > 0 && (
+              <div className="space-y-2">
+                <Label>Select Existing Audience</Label>
+                <Select value={selectedAudience} onValueChange={(v) => { setSelectedAudience(v); setNewAudience(""); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an audience..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None (remove audience)</SelectItem>
+                    {availableAudiences.map((a) => (
+                      <SelectItem key={a} value={a}>{a}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Or Create New Audience</Label>
+              <Input
+                value={newAudience}
+                onChange={(e) => { setNewAudience(e.target.value); setSelectedAudience(""); }}
+                placeholder="e.g. VCs, Founders, Enterprise..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAssignAudienceOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAssignAudience}>
+              Assign to {selectedContacts.size} Contacts
             </Button>
           </DialogFooter>
         </DialogContent>
