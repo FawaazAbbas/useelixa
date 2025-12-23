@@ -529,7 +529,7 @@ const AgentDetail = () => {
         description: "Agent installed successfully. Redirecting to your workspace...",
       });
 
-      setTimeout(() => navigate("/workspace"), 1000);
+      setTimeout(() => navigate("/workspace/demo"), 1000);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -667,7 +667,7 @@ const AgentDetail = () => {
                       <Button
                         size="lg"
                         className="w-full sm:w-auto px-8 bg-primary hover:bg-primary/90 shadow-lg"
-                        onClick={() => navigate("/workspace")}
+                        onClick={() => navigate("/workspace/demo")}
                       >
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Open in Workspace
@@ -1069,7 +1069,7 @@ const AgentDetail = () => {
 
                 <div className="pt-2 space-y-3">
                   {isInstalled ? (
-                    <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/workspace")}>
+                    <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/workspace/demo")}>
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Open in Workspace
                     </Button>
