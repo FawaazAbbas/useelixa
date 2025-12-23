@@ -1041,39 +1041,57 @@ export type Database = {
       }
       email_campaigns: {
         Row: {
+          audience_filter: string | null
           body_html: string
           created_at: string | null
           created_by: string | null
           failed_count: number | null
           id: string
+          is_recurring: boolean | null
+          last_recurring_run: string | null
           name: string
+          next_recurring_run: string | null
           recipient_count: number | null
+          recurrence_pattern: string | null
+          scheduled_at: string | null
           sent_at: string | null
           sent_count: number | null
           status: string | null
           subject: string
         }
         Insert: {
+          audience_filter?: string | null
           body_html: string
           created_at?: string | null
           created_by?: string | null
           failed_count?: number | null
           id?: string
+          is_recurring?: boolean | null
+          last_recurring_run?: string | null
           name: string
+          next_recurring_run?: string | null
           recipient_count?: number | null
+          recurrence_pattern?: string | null
+          scheduled_at?: string | null
           sent_at?: string | null
           sent_count?: number | null
           status?: string | null
           subject: string
         }
         Update: {
+          audience_filter?: string | null
           body_html?: string
           created_at?: string | null
           created_by?: string | null
           failed_count?: number | null
           id?: string
+          is_recurring?: boolean | null
+          last_recurring_run?: string | null
           name?: string
+          next_recurring_run?: string | null
           recipient_count?: number | null
+          recurrence_pattern?: string | null
+          scheduled_at?: string | null
           sent_at?: string | null
           sent_count?: number | null
           status?: string | null
