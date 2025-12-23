@@ -56,6 +56,8 @@ import {
   Send,
   History,
   Filter,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -97,11 +99,20 @@ const STATUS_COLORS: Record<string, string> = {
   converted: "bg-purple-500/20 text-purple-700",
 };
 
+const PAGE_SIZE = 50;
+
 export const AdminOutreachTab = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State
   const [contacts, setContacts] = useState<OutreachContact[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState<Record<string, number>>({
+    pending: 0,
+    contacted: 0,
+    responded: 0,
+    converted: 0,
+  });
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -110,6 +121,7 @@ export const AdminOutreachTab = () => {
   const [sortDir, setSortDir] = useState<SortDirection>(null);
   const [importing, setImporting] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState("contacts");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Selection
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
@@ -139,20 +151,24 @@ export const AdminOutreachTab = () => {
 
   const fetchData = async () => {
     try {
-      const [contactsRes, campaignsRes] = await Promise.all([
-        supabase
-          .from("outreach_contacts")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("email_campaigns")
-          .select("*")
-          .order("created_at", { ascending: false }),
+      // Get total count and status counts
+      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes] = await Promise.all([
+        supabase.from("outreach_contacts").select("*", { count: "exact", head: true }),
+        supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "contacted"),
+        supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "responded"),
+        supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "converted"),
+        supabase.from("email_campaigns").select("*").order("created_at", { ascending: false }),
       ]);
 
-      if (contactsRes.data) setContacts(contactsRes.data);
+      setTotalCount(countRes.count ?? 0);
+      setStatusCounts({
+        pending: pendingRes.count ?? 0,
+        contacted: contactedRes.count ?? 0,
+        responded: respondedRes.count ?? 0,
+        converted: convertedRes.count ?? 0,
+      });
       if (campaignsRes.data) setCampaigns(campaignsRes.data);
-      setSelectedContacts(new Set());
     } catch (error) {
       console.error("Error fetching outreach data:", error);
       toast.error("Failed to fetch data");
@@ -161,9 +177,35 @@ export const AdminOutreachTab = () => {
     }
   };
 
+  // Fetch paginated contacts
+  const fetchContacts = async () => {
+    try {
+      const from = (currentPage - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      let query = supabase
+        .from("outreach_contacts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      if (data) setContacts(data);
+      setSelectedContacts(new Set());
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [currentPage]);
 
   // Sorting
   const handleSort = (key: OutreachSortKey) => {
@@ -410,6 +452,7 @@ export const AdminOutreachTab = () => {
       setAddingContact(false);
       setContactForm({ email: "", name: "", company: "", source: "", notes: "" });
       fetchData();
+      fetchContacts();
     } catch (error: any) {
       toast.error(error.message || "Failed to add contact");
     }
@@ -434,6 +477,7 @@ export const AdminOutreachTab = () => {
       toast.success("Contact updated");
       setEditingContact(null);
       fetchData();
+      fetchContacts();
     } catch (error: any) {
       toast.error(error.message || "Failed to update contact");
     }
@@ -452,6 +496,7 @@ export const AdminOutreachTab = () => {
       toast.success("Contact deleted");
       setDeletingContact(null);
       fetchData();
+      fetchContacts();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete contact");
     }
@@ -481,6 +526,7 @@ export const AdminOutreachTab = () => {
       setBulkDeleteOpen(false);
       setSelectedContacts(new Set());
       fetchData();
+      fetchContacts();
     } catch (error: any) {
       console.error("Bulk delete error:", error);
       toast.error(error.message || "Failed to delete contacts");
@@ -488,30 +534,48 @@ export const AdminOutreachTab = () => {
   };
 
   const handleDeleteAll = async () => {
-    if (contacts.length === 0) return;
+    if (totalCount === 0) return;
 
     try {
-      // Get all contact IDs
-      const allIds = contacts.map((c) => c.id);
-      const BATCH_SIZE = 100;
+      // Delete all contacts in batches using a loop
+      const BATCH_SIZE = 500;
       let totalDeleted = 0;
+      let hasMore = true;
 
-      // Delete in batches
-      for (let i = 0; i < allIds.length; i += BATCH_SIZE) {
-        const batch = allIds.slice(i, i + BATCH_SIZE);
-        const { error } = await supabase
+      while (hasMore) {
+        // Fetch a batch of IDs
+        const { data: batch, error: fetchError } = await supabase
+          .from("outreach_contacts")
+          .select("id")
+          .limit(BATCH_SIZE);
+
+        if (fetchError) throw fetchError;
+
+        if (!batch || batch.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        const ids = batch.map((c) => c.id);
+        const { error: deleteError } = await supabase
           .from("outreach_contacts")
           .delete()
-          .in("id", batch);
+          .in("id", ids);
 
-        if (error) throw error;
-        totalDeleted += batch.length;
+        if (deleteError) throw deleteError;
+        totalDeleted += ids.length;
+
+        if (batch.length < BATCH_SIZE) {
+          hasMore = false;
+        }
       }
 
-      toast.success(`Deleted all ${totalDeleted} contacts`);
+      toast.success(`Deleted all ${totalDeleted.toLocaleString()} contacts`);
       setDeleteAllOpen(false);
       setSelectedContacts(new Set());
+      setCurrentPage(1);
       fetchData();
+      fetchContacts();
     } catch (error: any) {
       console.error("Delete all error:", error);
       toast.error(error.message || "Failed to delete all contacts");
@@ -585,20 +649,22 @@ export const AdminOutreachTab = () => {
     );
   }
 
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
   return (
     <div className="space-y-4">
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold">{contacts.length}</div>
+            <div className="text-2xl font-bold">{totalCount.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Total Contacts</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">
-              {contacts.filter((c) => c.status === "pending").length}
+              {statusCounts.pending.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Pending</p>
           </CardContent>
@@ -606,7 +672,7 @@ export const AdminOutreachTab = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">
-              {contacts.filter((c) => c.status === "contacted").length}
+              {statusCounts.contacted.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Contacted</p>
           </CardContent>
@@ -614,7 +680,7 @@ export const AdminOutreachTab = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">
-              {contacts.filter((c) => c.status === "converted").length}
+              {statusCounts.converted.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">Converted</p>
           </CardContent>
@@ -695,14 +761,14 @@ export const AdminOutreachTab = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  {contacts.length > 0 && (
+                  {totalCount > 0 && (
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => setDeleteAllOpen(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete All
+                      Delete All ({totalCount.toLocaleString()})
                     </Button>
                   )}
                   {selectedContacts.size > 0 && (
@@ -853,6 +919,38 @@ export const AdminOutreachTab = () => {
                   </TableBody>
                 </Table>
               </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 px-2">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {((currentPage - 1) * PAGE_SIZE) + 1} - {Math.min(currentPage * PAGE_SIZE, totalCount)} of {totalCount.toLocaleString()} contacts
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -1064,7 +1162,7 @@ export const AdminOutreachTab = () => {
       <AlertDialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete All {contacts.length} Contacts</AlertDialogTitle>
+            <AlertDialogTitle>Delete All {totalCount.toLocaleString()} Contacts</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete ALL contacts? This action cannot be undone.
             </AlertDialogDescription>
