@@ -676,14 +676,9 @@ const AgentDetail = () => {
                       <Button
                         size="lg"
                         className="w-full sm:w-auto px-8 bg-primary hover:bg-primary/90 shadow-lg"
-                        onClick={handleInstall}
-                        disabled={installing}
+                        onClick={() => navigate("/workspace/demo")}
                       >
-                        {installing ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Zap className="h-4 w-4 mr-2" />
-                        )}
+                        <Zap className="h-4 w-4 mr-2" />
                         View My Workspace
                       </Button>
                     )}
@@ -1076,14 +1071,9 @@ const AgentDetail = () => {
                   ) : (
                     <Button
                       className="w-full bg-primary hover:bg-primary/90"
-                      onClick={handleInstall}
-                      disabled={installing}
+                      onClick={() => navigate("/workspace/demo")}
                     >
-                      {installing ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Zap className="h-4 w-4 mr-2" />
-                      )}
+                      <Zap className="h-4 w-4 mr-2" />
                       View My Workspace
                     </Button>
                   )}
