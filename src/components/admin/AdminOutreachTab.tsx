@@ -60,6 +60,9 @@ import {
   ChevronRight,
   Users,
   Tag,
+  Clock,
+  Calendar,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -89,7 +92,14 @@ interface EmailCampaign {
   failed_count: number;
   sent_at: string | null;
   created_at: string;
+  scheduled_at: string | null;
+  is_recurring: boolean;
+  recurrence_pattern: string | null;
+  audience_filter: string | null;
+  next_recurring_run: string | null;
 }
+
+type RecurrencePattern = "daily" | "weekly" | "monthly" | "none";
 
 type SortDirection = "asc" | "desc" | null;
 type OutreachSortKey = "name" | "email" | "company" | "status" | "email_count" | "created_at";
@@ -121,7 +131,9 @@ export const AdminOutreachTab = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [audienceFilter, setAudienceFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [availableAudiences, setAvailableAudiences] = useState<string[]>([]);
+  const [availableSources, setAvailableSources] = useState<string[]>([]);
   const [sortKey, setSortKey] = useState<OutreachSortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
   const [importing, setImporting] = useState(false);
@@ -154,6 +166,11 @@ export const AdminOutreachTab = () => {
     name: "",
     subject: "",
     body_html: "",
+    targetAudience: "all" as "all" | "audience" | "selected",
+    selectedAudienceForEmail: "",
+    scheduledAt: "",
+    isRecurring: false,
+    recurrencePattern: "none" as RecurrencePattern,
   });
   const [sending, setSending] = useState(false);
   const [newAudience, setNewAudience] = useState("");
@@ -161,8 +178,8 @@ export const AdminOutreachTab = () => {
 
   const fetchData = async () => {
     try {
-      // Get total count, status counts, and audiences
-      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes, audiencesRes] = await Promise.all([
+      // Get total count, status counts, audiences, and sources
+      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes, audiencesRes, sourcesRes] = await Promise.all([
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "contacted"),
@@ -170,6 +187,7 @@ export const AdminOutreachTab = () => {
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "converted"),
         supabase.from("email_campaigns").select("*").order("created_at", { ascending: false }),
         supabase.from("outreach_contacts").select("audience").not("audience", "is", null),
+        supabase.from("outreach_contacts").select("source").not("source", "is", null),
       ]);
 
       setTotalCount(countRes.count ?? 0);
@@ -179,12 +197,18 @@ export const AdminOutreachTab = () => {
         responded: respondedRes.count ?? 0,
         converted: convertedRes.count ?? 0,
       });
-      if (campaignsRes.data) setCampaigns(campaignsRes.data);
+      if (campaignsRes.data) setCampaigns(campaignsRes.data as EmailCampaign[]);
       
       // Extract unique audiences
       if (audiencesRes.data) {
         const uniqueAudiences = [...new Set(audiencesRes.data.map((c) => c.audience).filter(Boolean))] as string[];
         setAvailableAudiences(uniqueAudiences.sort());
+      }
+      
+      // Extract unique sources
+      if (sourcesRes.data) {
+        const uniqueSources = [...new Set(sourcesRes.data.map((c) => c.source).filter(Boolean))] as string[];
+        setAvailableSources(uniqueSources.sort());
       }
     } catch (error) {
       console.error("Error fetching outreach data:", error);
@@ -253,7 +277,8 @@ export const AdminOutreachTab = () => {
       const matchesStatus = statusFilter === "all" || c.status === statusFilter;
       const matchesAudience = audienceFilter === "all" || 
         (audienceFilter === "none" ? !c.audience : c.audience === audienceFilter);
-      return matchesSearch && matchesStatus && matchesAudience;
+      const matchesSource = sourceFilter === "all" || c.source === sourceFilter;
+      return matchesSearch && matchesStatus && matchesAudience && matchesSource;
     });
 
     if (sortKey && sortDir) {
@@ -281,7 +306,7 @@ export const AdminOutreachTab = () => {
     }
 
     return result;
-  }, [contacts, search, statusFilter, audienceFilter, sortKey, sortDir]);
+  }, [contacts, search, statusFilter, audienceFilter, sourceFilter, sortKey, sortDir]);
 
   // Selection handlers
   const toggleSelection = (id: string) => {
@@ -646,11 +671,17 @@ export const AdminOutreachTab = () => {
       return;
     }
 
+    if (emailForm.targetAudience === "audience" && !emailForm.selectedAudienceForEmail) {
+      toast.error("Please select an audience");
+      return;
+    }
+
     setSending(true);
     try {
       let recipients: { email: string; name?: string; outreach_contact_id: string }[] = [];
+      const targetAudience = emailForm.targetAudience;
 
-      if (emailAllMode) {
+      if (targetAudience === "all" || targetAudience === "audience") {
         // Fetch ALL contacts matching current filters (not just current page)
         let allContacts: OutreachContact[] = [];
         let page = 0;
@@ -665,13 +696,9 @@ export const AdminOutreachTab = () => {
             .select("*")
             .range(from, to);
 
-          if (statusFilter !== "all") {
-            query = query.eq("status", statusFilter);
-          }
-          if (audienceFilter !== "all" && audienceFilter !== "none") {
-            query = query.eq("audience", audienceFilter);
-          } else if (audienceFilter === "none") {
-            query = query.is("audience", null);
+          // For audience targeting, filter by selected audience
+          if (targetAudience === "audience" && emailForm.selectedAudienceForEmail) {
+            query = query.eq("audience", emailForm.selectedAudienceForEmail);
           }
 
           const { data, error } = await query;
@@ -746,7 +773,7 @@ export const AdminOutreachTab = () => {
         `Campaign sent! ${result.sent_count} sent, ${result.failed_count} failed`
       );
       setComposerOpen(false);
-      setEmailForm({ name: "", subject: "", body_html: "" });
+      setEmailForm({ name: "", subject: "", body_html: "", targetAudience: "all", selectedAudienceForEmail: "", scheduledAt: "", isRecurring: false, recurrencePattern: "none" });
       setSelectedContacts(new Set());
       setEmailAllMode(false);
       fetchData();
@@ -864,6 +891,22 @@ export const AdminOutreachTab = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {availableSources.length > 0 && (
+                      <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                        <SelectTrigger className="w-full sm:w-36">
+                          <Tag className="h-4 w-4 mr-2" />
+                          <SelectValue placeholder="Source" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Sources</SelectItem>
+                          {availableSources.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -895,36 +938,13 @@ export const AdminOutreachTab = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
-                  {totalCount > 0 && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEmailAllMode(true);
-                          setComposerOpen(true);
-                        }}
-                        className="border-green-600 text-green-600 hover:bg-green-50"
-                      >
-                        <Send className="h-4 w-4 mr-2" />
-                        Email All ({totalCount.toLocaleString()})
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => setDeleteAllOpen(true)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete All
-                      </Button>
-                    </>
-                  )}
                   {selectedContacts.size > 0 && (
                     <>
                       <Button
                         size="sm"
                         onClick={() => {
                           setEmailAllMode(false);
+                          setEmailForm(prev => ({ ...prev, targetAudience: "selected" }));
                           setComposerOpen(true);
                         }}
                         className="bg-green-600 hover:bg-green-700"
@@ -947,6 +967,14 @@ export const AdminOutreachTab = () => {
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => setDeleteAllOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete All ({totalCount.toLocaleString()})
                       </Button>
                     </>
                   )}
@@ -1126,10 +1154,171 @@ export const AdminOutreachTab = () => {
         </TabsContent>
 
         {/* Campaigns Tab */}
-        <TabsContent value="campaigns">
+        <TabsContent value="campaigns" className="space-y-4">
+          {/* Email Composer Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Email Campaigns</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="h-5 w-5" />
+                New Email Campaign
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Campaign Name *</Label>
+                  <Input
+                    value={emailForm.name}
+                    onChange={(e) => setEmailForm({ ...emailForm, name: e.target.value })}
+                    placeholder="Q1 Outreach Campaign"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Target Audience</Label>
+                  <Select 
+                    value={emailForm.targetAudience} 
+                    onValueChange={(v: "all" | "audience" | "selected") => setEmailForm({ ...emailForm, targetAudience: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Contacts ({totalCount.toLocaleString()})</SelectItem>
+                      <SelectItem value="audience">Specific Audience</SelectItem>
+                      {selectedContacts.size > 0 && (
+                        <SelectItem value="selected">Selected Contacts ({selectedContacts.size})</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {emailForm.targetAudience === "audience" && (
+                <div className="space-y-2">
+                  <Label>Select Audience</Label>
+                  <Select 
+                    value={emailForm.selectedAudienceForEmail} 
+                    onValueChange={(v) => setEmailForm({ ...emailForm, selectedAudienceForEmail: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose an audience..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableAudiences.map((a) => (
+                        <SelectItem key={a} value={a}>{a}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Subject *</Label>
+                <Input
+                  value={emailForm.subject}
+                  onChange={(e) => setEmailForm({ ...emailForm, subject: e.target.value })}
+                  placeholder="Exclusive early access to Elixa"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Body (HTML) *</Label>
+                <Textarea
+                  value={emailForm.body_html}
+                  onChange={(e) => setEmailForm({ ...emailForm, body_html: e.target.value })}
+                  placeholder="<h1>Hello {{name}}</h1><p>We're excited to share...</p>"
+                  className="min-h-[150px] font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">Use {"{{name}}"} to personalize with the recipient's name</p>
+              </div>
+
+              {/* Scheduling Options */}
+              <div className="border rounded-lg p-4 space-y-4 bg-muted/30">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <Label className="font-medium">Scheduling Options</Label>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Send Time</Label>
+                    <Input
+                      type="datetime-local"
+                      value={emailForm.scheduledAt}
+                      onChange={(e) => setEmailForm({ ...emailForm, scheduledAt: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">Leave empty to send immediately</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Recurring</Label>
+                    <Select 
+                      value={emailForm.recurrencePattern} 
+                      onValueChange={(v: RecurrencePattern) => setEmailForm({ 
+                        ...emailForm, 
+                        recurrencePattern: v, 
+                        isRecurring: v !== "none" 
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">One-time</SelectItem>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {emailForm.isRecurring && (
+                  <div className="flex items-center gap-2 p-2 bg-blue-500/10 rounded text-sm text-blue-700">
+                    <RefreshCw className="h-4 w-4" />
+                    This campaign will repeat {emailForm.recurrencePattern}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  onClick={() => {
+                    if (emailForm.targetAudience === "all") {
+                      setEmailAllMode(true);
+                    } else {
+                      setEmailAllMode(false);
+                    }
+                    handleSendEmail();
+                  }}
+                  disabled={sending || !emailForm.name || !emailForm.subject || !emailForm.body_html}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {sending ? (
+                    "Sending..."
+                  ) : emailForm.scheduledAt ? (
+                    <>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Schedule Campaign
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Send Now
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Campaigns History Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                Campaign History
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border overflow-x-auto">
@@ -1139,6 +1328,7 @@ export const AdminOutreachTab = () => {
                       <TableHead>Campaign</TableHead>
                       <TableHead>Subject</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Audience</TableHead>
                       <TableHead>Sent</TableHead>
                       <TableHead>Failed</TableHead>
                       <TableHead>Date</TableHead>
@@ -1147,28 +1337,60 @@ export const AdminOutreachTab = () => {
                   <TableBody>
                     {campaigns.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                           No campaigns yet
                         </TableCell>
                       </TableRow>
                     ) : (
                       campaigns.map((campaign) => (
                         <TableRow key={campaign.id}>
-                          <TableCell className="font-medium">{campaign.name}</TableCell>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              {campaign.name}
+                              {campaign.is_recurring && (
+                                <Badge variant="outline" className="text-xs">
+                                  <RefreshCw className="h-3 w-3 mr-1" />
+                                  {campaign.recurrence_pattern}
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="max-w-xs truncate">{campaign.subject}</TableCell>
                           <TableCell>
                             <Badge
-                              variant={campaign.status === "sent" ? "default" : "secondary"}
+                              variant={
+                                campaign.status === "sent" ? "default" : 
+                                campaign.status === "scheduled" ? "secondary" : 
+                                campaign.status === "active" ? "outline" : "secondary"
+                              }
+                              className={
+                                campaign.status === "scheduled" ? "bg-blue-500/20 text-blue-700" :
+                                campaign.status === "active" ? "bg-green-500/20 text-green-700" : ""
+                              }
                             >
                               {campaign.status}
                             </Badge>
                           </TableCell>
+                          <TableCell>
+                            {campaign.audience_filter ? (
+                              <Badge variant="outline" className="text-xs">{campaign.audience_filter}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs">All</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-green-600">{campaign.sent_count}</TableCell>
                           <TableCell className="text-red-600">{campaign.failed_count}</TableCell>
                           <TableCell>
-                            {campaign.sent_at
-                              ? format(new Date(campaign.sent_at), "MMM d, yyyy HH:mm")
-                              : format(new Date(campaign.created_at), "MMM d, yyyy")}
+                            {campaign.scheduled_at && campaign.status === "scheduled" ? (
+                              <div className="flex items-center gap-1 text-blue-600">
+                                <Clock className="h-3 w-3" />
+                                {format(new Date(campaign.scheduled_at), "MMM d, HH:mm")}
+                              </div>
+                            ) : campaign.sent_at ? (
+                              format(new Date(campaign.sent_at), "MMM d, yyyy HH:mm")
+                            ) : (
+                              format(new Date(campaign.created_at), "MMM d, yyyy")
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
