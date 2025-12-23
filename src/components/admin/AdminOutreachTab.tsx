@@ -306,18 +306,36 @@ export const AdminOutreachTab = () => {
           return;
         }
 
-        const { error } = await supabase.from("outreach_contacts").insert(
-          records.map((r) => ({
-            email: r.email!,
-            name: r.name || null,
-            company: r.company || null,
-            source: r.source || "csv_import",
-            notes: r.notes || null,
-          }))
-        );
+        // Insert in batches of 500 to avoid Supabase limits
+        const BATCH_SIZE = 500;
+        let totalImported = 0;
+        let totalErrors = 0;
 
-        if (error) throw error;
-        toast.success(`Imported ${records.length} contacts`);
+        for (let i = 0; i < records.length; i += BATCH_SIZE) {
+          const batch = records.slice(i, i + BATCH_SIZE);
+          const { error } = await supabase.from("outreach_contacts").insert(
+            batch.map((r) => ({
+              email: r.email!,
+              name: r.name || null,
+              company: r.company || null,
+              source: r.source || "csv_import",
+              notes: r.notes || null,
+            }))
+          );
+
+          if (error) {
+            console.error(`Batch ${i / BATCH_SIZE + 1} error:`, error);
+            totalErrors += batch.length;
+          } else {
+            totalImported += batch.length;
+          }
+        }
+
+        if (totalErrors > 0) {
+          toast.warning(`Imported ${totalImported} contacts, ${totalErrors} failed (likely duplicates)`);
+        } else {
+          toast.success(`Imported ${totalImported} contacts`);
+        }
         fetchData();
       } catch (error: any) {
         console.error("Import error:", error);
@@ -442,17 +460,28 @@ export const AdminOutreachTab = () => {
     if (selectedContacts.size === 0) return;
 
     try {
-      const { error } = await supabase
-        .from("outreach_contacts")
-        .delete()
-        .in("id", Array.from(selectedContacts));
+      const idsToDelete = Array.from(selectedContacts);
+      const BATCH_SIZE = 100;
+      let totalDeleted = 0;
 
-      if (error) throw error;
-      toast.success(`Deleted ${selectedContacts.size} contacts`);
+      // Delete in batches to handle large selections
+      for (let i = 0; i < idsToDelete.length; i += BATCH_SIZE) {
+        const batch = idsToDelete.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase
+          .from("outreach_contacts")
+          .delete()
+          .in("id", batch);
+
+        if (error) throw error;
+        totalDeleted += batch.length;
+      }
+
+      toast.success(`Deleted ${totalDeleted} contacts`);
       setBulkDeleteOpen(false);
       setSelectedContacts(new Set());
       fetchData();
     } catch (error: any) {
+      console.error("Bulk delete error:", error);
       toast.error(error.message || "Failed to delete contacts");
     }
   };
