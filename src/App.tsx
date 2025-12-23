@@ -24,7 +24,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Developers from "./pages/Developers";
-import Waitlist from "./pages/Waitlist";
+import Signup from "./pages/Signup";
 import PitchDeck from "./pages/PitchDeck";
 import Admin from "./pages/Admin";
 import { MainNavSidebar } from "./components/MainNavSidebar";
@@ -117,7 +117,7 @@ const AppContent = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/developers" element={<Developers />} />
-          <Route path="/signup" element={<Waitlist />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/waitlist" element={<Navigate to="/signup" replace />} />
           <Route path="/pitch-deck" element={<PitchDeck />} />
           <Route path="/admin" element={<Admin />} />
