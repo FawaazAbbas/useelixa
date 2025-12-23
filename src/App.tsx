@@ -55,17 +55,23 @@ const AppContent = () => {
           <Route path="/auth" element={<Auth />} />
           <Route path="/publish" element={<Publish />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
-          
+
+          {/* Back-compat: old demo link */}
+          <Route path="/workspace/demo" element={<Navigate to="/workspace" replace />} />
+
           {/* App routes with main navigation */}
-          <Route path="/workspace" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
+          <Route
+            path="/workspace"
+            element={
+              <div className="flex h-screen overflow-hidden">
+                <div className="hidden md:block">
+                  <MainNavSidebar />
+                </div>
+                <Workspace />
+                <MobileBottomNav />
               </div>
-              <Workspace />
-              <MobileBottomNav />
-            </div>
-          } />
+            }
+          />
           <Route path="/tasks" element={
             <div className="flex h-screen overflow-hidden">
               <div className="hidden md:block">
