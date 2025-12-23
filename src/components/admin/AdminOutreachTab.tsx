@@ -152,6 +152,7 @@ export const AdminOutreachTab = () => {
   const [composerOpen, setComposerOpen] = useState(false);
   const [assignAudienceOpen, setAssignAudienceOpen] = useState(false);
   const [emailAllMode, setEmailAllMode] = useState(false);
+  const [showCampaignComposer, setShowCampaignComposer] = useState(false);
 
   // Forms
   const [contactForm, setContactForm] = useState({
@@ -1155,13 +1156,34 @@ export const AdminOutreachTab = () => {
 
         {/* Campaigns Tab */}
         <TabsContent value="campaigns" className="space-y-4">
+          {/* New Campaign Button */}
+          {!showCampaignComposer && (
+            <Button 
+              onClick={() => setShowCampaignComposer(true)}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              New Campaign
+            </Button>
+          )}
+
           {/* Email Composer Card */}
+          {showCampaignComposer && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Send className="h-5 w-5" />
-                New Email Campaign
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Send className="h-5 w-5" />
+                  New Email Campaign
+                </CardTitle>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowCampaignComposer(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1311,6 +1333,7 @@ export const AdminOutreachTab = () => {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Campaigns History Card */}
           <Card>
