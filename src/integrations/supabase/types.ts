@@ -1255,6 +1255,7 @@ export type Database = {
       }
       outreach_contacts: {
         Row: {
+          audience: string | null
           company: string | null
           created_at: string | null
           email: string
@@ -1268,6 +1269,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          audience?: string | null
           company?: string | null
           created_at?: string | null
           email: string
@@ -1281,6 +1283,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          audience?: string | null
           company?: string | null
           created_at?: string | null
           email?: string
