@@ -119,6 +119,7 @@ export const AdminOutreachTab = () => {
   const [editingContact, setEditingContact] = useState<OutreachContact | null>(null);
   const [deletingContact, setDeletingContact] = useState<OutreachContact | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
 
   // Forms
@@ -486,6 +487,37 @@ export const AdminOutreachTab = () => {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (contacts.length === 0) return;
+
+    try {
+      // Get all contact IDs
+      const allIds = contacts.map((c) => c.id);
+      const BATCH_SIZE = 100;
+      let totalDeleted = 0;
+
+      // Delete in batches
+      for (let i = 0; i < allIds.length; i += BATCH_SIZE) {
+        const batch = allIds.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase
+          .from("outreach_contacts")
+          .delete()
+          .in("id", batch);
+
+        if (error) throw error;
+        totalDeleted += batch.length;
+      }
+
+      toast.success(`Deleted all ${totalDeleted} contacts`);
+      setDeleteAllOpen(false);
+      setSelectedContacts(new Set());
+      fetchData();
+    } catch (error: any) {
+      console.error("Delete all error:", error);
+      toast.error(error.message || "Failed to delete all contacts");
+    }
+  };
+
   // Email sending
   const handleSendEmail = async () => {
     if (!emailForm.name || !emailForm.subject || !emailForm.body_html) {
@@ -663,6 +695,16 @@ export const AdminOutreachTab = () => {
                     <Download className="h-4 w-4 mr-2" />
                     Export
                   </Button>
+                  {contacts.length > 0 && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setDeleteAllOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete All
+                    </Button>
+                  )}
                   {selectedContacts.size > 0 && (
                     <>
                       <Button
@@ -1012,6 +1054,24 @@ export const AdminOutreachTab = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground">
+              Delete All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete All Dialog */}
+      <AlertDialog open={deleteAllOpen} onOpenChange={setDeleteAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete All {contacts.length} Contacts</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete ALL contacts? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAll} className="bg-destructive text-destructive-foreground">
               Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
