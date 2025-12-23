@@ -142,8 +142,8 @@ const handler = async (req: Request): Promise<Response> => {
       subject,
       body_html,
       recipients,
-      from_email = "hello@elixa.ai",
-      from_name = "Elixa",
+      from_email = "outreach@elixa.ai",
+      from_name = "Elixa Team",
     } = requestData;
 
     console.log(`Starting campaign "${campaign_name}" with ${recipients.length} recipients`);
