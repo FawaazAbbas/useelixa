@@ -1039,6 +1039,99 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaigns: {
+        Row: {
+          body_html: string
+          created_at: string | null
+          created_by: string | null
+          failed_count: number | null
+          id: string
+          name: string
+          recipient_count: number | null
+          sent_at: string | null
+          sent_count: number | null
+          status: string | null
+          subject: string
+        }
+        Insert: {
+          body_html: string
+          created_at?: string | null
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          name: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          subject: string
+        }
+        Update: {
+          body_html?: string
+          created_at?: string | null
+          created_by?: string | null
+          failed_count?: number | null
+          id?: string
+          name?: string
+          recipient_count?: number | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      email_sends: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          outreach_contact_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          outreach_contact_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          outreach_contact_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_sends_outreach_contact_id_fkey"
+            columns: ["outreach_contact_id"]
+            isOneToOne: false
+            referencedRelation: "outreach_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           bundle_type: string | null
@@ -1159,6 +1252,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      outreach_contacts: {
+        Row: {
+          company: string | null
+          created_at: string | null
+          email: string
+          email_count: number | null
+          id: string
+          last_contacted_at: string | null
+          name: string | null
+          notes: string | null
+          source: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string | null
+          email: string
+          email_count?: number | null
+          id?: string
+          last_contacted_at?: string | null
+          name?: string | null
+          notes?: string | null
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string | null
+          email?: string
+          email_count?: number | null
+          id?: string
+          last_contacted_at?: string | null
+          name?: string | null
+          notes?: string | null
+          source?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

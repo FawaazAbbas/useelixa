@@ -37,13 +37,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon } from "lucide-react";
+import { Download, Search, Users, Code, RefreshCw, LogOut, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, Mail } from "lucide-react";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AdminOutreachTab } from "@/components/admin/AdminOutreachTab";
 
 interface WaitlistSignup {
   id: string;
@@ -746,6 +747,10 @@ const Admin = () => {
             <TabsTrigger value="developers" className="flex-1 sm:flex-none text-xs sm:text-sm">
               Developers ({developerApplications.length})
             </TabsTrigger>
+            <TabsTrigger value="outreach" className="flex-1 sm:flex-none text-xs sm:text-sm gap-1">
+              <Mail className="h-3 w-3" />
+              Outreach
+            </TabsTrigger>
           </TabsList>
 
           {/* Waitlist Tab */}
@@ -1143,6 +1148,11 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Outreach Tab */}
+          <TabsContent value="outreach">
+            <AdminOutreachTab />
           </TabsContent>
         </Tabs>
       </div>
