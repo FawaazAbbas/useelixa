@@ -63,6 +63,10 @@ import {
   Clock,
   Calendar,
   RefreshCw,
+  Eye,
+  FileText,
+  Save,
+  Copy,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -99,6 +103,15 @@ interface EmailCampaign {
   next_recurring_run: string | null;
 }
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body_html: string;
+  is_default: boolean;
+  created_at: string;
+}
+
 type RecurrencePattern = "daily" | "weekly" | "monthly" | "none";
 
 type SortDirection = "asc" | "desc" | null;
@@ -127,6 +140,7 @@ export const AdminOutreachTab = () => {
     converted: 0,
   });
   const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -153,6 +167,10 @@ export const AdminOutreachTab = () => {
   const [assignAudienceOpen, setAssignAudienceOpen] = useState(false);
   const [emailAllMode, setEmailAllMode] = useState(false);
   const [showCampaignComposer, setShowCampaignComposer] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
 
   // Forms
   const [contactForm, setContactForm] = useState({
@@ -179,8 +197,8 @@ export const AdminOutreachTab = () => {
 
   const fetchData = async () => {
     try {
-      // Get total count, status counts, audiences, and sources
-      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes, audiencesRes, sourcesRes] = await Promise.all([
+      // Get total count, status counts, audiences, sources, and templates
+      const [countRes, pendingRes, contactedRes, respondedRes, convertedRes, campaignsRes, audiencesRes, sourcesRes, templatesRes] = await Promise.all([
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("outreach_contacts").select("*", { count: "exact", head: true }).eq("status", "contacted"),
@@ -189,6 +207,7 @@ export const AdminOutreachTab = () => {
         supabase.from("email_campaigns").select("*").order("created_at", { ascending: false }),
         supabase.from("outreach_contacts").select("audience").not("audience", "is", null),
         supabase.from("outreach_contacts").select("source").not("source", "is", null),
+        supabase.from("email_templates").select("*").order("created_at", { ascending: false }),
       ]);
 
       setTotalCount(countRes.count ?? 0);
@@ -199,6 +218,7 @@ export const AdminOutreachTab = () => {
         converted: convertedRes.count ?? 0,
       });
       if (campaignsRes.data) setCampaigns(campaignsRes.data as EmailCampaign[]);
+      if (templatesRes.data) setTemplates(templatesRes.data as EmailTemplate[]);
       
       // Extract unique audiences
       if (audiencesRes.data) {
@@ -786,6 +806,67 @@ export const AdminOutreachTab = () => {
     }
   };
 
+  // Save as template
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim() || !emailForm.subject || !emailForm.body_html) {
+      toast.error("Template name, subject, and body are required");
+      return;
+    }
+
+    setSavingTemplate(true);
+    try {
+      const { error } = await supabase.from("email_templates").insert({
+        name: templateName.trim(),
+        subject: emailForm.subject,
+        body_html: emailForm.body_html,
+      });
+
+      if (error) throw error;
+      toast.success("Template saved");
+      setTemplateName("");
+      fetchData();
+    } catch (error: any) {
+      console.error("Error saving template:", error);
+      toast.error(error.message || "Failed to save template");
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  // Load template
+  const handleLoadTemplate = (template: EmailTemplate) => {
+    setEmailForm({
+      ...emailForm,
+      subject: template.subject,
+      body_html: template.body_html,
+    });
+    setShowTemplates(false);
+    toast.success(`Loaded "${template.name}" template`);
+  };
+
+  // Delete template
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const { error } = await supabase
+        .from("email_templates")
+        .delete()
+        .eq("id", templateId);
+
+      if (error) throw error;
+      toast.success("Template deleted");
+      fetchData();
+    } catch (error: any) {
+      console.error("Error deleting template:", error);
+      toast.error(error.message || "Failed to delete template");
+    }
+  };
+
+  // Generate preview HTML
+  const getPreviewHtml = () => {
+    const sampleName = "John Doe";
+    return emailForm.body_html.replace(/\{\{name\}\}/g, sampleName);
+  };
+
   if (loading) {
     return (
       <Card>
@@ -1186,6 +1267,103 @@ export const AdminOutreachTab = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Template Actions */}
+              <div className="flex flex-wrap gap-2 pb-2 border-b">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowTemplates(!showTemplates)}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  {showTemplates ? "Hide Templates" : "Load Template"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview(!showPreview)}
+                  disabled={!emailForm.body_html}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {showPreview ? "Hide Preview" : "Preview"}
+                </Button>
+              </div>
+
+              {/* Templates Panel */}
+              {showTemplates && (
+                <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium">Saved Templates</Label>
+                  </div>
+                  {templates.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No templates saved yet. Create your first template below.</p>
+                  ) : (
+                    <div className="grid gap-2 max-h-48 overflow-y-auto">
+                      {templates.map((template) => (
+                        <div
+                          key={template.id}
+                          className="flex items-center justify-between p-2 border rounded bg-background hover:bg-muted/50"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{template.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{template.subject}</p>
+                          </div>
+                          <div className="flex gap-1 ml-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => handleLoadTemplate(template)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteTemplate(template.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Save as Template */}
+                  <div className="flex gap-2 pt-2 border-t">
+                    <Input
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      placeholder="Template name..."
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleSaveTemplate}
+                      disabled={savingTemplate || !templateName.trim() || !emailForm.subject || !emailForm.body_html}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {savingTemplate ? "Saving..." : "Save Template"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Preview Panel */}
+              {showPreview && emailForm.body_html && (
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-muted px-4 py-2 border-b">
+                    <p className="text-sm font-medium">Email Preview</p>
+                    <p className="text-xs text-muted-foreground">Subject: {emailForm.subject || "(No subject)"}</p>
+                  </div>
+                  <div 
+                    className="p-4 bg-white min-h-[200px] max-h-[400px] overflow-auto"
+                    dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+                  />
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Campaign Name *</Label>
