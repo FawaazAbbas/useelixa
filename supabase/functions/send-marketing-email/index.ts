@@ -142,7 +142,7 @@ const handler = async (req: Request): Promise<Response> => {
       subject,
       body_html,
       recipients,
-      from_email = "outreach@elixa.ai",
+      from_email = "outreach@elixa.app",
       from_name = "Elixa Team",
     } = requestData;
 
