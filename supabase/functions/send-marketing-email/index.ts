@@ -22,6 +22,10 @@ interface MarketingEmailRequest {
   from_email?: string;
   from_name?: string;
   resume_from_index?: number; // For resuming interrupted campaigns
+  scheduled_at?: string; // ISO datetime for scheduled send
+  is_recurring?: boolean;
+  recurrence_pattern?: "daily" | "weekly" | "monthly" | "none";
+  audience_filter?: string;
 }
 
 const ELASTIC_EMAIL_API_URL = "https://api.elasticemail.com/v4/emails/transactional";
@@ -244,25 +248,45 @@ const handler = async (req: Request): Promise<Response> => {
       from_email = "outreach@elixa.app",
       from_name = "Elixa Team",
       resume_from_index = 0,
+      scheduled_at,
+      is_recurring = false,
+      recurrence_pattern = "none",
+      audience_filter,
     } = requestData;
 
     console.log(`Starting campaign "${campaign_name}" with ${recipients.length} recipients (starting from index ${resume_from_index})`);
 
+    // Check if this is a scheduled campaign (not immediate send)
+    const isScheduled = scheduled_at && new Date(scheduled_at) > new Date();
+
     // Create campaign if not exists
     let campaignId: string = campaign_id || "";
     if (!campaign_id) {
+      // Calculate next recurring run if this is a recurring campaign
+      let nextRecurringRun: string | null = null;
+      if (is_recurring && recurrence_pattern !== "none" && scheduled_at) {
+        nextRecurringRun = calculateNextRecurringRun(recurrence_pattern, scheduled_at);
+      }
+
+      const campaignData: Record<string, unknown> = {
+        name: campaign_name,
+        subject,
+        body_html,
+        recipient_count: recipients.length,
+        created_by: user.id,
+        status: isScheduled ? "scheduled" : "sending",
+        sent_count: 0,
+        failed_count: 0,
+        scheduled_at: scheduled_at || null,
+        is_recurring: is_recurring,
+        recurrence_pattern: recurrence_pattern !== "none" ? recurrence_pattern : null,
+        audience_filter: audience_filter || null,
+        next_recurring_run: nextRecurringRun,
+      };
+
       const { data: newCampaign, error: campaignError } = await supabase
         .from("email_campaigns")
-        .insert({
-          name: campaign_name,
-          subject,
-          body_html,
-          recipient_count: recipients.length,
-          created_by: user.id,
-          status: "sending",
-          sent_count: 0,
-          failed_count: 0,
-        })
+        .insert(campaignData)
         .select()
         .single();
 
@@ -274,6 +298,25 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       campaignId = newCampaign.id;
+
+      // If scheduled for future, return immediately without sending
+      if (isScheduled) {
+        console.log(`Campaign ${campaignId} scheduled for ${scheduled_at}`);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            campaign_id: campaignId,
+            message: `Campaign scheduled for ${scheduled_at}`,
+            scheduled_at,
+            is_recurring,
+            recurrence_pattern,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          }
+        );
+      }
     } else {
       // Update existing campaign status to sending if resuming
       await supabase
@@ -386,5 +429,31 @@ const handler = async (req: Request): Promise<Response> => {
 addEventListener("beforeunload", (ev: any) => {
   console.log("Function shutting down:", ev.detail?.reason);
 });
+
+// Helper function to calculate next recurring run
+function calculateNextRecurringRun(pattern: string, baseTime: string): string {
+  const base = new Date(baseTime);
+  const now = new Date();
+  let next = new Date(base);
+
+  // Start from the original scheduled time and find next occurrence after now
+  while (next <= now) {
+    switch (pattern) {
+      case "daily":
+        next.setDate(next.getDate() + 1);
+        break;
+      case "weekly":
+        next.setDate(next.getDate() + 7);
+        break;
+      case "monthly":
+        next.setMonth(next.getMonth() + 1);
+        break;
+      default:
+        next.setDate(next.getDate() + 1);
+    }
+  }
+
+  return next.toISOString();
+}
 
 serve(handler);
