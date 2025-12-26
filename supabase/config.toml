@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.cancel-campaign]
 verify_jwt = false
+
+[functions.run-scheduled-campaigns]
+verify_jwt = false

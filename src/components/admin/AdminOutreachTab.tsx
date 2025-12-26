@@ -789,16 +789,24 @@ export const AdminOutreachTab = () => {
           subject: emailForm.subject,
           body_html: emailForm.body_html,
           recipients,
+          scheduled_at: emailForm.scheduledAt ? new Date(emailForm.scheduledAt).toISOString() : undefined,
+          is_recurring: emailForm.isRecurring,
+          recurrence_pattern: emailForm.recurrencePattern,
+          audience_filter: emailForm.targetAudience === "audience" ? emailForm.selectedAudienceForEmail : undefined,
         },
       });
 
       if (response.error) throw response.error;
 
       const result = response.data;
-      toast.success(
-        `Campaign sent! ${result.sent_count} sent, ${result.failed_count} failed`
-      );
-      setComposerOpen(false);
+      
+      if (result.scheduled_at) {
+        toast.success(`Campaign scheduled for ${new Date(result.scheduled_at).toLocaleString()}`);
+      } else {
+        toast.success(`Campaign started! Processing ${result.total_recipients} emails in background.`);
+      }
+      
+      setShowCampaignComposer(false);
       setEmailForm({ name: "", subject: "", body_html: "", targetAudience: "all", selectedAudienceForEmail: "", scheduledAt: "", isRecurring: false, recurrencePattern: "none" });
       setSelectedContacts(new Set());
       setEmailAllMode(false);
