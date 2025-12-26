@@ -67,6 +67,9 @@ import {
   FileText,
   Save,
   Copy,
+  Play,
+  Square,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -192,6 +195,8 @@ export const AdminOutreachTab = () => {
     recurrencePattern: "none" as RecurrencePattern,
   });
   const [sending, setSending] = useState(false);
+  const [cancellingCampaignId, setCancellingCampaignId] = useState<string | null>(null);
+  const [resumingCampaignId, setResumingCampaignId] = useState<string | null>(null);
   const [newAudience, setNewAudience] = useState("");
   const [selectedAudience, setSelectedAudience] = useState("");
 
@@ -867,6 +872,123 @@ export const AdminOutreachTab = () => {
     return emailForm.body_html.replace(/\{\{name\}\}/g, sampleName);
   };
 
+  // Cancel campaign
+  const handleCancelCampaign = async (campaignId: string) => {
+    setCancellingCampaignId(campaignId);
+    try {
+      const response = await supabase.functions.invoke("cancel-campaign", {
+        body: { campaign_id: campaignId },
+      });
+
+      if (response.error) throw response.error;
+
+      toast.success("Campaign cancellation requested");
+      fetchData();
+    } catch (error: any) {
+      console.error("Error cancelling campaign:", error);
+      toast.error(error.message || "Failed to cancel campaign");
+    } finally {
+      setCancellingCampaignId(null);
+    }
+  };
+
+  // Resume campaign - fetch unsent contacts and restart
+  const handleResumeCampaign = async (campaign: EmailCampaign) => {
+    setResumingCampaignId(campaign.id);
+    try {
+      // Get already sent emails for this campaign
+      const { data: sentEmails, error: sentError } = await supabase
+        .from("email_sends")
+        .select("outreach_contact_id")
+        .eq("campaign_id", campaign.id);
+
+      if (sentError) throw sentError;
+
+      const sentContactIds = new Set(
+        (sentEmails || []).map((e) => e.outreach_contact_id).filter(Boolean)
+      );
+
+      // Fetch all contacts and filter out already sent
+      let allContacts: OutreachContact[] = [];
+      let page = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const from = page * 1000;
+        const to = from + 999;
+        
+        let query = supabase
+          .from("outreach_contacts")
+          .select("*")
+          .range(from, to);
+
+        // Apply audience filter if the campaign had one
+        if (campaign.audience_filter) {
+          query = query.eq("audience", campaign.audience_filter);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          allContacts = [...allContacts, ...(data as OutreachContact[])];
+          if (data.length < 1000) hasMore = false;
+          page++;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      // Filter out already sent contacts
+      const remainingContacts = allContacts.filter(
+        (c) => !sentContactIds.has(c.id)
+      );
+
+      if (remainingContacts.length === 0) {
+        toast.info("All contacts have already been sent to");
+        return;
+      }
+
+      const recipients = remainingContacts.map((c) => ({
+        email: c.email,
+        name: c.name || undefined,
+        outreach_contact_id: c.id,
+      }));
+
+      const response = await supabase.functions.invoke("send-marketing-email", {
+        body: {
+          campaign_id: campaign.id,
+          campaign_name: campaign.name,
+          subject: campaign.subject,
+          body_html: campaign.body_html,
+          recipients,
+        },
+      });
+
+      if (response.error) throw response.error;
+
+      toast.success(`Resuming campaign with ${remainingContacts.length} remaining contacts`);
+      fetchData();
+    } catch (error: any) {
+      console.error("Error resuming campaign:", error);
+      toast.error(error.message || "Failed to resume campaign");
+    } finally {
+      setResumingCampaignId(null);
+    }
+  };
+
+  // Auto-refresh campaigns that are sending
+  useEffect(() => {
+    const sendingCampaigns = campaigns.filter((c) => c.status === "sending");
+    if (sendingCampaigns.length === 0) return;
+
+    const interval = setInterval(() => {
+      fetchData();
+    }, 5000); // Refresh every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [campaigns]);
+
   if (loading) {
     return (
       <Card>
@@ -1529,10 +1651,10 @@ export const AdminOutreachTab = () => {
                       <TableHead>Campaign</TableHead>
                       <TableHead>Subject</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Progress</TableHead>
                       <TableHead>Audience</TableHead>
-                      <TableHead>Sent</TableHead>
-                      <TableHead>Failed</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1561,16 +1683,40 @@ export const AdminOutreachTab = () => {
                             <Badge
                               variant={
                                 campaign.status === "sent" ? "default" : 
+                                campaign.status === "sending" ? "outline" :
+                                campaign.status === "cancelled" ? "destructive" :
                                 campaign.status === "scheduled" ? "secondary" : 
-                                campaign.status === "active" ? "outline" : "secondary"
+                                "secondary"
                               }
                               className={
+                                campaign.status === "sending" ? "bg-blue-500/20 text-blue-700" :
                                 campaign.status === "scheduled" ? "bg-blue-500/20 text-blue-700" :
-                                campaign.status === "active" ? "bg-green-500/20 text-green-700" : ""
+                                campaign.status === "cancelled" ? "bg-red-500/20 text-red-700" : ""
                               }
                             >
+                              {campaign.status === "sending" && (
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              )}
                               {campaign.status}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-green-600">{campaign.sent_count}</span>
+                              <span className="text-muted-foreground">/</span>
+                              <span>{campaign.recipient_count}</span>
+                              {campaign.failed_count > 0 && (
+                                <span className="text-red-600 text-xs">({campaign.failed_count} failed)</span>
+                              )}
+                            </div>
+                            {campaign.status === "sending" && campaign.recipient_count > 0 && (
+                              <div className="w-full bg-muted rounded-full h-1.5 mt-1">
+                                <div 
+                                  className="bg-primary h-1.5 rounded-full transition-all" 
+                                  style={{ width: `${Math.round((campaign.sent_count / campaign.recipient_count) * 100)}%` }}
+                                />
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             {campaign.audience_filter ? (
@@ -1579,8 +1725,6 @@ export const AdminOutreachTab = () => {
                               <span className="text-muted-foreground text-xs">All</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-green-600">{campaign.sent_count}</TableCell>
-                          <TableCell className="text-red-600">{campaign.failed_count}</TableCell>
                           <TableCell>
                             {campaign.scheduled_at && campaign.status === "scheduled" ? (
                               <div className="flex items-center gap-1 text-blue-600">
@@ -1592,6 +1736,43 @@ export const AdminOutreachTab = () => {
                             ) : (
                               format(new Date(campaign.created_at), "MMM d, yyyy")
                             )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {campaign.status === "sending" && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleCancelCampaign(campaign.id)}
+                                  disabled={cancellingCampaignId === campaign.id}
+                                  title="Cancel campaign"
+                                >
+                                  {cancellingCampaignId === campaign.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Square className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
+                              {(campaign.status === "cancelled" || 
+                                (campaign.status === "sent" && campaign.sent_count < campaign.recipient_count)) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  onClick={() => handleResumeCampaign(campaign)}
+                                  disabled={resumingCampaignId === campaign.id}
+                                  title="Resume campaign"
+                                >
+                                  {resumingCampaignId === campaign.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Play className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))

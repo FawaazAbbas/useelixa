@@ -21,9 +21,12 @@ interface MarketingEmailRequest {
   recipients: EmailRecipient[];
   from_email?: string;
   from_name?: string;
+  resume_from_index?: number; // For resuming interrupted campaigns
 }
 
 const ELASTIC_EMAIL_API_URL = "https://api.elasticemail.com/v4/emails/transactional";
+const BATCH_SIZE = 100; // Process in batches of 100 emails
+const PROGRESS_UPDATE_INTERVAL = 10; // Update progress every 10 emails
 
 async function sendElasticEmail(
   apiKey: string,
@@ -70,12 +73,108 @@ async function sendElasticEmail(
     }
 
     const result = await response.json();
-    console.log("Email sent successfully:", result);
     return { success: true, messageId: result.MessageID };
   } catch (error: any) {
     console.error("Error sending email:", error);
     return { success: false, error: error.message };
   }
+}
+
+async function processEmailBatch(
+  supabase: any,
+  elasticEmailApiKey: string,
+  campaignId: string,
+  recipients: EmailRecipient[],
+  subject: string,
+  bodyHtml: string,
+  fromEmail: string,
+  fromName: string,
+  startIndex: number
+): Promise<{ processedCount: number; sentCount: number; failedCount: number; cancelled: boolean }> {
+  let sentCount = 0;
+  let failedCount = 0;
+  let processedCount = 0;
+
+  for (let i = 0; i < recipients.length; i++) {
+    // Check if campaign was cancelled
+    const { data: campaign } = await supabase
+      .from("email_campaigns")
+      .select("status")
+      .eq("id", campaignId)
+      .single();
+
+    if (campaign?.status === "cancelled") {
+      console.log(`Campaign ${campaignId} was cancelled. Stopping at index ${startIndex + i}`);
+      return { processedCount, sentCount, failedCount, cancelled: true };
+    }
+
+    const recipient = recipients[i];
+    const result = await sendElasticEmail(
+      elasticEmailApiKey,
+      recipient.email,
+      recipient.name,
+      subject,
+      bodyHtml,
+      fromEmail,
+      fromName
+    );
+
+    // Log the send
+    await supabase.from("email_sends").insert({
+      campaign_id: campaignId,
+      outreach_contact_id: recipient.outreach_contact_id || null,
+      recipient_email: recipient.email,
+      recipient_name: recipient.name || null,
+      status: result.success ? "sent" : "failed",
+      sent_at: result.success ? new Date().toISOString() : null,
+      error_message: result.error || null,
+    });
+
+    // Update outreach contact if exists
+    if (recipient.outreach_contact_id && result.success) {
+      const { data: contactData } = await supabase
+        .from("outreach_contacts")
+        .select("email_count")
+        .eq("id", recipient.outreach_contact_id)
+        .single();
+
+      const currentCount = contactData?.email_count || 0;
+
+      await supabase
+        .from("outreach_contacts")
+        .update({
+          last_contacted_at: new Date().toISOString(),
+          email_count: currentCount + 1,
+          status: "contacted",
+        })
+        .eq("id", recipient.outreach_contact_id);
+    }
+
+    if (result.success) {
+      sentCount++;
+    } else {
+      failedCount++;
+    }
+    processedCount++;
+
+    // Update campaign progress periodically
+    if (processedCount % PROGRESS_UPDATE_INTERVAL === 0) {
+      await supabase
+        .from("email_campaigns")
+        .update({
+          sent_count: sentCount,
+          failed_count: failedCount,
+        })
+        .eq("id", campaignId);
+      
+      console.log(`Progress: ${startIndex + processedCount}/${startIndex + recipients.length} emails processed`);
+    }
+
+    // Rate limit: wait 100ms between sends
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  return { processedCount, sentCount, failedCount, cancelled: false };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -144,13 +243,14 @@ const handler = async (req: Request): Promise<Response> => {
       recipients,
       from_email = "outreach@elixa.app",
       from_name = "Elixa Team",
+      resume_from_index = 0,
     } = requestData;
 
-    console.log(`Starting campaign "${campaign_name}" with ${recipients.length} recipients`);
+    console.log(`Starting campaign "${campaign_name}" with ${recipients.length} recipients (starting from index ${resume_from_index})`);
 
     // Create campaign if not exists
-    let campaignId = campaign_id;
-    if (!campaignId) {
+    let campaignId: string = campaign_id || "";
+    if (!campaign_id) {
       const { data: newCampaign, error: campaignError } = await supabase
         .from("email_campaigns")
         .insert({
@@ -160,6 +260,8 @@ const handler = async (req: Request): Promise<Response> => {
           recipient_count: recipients.length,
           created_by: user.id,
           status: "sending",
+          sent_count: 0,
+          failed_count: 0,
         })
         .select()
         .single();
@@ -172,92 +274,96 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
       campaignId = newCampaign.id;
+    } else {
+      // Update existing campaign status to sending if resuming
+      await supabase
+        .from("email_campaigns")
+        .update({ status: "sending" })
+        .eq("id", campaignId);
     }
 
-    // Process emails with rate limiting (1 per second to be safe)
-    const results: { email: string; success: boolean; error?: string }[] = [];
-    let sentCount = 0;
-    let failedCount = 0;
+    // Slice recipients based on resume index
+    const remainingRecipients = recipients.slice(resume_from_index);
+    
+    // Process emails in background using waitUntil
+    const backgroundTask = async () => {
+      console.log(`Background task started for campaign ${campaignId}`);
+      
+      let totalSent = 0;
+      let totalFailed = 0;
+      let currentIndex = resume_from_index;
+      let wasCancelled = false;
 
-    for (const recipient of recipients) {
-      const result = await sendElasticEmail(
-        elasticEmailApiKey,
-        recipient.email,
-        recipient.name,
-        subject,
-        body_html,
-        from_email,
-        from_name
-      );
+      // Process in batches
+      for (let i = 0; i < remainingRecipients.length; i += BATCH_SIZE) {
+        const batch = remainingRecipients.slice(i, i + BATCH_SIZE);
+        console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}, emails ${currentIndex + 1} to ${currentIndex + batch.length}`);
 
-      // Log the send
-      await supabase.from("email_sends").insert({
-        campaign_id: campaignId,
-        outreach_contact_id: recipient.outreach_contact_id || null,
-        recipient_email: recipient.email,
-        recipient_name: recipient.name || null,
-        status: result.success ? "sent" : "failed",
-        sent_at: result.success ? new Date().toISOString() : null,
-        error_message: result.error || null,
-      });
+        const result = await processEmailBatch(
+          supabase,
+          elasticEmailApiKey,
+          campaignId,
+          batch,
+          subject,
+          body_html,
+          from_email,
+          from_name,
+          currentIndex
+        );
 
-      // Update outreach contact if exists
-      if (recipient.outreach_contact_id && result.success) {
-        // First get current email_count
-        const { data: contactData } = await supabase
-          .from("outreach_contacts")
-          .select("email_count")
-          .eq("id", recipient.outreach_contact_id)
-          .single();
+        totalSent += result.sentCount;
+        totalFailed += result.failedCount;
+        currentIndex += result.processedCount;
 
-        const currentCount = contactData?.email_count || 0;
-
+        // Update campaign progress after each batch
         await supabase
-          .from("outreach_contacts")
+          .from("email_campaigns")
           .update({
-            last_contacted_at: new Date().toISOString(),
-            email_count: currentCount + 1,
-            status: "contacted",
+            sent_count: totalSent,
+            failed_count: totalFailed,
           })
-          .eq("id", recipient.outreach_contact_id);
+          .eq("id", campaignId);
+
+        if (result.cancelled) {
+          wasCancelled = true;
+          console.log(`Campaign ${campaignId} cancelled after processing ${currentIndex} emails`);
+          break;
+        }
       }
 
-      results.push({
-        email: recipient.email,
-        success: result.success,
-        error: result.error,
-      });
+      // Finalize campaign status
+      const finalStatus = wasCancelled ? "cancelled" : "sent";
+      await supabase
+        .from("email_campaigns")
+        .update({
+          status: finalStatus,
+          sent_at: wasCancelled ? null : new Date().toISOString(),
+          sent_count: totalSent,
+          failed_count: totalFailed,
+        })
+        .eq("id", campaignId);
 
-      if (result.success) {
-        sentCount++;
-      } else {
-        failedCount++;
-      }
+      console.log(`Campaign ${campaignId} ${finalStatus}: ${totalSent} sent, ${totalFailed} failed`);
+    };
 
-      // Rate limit: wait 100ms between sends
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    // Use EdgeRuntime.waitUntil for background processing
+    // @ts-ignore - EdgeRuntime is available in Supabase edge functions
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(backgroundTask());
+    } else {
+      // Fallback for local testing - run synchronously
+      await backgroundTask();
     }
 
-    // Update campaign status
-    await supabase
-      .from("email_campaigns")
-      .update({
-        status: "sent",
-        sent_at: new Date().toISOString(),
-        sent_count: sentCount,
-        failed_count: failedCount,
-      })
-      .eq("id", campaignId);
-
-    console.log(`Campaign completed: ${sentCount} sent, ${failedCount} failed`);
-
+    // Return immediately with campaign info
     return new Response(
       JSON.stringify({
         success: true,
         campaign_id: campaignId,
-        sent_count: sentCount,
-        failed_count: failedCount,
-        results,
+        message: `Campaign started. Processing ${remainingRecipients.length} emails in background.`,
+        total_recipients: recipients.length,
+        starting_from: resume_from_index,
       }),
       {
         status: 200,
@@ -275,5 +381,10 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+// Handle shutdown gracefully
+addEventListener("beforeunload", (ev: any) => {
+  console.log("Function shutting down:", ev.detail?.reason);
+});
 
 serve(handler);
