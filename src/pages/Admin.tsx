@@ -749,7 +749,7 @@ const Admin = () => {
             </TabsTrigger>
             <TabsTrigger value="outreach" className="flex-1 sm:flex-none text-xs sm:text-sm gap-1">
               <Mail className="h-3 w-3" />
-              Outreach
+              Subscribers
             </TabsTrigger>
           </TabsList>
 
