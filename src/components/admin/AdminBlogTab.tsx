@@ -59,6 +59,8 @@ interface BlogPost {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  seo_title: string | null;
+  seo_description: string | null;
 }
 
 const CATEGORIES = [
@@ -90,6 +92,8 @@ export function AdminBlogTab() {
     category: "",
     tags: "",
     published: false,
+    seo_title: "",
+    seo_description: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -127,6 +131,8 @@ export function AdminBlogTab() {
         category: post.category || "",
         tags: post.tags?.join(", ") || "",
         published: post.published,
+        seo_title: post.seo_title || "",
+        seo_description: post.seo_description || "",
       });
     } else {
       setEditingPost(null);
@@ -139,6 +145,8 @@ export function AdminBlogTab() {
         category: "",
         tags: "",
         published: false,
+        seo_title: "",
+        seo_description: "",
       });
     }
     setIsEditorOpen(true);
@@ -162,6 +170,8 @@ export function AdminBlogTab() {
         category: formData.category || null,
         tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
         published: formData.published,
+        seo_title: formData.seo_title.trim() || null,
+        seo_description: formData.seo_description.trim() || null,
       };
 
       if (editingPost) {
@@ -483,6 +493,39 @@ export function AdminBlogTab() {
                     placeholder="ai, automation, productivity"
                     className="mt-1.5"
                   />
+                </div>
+              </div>
+
+              {/* SEO Section */}
+              <div className="space-y-4 p-4 border border-dashed rounded-lg">
+                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">SEO Settings</h4>
+                <div>
+                  <Label htmlFor="seo_title">SEO Title</Label>
+                  <Input
+                    id="seo_title"
+                    value={formData.seo_title}
+                    onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
+                    placeholder="Custom title for search engines (defaults to post title)"
+                    className="mt-1.5"
+                    maxLength={60}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.seo_title.length}/60 characters
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="seo_description">SEO Description</Label>
+                  <Textarea
+                    id="seo_description"
+                    value={formData.seo_description}
+                    onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
+                    placeholder="Custom description for search engines (defaults to excerpt)"
+                    className="mt-1.5 h-20"
+                    maxLength={160}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.seo_description.length}/160 characters
+                  </p>
                 </div>
               </div>
 

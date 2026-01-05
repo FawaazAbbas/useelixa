@@ -21,6 +21,8 @@ interface BlogPost {
   tags: string[];
   published_at: string | null;
   created_at: string;
+  seo_title: string | null;
+  seo_description: string | null;
 }
 
 // Helper to update meta tags
@@ -28,8 +30,12 @@ const updateMetaTags = (post: BlogPost) => {
   const baseUrl = window.location.origin;
   const postUrl = `${baseUrl}/blog/${post.slug}`;
   
+  // Use SEO fields if available, otherwise fall back to defaults
+  const seoTitle = post.seo_title || post.title;
+  const seoDescription = post.seo_description || post.excerpt || post.content.replace(/<[^>]*>/g, '').substring(0, 160);
+  
   // Update title
-  document.title = `${post.title} | Elixa Blog`;
+  document.title = `${seoTitle} | Elixa Blog`;
   
   // Helper to set or create meta tag
   const setMetaTag = (property: string, content: string, isName = false) => {
@@ -48,12 +54,11 @@ const updateMetaTags = (post: BlogPost) => {
   };
   
   // Description
-  const description = post.excerpt || post.content.replace(/<[^>]*>/g, '').substring(0, 160);
-  setMetaTag('description', description, true);
+  setMetaTag('description', seoDescription, true);
   
   // Open Graph tags
-  setMetaTag('og:title', post.title);
-  setMetaTag('og:description', description);
+  setMetaTag('og:title', seoTitle);
+  setMetaTag('og:description', seoDescription);
   setMetaTag('og:url', postUrl);
   setMetaTag('og:type', 'article');
   if (post.cover_image_url) {
@@ -62,8 +67,8 @@ const updateMetaTags = (post: BlogPost) => {
   
   // Twitter Card tags
   setMetaTag('twitter:card', 'summary_large_image', true);
-  setMetaTag('twitter:title', post.title, true);
-  setMetaTag('twitter:description', description, true);
+  setMetaTag('twitter:title', seoTitle, true);
+  setMetaTag('twitter:description', seoDescription, true);
   if (post.cover_image_url) {
     setMetaTag('twitter:image', post.cover_image_url, true);
   }
