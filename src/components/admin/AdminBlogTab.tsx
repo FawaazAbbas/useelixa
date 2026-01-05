@@ -97,10 +97,20 @@ export function AdminBlogTab() {
   });
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "drafts">("all");
+  const [closeRequested, setCloseRequested] = useState(false);
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (!closeRequested) return;
+    if (saving) return;
+    if (isEditorOpen) return;
+
+    // Dialog has been closed (via X or explicit close button) → persist a draft
+    handleSaveAsDraft().finally(() => setCloseRequested(false));
+  }, [closeRequested, isEditorOpen, saving]);
 
   const fetchPosts = async () => {
     try {
@@ -205,9 +215,24 @@ export function AdminBlogTab() {
   };
 
   const handleSaveAsDraft = async () => {
-    // Only save if there's a title
+    // If user didn't type anything meaningful, just close.
+    const hasAnyContent = !!(
+      formData.title.trim() ||
+      formData.excerpt.trim() ||
+      formData.content.trim() ||
+      formData.cover_image_url.trim() ||
+      formData.tags.trim() ||
+      formData.seo_title.trim() ||
+      formData.seo_description.trim()
+    );
+
+    if (!hasAnyContent) {
+      return;
+    }
+
+    // Require a title to create/update a draft
     if (!formData.title.trim()) {
-      setIsEditorOpen(false);
+      toast.error("Add a title to save a draft");
       return;
     }
 
@@ -221,7 +246,7 @@ export function AdminBlogTab() {
         cover_image_url: formData.cover_image_url.trim() || null,
         author_name: formData.author_name.trim() || "Elixa Team",
         category: formData.category || null,
-        tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+        tags: formData.tags ? formData.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
         published: false, // Always save as draft
         seo_title: formData.seo_title.trim() || null,
         seo_description: formData.seo_description.trim() || null,
@@ -235,17 +260,12 @@ export function AdminBlogTab() {
           .eq("id", editingPost.id);
 
         if (error) throw error;
-        toast.success("Saved as draft");
       } else {
-        const { error } = await supabase
-          .from("blog_posts")
-          .insert([postData]);
-
+        const { error } = await supabase.from("blog_posts").insert([postData]);
         if (error) throw error;
-        toast.success("Saved as draft");
       }
 
-      setIsEditorOpen(false);
+      toast.success("Saved as draft");
       fetchPosts();
     } catch (error: any) {
       console.error("Error saving draft:", error);
@@ -490,11 +510,18 @@ export function AdminBlogTab() {
       </Card>
 
       {/* Editor Dialog */}
-      <Dialog open={isEditorOpen} onOpenChange={(open) => {
-        if (!open) {
-          handleSaveAsDraft();
-        }
-      }}>
+      <Dialog
+        open={isEditorOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            setIsEditorOpen(true);
+            return;
+          }
+          // Closing requested (X button) → close immediately, then save draft in effect
+          setCloseRequested(true);
+          setIsEditorOpen(false);
+        }}
+      >
         <DialogContent 
           className="max-w-4xl max-h-[90vh] overflow-y-auto"
           onInteractOutside={(e) => e.preventDefault()}
@@ -634,8 +661,15 @@ export function AdminBlogTab() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={handleSaveAsDraft}>
-              Close & Save Draft
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCloseRequested(true);
+                setIsEditorOpen(false);
+              }}
+              disabled={saving}
+            >
+              {saving ? "Saving draft..." : "Close & Save Draft"}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
