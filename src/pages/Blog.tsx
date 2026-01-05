@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Search, Calendar, ArrowRight, Sparkles } from "lucide-react";
+import { Search, Calendar, ArrowRight, BookOpen } from "lucide-react";
 import { format } from "date-fns";
+import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
+import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 
 interface BlogPost {
   id: string;
@@ -62,239 +64,214 @@ const Blog = () => {
   const remainingPosts = filteredPosts.slice(1);
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated gradient blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px]"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div 
-          className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-violet-600/10 blur-[100px]"
-          animate={{ 
-            scale: [1.2, 1, 1.2],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
-
-      {/* Grid overlay */}
-      <div 
-        className="absolute inset-0 opacity-[0.02]"
-        style={{
-          backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
-                           linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)`,
-          backgroundSize: '50px 50px'
-        }}
-      />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-20">
-        {/* Header */}
-        <motion.div 
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Link to="/" className="inline-block mb-8">
-            <img 
-              src="/elixa-logo.png" 
-              alt="Elixa" 
-              className="h-10 mx-auto hover:scale-105 transition-transform duration-300"
-            />
-          </Link>
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium text-primary uppercase tracking-wider">Blog</span>
-            <Sparkles className="w-5 h-5 text-primary" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
-            Insights & Updates
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover the latest news, tutorials, and insights about AI agents and automation
-          </p>
-        </motion.div>
-
-        {/* Search & Filters */}
-        <motion.div 
-          className="flex flex-col md:flex-row gap-4 mb-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              placeholder="Search articles..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-12 h-12 bg-card/50 backdrop-blur-sm border-border/50"
-            />
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Badge
-              variant={selectedCategory === null ? "default" : "outline"}
-              className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/10 transition-colors"
-              onClick={() => setSelectedCategory(null)}
-            >
-              All
-            </Badge>
-            {categories.map(cat => (
-              <Badge
-                key={cat}
-                variant={selectedCategory === cat ? "default" : "outline"}
-                className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/10 transition-colors"
-                onClick={() => setSelectedCategory(cat as string)}
-              >
-                {cat}
-              </Badge>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Loading State */}
-        {loading && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <CardContent className="p-6 space-y-3">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredPosts.length === 0 && (
+    <div className="min-h-screen bg-background">
+      <TalentPoolNavbar showSearch={false} />
+      
+      {/* Hero Section */}
+      <section className="relative pt-20 sm:pt-24 pb-12 overflow-hidden">
+        {/* Background effects - matching site style */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-violet-500/5 to-background" />
+        <div className="absolute top-20 right-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-0 left-1/4 w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bg-violet-500/15 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
           <motion.div 
-            className="text-center py-20"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <p className="text-muted-foreground text-lg">No articles found</p>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
+              <BookOpen className="w-4 h-4 text-primary" />
+              <span className="text-xs sm:text-sm font-medium text-primary">Blog</span>
+            </div>
+            
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+              <span className="bg-gradient-to-r from-primary via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+                Insights & Updates
+              </span>
+            </h1>
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover the latest news, tutorials, and insights about AI agents and automation
+            </p>
           </motion.div>
-        )}
 
-        {/* Featured Post */}
-        {!loading && featuredPost && (
-          <motion.div
+          {/* Search & Filters */}
+          <motion.div 
+            className="flex flex-col md:flex-row gap-4 mb-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-10"
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <Link to={`/blog/${featuredPost.slug}`}>
-              <Card className="group overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-300">
-                <div className="md:flex">
-                  {featuredPost.cover_image_url && (
-                    <div className="md:w-1/2 h-64 md:h-auto overflow-hidden">
-                      <img
-                        src={featuredPost.cover_image_url}
-                        alt={featuredPost.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
-                  )}
-                  <CardContent className={`p-8 flex flex-col justify-center ${featuredPost.cover_image_url ? 'md:w-1/2' : 'w-full'}`}>
-                    <div className="flex items-center gap-3 mb-4">
-                      {featuredPost.category && (
-                        <Badge variant="secondary">{featuredPost.category}</Badge>
-                      )}
-                      <Badge className="bg-gradient-to-r from-primary to-violet-600 text-white">Featured</Badge>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">
-                      {featuredPost.title}
-                    </h2>
-                    {featuredPost.excerpt && (
-                      <p className="text-muted-foreground mb-4 line-clamp-3">
-                        {featuredPost.excerpt}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        {featuredPost.published_at && format(new Date(featuredPost.published_at), "MMM d, yyyy")}
-                      </div>
-                      <span className="flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">
-                        Read more <ArrowRight className="w-4 h-4" />
-                      </span>
-                    </div>
-                  </CardContent>
-                </div>
-              </Card>
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Posts Grid */}
-        {!loading && remainingPosts.length > 0 && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {remainingPosts.map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                placeholder="Search articles..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-12 h-12 bg-card/80 backdrop-blur-sm border-border rounded-xl focus:border-primary focus:ring-primary/20"
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Badge
+                variant={selectedCategory === null ? "default" : "outline"}
+                className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-lg"
+                onClick={() => setSelectedCategory(null)}
               >
-                <Link to={`/blog/${post.slug}`}>
-                  <Card className="group h-full overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-                    {post.cover_image_url && (
-                      <div className="h-48 overflow-hidden">
+                All
+              </Badge>
+              {categories.map(cat => (
+                <Badge
+                  key={cat}
+                  variant={selectedCategory === cat ? "default" : "outline"}
+                  className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-lg"
+                  onClick={() => setSelectedCategory(cat as string)}
+                >
+                  {cat}
+                </Badge>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
+                  <Skeleton className="h-48 w-full" />
+                  <CardContent className="p-6 space-y-3">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && filteredPosts.length === 0 && (
+            <motion.div 
+              className="text-center py-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <BookOpen className="w-8 h-8 text-primary" />
+              </div>
+              <p className="text-muted-foreground text-lg">No articles found</p>
+              <p className="text-muted-foreground text-sm mt-2">Try adjusting your search or filters</p>
+            </motion.div>
+          )}
+
+          {/* Featured Post */}
+          {!loading && featuredPost && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mb-10"
+            >
+              <Link to={`/blog/${featuredPost.slug}`}>
+                <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border-border hover:border-primary/50 transition-all duration-300 shadow-xl shadow-primary/5">
+                  <div className="md:flex">
+                    {featuredPost.cover_image_url && (
+                      <div className="md:w-1/2 h-64 md:h-auto overflow-hidden relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/50 z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <img
-                          src={post.cover_image_url}
-                          alt={post.title}
+                          src={featuredPost.cover_image_url}
+                          alt={featuredPost.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       </div>
                     )}
-                    <CardContent className="p-6">
-                      {post.category && (
-                        <Badge variant="secondary" className="mb-3">{post.category}</Badge>
-                      )}
-                      <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                        {post.title}
-                      </h3>
-                      {post.excerpt && (
-                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                          {post.excerpt}
+                    <CardContent className={`p-8 flex flex-col justify-center ${featuredPost.cover_image_url ? 'md:w-1/2' : 'w-full'}`}>
+                      <div className="flex items-center gap-3 mb-4">
+                        {featuredPost.category && (
+                          <Badge variant="secondary" className="rounded-lg">{featuredPost.category}</Badge>
+                        )}
+                        <Badge className="bg-gradient-to-r from-primary to-violet-600 text-white rounded-lg">Featured</Badge>
+                      </div>
+                      <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">
+                        {featuredPost.title}
+                      </h2>
+                      {featuredPost.excerpt && (
+                        <p className="text-muted-foreground mb-4 line-clamp-3">
+                          {featuredPost.excerpt}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {post.published_at && format(new Date(post.published_at), "MMM d, yyyy")}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          {featuredPost.published_at && format(new Date(featuredPost.published_at), "MMM d, yyyy")}
+                        </div>
+                        <span className="flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">
+                          Read more <ArrowRight className="w-4 h-4" />
+                        </span>
                       </div>
                     </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        )}
+                  </div>
+                </Card>
+              </Link>
+            </motion.div>
+          )}
 
-        {/* Back to home */}
-        <motion.p 
-          className="text-center text-sm text-muted-foreground mt-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <Link to="/" className="hover:text-primary transition-colors duration-300 flex items-center justify-center gap-2">
-            <span>←</span>
-            <span>Back to Elixa</span>
-          </Link>
-        </motion.p>
-      </div>
+          {/* Posts Grid */}
+          {!loading && remainingPosts.length > 0 && (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {remainingPosts.map((post, index) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
+                >
+                  <Link to={`/blog/${post.slug}`}>
+                    <Card className="group h-full overflow-hidden bg-card/80 backdrop-blur-sm border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
+                      {post.cover_image_url && (
+                        <div className="h-48 overflow-hidden relative">
+                          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <img
+                            src={post.cover_image_url}
+                            alt={post.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      )}
+                      <CardContent className="p-6">
+                        {post.category && (
+                          <Badge variant="secondary" className="mb-3 rounded-lg">{post.category}</Badge>
+                        )}
+                        <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+                        {post.excerpt && (
+                          <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                            {post.excerpt}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {post.published_at && format(new Date(post.published_at), "MMM d, yyyy")}
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <TalentPoolFooter hideTopSpacing />
     </div>
   );
 };
