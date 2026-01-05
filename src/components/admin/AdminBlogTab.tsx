@@ -490,12 +490,15 @@ export function AdminBlogTab() {
       </Card>
 
       {/* Editor Dialog */}
-      <Dialog open={isEditorOpen} onOpenChange={() => {}}>
+      <Dialog open={isEditorOpen} onOpenChange={(open) => {
+        if (!open) {
+          handleSaveAsDraft();
+        }
+      }}>
         <DialogContent 
           className="max-w-4xl max-h-[90vh] overflow-y-auto"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>
