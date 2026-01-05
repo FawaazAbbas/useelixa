@@ -146,11 +146,11 @@ const Blog = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border">
-                  <Skeleton className="h-48 w-full" />
-                  <CardContent className="p-6 space-y-3">
+                  <Skeleton className="h-40 sm:h-48 w-full" />
+                  <CardContent className="p-4 sm:p-6 space-y-3">
                     <Skeleton className="h-4 w-20" />
                     <Skeleton className="h-6 w-full" />
                     <Skeleton className="h-4 w-full" />
@@ -182,13 +182,13 @@ const Blog = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="mb-10"
+              className="mb-6 sm:mb-10"
             >
               <Link to={`/blog/${featuredPost.slug}`}>
                 <Card className="group overflow-hidden bg-card/80 backdrop-blur-xl border-border hover:border-primary/50 transition-all duration-300 shadow-xl shadow-primary/5">
-                  <div className="md:flex">
+                  <div className="flex flex-col md:flex-row">
                     {featuredPost.cover_image_url && (
-                      <div className="md:w-1/2 h-64 md:h-auto overflow-hidden relative">
+                      <div className="md:w-1/2 h-48 sm:h-64 md:h-auto overflow-hidden relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/50 z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <img
                           src={featuredPost.cover_image_url}
@@ -197,27 +197,27 @@ const Blog = () => {
                         />
                       </div>
                     )}
-                    <CardContent className={`p-8 flex flex-col justify-center ${featuredPost.cover_image_url ? 'md:w-1/2' : 'w-full'}`}>
-                      <div className="flex items-center gap-3 mb-4">
+                    <CardContent className={`p-5 sm:p-8 flex flex-col justify-center ${featuredPost.cover_image_url ? 'md:w-1/2' : 'w-full'}`}>
+                      <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
                         {featuredPost.category && (
-                          <Badge variant="secondary" className="rounded-lg">{featuredPost.category}</Badge>
+                          <Badge variant="secondary" className="rounded-lg text-xs sm:text-sm">{featuredPost.category}</Badge>
                         )}
-                        <Badge className="bg-gradient-to-r from-primary to-violet-600 text-white rounded-lg">Featured</Badge>
+                        <Badge className="bg-gradient-to-r from-primary to-violet-600 text-white rounded-lg text-xs sm:text-sm">Featured</Badge>
                       </div>
-                      <h2 className="text-2xl md:text-3xl font-bold mb-3 group-hover:text-primary transition-colors">
+                      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 group-hover:text-primary transition-colors line-clamp-2">
                         {featuredPost.title}
                       </h2>
                       {featuredPost.excerpt && (
-                        <p className="text-muted-foreground mb-4 line-clamp-3">
+                        <p className="text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 text-sm sm:text-base">
                           {featuredPost.excerpt}
                         </p>
                       )}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                           {featuredPost.published_at && format(new Date(featuredPost.published_at), "MMM d, yyyy")}
                         </div>
-                        <span className="flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all">
+                        <span className="flex items-center gap-1 text-primary font-medium group-hover:gap-2 transition-all text-sm">
                           Read more <ArrowRight className="w-4 h-4" />
                         </span>
                       </div>
@@ -230,18 +230,18 @@ const Blog = () => {
 
           {/* Posts Grid */}
           {!loading && remainingPosts.length > 0 && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {remainingPosts.map((post, index) => (
                 <motion.div
                   key={post.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
+                  transition={{ duration: 0.4, delay: 0.1 * Math.min(index + 1, 6) }}
                 >
                   <Link to={`/blog/${post.slug}`}>
                     <Card className="group h-full overflow-hidden bg-card/80 backdrop-blur-sm border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
                       {post.cover_image_url && (
-                        <div className="h-48 overflow-hidden relative">
+                        <div className="h-40 sm:h-48 overflow-hidden relative">
                           <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                           <img
                             src={post.cover_image_url}
@@ -250,15 +250,15 @@ const Blog = () => {
                           />
                         </div>
                       )}
-                      <CardContent className="p-6">
+                      <CardContent className="p-4 sm:p-6">
                         {post.category && (
-                          <Badge variant="secondary" className="mb-3 rounded-lg">{post.category}</Badge>
+                          <Badge variant="secondary" className="mb-2 sm:mb-3 rounded-lg text-xs">{post.category}</Badge>
                         )}
-                        <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                        <h3 className="text-base sm:text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
                           {post.title}
                         </h3>
                         {post.excerpt && (
-                          <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                          <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
                             {post.excerpt}
                           </p>
                         )}
