@@ -203,6 +203,57 @@ export function AdminBlogTab() {
     }
   };
 
+  const handleSaveAsDraft = async () => {
+    // Only save if there's a title
+    if (!formData.title.trim()) {
+      setIsEditorOpen(false);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const postData = {
+        title: formData.title.trim(),
+        slug: "",
+        excerpt: formData.excerpt.trim() || null,
+        content: formData.content.trim(),
+        cover_image_url: formData.cover_image_url.trim() || null,
+        author_name: formData.author_name.trim() || "Elixa Team",
+        category: formData.category || null,
+        tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+        published: false, // Always save as draft
+        seo_title: formData.seo_title.trim() || null,
+        seo_description: formData.seo_description.trim() || null,
+      };
+
+      if (editingPost) {
+        const { slug, ...updateData } = postData;
+        const { error } = await supabase
+          .from("blog_posts")
+          .update(updateData)
+          .eq("id", editingPost.id);
+
+        if (error) throw error;
+        toast.success("Saved as draft");
+      } else {
+        const { error } = await supabase
+          .from("blog_posts")
+          .insert([postData]);
+
+        if (error) throw error;
+        toast.success("Saved as draft");
+      }
+
+      setIsEditorOpen(false);
+      fetchPosts();
+    } catch (error: any) {
+      console.error("Error saving draft:", error);
+      toast.error(error.message || "Failed to save draft");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deletingPost) return;
 
@@ -406,8 +457,13 @@ export function AdminBlogTab() {
       </Card>
 
       {/* Editor Dialog */}
-      <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={isEditorOpen} onOpenChange={() => {}}>
+        <DialogContent 
+          className="max-w-4xl max-h-[90vh] overflow-y-auto"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>
               {editingPost ? "Edit Blog Post" : "Create New Blog Post"}
@@ -542,8 +598,8 @@ export function AdminBlogTab() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditorOpen(false)}>
-              Cancel
+            <Button variant="outline" onClick={handleSaveAsDraft}>
+              Close & Save Draft
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? "Saving..." : editingPost ? "Update Post" : "Create Post"}
