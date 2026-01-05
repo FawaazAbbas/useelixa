@@ -83,12 +83,6 @@ const Blog = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 backdrop-blur-sm">
-              <BookOpen className="w-4 h-4 text-primary" />
-              <span className="text-xs sm:text-sm font-medium text-primary">Blog</span>
-            </div>
-            
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
               <span className="bg-gradient-to-r from-primary via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
                 Insights & Updates
@@ -106,19 +100,33 @@ const Blog = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
-                placeholder="Search articles..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-12 h-12 bg-card/80 backdrop-blur-sm border-border rounded-xl focus:border-primary focus:ring-primary/20"
-              />
+            <div className="relative flex-1 max-w-xl mx-auto md:mx-0">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-violet-500/20 to-fuchsia-500/20 rounded-xl blur-xl opacity-50" />
+              <div className="relative flex items-center bg-card/90 backdrop-blur-xl border border-border hover:border-primary/30 rounded-xl shadow-lg shadow-primary/5 transition-all focus-within:border-primary/50 focus-within:shadow-primary/10">
+                <Search className="ml-4 w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search articles..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-12 bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="mr-4 p-1 rounded-md hover:bg-muted transition-colors"
+                  >
+                    <span className="sr-only">Clear</span>
+                    <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap justify-center md:justify-start">
               <Badge
                 variant={selectedCategory === null ? "default" : "outline"}
-                className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-lg"
+                className="cursor-pointer px-4 py-2.5 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-xl"
                 onClick={() => setSelectedCategory(null)}
               >
                 All
@@ -127,7 +135,7 @@ const Blog = () => {
                 <Badge
                   key={cat}
                   variant={selectedCategory === cat ? "default" : "outline"}
-                  className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-lg"
+                  className="cursor-pointer px-4 py-2.5 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-xl"
                   onClick={() => setSelectedCategory(cat as string)}
                 >
                   {cat}
