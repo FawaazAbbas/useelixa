@@ -113,6 +113,8 @@ const BlogPostPage = () => {
   const [loading, setLoading] = useState(true);
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistIndustry, setWaitlistIndustry] = useState("");
+  const [waitlistPosition, setWaitlistPosition] = useState("");
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
@@ -167,16 +169,19 @@ const BlogPostPage = () => {
     }
   };
 
+  const isWaitlistFormValid = waitlistName.trim() && waitlistEmail.trim() && waitlistIndustry.trim() && waitlistPosition.trim();
+
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!waitlistEmail.trim() || !waitlistName.trim()) return;
+    if (!isWaitlistFormValid) return;
 
     setWaitlistSubmitting(true);
     try {
       const { error } = await supabase.from("waitlist_signups").insert({
         email: waitlistEmail.trim(),
         name: waitlistName.trim(),
-        use_case: `Signed up from blog post: ${post?.title}`,
+        company: waitlistIndustry.trim(),
+        use_case: waitlistPosition.trim(),
       });
 
       if (error) throw error;
@@ -335,7 +340,7 @@ const BlogPostPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="prose prose-sm sm:prose-lg max-w-none bg-card/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-border"
+            className="prose prose-sm sm:prose-lg max-w-none bg-card/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-border [&>p]:mb-6 [&>p]:sm:mb-8"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
@@ -386,32 +391,50 @@ const BlogPostPage = () => {
                     <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6 max-w-md mx-auto">
                       Be the first to experience AI agents that transform how you work. Get early access and exclusive updates.
                     </p>
-                    <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                      <Input
-                        placeholder="Your name"
-                        value={waitlistName}
-                        onChange={(e) => setWaitlistName(e.target.value)}
-                        required
-                        className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
-                      />
-                      <Input
-                        type="email"
-                        placeholder="your@email.com"
-                        value={waitlistEmail}
-                        onChange={(e) => setWaitlistEmail(e.target.value)}
-                        required
-                        className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
-                      />
+                    <form onSubmit={handleWaitlistSubmit} className="max-w-md mx-auto space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Full name *"
+                          value={waitlistName}
+                          onChange={(e) => setWaitlistName(e.target.value)}
+                          required
+                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
+                        />
+                        <Input
+                          type="email"
+                          placeholder="Email *"
+                          value={waitlistEmail}
+                          onChange={(e) => setWaitlistEmail(e.target.value)}
+                          required
+                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input
+                          placeholder="Industry *"
+                          value={waitlistIndustry}
+                          onChange={(e) => setWaitlistIndustry(e.target.value)}
+                          required
+                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
+                        />
+                        <Input
+                          placeholder="Position *"
+                          value={waitlistPosition}
+                          onChange={(e) => setWaitlistPosition(e.target.value)}
+                          required
+                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
+                        />
+                      </div>
                       <Button 
                         type="submit"
-                        disabled={waitlistSubmitting}
-                        className="h-11 sm:h-12 px-6 sm:px-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 rounded-xl shadow-lg shadow-primary/25 transition-all text-sm sm:text-base whitespace-nowrap"
+                        disabled={waitlistSubmitting || !isWaitlistFormValid}
+                        className="w-full h-11 sm:h-12 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 rounded-xl shadow-lg shadow-primary/25 transition-all text-sm sm:text-base"
                       >
                         {waitlistSubmitting ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <>
-                            Join <ArrowRight className="w-4 h-4 ml-1.5" />
+                            Join Elixa <ArrowRight className="w-4 h-4 ml-1.5" />
                           </>
                         )}
                       </Button>
