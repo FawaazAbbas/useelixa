@@ -286,64 +286,36 @@ const Blog = () => {
                 >
                   <Link to={`/blog/${post.slug}`}>
                     <Card className="group h-full overflow-hidden bg-card/80 backdrop-blur-sm border-border hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
-                      {/* Mobile: Horizontal layout */}
-                      <div className="flex sm:hidden">
-                        {post.cover_image_url && (
-                          <div className="w-24 h-24 flex-shrink-0 overflow-hidden relative">
-                            <img
-                              src={post.cover_image_url}
-                              alt={post.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
+                      {post.cover_image_url && (
+                        <div className="h-40 sm:h-48 overflow-hidden relative">
+                          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <img
+                            src={post.cover_image_url}
+                            alt={post.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      )}
+                      <CardContent className="p-4 sm:p-6">
+                        {post.category && (
+                          <Badge variant="secondary" className="mb-2 sm:mb-3 rounded-lg text-xs">{post.category}</Badge>
                         )}
-                        <CardContent className="p-3 flex flex-col justify-center flex-1 min-w-0">
-                          {post.category && (
-                            <Badge variant="secondary" className="mb-1.5 rounded-lg text-[10px] w-fit">{post.category}</Badge>
-                          )}
-                          <h3 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-2 mb-1.5">
-                            {post.title}
-                          </h3>
-                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                        <h3 className="text-base sm:text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                          {post.title}
+                        </h3>
+                        {post.excerpt && (
+                          <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">
+                            {post.excerpt}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Calendar className="w-3 h-3" />
                             {post.published_at && format(new Date(post.published_at), "MMM d, yyyy")}
                           </div>
-                        </CardContent>
-                      </div>
-
-                      {/* Desktop: Vertical layout */}
-                      <div className="hidden sm:block">
-                        {post.cover_image_url && (
-                          <div className="h-48 overflow-hidden relative">
-                            <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <img
-                              src={post.cover_image_url}
-                              alt={post.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                        )}
-                        <CardContent className="p-6">
-                          {post.category && (
-                            <Badge variant="secondary" className="mb-3 rounded-lg text-xs">{post.category}</Badge>
-                          )}
-                          <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                            {post.title}
-                          </h3>
-                          {post.excerpt && (
-                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                              {post.excerpt}
-                            </p>
-                          )}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Calendar className="w-3 h-3" />
-                              {post.published_at && format(new Date(post.published_at), "MMM d, yyyy")}
-                            </div>
-                            <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                          </div>
-                        </CardContent>
-                      </div>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </CardContent>
                     </Card>
                   </Link>
                 </motion.div>
