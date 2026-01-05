@@ -96,6 +96,7 @@ export function AdminBlogTab() {
     seo_description: "",
   });
   const [saving, setSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "drafts">("all");
 
   useEffect(() => {
     fetchPosts();
@@ -289,11 +290,17 @@ export function AdminBlogTab() {
     }
   };
 
-  const filteredPosts = posts.filter(post =>
-    post.title.toLowerCase().includes(search.toLowerCase()) ||
-    post.excerpt?.toLowerCase().includes(search.toLowerCase()) ||
-    post.category?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPosts = posts.filter(post => {
+    const matchesSearch = post.title.toLowerCase().includes(search.toLowerCase()) ||
+      post.excerpt?.toLowerCase().includes(search.toLowerCase()) ||
+      post.category?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" ? true :
+      statusFilter === "published" ? post.published :
+      !post.published;
+    
+    return matchesSearch && matchesStatus;
+  });
 
   const publishedCount = posts.filter(p => p.published).length;
   const draftCount = posts.filter(p => !p.published).length;
@@ -331,24 +338,50 @@ export function AdminBlogTab() {
       {/* Posts Table */}
       <Card>
         <CardHeader className="p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Blog Posts
-            </CardTitle>
-            <div className="flex gap-2">
-              <div className="relative flex-1 sm:flex-none">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search posts..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 w-full sm:w-64"
-                />
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Blog Posts
+              </CardTitle>
+              <div className="flex gap-2">
+                <div className="relative flex-1 sm:flex-none">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search posts..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 w-full sm:w-64"
+                  />
+                </div>
+                <Button onClick={() => openEditor()}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Post
+                </Button>
               </div>
-              <Button onClick={() => openEditor()}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Post
+            </div>
+            {/* Filter Tabs */}
+            <div className="flex gap-2">
+              <Button
+                variant={statusFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("all")}
+              >
+                All ({posts.length})
+              </Button>
+              <Button
+                variant={statusFilter === "published" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("published")}
+              >
+                Published ({publishedCount})
+              </Button>
+              <Button
+                variant={statusFilter === "drafts" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setStatusFilter("drafts")}
+              >
+                Drafts ({draftCount})
               </Button>
             </div>
           </div>
