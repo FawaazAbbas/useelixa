@@ -28,6 +28,8 @@ import Signup from "./pages/Signup";
 import EmailSubscribe from "./pages/EmailSubscribe";
 import PitchDeck from "./pages/PitchDeck";
 import Admin from "./pages/Admin";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
@@ -128,6 +130,8 @@ const AppContent = () => {
           <Route path="/waitlist" element={<Navigate to="/signup" replace />} />
           <Route path="/email-subscribe" element={<EmailSubscribe />} />
           <Route path="/pitch-deck" element={<PitchDeck />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/admin" element={<Admin />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

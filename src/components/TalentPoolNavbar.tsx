@@ -1,4 +1,4 @@
-import { Search, X, Zap, BarChart3 } from "lucide-react";
+import { Search, X, Zap, BarChart3, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -100,6 +100,18 @@ export const TalentPoolNavbar = ({
                   Discover
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  trackNavClick("Blog");
+                  navigate("/blog");
+                }}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Blog
+              </Button>
               <Button
                 onClick={() => {
                   trackNavClick("Workspace");
