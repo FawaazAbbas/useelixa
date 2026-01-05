@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
-import { Search, Calendar, ArrowRight, BookOpen } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, Calendar, ArrowRight, BookOpen, Filter, X, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
@@ -28,6 +29,19 @@ const Blog = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close filter when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchPosts();
@@ -93,14 +107,15 @@ const Blog = () => {
             </p>
           </motion.div>
 
-          {/* Search & Filters */}
+          {/* Search & Filter */}
           <motion.div 
-            className="flex flex-col md:flex-row gap-4 mb-10"
+            className="flex gap-3 mb-10 max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="relative flex-1 max-w-xl mx-auto md:mx-0">
+            {/* Search Bar */}
+            <div className="relative flex-1">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-violet-500/20 to-fuchsia-500/20 rounded-xl blur-xl opacity-50" />
               <div className="relative flex items-center bg-card/90 backdrop-blur-xl border border-border hover:border-primary/30 rounded-xl shadow-lg shadow-primary/5 transition-all focus-within:border-primary/50 focus-within:shadow-primary/10">
                 <Search className="ml-4 w-5 h-5 text-muted-foreground" />
@@ -113,34 +128,65 @@ const Blog = () => {
                 {search && (
                   <button
                     onClick={() => setSearch("")}
-                    className="mr-4 p-1 rounded-md hover:bg-muted transition-colors"
+                    className="mr-4 p-1.5 rounded-lg hover:bg-muted transition-colors"
                   >
-                    <span className="sr-only">Clear</span>
-                    <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <X className="w-4 h-4 text-muted-foreground" />
                   </button>
                 )}
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap justify-center md:justify-start">
-              <Badge
-                variant={selectedCategory === null ? "default" : "outline"}
-                className="cursor-pointer px-4 py-2.5 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-xl"
-                onClick={() => setSelectedCategory(null)}
+
+            {/* Filter Button with Dropdown */}
+            <div className="relative" ref={filterRef}>
+              <Button
+                variant="outline"
+                onClick={() => setFilterOpen(!filterOpen)}
+                className={`h-12 px-4 rounded-xl border-border hover:border-primary/30 bg-card/90 backdrop-blur-xl shadow-lg shadow-primary/5 transition-all ${
+                  selectedCategory ? 'border-primary/50 bg-primary/5' : ''
+                }`}
               >
-                All
-              </Badge>
-              {categories.map(cat => (
-                <Badge
-                  key={cat}
-                  variant={selectedCategory === cat ? "default" : "outline"}
-                  className="cursor-pointer px-4 py-2.5 text-sm hover:bg-primary/10 transition-all hover:scale-105 rounded-xl"
-                  onClick={() => setSelectedCategory(cat as string)}
-                >
-                  {cat}
-                </Badge>
-              ))}
+                <Filter className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">{selectedCategory || 'Filter'}</span>
+                <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
+              </Button>
+
+              <AnimatePresence>
+                {filterOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-2 w-48 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-xl shadow-primary/10 z-50 overflow-hidden"
+                  >
+                    <div className="p-2">
+                      <button
+                        onClick={() => { setSelectedCategory(null); setFilterOpen(false); }}
+                        className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                          selectedCategory === null 
+                            ? 'bg-primary/10 text-primary font-medium' 
+                            : 'hover:bg-muted text-foreground'
+                        }`}
+                      >
+                        All Categories
+                      </button>
+                      {categories.map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => { setSelectedCategory(cat as string); setFilterOpen(false); }}
+                          className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                            selectedCategory === cat 
+                              ? 'bg-primary/10 text-primary font-medium' 
+                              : 'hover:bg-muted text-foreground'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
 
