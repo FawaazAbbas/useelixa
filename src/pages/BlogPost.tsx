@@ -3,9 +3,10 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Calendar, ArrowLeft, User, Clock, Share2, BookOpen } from "lucide-react";
+import { Calendar, ArrowLeft, User, Clock, Share2, BookOpen, Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
@@ -110,6 +111,10 @@ const BlogPostPage = () => {
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -159,6 +164,32 @@ const BlogPostPage = () => {
     } else {
       await navigator.clipboard.writeText(url);
       toast.success("Link copied to clipboard!");
+    }
+  };
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!waitlistEmail.trim() || !waitlistName.trim()) return;
+
+    setWaitlistSubmitting(true);
+    try {
+      const { error } = await supabase.from("waitlist_signups").insert({
+        email: waitlistEmail.trim(),
+        name: waitlistName.trim(),
+        use_case: `Signed up from blog post: ${post?.title}`,
+      });
+
+      if (error) throw error;
+      setWaitlistSubmitted(true);
+      toast.success("You're on the list!");
+    } catch (error: any) {
+      if (error.code === "23505") {
+        toast.error("This email is already on the waitlist!");
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } finally {
+      setWaitlistSubmitting(false);
     }
   };
 
@@ -242,40 +273,40 @@ const BlogPostPage = () => {
             transition={{ duration: 0.6 }}
             className="mb-8"
           >
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-wrap">
               {post.category && (
-                <Badge variant="secondary" className="rounded-lg">{post.category}</Badge>
+                <Badge variant="secondary" className="rounded-lg text-xs sm:text-sm">{post.category}</Badge>
               )}
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
               {post.title}
             </h1>
-            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
-                <User className="w-4 h-4 text-primary" />
-                <span className="text-sm">{post.author_name}</span>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-muted-foreground">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <User className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm">{post.author_name}</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="text-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm">
                   {post.published_at 
-                    ? format(new Date(post.published_at), "MMMM d, yyyy")
-                    : format(new Date(post.created_at), "MMMM d, yyyy")
+                    ? format(new Date(post.published_at), "MMM d, yyyy")
+                    : format(new Date(post.created_at), "MMM d, yyyy")
                   }
                 </span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-sm">{readingTime} min read</span>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm">{readingTime} min read</span>
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleShare} 
-                className="ml-auto rounded-lg hover:bg-primary/10 hover:border-primary/50"
+                className="ml-auto rounded-lg hover:bg-primary/10 hover:border-primary/50 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3"
               >
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
+                <Share2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Share</span>
               </Button>
             </div>
           </motion.header>
@@ -286,14 +317,14 @@ const BlogPostPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="mb-10"
+              className="mb-6 sm:mb-10"
             >
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/10">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-violet-500/30 to-fuchsia-500/30 rounded-2xl blur-xl opacity-50" />
+              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl shadow-primary/10">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-violet-500/30 to-fuchsia-500/30 rounded-xl sm:rounded-2xl blur-xl opacity-50" />
                 <img
                   src={post.cover_image_url}
                   alt={post.title}
-                  className="relative w-full h-auto max-h-[500px] object-cover rounded-2xl"
+                  className="relative w-full h-auto max-h-[300px] sm:max-h-[500px] object-cover rounded-xl sm:rounded-2xl"
                 />
               </div>
             </motion.div>
@@ -304,7 +335,7 @@ const BlogPostPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="prose prose-lg max-w-none bg-card/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-border"
+            className="prose prose-sm sm:prose-lg max-w-none bg-card/60 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-border"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
@@ -314,12 +345,12 @@ const BlogPostPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-8 p-6 bg-card/60 backdrop-blur-sm rounded-2xl border border-border"
+              className="mt-6 sm:mt-8 p-4 sm:p-6 bg-card/60 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-border"
             >
-              <h4 className="text-sm font-semibold mb-4 text-muted-foreground">Tags</h4>
+              <h4 className="text-xs sm:text-sm font-semibold mb-3 sm:mb-4 text-muted-foreground">Tags</h4>
               <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
-                  <Badge key={tag} variant="outline" className="text-sm rounded-lg hover:bg-primary/10 transition-colors">
+                  <Badge key={tag} variant="outline" className="text-xs sm:text-sm rounded-lg hover:bg-primary/10 transition-colors">
                     {tag}
                   </Badge>
                 ))}
@@ -327,18 +358,92 @@ const BlogPostPage = () => {
             </motion.div>
           )}
 
+          {/* Waitlist CTA Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-8 sm:mt-12 relative"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-violet-500/20 to-fuchsia-500/20 rounded-xl sm:rounded-2xl blur-xl opacity-60" />
+            <div className="relative bg-card/90 backdrop-blur-xl rounded-xl sm:rounded-2xl p-5 sm:p-8 border border-primary/20 overflow-hidden">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-tr from-violet-500/20 to-fuchsia-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+              
+              <div className="relative text-center">
+                {!waitlistSubmitted ? (
+                  <>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                      <span className="text-[10px] sm:text-xs font-medium text-primary uppercase tracking-wider">Early Access</span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
+                      <span className="bg-gradient-to-r from-primary via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+                        Join the Elixa Waitlist
+                      </span>
+                    </h3>
+                    <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6 max-w-md mx-auto">
+                      Be the first to experience AI agents that transform how you work. Get early access and exclusive updates.
+                    </p>
+                    <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                      <Input
+                        placeholder="Your name"
+                        value={waitlistName}
+                        onChange={(e) => setWaitlistName(e.target.value)}
+                        required
+                        className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
+                      />
+                      <Input
+                        type="email"
+                        placeholder="your@email.com"
+                        value={waitlistEmail}
+                        onChange={(e) => setWaitlistEmail(e.target.value)}
+                        required
+                        className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
+                      />
+                      <Button 
+                        type="submit"
+                        disabled={waitlistSubmitting}
+                        className="h-11 sm:h-12 px-6 sm:px-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 rounded-xl shadow-lg shadow-primary/25 transition-all text-sm sm:text-base whitespace-nowrap"
+                      >
+                        {waitlistSubmitting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <>
+                            Join <ArrowRight className="w-4 h-4 ml-1.5" />
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="py-4">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
+                      <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-bold mb-2">You're on the list!</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
+                      We'll notify you when Elixa is ready. Stay tuned!
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
           {/* Back to blog */}
           <motion.div 
-            className="text-center mt-12"
+            className="text-center mt-8 sm:mt-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
           >
             <Link to="/blog">
               <Button 
                 variant="outline" 
                 size="lg"
-                className="rounded-xl hover:bg-primary/10 hover:border-primary/50 transition-all"
+                className="rounded-xl hover:bg-primary/10 hover:border-primary/50 transition-all text-sm sm:text-base h-10 sm:h-12"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to all articles
