@@ -42,6 +42,8 @@ import {
 import { Search, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { RichTextEditor } from "./RichTextEditor";
+import { BlogCoverUpload } from "./BlogCoverUpload";
 
 interface BlogPost {
   id: string;
@@ -426,27 +428,21 @@ export function AdminBlogTab() {
               </div>
 
               <div>
-                <Label htmlFor="content">Content * (Markdown supported)</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Write your blog post content here..."
-                  className="mt-1.5 min-h-[300px] font-mono text-sm"
-                />
+                <Label>Content *</Label>
+                <div className="mt-1.5">
+                  <RichTextEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
+                    placeholder="Write your blog post content here..."
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="cover_image_url">Cover Image URL</Label>
-                  <Input
-                    id="cover_image_url"
-                    value={formData.cover_image_url}
-                    onChange={(e) => setFormData({ ...formData, cover_image_url: e.target.value })}
-                    placeholder="https://..."
-                    className="mt-1.5"
-                  />
-                </div>
+                <BlogCoverUpload
+                  value={formData.cover_image_url}
+                  onChange={(url) => setFormData({ ...formData, cover_image_url: url })}
+                />
                 <div>
                   <Label htmlFor="author_name">Author Name</Label>
                   <Input

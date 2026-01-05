@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Calendar, ArrowLeft, User, Clock, Share2 } from "lucide-react";
 import { format } from "date-fns";
-import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 
 interface BlogPost {
@@ -24,6 +23,81 @@ interface BlogPost {
   created_at: string;
 }
 
+// Helper to update meta tags
+const updateMetaTags = (post: BlogPost) => {
+  const baseUrl = window.location.origin;
+  const postUrl = `${baseUrl}/blog/${post.slug}`;
+  
+  // Update title
+  document.title = `${post.title} | Elixa Blog`;
+  
+  // Helper to set or create meta tag
+  const setMetaTag = (property: string, content: string, isName = false) => {
+    const selector = isName ? `meta[name="${property}"]` : `meta[property="${property}"]`;
+    let meta = document.querySelector(selector) as HTMLMetaElement;
+    if (!meta) {
+      meta = document.createElement('meta');
+      if (isName) {
+        meta.name = property;
+      } else {
+        meta.setAttribute('property', property);
+      }
+      document.head.appendChild(meta);
+    }
+    meta.content = content;
+  };
+  
+  // Description
+  const description = post.excerpt || post.content.replace(/<[^>]*>/g, '').substring(0, 160);
+  setMetaTag('description', description, true);
+  
+  // Open Graph tags
+  setMetaTag('og:title', post.title);
+  setMetaTag('og:description', description);
+  setMetaTag('og:url', postUrl);
+  setMetaTag('og:type', 'article');
+  if (post.cover_image_url) {
+    setMetaTag('og:image', post.cover_image_url);
+  }
+  
+  // Twitter Card tags
+  setMetaTag('twitter:card', 'summary_large_image', true);
+  setMetaTag('twitter:title', post.title, true);
+  setMetaTag('twitter:description', description, true);
+  if (post.cover_image_url) {
+    setMetaTag('twitter:image', post.cover_image_url, true);
+  }
+  
+  // Article specific tags
+  setMetaTag('article:author', post.author_name);
+  if (post.published_at) {
+    setMetaTag('article:published_time', post.published_at);
+  }
+  if (post.tags?.length) {
+    post.tags.forEach((tag, i) => {
+      setMetaTag(`article:tag:${i}`, tag);
+    });
+  }
+};
+
+// Reset meta tags on unmount
+const resetMetaTags = () => {
+  document.title = 'Elixa - AI Agents Marketplace';
+  const metaProperties = [
+    'og:title', 'og:description', 'og:url', 'og:type', 'og:image',
+    'article:author', 'article:published_time'
+  ];
+  metaProperties.forEach(prop => {
+    const meta = document.querySelector(`meta[property="${prop}"]`);
+    if (meta) meta.remove();
+  });
+  const metaNames = ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'];
+  metaNames.forEach(name => {
+    const meta = document.querySelector(`meta[name="${name}"]`);
+    if (meta) meta.remove();
+  });
+};
+
 const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -34,6 +108,10 @@ const BlogPostPage = () => {
     if (slug) {
       fetchPost();
     }
+    
+    return () => {
+      resetMetaTags();
+    };
   }, [slug]);
 
   const fetchPost = async () => {
@@ -52,6 +130,7 @@ const BlogPostPage = () => {
         throw error;
       }
       setPost(data);
+      updateMetaTags(data);
     } catch (error) {
       console.error("Error fetching post:", error);
     } finally {
@@ -76,7 +155,9 @@ const BlogPostPage = () => {
     }
   };
 
-  const readingTime = post ? Math.ceil(post.content.split(/\s+/).length / 200) : 0;
+  // Calculate reading time from plain text
+  const getPlainText = (html: string) => html.replace(/<[^>]*>/g, '');
+  const readingTime = post ? Math.ceil(getPlainText(post.content).split(/\s+/).length / 200) : 0;
 
   if (loading) {
     return (
@@ -206,15 +287,14 @@ const BlogPostPage = () => {
           </motion.div>
         )}
 
-        {/* Content */}
+        {/* Content - Rendered as HTML */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           className="prose prose-lg max-w-none"
-        >
-          <ReactMarkdown>{post.content}</ReactMarkdown>
-        </motion.div>
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
         {/* Tags */}
         {post.tags && post.tags.length > 0 && (

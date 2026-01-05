@@ -76,6 +76,18 @@ export const TalentPoolNavbar = ({
 
             {/* Right: Navigation (Desktop/Tablet) */}
             <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  trackNavClick("Blog");
+                  navigate("/blog");
+                }}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                Blog
+              </Button>
               {!isChartsPage && (
                 <Button
                   variant="ghost"
@@ -100,18 +112,6 @@ export const TalentPoolNavbar = ({
                   Discover
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  trackNavClick("Blog");
-                  navigate("/blog");
-                }}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Blog
-              </Button>
               <Button
                 onClick={() => {
                   trackNavClick("Workspace");
