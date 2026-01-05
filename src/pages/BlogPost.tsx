@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import { Calendar, ArrowLeft, User, Clock, Share2 } from "lucide-react";
+import { Calendar, ArrowLeft, User, Clock, Share2, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
+import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 
 interface BlogPost {
   id: string;
@@ -167,11 +169,12 @@ const BlogPostPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4 py-12">
+        <TalentPoolNavbar showSearch={false} />
+        <div className="pt-24 max-w-4xl mx-auto px-4">
           <Skeleton className="h-8 w-32 mb-8" />
           <Skeleton className="h-12 w-full mb-4" />
           <Skeleton className="h-6 w-64 mb-8" />
-          <Skeleton className="h-[400px] w-full rounded-xl mb-8" />
+          <Skeleton className="h-[400px] w-full rounded-2xl mb-8" />
           <div className="space-y-4">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-full" />
@@ -184,157 +187,168 @@ const BlogPostPage = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Article not found</h1>
-          <Link to="/blog">
-            <Button>Back to Blog</Button>
-          </Link>
+      <div className="min-h-screen bg-background">
+        <TalentPoolNavbar showSearch={false} />
+        <div className="pt-32 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold mb-4">Article not found</h1>
+            <Link to="/blog">
+              <Button className="bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90">
+                Back to Blog
+              </Button>
+            </Link>
+          </div>
         </div>
+        <TalentPoolFooter />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated gradient blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px]"
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div 
-          className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-violet-600/10 blur-[100px]"
-          animate={{ 
-            scale: [1.2, 1, 1.2],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
-
-      <article className="relative z-10 max-w-4xl mx-auto px-4 py-12 md:py-20">
-        {/* Back button */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <Link 
-            to="/blog" 
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8"
+    <div className="min-h-screen bg-background">
+      <TalentPoolNavbar showSearch={false} />
+      
+      {/* Hero Section with Cover */}
+      <section className="relative pt-20 sm:pt-24 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-violet-500/5 to-background" />
+        <div className="absolute top-20 right-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-primary/20 rounded-full blur-[100px] animate-pulse" />
+        <div className="absolute bottom-0 left-1/4 w-[200px] sm:w-[350px] h-[200px] sm:h-[350px] bg-violet-500/15 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.02)_1px,transparent_1px)] bg-[size:40px_40px]" />
+        
+        <article className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          {/* Back button */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Blog
-          </Link>
-        </motion.div>
+            <Link 
+              to="/blog" 
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+              Back to Blog
+            </Link>
+          </motion.div>
 
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            {post.category && (
-              <Badge variant="secondary">{post.category}</Badge>
-            )}
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight">
-            {post.title}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              <span>{post.author_name}</span>
+          {/* Header */}
+          <motion.header
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              {post.category && (
+                <Badge variant="secondary" className="rounded-lg">{post.category}</Badge>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>
-                {post.published_at 
-                  ? format(new Date(post.published_at), "MMMM d, yyyy")
-                  : format(new Date(post.created_at), "MMMM d, yyyy")
-                }
-              </span>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
+              {post.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <User className="w-4 h-4 text-primary" />
+                <span className="text-sm">{post.author_name}</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="text-sm">
+                  {post.published_at 
+                    ? format(new Date(post.published_at), "MMMM d, yyyy")
+                    : format(new Date(post.created_at), "MMMM d, yyyy")
+                  }
+                </span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-sm">{readingTime} min read</span>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleShare} 
+                className="ml-auto rounded-lg hover:bg-primary/10 hover:border-primary/50"
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>{readingTime} min read</span>
-            </div>
-            <Button variant="ghost" size="sm" onClick={handleShare} className="ml-auto">
-              <Share2 className="w-4 h-4 mr-2" />
-              Share
-            </Button>
-          </div>
-        </motion.header>
+          </motion.header>
 
-        {/* Cover Image */}
-        {post.cover_image_url && (
+          {/* Cover Image */}
+          {post.cover_image_url && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="mb-10"
+            >
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-primary/10">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-violet-500/30 to-fuchsia-500/30 rounded-2xl blur-xl opacity-50" />
+                <img
+                  src={post.cover_image_url}
+                  alt={post.title}
+                  className="relative w-full h-auto max-h-[500px] object-cover rounded-2xl"
+                />
+              </div>
+            </motion.div>
+          )}
+
+          {/* Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-10"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="prose prose-lg max-w-none bg-card/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-border"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="mt-8 p-6 bg-card/60 backdrop-blur-sm rounded-2xl border border-border"
+            >
+              <h4 className="text-sm font-semibold mb-4 text-muted-foreground">Tags</h4>
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-sm rounded-lg hover:bg-primary/10 transition-colors">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Back to blog */}
+          <motion.div 
+            className="text-center mt-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
           >
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 via-violet-500/30 to-fuchsia-500/30 rounded-2xl blur-xl opacity-50" />
-              <img
-                src={post.cover_image_url}
-                alt={post.title}
-                className="relative w-full h-auto max-h-[500px] object-cover rounded-2xl"
-              />
-            </div>
+            <Link to="/blog">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="rounded-xl hover:bg-primary/10 hover:border-primary/50 transition-all"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to all articles
+              </Button>
+            </Link>
           </motion.div>
-        )}
+        </article>
+      </section>
 
-        {/* Content - Rendered as HTML */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
-
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-12 pt-8 border-t"
-          >
-            <h4 className="text-sm font-semibold mb-4 text-muted-foreground">Tags</h4>
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="text-sm">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Back to blog */}
-        <motion.div 
-          className="text-center mt-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Link to="/blog">
-            <Button variant="outline" size="lg">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to all articles
-            </Button>
-          </Link>
-        </motion.div>
-      </article>
+      <TalentPoolFooter hideTopSpacing />
     </div>
   );
 };
