@@ -286,31 +286,29 @@ const BlogPostPage = () => {
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 leading-tight bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
               {post.title}
             </h1>
-            <div className="flex items-center justify-between gap-2 sm:gap-3 text-muted-foreground">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                  <span className="text-xs sm:text-sm">{post.author_name}</span>
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                  <span className="text-xs sm:text-sm">
-                    {post.published_at 
-                      ? format(new Date(post.published_at), "MMM d, yyyy")
-                      : format(new Date(post.created_at), "MMM d, yyyy")
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
-                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                  <span className="text-xs sm:text-sm">{readingTime} min read</span>
-                </div>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-muted-foreground">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <User className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm">{post.author_name}</span>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm">
+                  {post.published_at 
+                    ? format(new Date(post.published_at), "MMM d, yyyy")
+                    : format(new Date(post.created_at), "MMM d, yyyy")
+                  }
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border">
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                <span className="text-xs sm:text-sm">{readingTime} min read</span>
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleShare} 
-                className="rounded-lg hover:bg-primary/10 hover:border-primary/50 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3 flex-shrink-0"
+                className="ml-auto rounded-lg hover:bg-primary/10 hover:border-primary/50 text-xs sm:text-sm h-7 sm:h-9 px-2 sm:px-3"
               >
                 <Share2 className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Share</span>
