@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon } from "lucide-react";
+import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -70,6 +70,7 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   // Form states
   const [form, setForm] = useState({ name: "", email: "", company: "", use_case: "", created_at: null as Date | null });
@@ -287,6 +288,21 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
     toast.success("Template downloaded");
   };
 
+  const handleBulkSync = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("bulk-sync-emailoctopus");
+      if (error) throw error;
+      
+      const { created, updated, failed, total } = data;
+      toast.success(`Synced ${total} contacts: ${created} created, ${updated} updated, ${failed} failed`);
+    } catch (error: any) {
+      toast.error(error.message || "Bulk sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -298,6 +314,9 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => setAddingEntry(true)}>
             <Plus className="h-4 w-4 mr-2" /> Add
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleBulkSync} disabled={syncing}>
+            <RefreshCw className={cn("h-4 w-4 mr-2", syncing && "animate-spin")} /> {syncing ? "Syncing..." : "Sync to EmailOctopus"}
           </Button>
           <input type="file" accept=".csv" ref={fileInputRef} onChange={handleCSVImport} className="hidden" />
           <Button variant="outline" size="sm" onClick={downloadTemplate}>
