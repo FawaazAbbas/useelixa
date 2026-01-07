@@ -79,7 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
         const hashBuffer = await crypto.subtle.digest("MD5", hashData);
         const contactId = new TextDecoder().decode(encodeHex(new Uint8Array(hashBuffer)));
         
-        // Use PUT to update existing contact
+        // Use PUT to update existing contact - only update fields, not status
         const updateResponse = await fetch(
           `https://emailoctopus.com/api/1.6/lists/${listId}/contacts/${contactId}`,
           {
@@ -92,8 +92,6 @@ const handler = async (req: Request): Promise<Response> => {
                 Company: company || "",
                 Source: "EW",
               },
-              tags: { "waitlist": true, "elixa": true },
-              status: "SUBSCRIBED",
             }),
           }
         );
