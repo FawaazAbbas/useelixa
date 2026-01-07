@@ -54,6 +54,19 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
         throw signupError;
       }
       
+      // Sync to EmailOctopus (fire-and-forget)
+      supabase.functions.invoke("sync-emailoctopus", {
+        body: {
+          email: email.trim(),
+          name: name.trim(),
+          company: industry || undefined,
+          position: position.trim(),
+        },
+      }).then(({ error }) => {
+        if (error) console.error("EmailOctopus sync error:", error);
+        else console.log("Successfully synced to EmailOctopus");
+      });
+
       trackWaitlistSignup(email.trim());
       setSubmitted(true);
       toast({

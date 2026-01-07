@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.run-scheduled-campaigns]
 verify_jwt = false
+
+[functions.sync-emailoctopus]
+verify_jwt = false
