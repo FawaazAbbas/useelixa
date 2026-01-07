@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
+import { encode as encodeHex } from "https://deno.land/std@0.190.0/encoding/hex.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,9 +77,7 @@ const handler = async (req: Request): Promise<Response> => {
         const encoder = new TextEncoder();
         const hashData = encoder.encode(email.toLowerCase());
         const hashBuffer = await crypto.subtle.digest("MD5", hashData);
-        const contactId = Array.from(new Uint8Array(hashBuffer))
-          .map(b => b.toString(16).padStart(2, "0"))
-          .join("");
+        const contactId = new TextDecoder().decode(encodeHex(new Uint8Array(hashBuffer)));
         
         // Use PUT to update existing contact
         const updateResponse = await fetch(
