@@ -1093,117 +1093,6 @@ export type Database = {
         }
         Relationships: []
       }
-      email_campaigns: {
-        Row: {
-          audience_filter: string | null
-          body_html: string
-          created_at: string | null
-          created_by: string | null
-          failed_count: number | null
-          id: string
-          is_recurring: boolean | null
-          last_recurring_run: string | null
-          name: string
-          next_recurring_run: string | null
-          recipient_count: number | null
-          recurrence_pattern: string | null
-          scheduled_at: string | null
-          sent_at: string | null
-          sent_count: number | null
-          status: string | null
-          subject: string
-        }
-        Insert: {
-          audience_filter?: string | null
-          body_html: string
-          created_at?: string | null
-          created_by?: string | null
-          failed_count?: number | null
-          id?: string
-          is_recurring?: boolean | null
-          last_recurring_run?: string | null
-          name: string
-          next_recurring_run?: string | null
-          recipient_count?: number | null
-          recurrence_pattern?: string | null
-          scheduled_at?: string | null
-          sent_at?: string | null
-          sent_count?: number | null
-          status?: string | null
-          subject: string
-        }
-        Update: {
-          audience_filter?: string | null
-          body_html?: string
-          created_at?: string | null
-          created_by?: string | null
-          failed_count?: number | null
-          id?: string
-          is_recurring?: boolean | null
-          last_recurring_run?: string | null
-          name?: string
-          next_recurring_run?: string | null
-          recipient_count?: number | null
-          recurrence_pattern?: string | null
-          scheduled_at?: string | null
-          sent_at?: string | null
-          sent_count?: number | null
-          status?: string | null
-          subject?: string
-        }
-        Relationships: []
-      }
-      email_sends: {
-        Row: {
-          campaign_id: string | null
-          created_at: string | null
-          error_message: string | null
-          id: string
-          outreach_contact_id: string | null
-          recipient_email: string
-          recipient_name: string | null
-          sent_at: string | null
-          status: string | null
-        }
-        Insert: {
-          campaign_id?: string | null
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          outreach_contact_id?: string | null
-          recipient_email: string
-          recipient_name?: string | null
-          sent_at?: string | null
-          status?: string | null
-        }
-        Update: {
-          campaign_id?: string | null
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          outreach_contact_id?: string | null
-          recipient_email?: string
-          recipient_name?: string | null
-          sent_at?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "email_sends_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "email_campaigns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "email_sends_outreach_contact_id_fkey"
-            columns: ["outreach_contact_id"]
-            isOneToOne: false
-            referencedRelation: "outreach_contacts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       email_templates: {
         Row: {
           body_html: string
@@ -1358,51 +1247,6 @@ export type Database = {
           },
         ]
       }
-      outreach_contacts: {
-        Row: {
-          audience: string | null
-          company: string | null
-          created_at: string | null
-          email: string
-          email_count: number | null
-          id: string
-          last_contacted_at: string | null
-          name: string | null
-          notes: string | null
-          source: string | null
-          status: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          audience?: string | null
-          company?: string | null
-          created_at?: string | null
-          email: string
-          email_count?: number | null
-          id?: string
-          last_contacted_at?: string | null
-          name?: string | null
-          notes?: string | null
-          source?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          audience?: string | null
-          company?: string | null
-          created_at?: string | null
-          email?: string
-          email_count?: number | null
-          id?: string
-          last_contacted_at?: string | null
-          name?: string | null
-          notes?: string | null
-          source?: string | null
-          status?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1429,6 +1273,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_redeemed: boolean
+          user_email: string
+          uses_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          user_email: string
+          uses_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_redeemed?: boolean
+          user_email?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
+      referral_uses: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_email: string
+          referral_code_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_email: string
+          referral_code_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_email?: string
+          referral_code_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_uses_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
@@ -1654,6 +1554,9 @@ export type Database = {
           email: string
           id: string
           name: string
+          referral_code: string | null
+          referred_by_code: string | null
+          reward_unlocked: boolean
           use_case: string | null
         }
         Insert: {
@@ -1662,6 +1565,9 @@ export type Database = {
           email: string
           id?: string
           name: string
+          referral_code?: string | null
+          referred_by_code?: string | null
+          reward_unlocked?: boolean
           use_case?: string | null
         }
         Update: {
@@ -1670,6 +1576,9 @@ export type Database = {
           email?: string
           id?: string
           name?: string
+          referral_code?: string | null
+          referred_by_code?: string | null
+          reward_unlocked?: boolean
           use_case?: string | null
         }
         Relationships: []
