@@ -113,6 +113,15 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
+      // Handle invalid parameters (e.g., disposable email domains blocked by EmailOctopus)
+      if (data.error?.code === "INVALID_PARAMETERS") {
+        console.log(`Skipping invalid contact (likely disposable email): ${email}`);
+        return new Response(
+          JSON.stringify({ success: true, skipped: true, reason: "Invalid or blocked email domain" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       console.error("EmailOctopus API error:", data);
       return new Response(
         JSON.stringify({ error: data.error?.message || "Failed to sync contact" }),
