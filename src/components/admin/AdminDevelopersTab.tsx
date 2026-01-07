@@ -254,7 +254,7 @@ export const AdminDevelopersTab = ({ applications, onRefresh }: AdminDevelopersT
     for (const app of toSync) {
       try {
         const { data, error } = await supabase.functions.invoke("sync-emailoctopus", {
-          body: { email: app.email, name: app.name },
+          body: { email: app.email, name: app.name, source: "EWD" },
         });
 
         if (error) {

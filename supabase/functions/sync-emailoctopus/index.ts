@@ -12,6 +12,7 @@ interface SyncRequest {
   name: string;
   company?: string;
   position?: string;
+  source?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -32,7 +33,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, name, company, position }: SyncRequest = await req.json();
+    const { email, name, company, position, source }: SyncRequest = await req.json();
 
     if (!email) {
       return new Response(
@@ -49,7 +50,7 @@ const handler = async (req: Request): Promise<Response> => {
       fields: {
         FullName: name || "",
         Company: company || "",
-        Source: "EW",
+        Source: source || "EW",
       },
       tags: ["waitlist", "elixa"],
       status: "SUBSCRIBED",
@@ -90,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
               fields: {
                 FullName: name || "",
                 Company: company || "",
-                Source: "EW",
+                Source: source || "EW",
               },
             }),
           }
