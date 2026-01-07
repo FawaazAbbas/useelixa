@@ -67,11 +67,50 @@ const handler = async (req: Request): Promise<Response> => {
     const data = await response.json();
 
     if (!response.ok) {
-      // Handle duplicate contact gracefully
+      // Handle duplicate contact - UPDATE instead of skip
       if (data.error?.code === "MEMBER_EXISTS_WITH_EMAIL_ADDRESS") {
-        console.log(`Contact already exists in EmailOctopus: ${email}`);
+        console.log(`Contact exists, updating: ${email}`);
+        
+        // EmailOctopus requires MD5 hash of lowercase email for the contact ID
+        const encoder = new TextEncoder();
+        const hashData = encoder.encode(email.toLowerCase());
+        const hashBuffer = await crypto.subtle.digest("MD5", hashData);
+        const contactId = Array.from(new Uint8Array(hashBuffer))
+          .map(b => b.toString(16).padStart(2, "0"))
+          .join("");
+        
+        // Use PUT to update existing contact
+        const updateResponse = await fetch(
+          `https://emailoctopus.com/api/1.6/lists/${listId}/contacts/${contactId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              api_key: apiKey,
+              fields: {
+                FullName: name || "",
+                Company: company || "",
+                Source: "EW",
+              },
+              tags: { "waitlist": true, "elixa": true },
+              status: "SUBSCRIBED",
+            }),
+          }
+        );
+        
+        const updateData = await updateResponse.json();
+        
+        if (!updateResponse.ok) {
+          console.error("Failed to update existing contact:", updateData);
+          return new Response(
+            JSON.stringify({ error: "Failed to update existing contact", details: updateData }),
+            { status: updateResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        console.log(`Successfully updated contact: ${email}`, updateData);
         return new Response(
-          JSON.stringify({ success: true, message: "Contact already exists" }),
+          JSON.stringify({ success: true, updated: true, contact: updateData }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
