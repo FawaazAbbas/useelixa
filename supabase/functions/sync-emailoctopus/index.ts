@@ -41,16 +41,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Syncing contact to EmailOctopus: ${email}`);
 
-    // Extract first name from full name
-    const firstName = name?.split(" ")[0] || "";
-
     const emailOctopusPayload = {
       api_key: apiKey,
       email_address: email,
       fields: {
-        FirstName: firstName,
+        FullName: name || "",
         Company: company || "",
-        Position: position || "",
+        Source: "EW",
       },
       tags: ["waitlist", "elixa"],
       status: "SUBSCRIBED",
