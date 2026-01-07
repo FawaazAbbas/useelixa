@@ -18,7 +18,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon } from "lucide-react";
+import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -57,6 +57,7 @@ export const AdminDevelopersTab = ({ applications, onRefresh }: AdminDevelopersT
 
   const [form, setForm] = useState({ name: "", email: "", skills: "", message: "", created_at: null as Date | null });
   const [editForm, setEditForm] = useState<any>({});
+  const [syncing, setSyncing] = useState(false);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -235,6 +236,52 @@ export const AdminDevelopersTab = ({ applications, onRefresh }: AdminDevelopersT
     toast.success("Template downloaded");
   };
 
+  const handleSyncToEmailOctopus = async () => {
+    const toSync = selectedItems.size > 0 
+      ? applications.filter(a => selectedItems.has(a.id))
+      : applications;
+    
+    if (toSync.length === 0) {
+      toast.error("No applications to sync");
+      return;
+    }
+
+    setSyncing(true);
+    let successCount = 0;
+    let errorCount = 0;
+    let skippedCount = 0;
+
+    for (const app of toSync) {
+      try {
+        const { data, error } = await supabase.functions.invoke("sync-emailoctopus", {
+          body: { email: app.email, name: app.name },
+        });
+
+        if (error) {
+          console.error(`Failed to sync ${app.email}:`, error);
+          errorCount++;
+        } else if (data?.skipped) {
+          skippedCount++;
+        } else {
+          successCount++;
+        }
+      } catch (err) {
+        console.error(`Error syncing ${app.email}:`, err);
+        errorCount++;
+      }
+    }
+
+    setSyncing(false);
+
+    if (errorCount === 0 && skippedCount === 0) {
+      toast.success(`Synced ${successCount} developers to EmailOctopus`);
+    } else if (skippedCount > 0) {
+      toast.success(`Synced ${successCount}, skipped ${skippedCount} (invalid emails)`);
+    } else {
+      toast.warning(`Synced ${successCount}, failed ${errorCount}`);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -248,6 +295,10 @@ export const AdminDevelopersTab = ({ applications, onRefresh }: AdminDevelopersT
           <Button variant="outline" size="sm" onClick={downloadTemplate}><FileDown className="h-4 w-4 mr-2" /> Template</Button>
           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing}><Upload className="h-4 w-4 mr-2" /> {importing ? "..." : "Import"}</Button>
           <Button variant="outline" size="sm" onClick={exportToCSV}><Download className="h-4 w-4 mr-2" /> Export</Button>
+          <Button variant="outline" size="sm" onClick={handleSyncToEmailOctopus} disabled={syncing}>
+            <RefreshCw className={cn("h-4 w-4 mr-2", syncing && "animate-spin")} />
+            {syncing ? "Syncing..." : selectedItems.size > 0 ? `Sync ${selectedItems.size}` : "Sync All"}
+          </Button>
         </div>
       </div>
 
