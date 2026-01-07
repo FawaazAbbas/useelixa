@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon } from "lucide-react";
+import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -70,6 +70,7 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   // Form states
   const [form, setForm] = useState({ name: "", email: "", company: "", use_case: "", created_at: null as Date | null });
@@ -287,6 +288,51 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
     toast.success("Template downloaded");
   };
 
+  const handleSyncToEmailOctopus = async () => {
+    const entriesToSync = selectedItems.size > 0 
+      ? filteredAndSorted.filter(s => selectedItems.has(s.id))
+      : filteredAndSorted;
+    
+    if (entriesToSync.length === 0) {
+      toast.error("No entries to sync");
+      return;
+    }
+    
+    setSyncing(true);
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const entry of entriesToSync) {
+      try {
+        const { error } = await supabase.functions.invoke('sync-emailoctopus', {
+          body: {
+            email: entry.email,
+            name: entry.name,
+            company: entry.company || undefined,
+          }
+        });
+        
+        if (error) {
+          errorCount++;
+          console.error(`Failed to sync ${entry.email}:`, error);
+        } else {
+          successCount++;
+        }
+      } catch (err) {
+        errorCount++;
+        console.error(`Failed to sync ${entry.email}:`, err);
+      }
+    }
+    
+    setSyncing(false);
+    
+    if (errorCount === 0) {
+      toast.success(`Successfully synced ${successCount} contacts to EmailOctopus`);
+    } else {
+      toast.warning(`Synced ${successCount} contacts, ${errorCount} failed`);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -308,6 +354,10 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
           </Button>
           <Button variant="outline" size="sm" onClick={exportToCSV}>
             <Download className="h-4 w-4 mr-2" /> Export
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleSyncToEmailOctopus} disabled={syncing}>
+            <RefreshCw className={cn("h-4 w-4 mr-2", syncing && "animate-spin")} />
+            {syncing ? "Syncing..." : selectedItems.size > 0 ? `Sync ${selectedItems.size}` : "Sync All"}
           </Button>
         </div>
       </div>
