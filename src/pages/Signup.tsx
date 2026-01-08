@@ -1,24 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Loader2, Users, Bot, Sparkles, Unlock } from "lucide-react";
+import { Check, Loader2, Users, Bot, Unlock } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { trackWaitlistSignup } from "@/utils/analytics";
+import { ReferralCodeInput } from "@/components/referral/ReferralCodeInput";
+import { ReferralShareDialog } from "@/components/referral/ReferralShareDialog";
 
 const Waitlist = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("");
   const [position, setPosition] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  const [isReferralValid, setIsReferralValid] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [userReferralCode, setUserReferralCode] = useState("");
   const { toast } = useToast();
+
+  // Check URL for ref param
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get("ref");
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, []);
 
   const isFormValid = name.trim() && email.trim() && industry.trim() && position.trim();
 
@@ -28,14 +43,29 @@ const Waitlist = () => {
     setIsLoading(true);
 
     try {
-      const { error: signupError } = await supabase.from("waitlist_signups").insert([
-        {
-          name: name.trim(),
-          email: email.trim(),
-          company: industry || null,
-          use_case: position.trim(),
-        },
-      ]);
+      const insertData: {
+        name: string;
+        email: string;
+        company: string | null;
+        use_case: string;
+        referred_by_code?: string;
+      } = {
+        name: name.trim(),
+        email: email.trim(),
+        company: industry || null,
+        use_case: position.trim(),
+      };
+
+      // Add referral code if valid
+      if (referralCode.trim() && isReferralValid) {
+        insertData.referred_by_code = referralCode.trim().toUpperCase();
+      }
+
+      const { data: signupData, error: signupError } = await supabase
+        .from("waitlist_signups")
+        .insert([insertData])
+        .select("referral_code")
+        .single();
 
       if (signupError) {
         // Check for duplicate email error (unique constraint violation)
@@ -64,11 +94,22 @@ const Waitlist = () => {
       });
 
       trackWaitlistSignup(email.trim());
+      
+      // Store the user's referral code
+      if (signupData?.referral_code) {
+        setUserReferralCode(signupData.referral_code);
+      }
+      
       setSubmitted(true);
       toast({
         title: "You're on the list!",
         description: "We'll reach out soon with early access details.",
       });
+
+      // Show share dialog after a brief delay
+      setTimeout(() => {
+        setShowShareDialog(true);
+      }, 1500);
     } catch (error) {
       console.error("Waitlist signup error:", error);
       toast({
@@ -220,6 +261,13 @@ const Waitlist = () => {
                           </div>
                         </div>
 
+                        {/* Referral Code Input */}
+                        <ReferralCodeInput
+                          value={referralCode}
+                          onChange={setReferralCode}
+                          onValidChange={(valid) => setIsReferralValid(valid)}
+                        />
+
                         <Button
                           type="submit"
                           disabled={!isFormValid || isLoading}
@@ -262,6 +310,15 @@ const Waitlist = () => {
       </section>
 
       <TalentPoolFooter hideTopSpacing />
+
+      {/* Referral Share Dialog */}
+      <ReferralShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        referralCode={userReferralCode}
+        userName={name}
+        referralCount={0}
+      />
     </div>
   );
 };

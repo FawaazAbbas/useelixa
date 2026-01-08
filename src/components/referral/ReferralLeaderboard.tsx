@@ -28,7 +28,7 @@ export const ReferralLeaderboard = ({ userEmail }: ReferralLeaderboardProps) => 
         if (error) throw error;
         
         if (data && Array.isArray(data)) {
-          setLeaderboard(data as LeaderboardEntry[]);
+          setLeaderboard(data as unknown as LeaderboardEntry[]);
           
           // Find user's rank if email provided
           if (userEmail) {

@@ -201,6 +201,46 @@ export const trackPitchDeckComplete = (): void => {
   });
 };
 
+// Referral tracking
+export const trackReferralCodeCopied = (source: string): void => {
+  trackEvent({
+    action: 'referral_code_copied',
+    category: 'engagement',
+    label: source,
+  });
+};
+
+export const trackReferralShareClicked = (platform: string): void => {
+  trackEvent({
+    action: 'referral_share_clicked',
+    category: 'engagement',
+    label: platform,
+  });
+};
+
+export const trackReferralSignupCompleted = (referralCode: string): void => {
+  trackEvent({
+    action: 'referral_signup_completed',
+    category: 'conversion',
+    label: referralCode,
+  });
+};
+
+export const trackReferralRewardUnlocked = (email: string): void => {
+  trackEvent({
+    action: 'referral_reward_unlocked',
+    category: 'conversion',
+    label: email.split('@')[1],
+  });
+};
+
+export const trackReferralDashboardView = (): void => {
+  trackEvent({
+    action: 'referral_dashboard_view',
+    category: 'engagement',
+  });
+};
+
 // Page views (for SPA navigation)
 export const trackPageView = (pagePath: string, pageTitle: string): void => {
   if (typeof window !== 'undefined' && window.gtag) {
