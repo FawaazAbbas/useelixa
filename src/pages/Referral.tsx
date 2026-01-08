@@ -192,6 +192,42 @@ const Referral = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-xl sm:text-2xl font-bold text-center mb-8">How It Works</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-violet-500/10 flex items-center justify-center">
+                <span className="text-xl font-bold text-violet-500">1</span>
+              </div>
+              <h3 className="font-semibold mb-2">Share Your Link</h3>
+              <p className="text-sm text-muted-foreground">
+                Get your unique referral code and share it with friends via email, social media, or messaging.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-violet-500/10 flex items-center justify-center">
+                <span className="text-xl font-bold text-violet-500">2</span>
+              </div>
+              <h3 className="font-semibold mb-2">Friends Join Waitlist</h3>
+              <p className="text-sm text-muted-foreground">
+                When your friends sign up using your code, they're added to the waitlist and you get credit.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-violet-500/10 flex items-center justify-center">
+                <span className="text-xl font-bold text-violet-500">3</span>
+              </div>
+              <h3 className="font-semibold mb-2">Unlock Rewards</h3>
+              <p className="text-sm text-muted-foreground">
+                Reach milestones to unlock rewards: 3 referrals = 3 free agents, 10 referrals = free lifetime account!
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Stats & Dashboard */}
       {stats && (
         <section className="py-8 px-4 sm:px-6 lg:px-8">
@@ -273,14 +309,14 @@ const Referral = () => {
                         {stats.reward_unlocked ? "✓ Unlocked!" : `${stats.referral_count}/3 referrals`}
                       </div>
                     </div>
-                    <div className="p-3 sm:p-4 rounded-lg border bg-muted/30 border-border opacity-60">
+                    <div className={`p-3 sm:p-4 rounded-lg border ${stats.referral_count >= 10 ? "bg-yellow-500/10 border-yellow-500/30" : "bg-muted/30 border-border"}`}>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl sm:text-2xl">⭐</span>
-                        <span className="font-semibold text-sm sm:text-base">Premium Access</span>
+                        <span className="text-xl sm:text-2xl">👑</span>
+                        <span className="font-semibold text-sm sm:text-base">Free For Life</span>
                       </div>
                       <p className="text-xs text-muted-foreground">Refer 10 friends to unlock</p>
-                      <div className="mt-2 text-xs font-medium text-muted-foreground">
-                        Coming soon...
+                      <div className={`mt-2 text-xs font-medium ${stats.referral_count >= 10 ? "text-yellow-600" : "text-muted-foreground"}`}>
+                        {stats.referral_count >= 10 ? "✓ Unlocked!" : `${stats.referral_count}/10 referrals`}
                       </div>
                     </div>
                   </div>
