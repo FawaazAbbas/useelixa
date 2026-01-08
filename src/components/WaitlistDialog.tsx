@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { trackWaitlistSignup, trackWaitlistPopupClose } from "@/utils/analytics";
+import { ReferralCodeInput } from "@/components/referral/ReferralCodeInput";
+import { ReferralShareDialog } from "@/components/referral/ReferralShareDialog";
 
 interface WaitlistDialogProps {
   open: boolean;
@@ -20,9 +22,22 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("");
   const [position, setPosition] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  const [isReferralValid, setIsReferralValid] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [userReferralCode, setUserReferralCode] = useState("");
   const { toast } = useToast();
+
+  // Check URL for ref param
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get("ref");
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, []);
 
   const isFormValid = name.trim() && email.trim() && industry && position.trim();
 
@@ -32,14 +47,29 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
     setIsLoading(true);
     
     try {
-      const { error: signupError } = await supabase.from("waitlist_signups").insert([
-        {
-          name: name.trim(),
-          email: email.trim(),
-          company: industry || null,
-          use_case: position.trim(),
-        },
-      ]);
+      const insertData: {
+        name: string;
+        email: string;
+        company: string | null;
+        use_case: string;
+        referred_by_code?: string;
+      } = {
+        name: name.trim(),
+        email: email.trim(),
+        company: industry || null,
+        use_case: position.trim(),
+      };
+      
+      // Add referral code if valid
+      if (referralCode.trim() && isReferralValid) {
+        insertData.referred_by_code = referralCode.trim().toUpperCase();
+      }
+
+      const { data: signupData, error: signupError } = await supabase
+        .from("waitlist_signups")
+        .insert([insertData])
+        .select("referral_code")
+        .single();
 
       if (signupError) {
         // Check for duplicate email error (unique constraint violation)
@@ -68,20 +98,22 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
       });
 
       trackWaitlistSignup(email.trim());
+      
+      // Store the user's referral code and show share dialog
+      if (signupData?.referral_code) {
+        setUserReferralCode(signupData.referral_code);
+      }
+      
       setSubmitted(true);
       toast({
         title: "You're on the list!",
         description: "We'll reach out soon with early access details.",
       });
 
+      // Show share dialog after a brief delay
       setTimeout(() => {
-        setSubmitted(false);
-        setName("");
-        setEmail("");
-        setIndustry("");
-        setPosition("");
-        onOpenChange(false);
-      }, 4000);
+        setShowShareDialog(true);
+      }, 1500);
     } catch (error) {
       console.error("Waitlist signup error:", error);
       toast({
@@ -97,6 +129,23 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
   const handleClose = () => {
     trackWaitlistPopupClose(1);
     onOpenChange(false);
+  };
+
+  const handleShareDialogClose = (open: boolean) => {
+    setShowShareDialog(open);
+    if (!open) {
+      // Reset form when share dialog closes
+      setTimeout(() => {
+        setSubmitted(false);
+        setName("");
+        setEmail("");
+        setIndustry("");
+        setPosition("");
+        setReferralCode("");
+        setUserReferralCode("");
+        onOpenChange(false);
+      }, 300);
+    }
   };
 
   return (
@@ -193,6 +242,13 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
                   />
                 </div>
 
+                {/* Referral Code Input */}
+                <ReferralCodeInput
+                  value={referralCode}
+                  onChange={setReferralCode}
+                  onValidChange={(valid) => setIsReferralValid(valid)}
+                />
+
                 <Button
                   type="submit"
                   disabled={!isFormValid || isLoading}
@@ -243,6 +299,15 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           </div>
         )}
       </DialogContent>
+
+      {/* Referral Share Dialog */}
+      <ReferralShareDialog
+        open={showShareDialog}
+        onOpenChange={handleShareDialogClose}
+        referralCode={userReferralCode}
+        userName={name}
+        referralCount={0}
+      />
     </Dialog>
   );
 };

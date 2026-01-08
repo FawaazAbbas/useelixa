@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.sync-emailoctopus]
 verify_jwt = false
+
+[functions.validate-referral-code]
+verify_jwt = false
+
+[functions.send-referral-invite]
+verify_jwt = false
+
+[functions.send-referral-reward-notification]
+verify_jwt = false
