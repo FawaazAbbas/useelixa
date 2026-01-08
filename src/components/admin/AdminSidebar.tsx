@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Users, Code, FileText, LayoutDashboard, LogOut, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, Code, FileText, LayoutDashboard, LogOut, RefreshCw, ChevronLeft, ChevronRight, Gift } from "lucide-react";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -18,6 +18,7 @@ interface AdminSidebarProps {
 const navItems = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "waitlist", label: "Waitlist", icon: Users },
+  { id: "referrals", label: "Referrals", icon: Gift },
   { id: "developers", label: "Developers", icon: Code },
   { id: "blog", label: "Blog", icon: FileText },
 ];

@@ -11,6 +11,7 @@ import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminWaitlistTab } from "@/components/admin/AdminWaitlistTab";
 import { AdminDevelopersTab } from "@/components/admin/AdminDevelopersTab";
 import { AdminBlogTab } from "@/components/admin/AdminBlogTab";
+import { AdminReferralsTab } from "@/components/admin/AdminReferralsTab";
 
 interface WaitlistSignup {
   id: string;
@@ -114,6 +115,8 @@ const Admin = () => {
             onRefresh={fetchData}
           />
         );
+      case "referrals":
+        return <AdminReferralsTab onRefresh={fetchData} />;
       case "blog":
         return <AdminBlogTab />;
       default:
@@ -125,6 +128,7 @@ const Admin = () => {
     switch (activeTab) {
       case "overview": return "Dashboard Overview";
       case "waitlist": return "Waitlist Management";
+      case "referrals": return "Referral Program";
       case "developers": return "Developer Applications";
       case "blog": return "Blog Management";
       default: return "Admin Dashboard";
