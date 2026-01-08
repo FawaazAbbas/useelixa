@@ -116,7 +116,7 @@ const Referral = () => {
     }
   };
 
-  const referralLink = stats ? `https://elixa.ai/signup?ref=${stats.referral_code}` : "";
+  const referralLink = stats ? `https://elixa.app/signup?ref=${stats.referral_code}` : "";
 
   return (
     <div className="min-h-screen bg-background">
