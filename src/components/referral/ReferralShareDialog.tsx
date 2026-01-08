@@ -22,7 +22,7 @@ export const ReferralShareDialog = ({
   referralCount = 0,
 }: ReferralShareDialogProps) => {
   const [copied, setCopied] = useState(false);
-  const referralLink = `${window.location.origin}/signup?ref=${referralCode}`;
+  const referralLink = `https://elixa.ai/signup?ref=${referralCode}`;
   const progress = Math.min((referralCount / 3) * 100, 100);
   const friendsNeeded = Math.max(3 - referralCount, 0);
 
