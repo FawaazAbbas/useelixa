@@ -81,7 +81,7 @@ serve(async (req: Request) => {
     }
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    const referralLink = `https://elixa.ai/signup?ref=${referral_code}&utm_source=referral&utm_medium=email&utm_campaign=waitlist`;
+    const referralLink = `https://elixa.app/signup?ref=${referral_code}&utm_source=referral&utm_medium=email&utm_campaign=waitlist`;
 
     // Record the invite for rate limiting
     await supabase.rpc("record_invite", {
