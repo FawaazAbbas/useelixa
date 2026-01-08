@@ -25,6 +25,7 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Developers from "./pages/Developers";
 import Signup from "./pages/Signup";
+import Referral from "./pages/Referral";
 
 import PitchDeck from "./pages/PitchDeck";
 import Admin from "./pages/Admin";
@@ -128,6 +129,7 @@ const AppContent = () => {
           <Route path="/developers" element={<Developers />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/waitlist" element={<Navigate to="/signup" replace />} />
+          <Route path="/referral" element={<Referral />} />
           
           <Route path="/pitch-deck" element={<PitchDeck />} />
           <Route path="/blog" element={<Blog />} />

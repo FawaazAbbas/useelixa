@@ -1278,24 +1278,33 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          expires_at: string | null
           id: string
           is_redeemed: boolean
+          max_uses: number | null
+          reward_type: string | null
           user_email: string
           uses_count: number
         }
         Insert: {
           code: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_redeemed?: boolean
+          max_uses?: number | null
+          reward_type?: string | null
           user_email: string
           uses_count?: number
         }
         Update: {
           code?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_redeemed?: boolean
+          max_uses?: number | null
+          reward_type?: string | null
           user_email?: string
           uses_count?: number
         }
@@ -1511,7 +1520,10 @@ export type Database = {
       }
       waitlist_invites: {
         Row: {
+          converted_at: string | null
           created_at: string
+          email_sent: boolean | null
+          email_sent_at: string | null
           id: string
           invitee_email: string
           inviter_email: string
@@ -1520,7 +1532,10 @@ export type Database = {
           waitlist_signup_id: string | null
         }
         Insert: {
+          converted_at?: string | null
           created_at?: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
           id?: string
           invitee_email: string
           inviter_email: string
@@ -1529,7 +1544,10 @@ export type Database = {
           waitlist_signup_id?: string | null
         }
         Update: {
+          converted_at?: string | null
           created_at?: string
+          email_sent?: boolean | null
+          email_sent_at?: string | null
           id?: string
           invitee_email?: string
           inviter_email?: string
@@ -1553,8 +1571,10 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          invites_sent: number | null
           name: string
           referral_code: string | null
+          referral_count: number | null
           referred_by_code: string | null
           reward_unlocked: boolean
           use_case: string | null
@@ -1564,8 +1584,10 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          invites_sent?: number | null
           name: string
           referral_code?: string | null
+          referral_count?: number | null
           referred_by_code?: string | null
           reward_unlocked?: boolean
           use_case?: string | null
@@ -1575,8 +1597,10 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          invites_sent?: number | null
           name?: string
           referral_code?: string | null
+          referral_count?: number | null
           referred_by_code?: string | null
           reward_unlocked?: boolean
           use_case?: string | null
@@ -1805,6 +1829,12 @@ export type Database = {
         Args: { days: number[]; run_time: string }
         Returns: string
       }
+      generate_referral_code: { Args: never; Returns: string }
+      get_referral_leaderboard: {
+        Args: { limit_count?: number }
+        Returns: Json
+      }
+      get_referral_stats: { Args: { user_email: string }; Returns: Json }
       get_user_workspace_ids: {
         Args: { _user_id: string }
         Returns: {
