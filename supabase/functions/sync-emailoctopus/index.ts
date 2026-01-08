@@ -13,6 +13,10 @@ interface SyncRequest {
   company?: string;
   position?: string;
   source?: string;
+  // Referral-specific fields
+  referral_code?: string;
+  referred_by_code?: string;
+  reward_unlocked?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -33,7 +37,16 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, name, company, position, source }: SyncRequest = await req.json();
+    const { 
+      email, 
+      name, 
+      company, 
+      position, 
+      source,
+      referral_code,
+      referred_by_code,
+      reward_unlocked
+    }: SyncRequest = await req.json();
 
     if (!email) {
       return new Response(
@@ -44,15 +57,41 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Syncing contact to EmailOctopus: ${email}`);
 
+    // Build tags based on referral status
+    const tags = ["waitlist", "elixa"];
+    
+    if (referral_code) {
+      tags.push("has_referral_code");
+    }
+    
+    if (referred_by_code) {
+      tags.push("was_referred");
+    }
+    
+    if (reward_unlocked) {
+      tags.push("reward_unlocked");
+    }
+
+    // Build fields with referral data
+    const fields: Record<string, string> = {
+      FullName: name || "",
+      Company: company || "",
+      Source: source || "EW",
+    };
+
+    if (referral_code) {
+      fields.ReferralCode = referral_code;
+    }
+
+    if (referred_by_code) {
+      fields.ReferredBy = referred_by_code;
+    }
+
     const emailOctopusPayload = {
       api_key: apiKey,
       email_address: email,
-      fields: {
-        FullName: name || "",
-        Company: company || "",
-        Source: source || "EW",
-      },
-      tags: ["waitlist", "elixa"],
+      fields,
+      tags,
       status: "SUBSCRIBED",
     };
 
@@ -88,11 +127,8 @@ const handler = async (req: Request): Promise<Response> => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               api_key: apiKey,
-              fields: {
-                FullName: name || "",
-                Company: company || "",
-                Source: source || "EW",
-              },
+              fields,
+              tags,
             }),
           }
         );

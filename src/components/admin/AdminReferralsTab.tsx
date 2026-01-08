@@ -11,10 +11,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Gift, Trophy, TrendingUp, Search, RefreshCw, ExternalLink } from "lucide-react";
+import { Users, Gift, Trophy, TrendingUp, Search, RefreshCw, ExternalLink, MoreVertical, Download, Mail, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReferralCode {
   code: string;
@@ -53,6 +60,7 @@ export const AdminReferralsTab = ({ onRefresh }: AdminReferralsTabProps) => {
     rewardsUnlocked: 0,
     conversionRate: 0,
   });
+  const { toast } = useToast();
 
   const fetchData = async () => {
     try {
@@ -100,6 +108,87 @@ export const AdminReferralsTab = ({ onRefresh }: AdminReferralsTabProps) => {
     setRefreshing(true);
     fetchData();
     onRefresh?.();
+  };
+
+  const handleGrantReward = async (userId: string, userName: string) => {
+    try {
+      const { error } = await supabase
+        .from("waitlist_signups")
+        .update({ reward_unlocked: true })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reward granted",
+        description: `${userName} now has their reward unlocked.`,
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Error granting reward:", err);
+      toast({
+        title: "Error",
+        description: "Failed to grant reward. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRevokeReward = async (userId: string, userName: string) => {
+    try {
+      const { error } = await supabase
+        .from("waitlist_signups")
+        .update({ reward_unlocked: false })
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Reward revoked",
+        description: `${userName}'s reward has been revoked.`,
+      });
+      fetchData();
+    } catch (err) {
+      console.error("Error revoking reward:", err);
+      toast({
+        title: "Error",
+        description: "Failed to revoke reward. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResendInvite = async (userEmail: string, userName: string, referralCode: string) => {
+    toast({
+      title: "Feature coming soon",
+      description: "Bulk resend invites will be available shortly.",
+    });
+  };
+
+  const handleExportCSV = () => {
+    const headers = ["Name", "Email", "Referral Code", "Referrals", "Invites Sent", "Reward Unlocked", "Referred By", "Joined"];
+    const rows = waitlistData.map(user => [
+      user.name,
+      user.email,
+      user.referral_code || "",
+      user.referral_count.toString(),
+      (user.invites_sent || 0).toString(),
+      user.reward_unlocked ? "Yes" : "No",
+      user.referred_by_code || "",
+      format(new Date(user.created_at), "yyyy-MM-dd HH:mm"),
+    ]);
+
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `referrals-export-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+
+    toast({
+      title: "Export complete",
+      description: `Exported ${waitlistData.length} users to CSV.`,
+    });
   };
 
   const filteredWaitlist = waitlistData.filter(
@@ -236,6 +325,14 @@ export const AdminReferralsTab = ({ onRefresh }: AdminReferralsTabProps) => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={handleExportCSV}
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Export
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing}
               >
@@ -255,7 +352,7 @@ export const AdminReferralsTab = ({ onRefresh }: AdminReferralsTabProps) => {
                   <TableHead>Referred By</TableHead>
                   <TableHead>Reward</TableHead>
                   <TableHead>Joined</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="w-[80px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -302,14 +399,37 @@ export const AdminReferralsTab = ({ onRefresh }: AdminReferralsTabProps) => {
                       {format(new Date(user.created_at), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0"
-                        onClick={() => window.open(`/referral?email=${encodeURIComponent(user.email)}`, "_blank")}
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => window.open(`/referral?email=${encodeURIComponent(user.email)}`, "_blank")}
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Dashboard
+                          </DropdownMenuItem>
+                          {user.reward_unlocked ? (
+                            <DropdownMenuItem
+                              onClick={() => handleRevokeReward(user.id, user.name)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Revoke Reward
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() => handleGrantReward(user.id, user.name)}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Grant Reward
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

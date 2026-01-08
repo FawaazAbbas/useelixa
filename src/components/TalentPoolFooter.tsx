@@ -90,6 +90,14 @@ export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterPro
                 </li>
                 <li>
                   <Link
+                    to="/referral"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Referral Program
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     to="/developers"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
