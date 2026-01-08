@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReferralStatsCards } from "@/components/referral/ReferralStatsCards";
-import { ReferralLeaderboard } from "@/components/referral/ReferralLeaderboard";
 import { InvitedFriendsList } from "@/components/referral/InvitedFriendsList";
 import { ShareButtons } from "@/components/referral/ShareButtons";
 import { EmailInviteForm } from "@/components/referral/EmailInviteForm";
@@ -246,41 +245,38 @@ const Referral = () => {
               </div>
             </Card>
 
-            {/* Two Column Layout */}
-            <div className="grid lg:grid-cols-2 gap-6">
-              <InvitedFriendsList
-                invites={stats.invites || []}
-                referredSignups={stats.referred_signups || []}
-              />
-              <ReferralLeaderboard userEmail={email} />
-            </div>
+            {/* Friends List */}
+            <InvitedFriendsList
+              invites={stats.invites || []}
+              referredSignups={stats.referred_signups || []}
+            />
 
-            {/* Rewards Section */}
-            <Card className="p-6 bg-gradient-to-r from-violet-500/5 to-purple-500/5 border-violet-500/20">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
-                  <Trophy className="w-6 h-6 text-white" />
+            {/* Rewards Section - Mobile Friendly */}
+            <Card className="p-4 sm:p-6 bg-gradient-to-r from-violet-500/5 to-purple-500/5 border-violet-500/20">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
+                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-1">Your Rewards</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-1">Your Rewards</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-4">
                     Complete milestones to unlock exclusive rewards
                   </p>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className={`p-4 rounded-lg border ${stats.reward_unlocked ? "bg-green-500/10 border-green-500/30" : "bg-muted/30 border-border"}`}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className={`p-3 sm:p-4 rounded-lg border ${stats.reward_unlocked ? "bg-green-500/10 border-green-500/30" : "bg-muted/30 border-border"}`}>
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">🤖</span>
-                        <span className="font-semibold">3 Free AI Agents</span>
+                        <span className="text-xl sm:text-2xl">🤖</span>
+                        <span className="font-semibold text-sm sm:text-base">3 Free AI Agents</span>
                       </div>
                       <p className="text-xs text-muted-foreground">Refer 3 friends to unlock</p>
                       <div className={`mt-2 text-xs font-medium ${stats.reward_unlocked ? "text-green-600" : "text-muted-foreground"}`}>
                         {stats.reward_unlocked ? "✓ Unlocked!" : `${stats.referral_count}/3 referrals`}
                       </div>
                     </div>
-                    <div className="p-4 rounded-lg border bg-muted/30 border-border opacity-60">
+                    <div className="p-3 sm:p-4 rounded-lg border bg-muted/30 border-border opacity-60">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="text-2xl">⭐</span>
-                        <span className="font-semibold">Premium Access</span>
+                        <span className="text-xl sm:text-2xl">⭐</span>
+                        <span className="font-semibold text-sm sm:text-base">Premium Access</span>
                       </div>
                       <p className="text-xs text-muted-foreground">Refer 10 friends to unlock</p>
                       <div className="mt-2 text-xs font-medium text-muted-foreground">
