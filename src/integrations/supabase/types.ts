@@ -1177,6 +1177,27 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_rate_limits: {
+        Row: {
+          id: string
+          invitee_email: string
+          sent_at: string
+          user_email: string
+        }
+        Insert: {
+          id?: string
+          invitee_email: string
+          sent_at?: string
+          user_email: string
+        }
+        Update: {
+          id?: string
+          invitee_email?: string
+          sent_at?: string
+          user_email?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           agent_id: string | null
@@ -1829,6 +1850,14 @@ export type Database = {
         Args: { days: number[]; run_time: string }
         Returns: string
       }
+      check_duplicate_invite: {
+        Args: { recipient_email: string; sender_email: string }
+        Returns: boolean
+      }
+      check_invite_rate_limit: {
+        Args: { sender_email: string }
+        Returns: boolean
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_referral_leaderboard: {
         Args: { limit_count?: number }
@@ -1848,12 +1877,20 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_invites_sent: {
+        Args: { user_email: string }
+        Returns: undefined
+      }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
       }
       mark_messages_read: {
         Args: { p_chat_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      record_invite: {
+        Args: { recipient_email: string; sender_email: string }
         Returns: undefined
       }
     }

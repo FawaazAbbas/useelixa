@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,6 +8,7 @@ const corsHeaders = {
 
 interface ValidateRequest {
   code: string;
+  user_email?: string; // Email of the person trying to use the code
 }
 
 serve(async (req: Request) => {
@@ -16,7 +18,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { code } = (await req.json()) as ValidateRequest;
+    const { code, user_email } = (await req.json()) as ValidateRequest;
 
     if (!code) {
       return new Response(
@@ -27,42 +29,59 @@ serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if code exists and is still valid
-    const response = await fetch(
-      `${supabaseUrl}/rest/v1/waitlist_signups?referral_code=eq.${code.toUpperCase().trim()}&select=name,referral_count`,
-      {
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-      }
-    );
+    // Check if code exists
+    const { data: referralCode, error } = await supabase
+      .from("referral_codes")
+      .select("*")
+      .eq("code", code.toUpperCase())
+      .single();
 
-    const data = await response.json();
-
-    if (!data || data.length === 0) {
+    if (error || !referralCode) {
       return new Response(
         JSON.stringify({ valid: false, error: "Invalid referral code" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const signup = data[0];
-
-    // Check if code has reached max uses (3)
-    if (signup.referral_count >= 3) {
+    // Self-referral prevention - check if user is trying to use their own code
+    if (user_email && referralCode.user_email.toLowerCase() === user_email.toLowerCase()) {
       return new Response(
-        JSON.stringify({ valid: false, error: "This code has reached its maximum uses" }),
+        JSON.stringify({ valid: false, error: "You cannot use your own referral code" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Check if code is expired
+    if (referralCode.expires_at && new Date(referralCode.expires_at) < new Date()) {
+      return new Response(
+        JSON.stringify({ valid: false, error: "This referral code has expired" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if code has reached max uses
+    if (referralCode.max_uses && referralCode.uses_count >= referralCode.max_uses) {
+      return new Response(
+        JSON.stringify({ valid: false, error: "This referral code has reached its maximum uses" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Get referrer info
+    const { data: referrer } = await supabase
+      .from("waitlist_signups")
+      .select("name")
+      .eq("email", referralCode.user_email)
+      .single();
+
     return new Response(
       JSON.stringify({
         valid: true,
-        referrer_name: signup.name,
-        uses_remaining: 3 - signup.referral_count,
+        code: referralCode.code,
+        referrer_name: referrer?.name || "A friend",
+        reward_type: referralCode.reward_type,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

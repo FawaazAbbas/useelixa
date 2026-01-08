@@ -8,9 +8,11 @@ import { ReferralStatsCards } from "@/components/referral/ReferralStatsCards";
 import { ReferralLeaderboard } from "@/components/referral/ReferralLeaderboard";
 import { InvitedFriendsList } from "@/components/referral/InvitedFriendsList";
 import { ShareButtons } from "@/components/referral/ShareButtons";
+import { EmailInviteForm } from "@/components/referral/EmailInviteForm";
+import { RewardCelebration } from "@/components/referral/RewardCelebration";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Gift, Sparkles, Users, Trophy } from "lucide-react";
+import { Search, Gift, Sparkles, Users, Trophy, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/utils/analytics";
 
@@ -34,9 +36,12 @@ interface ReferralStats {
 
 const Referral = () => {
   const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [previousRewardStatus, setPreviousRewardStatus] = useState(false);
   const { toast } = useToast();
 
   // Check for email in URL params
@@ -65,6 +70,7 @@ const Referral = () => {
     trackEvent({ action: "referral_dashboard_lookup", category: "engagement", label: emailToLookup.split("@")[1] });
 
     try {
+      // Fetch referral stats
       const { data, error } = await supabase.rpc("get_referral_stats", {
         user_email: emailToLookup.trim().toLowerCase(),
       });
@@ -72,7 +78,25 @@ const Referral = () => {
       if (error) throw error;
 
       if (data && typeof data === 'object' && 'referral_code' in data) {
-        setStats(data as unknown as ReferralStats);
+        const statsData = data as unknown as ReferralStats;
+        setStats(statsData);
+        
+        // Check if reward was just unlocked (compare with previous state)
+        if (statsData.reward_unlocked && !previousRewardStatus && searched) {
+          setShowCelebration(true);
+        }
+        setPreviousRewardStatus(statsData.reward_unlocked);
+        
+        // Fetch user name for invite form
+        const { data: userData } = await supabase
+          .from("waitlist_signups")
+          .select("name")
+          .eq("email", emailToLookup.trim().toLowerCase())
+          .single();
+        
+        if (userData) {
+          setUserName(userData.name);
+        }
       } else {
         setStats(null);
         toast({
@@ -97,6 +121,7 @@ const Referral = () => {
   return (
     <div className="min-h-screen bg-background">
       <TalentPoolNavbar showSearch={false} />
+      <RewardCelebration show={showCelebration} onComplete={() => setShowCelebration(false)} />
 
       {/* Hero Section */}
       <section className="relative pt-20 sm:pt-24 pb-8 overflow-hidden">
@@ -179,9 +204,9 @@ const Referral = () => {
               rewardUnlocked={stats.reward_unlocked}
             />
 
-            {/* Share Section */}
+            {/* Share & Invite Section */}
             <Card className="p-6">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-violet-500" />
                   <h3 className="text-lg font-semibold">Share & Invite</h3>
@@ -189,14 +214,35 @@ const Referral = () => {
                 <p className="text-sm text-muted-foreground">
                   Share your unique link with friends. When they join, you both benefit!
                 </p>
+                
+                {/* Referral Link Display */}
                 <div className="bg-muted/50 rounded-lg p-4 text-center">
                   <p className="text-xs text-muted-foreground mb-2">YOUR REFERRAL LINK</p>
                   <p className="font-mono text-sm break-all text-foreground">{referralLink}</p>
                 </div>
+                
+                {/* Share Buttons */}
                 <ShareButtons
                   referralCode={stats.referral_code}
                   referralLink={referralLink}
+                  userName={userName}
                 />
+                
+                {/* Email Invite Form */}
+                <div className="border-t pt-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Mail className="w-4 h-4 text-violet-500" />
+                    <h4 className="text-sm font-medium">Invite by Email</h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Enter your friend's email and we'll send them a personalized invite with your code.
+                  </p>
+                  <EmailInviteForm
+                    inviterEmail={email}
+                    inviterName={userName}
+                    referralCode={stats.referral_code}
+                  />
+                </div>
               </div>
             </Card>
 

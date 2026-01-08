@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,52 +29,84 @@ serve(async (req: Request) => {
       );
     }
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const referralLink = `https://elixa.ai/signup?ref=${referral_code}`;
+    // Self-referral prevention
+    if (inviter_email.toLowerCase() === invitee_email.toLowerCase()) {
+      return new Response(
+        JSON.stringify({ success: false, error: "You cannot invite yourself" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check rate limit (max 10 invites per 24 hours)
+    const { data: canSend } = await supabase.rpc("check_invite_rate_limit", {
+      sender_email: inviter_email.toLowerCase(),
+    });
+
+    if (!canSend) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Daily invite limit reached (max 10 per day)" }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check for duplicate invite
+    const { data: isNewInvite } = await supabase.rpc("check_duplicate_invite", {
+      sender_email: inviter_email.toLowerCase(),
+      recipient_email: invitee_email.toLowerCase(),
+    });
+
+    if (!isNewInvite) {
+      return new Response(
+        JSON.stringify({ success: false, error: "You've already invited this person" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if invitee is already on waitlist
+    const { data: existingUser } = await supabase
+      .from("waitlist_signups")
+      .select("id")
+      .eq("email", invitee_email.toLowerCase())
+      .single();
+
+    if (existingUser) {
+      return new Response(
+        JSON.stringify({ success: false, error: "This person is already on the waitlist" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const referralLink = `https://elixa.ai/signup?ref=${referral_code}&utm_source=referral&utm_medium=email&utm_campaign=waitlist`;
+
+    // Record the invite for rate limiting
+    await supabase.rpc("record_invite", {
+      sender_email: inviter_email.toLowerCase(),
+      recipient_email: invitee_email.toLowerCase(),
+    });
 
     // Create invite record in database
-    const inviteResponse = await fetch(
-      `${supabaseUrl}/rest/v1/waitlist_invites`,
-      {
-        method: "POST",
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({
-          inviter_email,
-          inviter_name,
-          invitee_email,
-          status: "pending",
-          email_sent: !!resendApiKey,
-          email_sent_at: resendApiKey ? new Date().toISOString() : null,
-        }),
-      }
-    );
+    const { error: inviteError } = await supabase
+      .from("waitlist_invites")
+      .insert({
+        inviter_email: inviter_email.toLowerCase(),
+        inviter_name,
+        invitee_email: invitee_email.toLowerCase(),
+        status: "pending",
+        email_sent: !!resendApiKey,
+        email_sent_at: resendApiKey ? new Date().toISOString() : null,
+      });
 
-    if (!inviteResponse.ok) {
-      const error = await inviteResponse.text();
-      console.error("Error creating invite record:", error);
+    if (inviteError) {
+      console.error("Error creating invite record:", inviteError);
     }
 
     // Update invites_sent count
-    await fetch(
-      `${supabaseUrl}/rest/v1/rpc/increment_invites_sent`,
-      {
-        method: "POST",
-        headers: {
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ user_email: inviter_email }),
-      }
-    ).catch(console.error);
+    await supabase.rpc("increment_invites_sent", { user_email: inviter_email.toLowerCase() });
 
     // Send email if Resend is configured
     if (resendApiKey) {
