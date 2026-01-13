@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Loader2, Users, Bot, Unlock } from "lucide-react";
+import { Check, Loader2, Users, Bot, Sparkles } from "lucide-react";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ import { ReferralCodeInput } from "@/components/referral/ReferralCodeInput";
 import { ReferralShareDialog } from "@/components/referral/ReferralShareDialog";
 
 const Waitlist = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [industry, setIndustry] = useState("");
@@ -24,6 +26,7 @@ const Waitlist = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [userReferralCode, setUserReferralCode] = useState("");
+  const [userWaitlistPosition, setUserWaitlistPosition] = useState<number | null>(null);
   const { toast } = useToast();
 
   // Check URL for ref param
@@ -64,7 +67,7 @@ const Waitlist = () => {
       const { data: signupData, error: signupError } = await supabase
         .from("waitlist_signups")
         .insert([insertData])
-        .select("referral_code")
+        .select("referral_code, waitlist_position")
         .single();
 
       if (signupError) {
@@ -80,13 +83,17 @@ const Waitlist = () => {
         throw signupError;
       }
 
-      // Sync to EmailOctopus (fire-and-forget)
+      // Sync to EmailOctopus with waitlist position (fire-and-forget)
       supabase.functions.invoke("sync-emailoctopus", {
         body: {
           email: email.trim(),
           name: name.trim(),
           company: industry || undefined,
           position: position.trim(),
+          referral_code: signupData?.referral_code,
+          referred_by_code: referralCode.trim() && isReferralValid ? referralCode.trim().toUpperCase() : undefined,
+          waitlist_position: signupData?.waitlist_position,
+          referral_count: 0,
         },
       }).then(({ error }) => {
         if (error) console.error("EmailOctopus sync error:", error);
@@ -95,9 +102,12 @@ const Waitlist = () => {
 
       trackWaitlistSignup(email.trim());
       
-      // Store the user's referral code
+      // Store the user's referral code and position
       if (signupData?.referral_code) {
         setUserReferralCode(signupData.referral_code);
+      }
+      if (signupData?.waitlist_position) {
+        setUserWaitlistPosition(signupData.waitlist_position);
       }
       
       setSubmitted(true);
@@ -105,11 +115,6 @@ const Waitlist = () => {
         title: "You're on the list!",
         description: "We'll reach out soon with early access details.",
       });
-
-      // Show share dialog after a brief delay
-      setTimeout(() => {
-        setShowShareDialog(true);
-      }, 1500);
     } catch (error) {
       console.error("Waitlist signup error:", error);
       toast({
@@ -283,23 +288,56 @@ const Waitlist = () => {
                     </>
                   ) : (
                     <div className="text-center py-6 animate-in fade-in duration-500">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-500/30">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-500/30">
                         <Check className="w-7 h-7 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">You're In!</h3>
+                      <h3 className="text-xl font-bold mb-2">Thank you so much for joining!</h3>
                       <p className="text-muted-foreground text-sm mb-4">
-                        We'll reach out with early access details soon.
+                        Please feel free to explore the app
                       </p>
-                      <div className="flex flex-col gap-2 text-xs text-muted-foreground">
-                        <div className="flex items-center justify-center gap-2">
-                          <Check className="w-3 h-3 text-violet-500" />
-                          <span>Profile complete</span>
+                      
+                      {/* Waitlist Position */}
+                      {userWaitlistPosition && (
+                        <div className="bg-muted/50 rounded-xl p-4 mb-4 text-center">
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <Users className="w-4 h-4 text-violet-500" />
+                            <span className="text-xs font-medium text-muted-foreground">Your position</span>
+                          </div>
+                          <p className="text-2xl font-bold text-foreground">
+                            #{userWaitlistPosition.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            <Sparkles className="w-3 h-3 inline mr-1 text-violet-500" />
+                            Invite friends to move up!
+                          </p>
                         </div>
-                        <div className="flex items-center justify-center gap-2">
-                          <Unlock className="w-3 h-3 text-violet-500" />
-                          <span>Workspace unlocking soon...</span>
-                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          onClick={() => navigate("/workspace")}
+                          className="w-full h-10 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white font-semibold shadow-lg shadow-violet-500/25"
+                        >
+                          Go to Workspace
+                        </Button>
+                        <Button
+                          onClick={() => navigate("/talent-pool")}
+                          variant="outline"
+                          className="w-full h-10 border-violet-500/30 hover:bg-violet-500/10"
+                        >
+                          Explore Talent Pool
+                        </Button>
                       </div>
+
+                      {/* Share Button */}
+                      <button
+                        onClick={() => setShowShareDialog(true)}
+                        className="text-violet-600 hover:text-violet-700 text-sm font-medium flex items-center justify-center gap-1 mt-4 mx-auto transition-colors"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Share to move up the queue
+                      </button>
                     </div>
                   )}
                 </CardContent>
@@ -318,6 +356,7 @@ const Waitlist = () => {
         referralCode={userReferralCode}
         userName={name}
         referralCount={0}
+        waitlistPosition={userWaitlistPosition}
       />
     </div>
   );

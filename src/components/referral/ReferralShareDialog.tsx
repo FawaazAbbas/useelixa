@@ -12,6 +12,7 @@ interface ReferralShareDialogProps {
   referralCode: string;
   userName: string;
   referralCount?: number;
+  waitlistPosition?: number | null;
 }
 
 export const ReferralShareDialog = ({
@@ -20,6 +21,7 @@ export const ReferralShareDialog = ({
   referralCode,
   userName,
   referralCount = 0,
+  waitlistPosition,
 }: ReferralShareDialogProps) => {
   const [copied, setCopied] = useState(false);
   const referralLink = `https://elixa.app/signup?ref=${referralCode}`;
@@ -70,8 +72,13 @@ export const ReferralShareDialog = ({
               <h2 className="text-xl font-bold text-foreground">
                 🎉 You're on the list!
               </h2>
+              {waitlistPosition && (
+                <p className="text-lg font-bold text-violet-600 mt-1">
+                  Position #{waitlistPosition.toLocaleString()}
+                </p>
+              )}
               <p className="text-sm text-muted-foreground mt-1">
-                Now unlock <span className="text-violet-500 font-semibold">3 free AI agents</span>
+                Invite friends to <span className="text-violet-500 font-semibold">move up & unlock rewards</span>
               </p>
             </div>
           </div>
