@@ -17,6 +17,9 @@ interface SyncRequest {
   referral_code?: string;
   referred_by_code?: string;
   reward_unlocked?: boolean;
+  // Waitlist position fields
+  waitlist_position?: number;
+  referral_count?: number;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -45,7 +48,9 @@ const handler = async (req: Request): Promise<Response> => {
       source,
       referral_code,
       referred_by_code,
-      reward_unlocked
+      reward_unlocked,
+      waitlist_position,
+      referral_count
     }: SyncRequest = await req.json();
 
     if (!email) {
@@ -72,6 +77,20 @@ const handler = async (req: Request): Promise<Response> => {
       tags.push("reward_unlocked");
     }
 
+    // Add milestone tags based on referral count
+    if (referral_count && referral_count >= 2) {
+      tags.push("milestone_2");
+    }
+    if (referral_count && referral_count >= 3) {
+      tags.push("milestone_3");
+    }
+    if (referral_count && referral_count >= 4) {
+      tags.push("milestone_4_plus");
+    }
+    if (referral_count && referral_count >= 10) {
+      tags.push("milestone_10_lifetime");
+    }
+
     // Build fields with referral data
     const fields: Record<string, string> = {
       FullName: name || "",
@@ -85,6 +104,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (referred_by_code) {
       fields.ReferredBy = referred_by_code;
+    }
+
+    // Add waitlist position
+    if (waitlist_position) {
+      fields.WaitlistPosition = waitlist_position.toString();
+    }
+
+    if (referral_count !== undefined) {
+      fields.ReferralCount = referral_count.toString();
     }
 
     const emailOctopusPayload = {

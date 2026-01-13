@@ -1599,6 +1599,7 @@ export type Database = {
           referred_by_code: string | null
           reward_unlocked: boolean
           use_case: string | null
+          waitlist_position: number | null
         }
         Insert: {
           company?: string | null
@@ -1612,6 +1613,7 @@ export type Database = {
           referred_by_code?: string | null
           reward_unlocked?: boolean
           use_case?: string | null
+          waitlist_position?: number | null
         }
         Update: {
           company?: string | null
@@ -1625,6 +1627,7 @@ export type Database = {
           referred_by_code?: string | null
           reward_unlocked?: boolean
           use_case?: string | null
+          waitlist_position?: number | null
         }
         Relationships: []
       }
