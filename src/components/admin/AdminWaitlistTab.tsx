@@ -45,6 +45,12 @@ interface WaitlistSignup {
   company: string | null;
   use_case: string | null;
   created_at: string;
+  // Referral / waitlist metadata (present in DB, needed for EmailOctopus sync)
+  referral_code?: string | null;
+  referred_by_code?: string | null;
+  reward_unlocked?: boolean;
+  waitlist_position?: number | null;
+  referral_count?: number | null;
 }
 
 type SortDirection = "asc" | "desc" | null;
@@ -304,17 +310,25 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
     
     for (const entry of entriesToSync) {
       try {
-        const { error } = await supabase.functions.invoke('sync-emailoctopus', {
+        const { data, error } = await supabase.functions.invoke("sync-emailoctopus", {
           body: {
             email: entry.email,
             name: entry.name,
             company: entry.company || undefined,
-          }
+            position: entry.use_case || undefined,
+            source: "EW",
+            // Include these so EmailOctopus can update the new custom fields
+            referral_code: entry.referral_code || undefined,
+            referred_by_code: entry.referred_by_code || undefined,
+            reward_unlocked: entry.reward_unlocked ?? undefined,
+            waitlist_position: entry.waitlist_position ?? undefined,
+            referral_count: entry.referral_count ?? undefined,
+          },
         });
-        
-        if (error) {
+
+        if (error || (data as any)?.rejected) {
           errorCount++;
-          console.error(`Failed to sync ${entry.email}:`, error);
+          console.error(`Failed to sync ${entry.email}:`, error ?? data);
         } else {
           successCount++;
         }
