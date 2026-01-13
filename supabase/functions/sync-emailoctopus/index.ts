@@ -91,7 +91,10 @@ const handler = async (req: Request): Promise<Response> => {
       tags.push("milestone_10_lifetime");
     }
 
-    // EmailOctopus expects tags as an object map: {"tagName": true}
+    // EmailOctopus expects different "tags" shapes depending on endpoint:
+    // - Create contact (POST): tags as string[]
+    // - Update contact (PUT): tags as object map { [tagName]: true|false }
+    const tagsArray = tags;
     const tagsObject: Record<string, boolean> = Object.fromEntries(tags.map((t) => [t, true]));
 
     // Build fields with referral data
@@ -118,13 +121,14 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("Prepared fields for EmailOctopus:", JSON.stringify(fields));
-    console.log("Prepared tags for EmailOctopus:", JSON.stringify(tagsObject));
+    console.log("Prepared tags for EmailOctopus (POST array):", JSON.stringify(tagsArray));
+    console.log("Prepared tags for EmailOctopus (PUT map):", JSON.stringify(tagsObject));
 
     const emailOctopusPayload = {
       api_key: apiKey,
       email_address: email,
       fields,
-      tags: tagsObject,
+      tags: tagsArray,
       status: "SUBSCRIBED",
     };
 
