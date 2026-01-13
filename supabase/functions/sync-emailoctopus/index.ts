@@ -64,15 +64,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Build tags based on referral status
     const tags = ["waitlist", "elixa"];
-    
+
     if (referral_code) {
       tags.push("has_referral_code");
     }
-    
+
     if (referred_by_code) {
       tags.push("was_referred");
     }
-    
+
     if (reward_unlocked) {
       tags.push("reward_unlocked");
     }
@@ -91,16 +91,16 @@ const handler = async (req: Request): Promise<Response> => {
       tags.push("milestone_10_lifetime");
     }
 
-    // Build fields with referral data - only include standard fields that exist in EmailOctopus
-    // Custom fields must be created in EmailOctopus dashboard first
+    // EmailOctopus expects tags as an object map: {"tagName": true}
+    const tagsObject: Record<string, boolean> = Object.fromEntries(tags.map((t) => [t, true]));
+
+    // Build fields with referral data
     const fields: Record<string, string> = {
       FullName: name || "",
       Company: company || "",
       Source: source || "EW",
     };
 
-    // These custom fields need to exist in EmailOctopus - add them if configured
-    // Using optional fields pattern - only add if value exists
     if (referral_code) {
       fields.ReferralCode = referral_code;
     }
@@ -118,13 +118,13 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log("Prepared fields for EmailOctopus:", JSON.stringify(fields));
-    console.log("Prepared tags for EmailOctopus:", tags);
+    console.log("Prepared tags for EmailOctopus:", JSON.stringify(tagsObject));
 
     const emailOctopusPayload = {
       api_key: apiKey,
       email_address: email,
       fields,
-      tags,
+      tags: tagsObject,
       status: "SUBSCRIBED",
     };
 
@@ -160,8 +160,10 @@ const handler = async (req: Request): Promise<Response> => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               api_key: apiKey,
+              email_address: email,
               fields,
-              tags,
+              tags: tagsObject,
+              status: "SUBSCRIBED",
             }),
           }
         );
@@ -170,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         if (!updateResponse.ok) {
           console.error("Failed to update existing contact:", updateData);
-          console.error("Request payload was:", JSON.stringify({ fields, tags }));
+          console.error("Request payload was:", JSON.stringify({ email_address: email, fields, tags: tagsObject }));
           return new Response(
             JSON.stringify({ error: "Failed to update existing contact", details: updateData }),
             { status: updateResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
