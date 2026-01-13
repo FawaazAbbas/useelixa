@@ -91,13 +91,16 @@ const handler = async (req: Request): Promise<Response> => {
       tags.push("milestone_10_lifetime");
     }
 
-    // Build fields with referral data
+    // Build fields with referral data - only include standard fields that exist in EmailOctopus
+    // Custom fields must be created in EmailOctopus dashboard first
     const fields: Record<string, string> = {
       FullName: name || "",
       Company: company || "",
       Source: source || "EW",
     };
 
+    // These custom fields need to exist in EmailOctopus - add them if configured
+    // Using optional fields pattern - only add if value exists
     if (referral_code) {
       fields.ReferralCode = referral_code;
     }
@@ -106,7 +109,6 @@ const handler = async (req: Request): Promise<Response> => {
       fields.ReferredBy = referred_by_code;
     }
 
-    // Add waitlist position
     if (waitlist_position) {
       fields.WaitlistPosition = waitlist_position.toString();
     }
@@ -114,6 +116,9 @@ const handler = async (req: Request): Promise<Response> => {
     if (referral_count !== undefined) {
       fields.ReferralCount = referral_count.toString();
     }
+
+    console.log("Prepared fields for EmailOctopus:", JSON.stringify(fields));
+    console.log("Prepared tags for EmailOctopus:", tags);
 
     const emailOctopusPayload = {
       api_key: apiKey,
@@ -147,7 +152,15 @@ const handler = async (req: Request): Promise<Response> => {
         const hashBuffer = await crypto.subtle.digest("MD5", hashData);
         const contactId = new TextDecoder().decode(encodeHex(new Uint8Array(hashBuffer)));
         
-        // Use PUT to update existing contact - only update fields, not status
+        // Only update with base fields first to avoid custom field errors
+        // If custom fields don't exist in EmailOctopus, they'll cause INVALID_PARAMETERS
+        const baseFields: Record<string, string> = {
+          FullName: name || "",
+          Company: company || "",
+          Source: source || "EW",
+        };
+        
+        // Use PUT to update existing contact - only update base fields and tags
         const updateResponse = await fetch(
           `https://emailoctopus.com/api/1.6/lists/${listId}/contacts/${contactId}`,
           {
@@ -155,7 +168,7 @@ const handler = async (req: Request): Promise<Response> => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               api_key: apiKey,
-              fields,
+              fields: baseFields,
               tags,
             }),
           }
@@ -165,6 +178,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         if (!updateResponse.ok) {
           console.error("Failed to update existing contact:", updateData);
+          console.error("Request payload was:", JSON.stringify({ fields: baseFields, tags }));
           return new Response(
             JSON.stringify({ error: "Failed to update existing contact", details: updateData }),
             { status: updateResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
