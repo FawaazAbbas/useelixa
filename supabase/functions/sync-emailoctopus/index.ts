@@ -152,15 +152,7 @@ const handler = async (req: Request): Promise<Response> => {
         const hashBuffer = await crypto.subtle.digest("MD5", hashData);
         const contactId = new TextDecoder().decode(encodeHex(new Uint8Array(hashBuffer)));
         
-        // Only update with base fields first to avoid custom field errors
-        // If custom fields don't exist in EmailOctopus, they'll cause INVALID_PARAMETERS
-        const baseFields: Record<string, string> = {
-          FullName: name || "",
-          Company: company || "",
-          Source: source || "EW",
-        };
-        
-        // Use PUT to update existing contact - only update base fields and tags
+        // Send all fields including custom ones (ReferralCode, WaitlistPosition, etc.)
         const updateResponse = await fetch(
           `https://emailoctopus.com/api/1.6/lists/${listId}/contacts/${contactId}`,
           {
@@ -168,7 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               api_key: apiKey,
-              fields: baseFields,
+              fields,
               tags,
             }),
           }
@@ -178,7 +170,7 @@ const handler = async (req: Request): Promise<Response> => {
         
         if (!updateResponse.ok) {
           console.error("Failed to update existing contact:", updateData);
-          console.error("Request payload was:", JSON.stringify({ fields: baseFields, tags }));
+          console.error("Request payload was:", JSON.stringify({ fields, tags }));
           return new Response(
             JSON.stringify({ error: "Failed to update existing contact", details: updateData }),
             { status: updateResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
