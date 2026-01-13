@@ -100,6 +100,36 @@ const Waitlist = () => {
         else console.log("Successfully synced to EmailOctopus");
       });
 
+      // If this signup used a referral code, update the referrer's EmailOctopus data
+      if (referralCode.trim() && isReferralValid) {
+        const referrerCode = referralCode.trim().toUpperCase();
+        // Fetch the referrer's updated data
+        supabase
+          .from("waitlist_signups")
+          .select("email, waitlist_position, referral_count")
+          .eq("referral_code", referrerCode)
+          .single()
+          .then(({ data: referrerData, error: referrerError }) => {
+            if (referrerError) {
+              console.error("Error fetching referrer data:", referrerError);
+              return;
+            }
+            if (referrerData) {
+              // Update referrer's EmailOctopus with new position and milestone tags
+              supabase.functions.invoke("update-waitlist-position", {
+                body: {
+                  email: referrerData.email,
+                  waitlist_position: referrerData.waitlist_position,
+                  referral_count: referrerData.referral_count,
+                },
+              }).then(({ error }) => {
+                if (error) console.error("Error updating referrer in EmailOctopus:", error);
+                else console.log("Successfully updated referrer in EmailOctopus");
+              });
+            }
+          });
+      }
+
       trackWaitlistSignup(email.trim());
       
       // Store the user's referral code and position
