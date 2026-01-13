@@ -214,14 +214,6 @@ const Referral = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="text-center sm:text-right">
-                    <p className="text-sm text-muted-foreground">
-                      Each referral <span className="text-violet-500 font-semibold">halves</span> your position!
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Move up faster by inviting friends
-                    </p>
-                  </div>
                 </div>
               </Card>
             )}
