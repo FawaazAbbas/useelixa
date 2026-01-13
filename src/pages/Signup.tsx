@@ -325,23 +325,6 @@ const Waitlist = () => {
                       <p className="text-muted-foreground text-sm mb-4">
                         Please feel free to explore the app
                       </p>
-                      
-                      {/* Waitlist Position */}
-                      {userWaitlistPosition && (
-                        <div className="bg-muted/50 rounded-xl p-4 mb-4 text-center">
-                          <div className="flex items-center justify-center gap-2 mb-1">
-                            <Users className="w-4 h-4 text-violet-500" />
-                            <span className="text-xs font-medium text-muted-foreground">Your position</span>
-                          </div>
-                          <p className="text-2xl font-bold text-foreground">
-                            #{userWaitlistPosition.toLocaleString()}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            <Sparkles className="w-3 h-3 inline mr-1 text-violet-500" />
-                            Invite friends to move up!
-                          </p>
-                        </div>
-                      )}
 
                       {/* Action Buttons */}
                       <div className="flex flex-col gap-2">
