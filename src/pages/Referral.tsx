@@ -214,6 +214,11 @@ const Referral = () => {
                       </p>
                     </div>
                   </div>
+                  <div className="text-center sm:text-right">
+                    <p className="text-sm text-muted-foreground">
+                      Each referral <span className="text-violet-500 font-semibold">moves you up</span> the waitlist!
+                    </p>
+                  </div>
                 </div>
               </Card>
             )}
