@@ -11,7 +11,7 @@ import { EmailInviteForm } from "@/components/referral/EmailInviteForm";
 import { RewardCelebration } from "@/components/referral/RewardCelebration";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, Gift, Sparkles, Users, Trophy, Mail } from "lucide-react";
+import { Search, Gift, Sparkles, Users, Trophy, Mail, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { trackEvent } from "@/utils/analytics";
 
@@ -20,6 +20,7 @@ interface ReferralStats {
   referral_count: number;
   invites_sent: number;
   reward_unlocked: boolean;
+  waitlist_position: number | null;
   invites: Array<{
     email: string;
     status: string;
@@ -86,15 +87,17 @@ const Referral = () => {
         }
         setPreviousRewardStatus(statsData.reward_unlocked);
         
-        // Fetch user name for invite form
+        // Fetch user name and waitlist position for display
         const { data: userData } = await supabase
           .from("waitlist_signups")
-          .select("name")
+          .select("name, waitlist_position")
           .eq("email", emailToLookup.trim().toLowerCase())
           .single();
         
         if (userData) {
           setUserName(userData.name);
+          // Update stats with waitlist position from DB
+          setStats(prev => prev ? { ...prev, waitlist_position: userData.waitlist_position } : prev);
         }
       } else {
         setStats(null);
@@ -196,6 +199,33 @@ const Referral = () => {
       {stats && (
         <section className="py-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto space-y-8">
+            {/* Waitlist Position Card */}
+            {stats.waitlist_position && (
+              <Card className="p-6 bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-violet-500/10 border-violet-500/30">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                      <TrendingUp className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Your Waitlist Position</p>
+                      <p className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
+                        #{stats.waitlist_position.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-center sm:text-right">
+                    <p className="text-sm text-muted-foreground">
+                      Each referral <span className="text-violet-500 font-semibold">halves</span> your position!
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Move up faster by inviting friends
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            )}
+
             {/* Stats Cards */}
             <ReferralStatsCards
               referralCode={stats.referral_code}
