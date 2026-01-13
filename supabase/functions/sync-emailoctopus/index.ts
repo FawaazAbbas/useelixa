@@ -186,11 +186,36 @@ const handler = async (req: Request): Promise<Response> => {
         );
       }
 
-      // Handle invalid parameters (e.g., disposable email domains blocked by EmailOctopus)
+      // Handle invalid parameters.
+      // NOTE: EmailOctopus uses INVALID_PARAMETERS for multiple cases, including unknown custom fields.
+      // We should not silently "skip" here because that hides real schema mismatches.
       if (data.error?.code === "INVALID_PARAMETERS") {
-        console.log(`Skipping invalid contact (likely disposable email): ${email}`);
+        console.error("EmailOctopus rejected parameters:", data);
+        console.error(
+          "Rejected payload keys:",
+          JSON.stringify({
+            email_address: email,
+            fieldKeys: Object.keys(fields),
+            tagKeys: Object.keys(tagsObject),
+          })
+        );
+
+        // Return 200 so the frontend doesn't treat this as a thrown Edge Function error,
+        // but make it explicit that EmailOctopus rejected the payload.
         return new Response(
-          JSON.stringify({ success: true, skipped: true, reason: "Invalid or blocked email domain" }),
+          JSON.stringify({
+            success: false,
+            rejected: true,
+            error: "EmailOctopus rejected parameters (INVALID_PARAMETERS)",
+            details: data,
+            sent: {
+              email_address: email,
+              fields,
+              tags: tagsObject,
+            },
+            hint:
+              "This usually means one or more custom field keys do not match exactly in EmailOctopus. Verify the field *API keys* (not display labels) for: ReferralCode, ReferredBy, WaitlistPosition, ReferralCount, Source, Company, FullName.",
+          }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
