@@ -454,9 +454,13 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
                           <Badge variant="secondary" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
                             <Mail className="h-3 w-3 mr-1" /> EmailOctopus
                           </Badge>
+                        ) : entry.source === 'EW' ? (
+                          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                            <Globe className="h-3 w-3 mr-1" /> EW
+                          </Badge>
                         ) : (
                           <Badge variant="outline">
-                            <Globe className="h-3 w-3 mr-1" /> {entry.source || 'website'}
+                            <Globe className="h-3 w-3 mr-1" /> {entry.source || 'EW'}
                           </Badge>
                         )}
                       </TableCell>
