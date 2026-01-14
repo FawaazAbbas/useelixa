@@ -104,7 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
       FullName: name || "",
       Company: company || "",
       Source: source || "EW",
-      UseCase: use_case || position || "",
+      use_case: use_case || position || "",
     };
 
     if (referral_code) {
