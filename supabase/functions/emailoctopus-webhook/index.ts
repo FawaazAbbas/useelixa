@@ -152,12 +152,13 @@ serve(async (req) => {
 
       // Extract contact fields
       const fields = event.contact_fields || event.fields || {};
-      const tags = event.contact_tags || event.tags || [];
       
-      // Determine source based on tags
-      const isFBLead = Array.isArray(tags) && 
-        tags.some((tag: string) => tag.toLowerCase().includes('fb_lead') || tag.toLowerCase().includes('facebook'));
+      // Determine source - check if Source field is "FBAD" (from Facebook Ads)
+      const sourceField = fields.Source || fields.source || '';
+      const isFBLead = sourceField.toUpperCase() === 'FBAD';
       const source = isFBLead ? 'facebook_lead' : 'emailoctopus';
+      
+      console.log('Source field value:', sourceField, '- Detected as FB lead:', isFBLead);
 
       // Get current waitlist count for position
       const { count, error: countError } = await supabase
