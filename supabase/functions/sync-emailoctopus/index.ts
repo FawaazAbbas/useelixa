@@ -12,6 +12,7 @@ interface SyncRequest {
   name: string;
   company?: string;
   position?: string;
+  use_case?: string;
   source?: string;
   // Referral-specific fields
   referral_code?: string;
@@ -45,6 +46,7 @@ const handler = async (req: Request): Promise<Response> => {
       name, 
       company, 
       position, 
+      use_case,
       source,
       referral_code,
       referred_by_code,
@@ -102,6 +104,7 @@ const handler = async (req: Request): Promise<Response> => {
       FullName: name || "",
       Company: company || "",
       Source: source || "EW",
+      UseCase: use_case || position || "",
     };
 
     if (referral_code) {
