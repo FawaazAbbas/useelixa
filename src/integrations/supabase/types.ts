@@ -1598,6 +1598,7 @@ export type Database = {
           referral_count: number | null
           referred_by_code: string | null
           reward_unlocked: boolean
+          source: string | null
           use_case: string | null
           waitlist_position: number | null
         }
@@ -1612,6 +1613,7 @@ export type Database = {
           referral_count?: number | null
           referred_by_code?: string | null
           reward_unlocked?: boolean
+          source?: string | null
           use_case?: string | null
           waitlist_position?: number | null
         }
@@ -1626,6 +1628,7 @@ export type Database = {
           referral_count?: number | null
           referred_by_code?: string | null
           reward_unlocked?: boolean
+          source?: string | null
           use_case?: string | null
           waitlist_position?: number | null
         }
