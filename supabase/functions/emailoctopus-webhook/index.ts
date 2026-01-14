@@ -39,10 +39,14 @@ async function validateSignature(payload: string, signature: string | null, secr
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
     
-    console.log('Expected signature:', expectedSignature);
-    console.log('Received signature:', signature);
+    // Strip sha256= prefix if present (EmailOctopus sends signatures with this prefix)
+    const cleanSignature = signature.replace(/^sha256=/, '');
     
-    return signature === expectedSignature;
+    console.log('Expected signature:', expectedSignature);
+    console.log('Received signature (raw):', signature);
+    console.log('Received signature (cleaned):', cleanSignature);
+    
+    return cleanSignature === expectedSignature;
   } catch (error) {
     console.error('Signature validation error:', error);
     return false;
