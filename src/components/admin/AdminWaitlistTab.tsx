@@ -33,7 +33,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw } from "lucide-react";
+import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw, Facebook, Globe, Mail } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -51,10 +52,12 @@ interface WaitlistSignup {
   reward_unlocked?: boolean;
   waitlist_position?: number | null;
   referral_count?: number | null;
+  invites_sent?: number | null;
+  source?: string | null;
 }
 
 type SortDirection = "asc" | "desc" | null;
-type WaitlistSortKey = "name" | "email" | "company" | "created_at";
+type WaitlistSortKey = "name" | "email" | "company" | "created_at" | "source" | "waitlist_position";
 
 interface AdminWaitlistTabProps {
   signups: WaitlistSignup[];
@@ -417,6 +420,14 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
                     <div className="flex items-center">Company {getSortIcon(sortKey === "company", sortDir)}</div>
                   </TableHead>
                   <TableHead className="hidden lg:table-cell">Use Case</TableHead>
+                  <TableHead className="cursor-pointer hidden sm:table-cell" onClick={() => handleSort("source")}>
+                    <div className="flex items-center">Source {getSortIcon(sortKey === "source", sortDir)}</div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("waitlist_position")}>
+                    <div className="flex items-center">Position {getSortIcon(sortKey === "waitlist_position", sortDir)}</div>
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">Referral Code</TableHead>
+                  <TableHead className="hidden lg:table-cell">Referrals</TableHead>
                   <TableHead className="cursor-pointer" onClick={() => handleSort("created_at")}>
                     <div className="flex items-center">Date {getSortIcon(sortKey === "created_at", sortDir)}</div>
                   </TableHead>
@@ -425,7 +436,7 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
               </TableHeader>
               <TableBody>
                 {filteredAndSorted.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No entries found</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">No entries found</TableCell></TableRow>
                 ) : (
                   filteredAndSorted.map((entry) => (
                     <TableRow key={entry.id} className="hover:bg-muted/30">
@@ -434,6 +445,34 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
                       <TableCell className="text-muted-foreground">{entry.email}</TableCell>
                       <TableCell className="hidden md:table-cell">{entry.company || "-"}</TableCell>
                       <TableCell className="hidden lg:table-cell max-w-[200px] truncate">{entry.use_case || "-"}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {entry.source === 'facebook_lead' ? (
+                          <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                            <Facebook className="h-3 w-3 mr-1" /> FB Lead
+                          </Badge>
+                        ) : entry.source === 'emailoctopus' ? (
+                          <Badge variant="secondary" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
+                            <Mail className="h-3 w-3 mr-1" /> EmailOctopus
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">
+                            <Globe className="h-3 w-3 mr-1" /> {entry.source || 'website'}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-center">
+                        {entry.waitlist_position ? (
+                          <span className="font-mono text-sm">#{entry.waitlist_position}</span>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {entry.referral_code ? (
+                          <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{entry.referral_code}</code>
+                        ) : "-"}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-center">
+                        {entry.referral_count || 0}
+                      </TableCell>
                       <TableCell>{format(new Date(entry.created_at), "MMM d, yyyy")}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
