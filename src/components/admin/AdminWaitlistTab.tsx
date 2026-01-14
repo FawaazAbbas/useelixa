@@ -315,7 +315,7 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
             email: entry.email,
             name: entry.name,
             company: entry.company || undefined,
-            position: entry.use_case || undefined,
+            use_case: entry.use_case || undefined,
             source: "EW",
             // Include these so EmailOctopus can update the new custom fields
             referral_code: entry.referral_code || undefined,

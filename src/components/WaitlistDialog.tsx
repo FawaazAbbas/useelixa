@@ -93,7 +93,7 @@ export const WaitlistDialog = ({ open, onOpenChange }: WaitlistDialogProps) => {
           email: email.trim(),
           name: name.trim(),
           company: industry || undefined,
-          position: position.trim(),
+          use_case: position.trim(),
           referral_code: signupData?.referral_code,
           referred_by_code: referralCode.trim() && isReferralValid ? referralCode.trim().toUpperCase() : undefined,
           waitlist_position: signupData?.waitlist_position,
