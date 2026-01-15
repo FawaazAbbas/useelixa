@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw, Facebook, Globe, Mail, CloudDownload } from "lucide-react";
+import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw, Facebook, Globe, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -80,7 +80,7 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
   const [saving, setSaving] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [pulling, setPulling] = useState(false);
+  
 
   // Form states
   const [form, setForm] = useState({ name: "", email: "", company: "", use_case: "", created_at: null as Date | null });
@@ -351,47 +351,6 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
     }
   };
 
-  // Pull FBAD leads from EmailOctopus
-  const handlePullFromEmailOctopus = async () => {
-    setPulling(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke("pull-emailoctopus-contacts", {
-        body: {
-          source_filter: "FBAD",
-          dry_run: false,
-        },
-      });
-
-      if (error) {
-        console.error("Pull error:", error);
-        toast.error("Failed to pull contacts from EmailOctopus");
-        setPulling(false);
-        return;
-      }
-
-      console.log("Pull result:", data);
-
-      if (data.imported > 0) {
-        toast.success(`Imported ${data.imported} Facebook leads from EmailOctopus`);
-        onRefresh();
-      } else if (data.already_existed > 0) {
-        toast.info(`All ${data.already_existed} Facebook leads already exist in waitlist`);
-      } else {
-        toast.info("No Facebook leads found to import");
-      }
-
-      if (data.errors > 0) {
-        toast.warning(`${data.errors} contacts failed to import`);
-      }
-    } catch (err) {
-      console.error("Pull error:", err);
-      toast.error("Failed to pull contacts");
-    }
-    
-    setPulling(false);
-  };
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -417,10 +376,6 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
           <Button variant="outline" size="sm" onClick={handleSyncToEmailOctopus} disabled={syncing}>
             <RefreshCw className={cn("h-4 w-4 mr-2", syncing && "animate-spin")} />
             {syncing ? "Syncing..." : selectedItems.size > 0 ? `Sync ${selectedItems.size}` : "Sync All"}
-          </Button>
-          <Button variant="outline" size="sm" onClick={handlePullFromEmailOctopus} disabled={pulling}>
-            <CloudDownload className={cn("h-4 w-4 mr-2", pulling && "animate-bounce")} />
-            {pulling ? "Pulling..." : "Pull FB Leads"}
           </Button>
         </div>
       </div>
