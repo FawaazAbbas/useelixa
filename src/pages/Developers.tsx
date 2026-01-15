@@ -66,6 +66,21 @@ const Developers = () => {
 
       if (error) throw error;
 
+      // Sync developer to EmailOctopus with Dev tag
+      try {
+        await supabase.functions.invoke('sync-emailoctopus', {
+          body: {
+            email: email.trim(),
+            name: name.trim(),
+            source: 'DEV',
+          }
+        });
+        console.log('Developer synced to EmailOctopus with Dev tag');
+      } catch (syncError) {
+        console.error('Failed to sync developer to EmailOctopus:', syncError);
+        // Non-fatal, continue with success
+      }
+
       trackDeveloperApplication();
       setSubmitted(true);
       toast({

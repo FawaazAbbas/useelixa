@@ -64,8 +64,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Syncing contact to EmailOctopus: ${email}`);
 
-    // Build tags based on referral status
+    // Build tags based on referral status and source
     const tags = ["waitlist", "elixa"];
+
+    // Add source-specific tags
+    if (source === 'DEV') {
+      tags.push("Dev");
+    }
+    if (source === 'FBAD') {
+      tags.push("FBAD");
+    }
 
     if (referral_code) {
       tags.push("has_referral_code");
