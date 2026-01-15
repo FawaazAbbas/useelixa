@@ -32,8 +32,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw, Facebook, Globe, Mail } from "lucide-react";
+import { Download, Search, Upload, Pencil, Trash2, FileDown, Plus, ArrowUpDown, ArrowUp, ArrowDown, CalendarIcon, RefreshCw, Facebook, Globe, Mail, Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -46,7 +53,6 @@ interface WaitlistSignup {
   company: string | null;
   use_case: string | null;
   created_at: string;
-  // Referral / waitlist metadata (present in DB, needed for EmailOctopus sync)
   referral_code?: string | null;
   referred_by_code?: string | null;
   reward_unlocked?: boolean;
@@ -57,7 +63,19 @@ interface WaitlistSignup {
 }
 
 type SortDirection = "asc" | "desc" | null;
-type WaitlistSortKey = "name" | "email" | "company" | "created_at" | "source" | "waitlist_position";
+type WaitlistSortKey = "name" | "email" | "company" | "created_at" | "source" | "waitlist_position" | "use_case" | "referral_code" | "referral_count";
+
+interface ColumnFilters {
+  name: string;
+  email: string;
+  company: string;
+  use_case: string;
+  source: string;
+  waitlist_position: string;
+  referral_code: string;
+  referral_count: string;
+  created_at: string;
+}
 
 interface AdminWaitlistTabProps {
   signups: WaitlistSignup[];
@@ -71,6 +89,18 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
   const [sortKey, setSortKey] = useState<WaitlistSortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showFilters, setShowFilters] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
+    name: "",
+    email: "",
+    company: "",
+    use_case: "",
+    source: "",
+    waitlist_position: "",
+    referral_code: "",
+    referral_count: "",
+    created_at: "",
+  });
 
   // Dialog states
   const [addingEntry, setAddingEntry] = useState(false);
@@ -80,11 +110,16 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
   const [saving, setSaving] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  
 
   // Form states
   const [form, setForm] = useState({ name: "", email: "", company: "", use_case: "", created_at: null as Date | null });
   const [editForm, setEditForm] = useState<any>({});
+
+  // Get unique values for dropdown filters
+  const uniqueSources = useMemo(() => {
+    const sources = [...new Set(signups.map(s => s.source || "").filter(Boolean))];
+    return sources.sort();
+  }, [signups]);
 
   const handleSort = (key: WaitlistSortKey) => {
     if (sortKey === key) {
@@ -102,28 +137,81 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
     return <ArrowDown className="h-4 w-4 ml-1" />;
   };
 
+  const updateColumnFilter = (key: keyof ColumnFilters, value: string) => {
+    setColumnFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearAllFilters = () => {
+    setColumnFilters({
+      name: "",
+      email: "",
+      company: "",
+      use_case: "",
+      source: "",
+      waitlist_position: "",
+      referral_code: "",
+      referral_count: "",
+      created_at: "",
+    });
+    setSearch("");
+  };
+
+  const hasActiveFilters = useMemo(() => {
+    return search || Object.values(columnFilters).some(v => v !== "");
+  }, [search, columnFilters]);
+
   const filteredAndSorted = useMemo(() => {
-    let result = signups.filter(
-      (s) =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.email.toLowerCase().includes(search.toLowerCase()) ||
-        (s.company?.toLowerCase().includes(search.toLowerCase()) ?? false)
-    );
+    let result = signups.filter((s) => {
+      // Global search
+      if (search) {
+        const searchLower = search.toLowerCase();
+        const matchesGlobal = 
+          s.name.toLowerCase().includes(searchLower) ||
+          s.email.toLowerCase().includes(searchLower) ||
+          (s.company?.toLowerCase().includes(searchLower) ?? false) ||
+          (s.use_case?.toLowerCase().includes(searchLower) ?? false) ||
+          (s.source?.toLowerCase().includes(searchLower) ?? false) ||
+          (s.referral_code?.toLowerCase().includes(searchLower) ?? false);
+        if (!matchesGlobal) return false;
+      }
+
+      // Column-specific filters
+      if (columnFilters.name && !s.name.toLowerCase().includes(columnFilters.name.toLowerCase())) return false;
+      if (columnFilters.email && !s.email.toLowerCase().includes(columnFilters.email.toLowerCase())) return false;
+      if (columnFilters.company && !(s.company?.toLowerCase().includes(columnFilters.company.toLowerCase()) ?? false)) return false;
+      if (columnFilters.use_case && !(s.use_case?.toLowerCase().includes(columnFilters.use_case.toLowerCase()) ?? false)) return false;
+      if (columnFilters.source && columnFilters.source !== "all" && s.source !== columnFilters.source) return false;
+      if (columnFilters.waitlist_position && !String(s.waitlist_position ?? "").includes(columnFilters.waitlist_position)) return false;
+      if (columnFilters.referral_code && !(s.referral_code?.toLowerCase().includes(columnFilters.referral_code.toLowerCase()) ?? false)) return false;
+      if (columnFilters.referral_count && !String(s.referral_count ?? 0).includes(columnFilters.referral_count)) return false;
+      if (columnFilters.created_at) {
+        const dateStr = format(new Date(s.created_at), "yyyy-MM-dd");
+        if (!dateStr.includes(columnFilters.created_at)) return false;
+      }
+
+      return true;
+    });
 
     if (sortKey && sortDir) {
       result = [...result].sort((a, b) => {
-        let aVal = a[sortKey] ?? "";
-        let bVal = b[sortKey] ?? "";
+        let aVal: any = a[sortKey] ?? "";
+        let bVal: any = b[sortKey] ?? "";
         if (sortKey === "created_at") {
-          aVal = new Date(aVal).getTime().toString();
-          bVal = new Date(bVal).getTime().toString();
+          aVal = new Date(aVal).getTime();
+          bVal = new Date(bVal).getTime();
+          return sortDir === "asc" ? aVal - bVal : bVal - aVal;
+        }
+        if (sortKey === "waitlist_position" || sortKey === "referral_count") {
+          aVal = Number(aVal) || 0;
+          bVal = Number(bVal) || 0;
+          return sortDir === "asc" ? aVal - bVal : bVal - aVal;
         }
         const comparison = aVal.toString().localeCompare(bVal.toString());
         return sortDir === "asc" ? comparison : -comparison;
       });
     }
     return result;
-  }, [signups, search, sortKey, sortDir]);
+  }, [signups, search, sortKey, sortDir, columnFilters]);
 
   const toggleSelection = (id: string) => {
     setSelectedItems(prev => {
@@ -321,7 +409,6 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
             company: entry.company || undefined,
             use_case: entry.use_case || undefined,
             source: entry.source || "EW",
-            // Include these so EmailOctopus can update the new custom fields
             referral_code: entry.referral_code || undefined,
             referred_by_code: entry.referred_by_code || undefined,
             reward_unlocked: entry.reward_unlocked ?? undefined,
@@ -357,7 +444,10 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold">Waitlist Signups</h2>
-          <p className="text-sm text-muted-foreground">{signups.length} total entries</p>
+          <p className="text-sm text-muted-foreground">
+            {filteredAndSorted.length} of {signups.length} entries
+            {hasActiveFilters && " (filtered)"}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => setAddingEntry(true)}>
@@ -380,23 +470,46 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
         </div>
       </div>
 
-      {/* Search & Bulk Actions */}
+      {/* Search & Filter Controls */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-            </div>
-            {selectedItems.size > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{selectedItems.size} selected</span>
-                <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 flex-1">
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Global search..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+                </div>
+                <Button
+                  variant={showFilters ? "secondary" : "outline"}
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="shrink-0"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-2 h-5 px-1.5">
+                      {Object.values(columnFilters).filter(v => v !== "").length + (search ? 1 : 0)}
+                    </Badge>
+                  )}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedItems(new Set())}>Clear</Button>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters} className="shrink-0">
+                    <X className="h-4 w-4 mr-1" /> Clear
+                  </Button>
+                )}
               </div>
-            )}
+              {selectedItems.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">{selectedItems.size} selected</span>
+                  <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedItems(new Set())}>Clear</Button>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -407,33 +520,127 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
           <div className="rounded-md border-0 overflow-x-auto">
             <Table>
               <TableHeader>
+                {/* Column Headers */}
                 <TableRow className="bg-muted/50">
                   <TableHead className="w-10">
                     <Checkbox checked={filteredAndSorted.length > 0 && selectedItems.size === filteredAndSorted.length} onCheckedChange={toggleAll} />
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>
+                  <TableHead className="cursor-pointer min-w-[120px]" onClick={() => handleSort("name")}>
                     <div className="flex items-center">Name {getSortIcon(sortKey === "name", sortDir)}</div>
                   </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("email")}>
+                  <TableHead className="cursor-pointer min-w-[180px]" onClick={() => handleSort("email")}>
                     <div className="flex items-center">Email {getSortIcon(sortKey === "email", sortDir)}</div>
                   </TableHead>
-                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("company")}>
+                  <TableHead className="cursor-pointer hidden md:table-cell min-w-[120px]" onClick={() => handleSort("company")}>
                     <div className="flex items-center">Company {getSortIcon(sortKey === "company", sortDir)}</div>
                   </TableHead>
-                  <TableHead className="hidden lg:table-cell">Use Case</TableHead>
-                  <TableHead className="cursor-pointer hidden sm:table-cell" onClick={() => handleSort("source")}>
+                  <TableHead className="hidden lg:table-cell min-w-[150px] cursor-pointer" onClick={() => handleSort("use_case")}>
+                    <div className="flex items-center">Use Case {getSortIcon(sortKey === "use_case", sortDir)}</div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer hidden sm:table-cell min-w-[100px]" onClick={() => handleSort("source")}>
                     <div className="flex items-center">Source {getSortIcon(sortKey === "source", sortDir)}</div>
                   </TableHead>
-                  <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort("waitlist_position")}>
+                  <TableHead className="cursor-pointer hidden md:table-cell min-w-[90px]" onClick={() => handleSort("waitlist_position")}>
                     <div className="flex items-center">Position {getSortIcon(sortKey === "waitlist_position", sortDir)}</div>
                   </TableHead>
-                  <TableHead className="hidden lg:table-cell">Referral Code</TableHead>
-                  <TableHead className="hidden lg:table-cell">Referrals</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => handleSort("created_at")}>
+                  <TableHead className="hidden lg:table-cell min-w-[120px] cursor-pointer" onClick={() => handleSort("referral_code")}>
+                    <div className="flex items-center">Referral Code {getSortIcon(sortKey === "referral_code", sortDir)}</div>
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell min-w-[80px] cursor-pointer" onClick={() => handleSort("referral_count")}>
+                    <div className="flex items-center">Referrals {getSortIcon(sortKey === "referral_count", sortDir)}</div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer min-w-[100px]" onClick={() => handleSort("created_at")}>
                     <div className="flex items-center">Date {getSortIcon(sortKey === "created_at", sortDir)}</div>
                   </TableHead>
                   <TableHead className="w-20">Actions</TableHead>
                 </TableRow>
+                {/* Filter Row */}
+                {showFilters && (
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    <TableHead></TableHead>
+                    <TableHead>
+                      <Input
+                        placeholder="Filter name..."
+                        value={columnFilters.name}
+                        onChange={(e) => updateColumnFilter("name", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead>
+                      <Input
+                        placeholder="Filter email..."
+                        value={columnFilters.email}
+                        onChange={(e) => updateColumnFilter("email", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      <Input
+                        placeholder="Filter company..."
+                        value={columnFilters.company}
+                        onChange={(e) => updateColumnFilter("company", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      <Input
+                        placeholder="Filter use case..."
+                        value={columnFilters.use_case}
+                        onChange={(e) => updateColumnFilter("use_case", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      <Select
+                        value={columnFilters.source || "all"}
+                        onValueChange={(v) => updateColumnFilter("source", v === "all" ? "" : v)}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue placeholder="All sources" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All sources</SelectItem>
+                          {uniqueSources.map(source => (
+                            <SelectItem key={source} value={source}>{source}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      <Input
+                        placeholder="Position..."
+                        value={columnFilters.waitlist_position}
+                        onChange={(e) => updateColumnFilter("waitlist_position", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      <Input
+                        placeholder="Filter code..."
+                        value={columnFilters.referral_code}
+                        onChange={(e) => updateColumnFilter("referral_code", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      <Input
+                        placeholder="Count..."
+                        value={columnFilters.referral_count}
+                        onChange={(e) => updateColumnFilter("referral_count", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead>
+                      <Input
+                        placeholder="YYYY-MM-DD"
+                        value={columnFilters.created_at}
+                        onChange={(e) => updateColumnFilter("created_at", e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                )}
               </TableHeader>
               <TableBody>
                 {filteredAndSorted.length === 0 ? (
@@ -447,13 +654,9 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
                       <TableCell className="hidden md:table-cell">{entry.company || "-"}</TableCell>
                       <TableCell className="hidden lg:table-cell max-w-[200px] truncate">{entry.use_case || "-"}</TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {entry.source === 'facebook_lead' ? (
+                        {entry.source === 'FBAD' ? (
                           <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
-                            <Facebook className="h-3 w-3 mr-1" /> FB Lead
-                          </Badge>
-                        ) : entry.source === 'emailoctopus' ? (
-                          <Badge variant="secondary" className="bg-orange-500/10 text-orange-600 border-orange-500/20">
-                            <Mail className="h-3 w-3 mr-1" /> EmailOctopus
+                            <Facebook className="h-3 w-3 mr-1" /> FBAD
                           </Badge>
                         ) : entry.source === 'EW' ? (
                           <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
