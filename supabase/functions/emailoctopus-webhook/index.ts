@@ -170,16 +170,20 @@ serve(async (req) => {
       
       console.log('Source field value:', sourceField, '- Detected as FB lead:', isFBLead);
 
-      // Get current waitlist count for position
-      const { count, error: countError } = await supabase
+      // Get current max waitlist position for sequential numbering (starting at 7000)
+      const { data: maxPositionData, error: maxError } = await supabase
         .from('waitlist_signups')
-        .select('*', { count: 'exact', head: true });
+        .select('waitlist_position')
+        .order('waitlist_position', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (countError) {
-        console.error('Error getting waitlist count:', countError);
+      if (maxError) {
+        console.error('Error getting max waitlist position:', maxError);
       }
 
-      const waitlistPosition = (count || 0) + 1;
+      // Start at 7000 if no entries exist, otherwise increment by 1
+      const waitlistPosition = Math.floor((maxPositionData?.waitlist_position || 6999) + 1);
       const referralCode = generateReferralCode();
 
       // Build signup data
@@ -227,6 +231,32 @@ serve(async (req) => {
       if (referralError) {
         console.error('Error creating referral code entry:', referralError);
         // Non-fatal error, continue
+      }
+
+      // Sync FBAD users back to EmailOctopus with full details
+      if (isFBLead) {
+        console.log('Syncing FBAD user back to EmailOctopus with full details...');
+        try {
+          const syncResponse = await supabase.functions.invoke('sync-emailoctopus', {
+            body: {
+              email: email.toLowerCase(),
+              name: buildName(fields) || '',
+              company: fields.Company || fields.company || '',
+              source: 'FBAD',
+              referral_code: referralCode,
+              waitlist_position: waitlistPosition,
+              referral_count: 0,
+            }
+          });
+          
+          if (syncResponse.error) {
+            console.error('Error syncing FBAD user to EmailOctopus:', syncResponse.error);
+          } else {
+            console.log('Successfully synced FBAD user to EmailOctopus:', syncResponse.data);
+          }
+        } catch (syncError) {
+          console.error('Failed to sync FBAD user to EmailOctopus:', syncError);
+        }
       }
     }
 
