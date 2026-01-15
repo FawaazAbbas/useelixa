@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, CheckCircle2, XCircle, Upload, ArrowRight, FileSpreadsheet, AlertCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle, Upload, ArrowRight, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ interface ColumnMapping {
   created_at: string | null;
 }
 
-type ImportMode = "skip" | "update";
+
 
 const DB_COLUMNS = [
   { key: "name", label: "Name", required: true },
@@ -79,7 +79,6 @@ export const CSVImportDialog = ({
     source: null,
     created_at: null,
   });
-  const [importMode, setImportMode] = useState<ImportMode>("skip");
   const [importing, setImporting] = useState(false);
 
   const parseCSVLine = (line: string): string[] => {
@@ -209,8 +208,9 @@ export const CSVImportDialog = ({
   }, [mappedData, existingEmails]);
 
   const handleImport = async () => {
-    if (newRecords.length === 0 && (importMode === "skip" || duplicateRecords.length === 0)) {
-      toast.error("No records to import");
+    const totalToProcess = newRecords.length + duplicateRecords.length;
+    if (totalToProcess === 0) {
+      toast.error("No valid records to import");
       return;
     }
 
@@ -235,11 +235,12 @@ export const CSVImportDialog = ({
         successCount += newRecords.length;
       }
 
-      // Update duplicates if mode is update
-      if (importMode === "update" && duplicateRecords.length > 0) {
+      // Update duplicates (always override by email)
+      if (duplicateRecords.length > 0) {
         for (const record of duplicateRecords) {
-          const updateData: any = {};
-          if (record.name) updateData.name = record.name;
+          const updateData: any = {
+            name: record.name,
+          };
           if (record.company) updateData.company = record.company;
           if (record.use_case) updateData.use_case = record.use_case;
           if (record.source) updateData.source = record.source;
@@ -247,7 +248,7 @@ export const CSVImportDialog = ({
           const { error } = await supabase
             .from("waitlist_signups")
             .update(updateData)
-            .eq("email", record.email);
+            .ilike("email", record.email);
 
           if (error) {
             errorCount++;
@@ -282,7 +283,6 @@ export const CSVImportDialog = ({
       source: null,
       created_at: null,
     });
-    setImportMode("skip");
     onOpenChange(false);
   };
 
@@ -461,13 +461,13 @@ export const CSVImportDialog = ({
                   <p className="text-2xl font-bold text-emerald-600">{newRecords.length}</p>
                   <p className="text-xs text-muted-foreground">Will be added</p>
                 </div>
-                <div className="rounded-lg border p-3 bg-amber-500/10 border-amber-500/20">
+                <div className="rounded-lg border p-3 bg-blue-500/10 border-blue-500/20">
                   <div className="flex items-center gap-2 mb-1">
-                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm font-medium">Duplicates</span>
+                    <AlertTriangle className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium">Updates</span>
                   </div>
-                  <p className="text-2xl font-bold text-amber-600">{duplicateRecords.length}</p>
-                  <p className="text-xs text-muted-foreground">Already in waitlist</p>
+                  <p className="text-2xl font-bold text-blue-600">{duplicateRecords.length}</p>
+                  <p className="text-xs text-muted-foreground">Will be updated</p>
                 </div>
                 <div className="rounded-lg border p-3 bg-red-500/10 border-red-500/20">
                   <div className="flex items-center gap-2 mb-1">
@@ -479,33 +479,11 @@ export const CSVImportDialog = ({
                 </div>
               </div>
 
-              {/* Duplicate Handling */}
+              {/* Info about duplicate handling */}
               {duplicateRecords.length > 0 && (
-                <div className="rounded-lg border p-4 bg-amber-500/5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertCircle className="h-4 w-4 text-amber-600" />
-                    <span className="text-sm font-medium">How to handle duplicates?</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={importMode === "skip" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setImportMode("skip")}
-                    >
-                      Skip duplicates
-                    </Button>
-                    <Button
-                      variant={importMode === "update" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setImportMode("update")}
-                    >
-                      Update existing records
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {importMode === "skip"
-                      ? "Duplicate emails will be ignored - no existing data will be changed"
-                      : "Existing records will be updated with new values (email stays the same)"}
+                <div className="rounded-lg border p-3 bg-blue-500/5 border-blue-500/20">
+                  <p className="text-sm text-blue-700">
+                    <strong>{duplicateRecords.length}</strong> existing records will be updated with new data (matched by email)
                   </p>
                 </div>
               )}
@@ -542,11 +520,11 @@ export const CSVImportDialog = ({
                         </TableRow>
                       ))}
                       {duplicateRecords.map((row, idx) => (
-                        <TableRow key={`dup-${idx}`} className="opacity-60">
+                        <TableRow key={`dup-${idx}`}>
                           <TableCell>
-                            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              {importMode === "skip" ? "Skip" : "Update"}
+                              Update
                             </Badge>
                           </TableCell>
                           <TableCell className="font-medium">{row.name}</TableCell>
@@ -598,9 +576,9 @@ export const CSVImportDialog = ({
               </Button>
               <Button
                 onClick={handleImport}
-                disabled={importing || (newRecords.length === 0 && importMode === "skip")}
+                disabled={importing || (newRecords.length === 0 && duplicateRecords.length === 0)}
               >
-                {importing ? "Importing..." : `Import ${importMode === "skip" ? newRecords.length : newRecords.length + duplicateRecords.length} Records`}
+                {importing ? "Importing..." : `Import ${newRecords.length + duplicateRecords.length} Records`}
               </Button>
             </>
           )}
