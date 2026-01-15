@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CSVImportDialog } from "./CSVImportDialog";
 import {
   Table,
   TableBody,
@@ -83,13 +84,12 @@ interface AdminWaitlistTabProps {
 }
 
 export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
-  const [importing, setImporting] = useState(false);
   const [sortKey, setSortKey] = useState<WaitlistSortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>({
     name: "",
     email: "",
@@ -114,6 +114,11 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
   // Form states
   const [form, setForm] = useState({ name: "", email: "", company: "", use_case: "", created_at: null as Date | null });
   const [editForm, setEditForm] = useState<any>({});
+
+  // Existing emails set for duplicate detection
+  const existingEmails = useMemo(() => {
+    return new Set(signups.map(s => s.email.toLowerCase()));
+  }, [signups]);
 
   // Get unique values for dropdown filters
   const uniqueSources = useMemo(() => {
@@ -312,53 +317,6 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
     }
   };
 
-  const parseCSVLine = (line: string): string[] => {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-      if (char === '"') {
-        if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-        else inQuotes = !inQuotes;
-      } else if (char === "," && !inQuotes) { result.push(current); current = ""; }
-      else current += char;
-    }
-    result.push(current);
-    return result;
-  };
-
-  const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setImporting(true);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target?.result as string;
-        const lines = text.split("\n").filter(line => line.trim());
-        if (lines.length < 2) { toast.error("CSV file is empty"); return; }
-        const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/"/g, ""));
-        const records = lines.slice(1).map(line => {
-          const values = parseCSVLine(line);
-          const record: any = {};
-          headers.forEach((h, i) => { record[h] = values[i]?.trim().replace(/^"|"$/g, "") || null; });
-          return record;
-        }).filter(r => r.name && r.email);
-        if (records.length === 0) { toast.error("No valid records found"); return; }
-        const { error } = await supabase.from("waitlist_signups").insert(records.map(r => ({
-          name: r.name, email: r.email, company: r.company || null, use_case: r.use_case || null,
-          ...(r.created_at ? { created_at: new Date(r.created_at).toISOString() } : {}),
-        })));
-        if (error) throw error;
-        toast.success(`Imported ${records.length} entries`);
-        onRefresh();
-      } catch (error: any) { toast.error(error.message || "Import failed"); }
-      finally { setImporting(false); if (fileInputRef.current) fileInputRef.current.value = ""; }
-    };
-    reader.readAsText(file);
-  };
-
   const exportToCSV = () => {
     if (filteredAndSorted.length === 0) return;
     const headers = ["name", "email", "company", "use_case", "created_at"];
@@ -453,12 +411,11 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
           <Button size="sm" onClick={() => setAddingEntry(true)}>
             <Plus className="h-4 w-4 mr-2" /> Add
           </Button>
-          <input type="file" accept=".csv" ref={fileInputRef} onChange={handleCSVImport} className="hidden" />
           <Button variant="outline" size="sm" onClick={downloadTemplate}>
             <FileDown className="h-4 w-4 mr-2" /> Template
           </Button>
-          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={importing}>
-            <Upload className="h-4 w-4 mr-2" /> {importing ? "..." : "Import"}
+          <Button variant="outline" size="sm" onClick={() => setShowImportDialog(true)}>
+            <Upload className="h-4 w-4 mr-2" /> Import
           </Button>
           <Button variant="outline" size="sm" onClick={exportToCSV}>
             <Download className="h-4 w-4 mr-2" /> Export
@@ -772,6 +729,14 @@ export const AdminWaitlistTab = ({ signups, onRefresh }: AdminWaitlistTabProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* CSV Import Dialog */}
+      <CSVImportDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        existingEmails={existingEmails}
+        onSuccess={onRefresh}
+      />
     </div>
   );
 };
