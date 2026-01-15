@@ -186,10 +186,14 @@ serve(async (req) => {
       const waitlistPosition = Math.floor((maxPositionData?.waitlist_position || 6999) + 1);
       const referralCode = generateReferralCode();
 
-      // Build signup data
+      // Build signup data - use email prefix as fallback name for FBAD leads without names
+      const builtName = buildName(fields);
+      const fallbackName = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const finalName = builtName || fallbackName;
+      
       const signupData = {
         email: email.toLowerCase(),
-        name: buildName(fields) || null,
+        name: finalName,
         company: fields.Company || fields.company || null,
         use_case: fields.use_case || fields.UseCase || fields.use_case_description || null,
         referral_code: referralCode,
