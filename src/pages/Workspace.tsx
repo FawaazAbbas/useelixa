@@ -415,6 +415,15 @@ const Workspace = () => {
   };
 
   const handleSendBrianMessage = async () => {
+    if (!workspaceId) {
+      toast({
+        variant: "destructive",
+        title: "Workspace not ready",
+        description: "Your workspace is still being set up. Please try again in a moment.",
+      });
+      return;
+    }
+
     if (!brianInput.trim() || brianSending) return;
     trackWorkspaceMessageSent('brian');
     await sendBrianMessage(brianInput);
@@ -858,10 +867,10 @@ const Workspace = () => {
               <div className={`p-4 border-t bg-card/50 backdrop-blur-sm shrink-0 ${isMobile ? 'pb-20' : ''}`}>
                 <div className="flex gap-2 max-w-4xl mx-auto">
                   <Input
-                    placeholder="Message Brian..."
+                    placeholder={workspaceId ? "Message Brian..." : "Setting up your workspace..."}
                     value={brianInput}
                     onChange={(e) => setBrianInput(e.target.value)}
-                    disabled={brianSending}
+                    disabled={brianSending || !workspaceId}
                     className={isMobile ? 'text-base flex-1' : 'flex-1'}
                     onKeyPress={(e) => {
                       if (e.key === "Enter" && brianInput.trim() && !brianSending) {
