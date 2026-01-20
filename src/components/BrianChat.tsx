@@ -137,7 +137,6 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
                 content={msg.content}
                 timestamp={msg.timestamp}
                 metadata={msg.metadata}
-                recommendedAgent={msg.recommendedAgent}
               />
             ))}
 
