@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Plug, CheckCircle2, Search, Filter, LayoutGrid, Link2, Unplug } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plug, CheckCircle2, Search, Filter, LayoutGrid, Link2, Unplug, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,21 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { GOOGLE_BUNDLES } from "@/config/googleBundles";
-import { DemoBanner } from "@/components/DemoBanner";
-import { WaitlistDialog } from "@/components/WaitlistDialog";
 import { cn } from "@/lib/utils";
-
-interface ConnectionStatus {
-  type: string;
-  connected: boolean;
-  lastConnected?: string;
-  expiresAt?: string;
-  isExpired?: boolean;
-  bundleType?: string;
-  accountEmail?: string;
-  accountLabel?: string;
-  id?: string;
-}
+import { useConnections } from "@/hooks/useConnections";
+import { useAuth } from "@/hooks/useAuth";
+import { getOAuthUrl } from "@/config/oauth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CREDENTIAL_INFO: Record<
   string,
@@ -635,64 +635,80 @@ const CREDENTIAL_INFO: Record<
   },
 };
 
+// OAuth-enabled integrations
+const OAUTH_INTEGRATIONS: Record<string, string> = {
+  googleOAuth2Api: 'google',
+  slackOAuth2Api: 'slack',
+  notionApi: 'notion',
+  mailchimpOAuth2Api: 'mailchimp',
+  calendlyApi: 'calendly',
+  shopifyOAuth2Api: 'shopify',
+  microsoftOAuth2Api: 'microsoft',
+};
+
 export default function Connections() {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { credentials, loading, getConnectionStatus, disconnect } = useConnections();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [confirmDisconnect, setConfirmDisconnect] = useState<{ id: string; name: string } | null>(null);
 
-  // Demo mode: 26 connected integrations (Google bundles, Finance, Marketing, Customer Support)
-  const connections: ConnectionStatus[] = [
-    // Google Bundles (6)
-    { type: "googleOAuth2Api", connected: true, bundleType: "email_workspace", accountEmail: "Liam@badusstechnologies.com", accountLabel: "Work Account", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "googleOAuth2Api", connected: true, bundleType: "ads_marketing", accountEmail: "Liam@badusstechnologies.com", accountLabel: "Ads Account", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "googleOAuth2Api", connected: true, bundleType: "analytics_reporting", accountEmail: "Liam@badusstechnologies.com", accountLabel: "Analytics", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "googleOAuth2Api", connected: true, bundleType: "cloud_data", accountEmail: "Liam@badusstechnologies.com", accountLabel: "Cloud Data", lastConnected: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "googleOAuth2Api", connected: true, bundleType: "firebase_infra", accountEmail: "Liam@badusstechnologies.com", accountLabel: "Firebase", lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "googleOAuth2Api", connected: true, bundleType: "android_play", accountEmail: "Liam@badusstechnologies.com", accountLabel: "Play Store", lastConnected: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
-    // Marketing (4)
-    { type: "klaviyoApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Marketing", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "mailchimpOAuth2Api", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Main Account", lastConnected: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "omnisendApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Ecommerce Store", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "tiktokAdsApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Ads Account", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    // Finance (10)
-    { type: "xeroApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Baduss Technologies", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "quickbooksApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "US Operations", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "stripeApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Live Account", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "paypalApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Business Account", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "klarnaApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "EU Store", lastConnected: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "clearpayApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "UK Store", lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "laybuyApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "ANZ Store", lastConnected: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "truelayerApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Open Banking", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "plaidApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Bank Connections", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "hmrcMtdApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "VAT Returns", lastConnected: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() },
-    // Customer Support (3)
-    { type: "gorgiasApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Helpdesk", lastConnected: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "zendeskApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Support Portal", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "freshdeskApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Customer Service", lastConnected: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-    // Communication (2)
-    { type: "slackOAuth2Api", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Company Workspace", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-    { type: "notionApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Main Workspace", lastConnected: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    // Reviews (1)
-    { type: "trustpilotApi", connected: true, accountEmail: "Liam@badusstechnologies.com", accountLabel: "Baduss Technologies", lastConnected: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-  ];
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [authLoading, user, navigate]);
 
-  const handleConnect = () => {
-    setWaitlistOpen(true);
+  if (authLoading || !user) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const handleConnect = (credentialType: string, bundleType?: string) => {
+    const oauthProvider = OAUTH_INTEGRATIONS[credentialType];
+    
+    if (oauthProvider) {
+      const oauthUrl = getOAuthUrl(oauthProvider, bundleType);
+      if (oauthUrl) {
+        window.location.href = oauthUrl;
+        return;
+      }
+    }
+    
+    // For non-OAuth integrations, show coming soon
+    toast.info('Coming soon', {
+      description: 'This integration will be available soon.',
+    });
   };
 
-  const handleDisconnect = () => {
-    setWaitlistOpen(true);
+  const handleDisconnect = async (credentialId: string, name: string) => {
+    setConfirmDisconnect({ id: credentialId, name });
+  };
+
+  const confirmDisconnectAction = async () => {
+    if (!confirmDisconnect) return;
+    
+    setDisconnecting(confirmDisconnect.id);
+    await disconnect(confirmDisconnect.id);
+    setDisconnecting(null);
+    setConfirmDisconnect(null);
   };
 
   const allConnectionItems = [
     ...Object.values(GOOGLE_BUNDLES).map((bundle) => {
-      const bundleCredentials = connections.filter((c) => c.type === "googleOAuth2Api" && c.bundleType === bundle.id);
+      const connection = getConnectionStatus('googleOAuth2Api', bundle.id);
       return {
         type: `google_${bundle.id}`,
+        credentialType: 'googleOAuth2Api',
         isGoogleBundle: true,
         bundle,
-        credentials: bundleCredentials,
         info: {
           name: bundle.serviceName,
           description: bundle.description,
@@ -702,15 +718,19 @@ export default function Connections() {
           logo: bundle.logo,
           companyName: bundle.companyName,
         },
-        connection: bundleCredentials.length > 0 ? bundleCredentials[0] : undefined,
+        connection: connection.connected ? connection : undefined,
       };
     }),
-    ...Object.entries(CREDENTIAL_INFO).map(([type, info]) => ({
-      type,
-      isGoogleBundle: false,
-      info,
-      connection: connections.find((c) => c.type === type && !c.bundleType),
-    })),
+    ...Object.entries(CREDENTIAL_INFO).map(([type, info]) => {
+      const connection = getConnectionStatus(type);
+      return {
+        type,
+        credentialType: type,
+        isGoogleBundle: false,
+        info,
+        connection: connection.connected ? connection : undefined,
+      };
+    }),
   ];
 
   // Get unique categories
@@ -725,12 +745,8 @@ export default function Connections() {
   // Stats
   const stats = {
     total: allConnectionItems.length,
-    connected: allConnectionItems.filter((item) =>
-      item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection
-    ).length,
-    available: allConnectionItems.filter((item) =>
-      item.isGoogleBundle ? (item as any).credentials?.length === 0 : !item.connection
-    ).length,
+    connected: allConnectionItems.filter((item) => !!item.connection).length,
+    available: allConnectionItems.filter((item) => !item.connection).length,
   };
 
   const filteredConnections = allConnectionItems.filter((item) => {
@@ -741,7 +757,7 @@ export default function Connections() {
 
     const matchesCategory = selectedCategory === "all" || item.info.category === selectedCategory;
 
-    const isConnected = item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection;
+    const isConnected = !!item.connection;
 
     const matchesStatus =
       selectedStatus === "all" ||
@@ -757,10 +773,16 @@ export default function Connections() {
     { key: "available", label: "Available", count: stats.available, icon: Unplug, color: "text-muted-foreground" },
   ];
 
+  if (loading || authLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col h-full w-full min-w-0 bg-gradient-to-b from-background to-muted/20 pb-20 md:pb-0">
-      <div className="hidden md:block"><DemoBanner /></div>
-      
       {/* Top Navigation Bar */}
       <div className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-20">
         <div className="flex items-center justify-between px-4 py-3 gap-4">
@@ -915,7 +937,7 @@ export default function Connections() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                   {filteredConnections.map((item, idx) => {
-                    const isConnected = item.isGoogleBundle ? (item as any).credentials?.length > 0 : !!item.connection;
+                    const isConnected = !!item.connection;
 
                     return (
                       <Card
@@ -959,16 +981,31 @@ export default function Connections() {
                               </Badge>
                             )}
                           </div>
-                          {isConnected ? (
+                          {isConnected && item.connection ? (
                             <div className="space-y-2">
-                              <p className="text-[11px] text-muted-foreground truncate">{item.connection?.accountEmail}</p>
-                              <Button variant="outline" size="sm" className="w-full h-8 text-xs" onClick={handleDisconnect}>
-                                <Unplug className="h-3 w-3 mr-1.5" />
+                              <p className="text-[11px] text-muted-foreground truncate">{item.connection.accountEmail}</p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full h-8 text-xs" 
+                                onClick={() => handleDisconnect(item.connection!.id!, item.info.name)}
+                                disabled={disconnecting === item.connection.id}
+                              >
+                                {disconnecting === item.connection.id ? (
+                                  <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                                ) : (
+                                  <Unplug className="h-3 w-3 mr-1.5" />
+                                )}
                                 Disconnect
                               </Button>
                             </div>
                           ) : (
-                            <Button variant="default" size="sm" className="w-full h-8 text-xs" onClick={handleConnect}>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="w-full h-8 text-xs" 
+                              onClick={() => handleConnect(item.credentialType, item.isGoogleBundle ? (item as any).bundle?.id : undefined)}
+                            >
                               <Plug className="h-3 w-3 mr-1.5" />
                               Connect
                             </Button>
@@ -984,7 +1021,23 @@ export default function Connections() {
         </main>
       </div>
 
-      <WaitlistDialog open={waitlistOpen} onOpenChange={setWaitlistOpen} />
+      {/* Disconnect Confirmation Dialog */}
+      <AlertDialog open={!!confirmDisconnect} onOpenChange={(open) => !open && setConfirmDisconnect(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect {confirmDisconnect?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove the connection and any associated credentials. You can reconnect at any time.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDisconnectAction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Disconnect
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
