@@ -14,38 +14,27 @@ export const useWorkspace = () => {
       return;
     }
 
-    const ensureWorkspace = async () => {
+    const fetchWorkspace = async () => {
       setLoading(true);
-
-      // 1) Try to find an existing workspace membership
-      const { data: member, error: memberError } = await supabase
+      
+      const { data, error } = await supabase
         .from("workspace_members")
         .select("workspace_id")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .limit(1)
+        .single();
 
-      if (!memberError && member?.workspace_id) {
-        setWorkspaceId(member.workspace_id);
-        setLoading(false);
-        return;
-      }
-
-      // 2) Create via backend function (bypasses RLS safely)
-      const { data, error } = await supabase.functions.invoke("ensure-workspace");
-
-      if (error) {
-        console.error("Error ensuring workspace:", error);
+      if (!error && data) {
+        setWorkspaceId(data.workspace_id);
+      } else {
+        console.error("Error fetching workspace:", error);
         setWorkspaceId(null);
-        setLoading(false);
-        return;
       }
-
-      const ensuredId = (data as any)?.workspaceId as string | undefined;
-      setWorkspaceId(ensuredId ?? null);
+      
       setLoading(false);
     };
 
-    ensureWorkspace();
+    fetchWorkspace();
   }, [user]);
 
   return { workspaceId, loading };
