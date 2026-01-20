@@ -327,10 +327,10 @@ const Workspace = () => {
               <Paperclip className="h-4 w-4" />
             </Button>
             <Input
-              placeholder={workspaceId ? "Message Elixa..." : "Setting up..."}
+              placeholder={workspaceId ? "Message Elixa..." : "Setting up (you can type)…"}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={sending || !workspaceId}
+              disabled={sending}
               className="flex-1"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && input.trim() && !sending) {

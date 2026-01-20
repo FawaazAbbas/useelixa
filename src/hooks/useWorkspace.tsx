@@ -30,39 +30,18 @@ export const useWorkspace = () => {
         return;
       }
 
-      // 2) If none exists, create a default workspace + membership
-      const { data: workspace, error: workspaceError } = await supabase
-        .from("workspaces")
-        .insert({
-          name: "My Workspace",
-          owner_id: user.id,
-        })
-        .select("id")
-        .single();
+      // 2) Create via backend function (bypasses RLS safely)
+      const { data, error } = await supabase.functions.invoke("ensure-workspace");
 
-      if (workspaceError || !workspace?.id) {
-        console.error("Error creating workspace:", workspaceError);
+      if (error) {
+        console.error("Error ensuring workspace:", error);
         setWorkspaceId(null);
         setLoading(false);
         return;
       }
 
-      const { error: memberCreateError } = await supabase
-        .from("workspace_members")
-        .insert({
-          user_id: user.id,
-          workspace_id: workspace.id,
-          role: "owner",
-        });
-
-      if (memberCreateError) {
-        console.error("Error creating workspace membership:", memberCreateError);
-        setWorkspaceId(null);
-        setLoading(false);
-        return;
-      }
-
-      setWorkspaceId(workspace.id);
+      const ensuredId = (data as any)?.workspaceId as string | undefined;
+      setWorkspaceId(ensuredId ?? null);
       setLoading(false);
     };
 
