@@ -50,16 +50,29 @@ export function ConnectedServicesIndicator({ userId }: Props) {
 
   useEffect(() => {
     fetchConnectedServices();
+    
+    // Re-fetch when returning to this component (e.g., after OAuth callback)
+    const handleFocus = () => fetchConnectedServices();
+    window.addEventListener('focus', handleFocus);
+    
+    return () => window.removeEventListener('focus', handleFocus);
   }, [userId]);
 
   const fetchConnectedServices = async () => {
     try {
+      console.log('[ConnectedServices] Fetching credentials for user:', userId);
+      
       const { data: credentials, error } = await supabase
         .from("user_credentials")
-        .select("credential_type, expires_at, account_email")
+        .select("credential_type, expires_at, account_email, bundle_type")
         .eq("user_id", userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ConnectedServices] Error fetching credentials:', error);
+        throw error;
+      }
+
+      console.log('[ConnectedServices] Found credentials:', credentials?.length || 0);
 
       const serviceMap = new Map<string, ConnectedService>();
 
@@ -67,8 +80,11 @@ export function ConnectedServicesIndicator({ userId }: Props) {
         const credType = cred.credential_type;
         const isExpired = cred.expires_at && new Date(cred.expires_at) < new Date();
 
-        if (!serviceMap.has(credType)) {
-          serviceMap.set(credType, {
+        // Use bundle type or credential type as key to handle multiple Google connections
+        const key = cred.bundle_type ? `${credType}_${cred.bundle_type}` : credType;
+
+        if (!serviceMap.has(key)) {
+          serviceMap.set(key, {
             name: SERVICE_NAMES[credType] || credType,
             credentialType: credType,
             accountEmail: cred.account_email || undefined,
@@ -79,8 +95,9 @@ export function ConnectedServicesIndicator({ userId }: Props) {
       }
 
       setServices(Array.from(serviceMap.values()));
+      console.log('[ConnectedServices] Processed services:', Array.from(serviceMap.values()).map(s => s.name));
     } catch (error) {
-      console.error("Error fetching services:", error);
+      console.error("[ConnectedServices] Error:", error);
     } finally {
       setLoading(false);
     }

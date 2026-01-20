@@ -74,9 +74,15 @@ export async function executeDynamicTool(
   const startTime = Date.now();
   let result: ExecutionResult;
 
+  console.log(`[ToolExecutor] Executing ${toolName} with args:`, JSON.stringify(args).substring(0, 200));
+
   try {
     // Auto-refresh token if needed
-    const { accessToken } = await refreshTokenIfNeeded(context.credential, context.userId);
+    const { accessToken, refreshed } = await refreshTokenIfNeeded(context.credential, context.userId);
+    if (refreshed) {
+      console.log(`[ToolExecutor] Token was refreshed for ${context.credential.credential_type}`);
+    }
+    
     const refreshedContext = {
       ...context,
       credential: { ...context.credential, access_token: accessToken }
@@ -109,13 +115,14 @@ export async function executeDynamicTool(
 
     // Handle 401 errors with token refresh retry
     if (!result.success && result.error?.includes("401")) {
-      console.log("Got 401, attempting token refresh and retry...");
+      console.log(`[ToolExecutor] Got 401 for ${toolName}, attempting token refresh and retry...`);
       const refreshResult = await refreshTokenIfNeeded(
         { ...context.credential, expires_at: new Date(0).toISOString() }, // Force refresh
         context.userId
       );
       
       if (refreshResult.refreshed) {
+        console.log(`[ToolExecutor] Token refreshed, retrying ${toolName}...`);
         const retryContext = {
           ...context,
           credential: { ...context.credential, access_token: refreshResult.accessToken }
@@ -145,7 +152,10 @@ export async function executeDynamicTool(
         }
       }
     }
+    
+    console.log(`[ToolExecutor] ${toolName} completed: success=${result.success}`);
   } catch (error) {
+    console.error(`[ToolExecutor] Error executing ${toolName}:`, error);
     result = {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
@@ -154,7 +164,9 @@ export async function executeDynamicTool(
   }
 
   // Log execution
-  await logToolExecution(toolName, args, result, context, Date.now() - startTime);
+  const executionTimeMs = Date.now() - startTime;
+  console.log(`[ToolExecutor] ${toolName} took ${executionTimeMs}ms`);
+  await logToolExecution(toolName, args, result, context, executionTimeMs);
 
   return result;
 }
