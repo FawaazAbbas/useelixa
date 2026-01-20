@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { mockInstalledAgents, mockDirectChats, mockGroupChats } from '@/data/mockWorkspaceData';
 
 interface Message {
   id: string;
@@ -59,39 +58,13 @@ export const useRealTimeChat = (userId: string | undefined, workspaceId: string 
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Demo mode: when no user is logged in
-  const isDemoMode = !userId;
-  
-  // Initialize demo data
+  // No demo mode - require authentication
   useEffect(() => {
-    if (isDemoMode) {
-      // Create mock direct chats from installed agents
-      const mockDirectChatsList: Chat[] = mockInstalledAgents.map((agent, index) => ({
-        id: `chat-${agent.id}`,
-        name: agent.name,
-        type: 'direct',
-        agent_id: agent.id,
-        last_activity: new Date(Date.now() - 3600000 * (index + 1)).toISOString(),
-        agent: {
-          id: agent.id,
-          name: agent.name,
-          image_url: agent.image_url,
-          description: agent.description,
-          short_description: agent.description,
-          long_description: agent.description,
-          capabilities: agent.capabilities || null,
-          category: agent.category,
-        },
-        unread_count: 0,
-      }));
-      
-      // Add group chats
-      const allMockChats = [...mockDirectChatsList, ...mockGroupChats];
-      setChats(allMockChats);
+    if (!userId || !workspaceId) {
       setLoading(false);
       return;
     }
-  }, [isDemoMode]);
+  }, [userId, workspaceId]);
 
   // Fetch unread counts for all chats
   const fetchUnreadCounts = useCallback(async () => {
