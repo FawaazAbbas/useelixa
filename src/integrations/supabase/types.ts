@@ -1429,6 +1429,66 @@ export type Database = {
           },
         ]
       }
+      tool_execution_log: {
+        Row: {
+          chat_id: string | null
+          created_at: string | null
+          credential_type: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_summary: string | null
+          output_summary: string | null
+          success: boolean
+          tool_name: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          chat_id?: string | null
+          created_at?: string | null
+          credential_type?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_summary?: string | null
+          output_summary?: string | null
+          success?: boolean
+          tool_name: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          chat_id?: string | null
+          created_at?: string | null
+          credential_type?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_summary?: string | null
+          output_summary?: string | null
+          success?: boolean
+          tool_name?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_execution_log_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_execution_log_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_agent_relationships: {
         Row: {
           agent_id: string | null
@@ -1480,10 +1540,12 @@ export type Database = {
           credential_type: string
           expires_at: string | null
           id: string
+          last_used_at: string | null
           refresh_token: string | null
           scopes: string[] | null
           token_type: string | null
           updated_at: string
+          usage_count: number | null
           user_id: string
         }
         Insert: {
@@ -1495,10 +1557,12 @@ export type Database = {
           credential_type: string
           expires_at?: string | null
           id?: string
+          last_used_at?: string | null
           refresh_token?: string | null
           scopes?: string[] | null
           token_type?: string | null
           updated_at?: string
+          usage_count?: number | null
           user_id: string
         }
         Update: {
@@ -1510,10 +1574,12 @@ export type Database = {
           credential_type?: string
           expires_at?: string | null
           id?: string
+          last_used_at?: string | null
           refresh_token?: string | null
           scopes?: string[] | null
           token_type?: string | null
           updated_at?: string
+          usage_count?: number | null
           user_id?: string
         }
         Relationships: []
