@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Loader2, Paperclip, X, LogOut, Trash2, Link } from "lucide-react";
+import { Send, Loader2, Paperclip, X, LogOut, Link, Menu, PanelLeftClose } from "lucide-react";
 import { trackWorkspaceView, trackWorkspaceMessageSent } from '@/utils/analytics';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,9 +13,11 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { useToast } from "@/hooks/use-toast";
-import { useBrianChat } from "@/hooks/useBrianChat";
+import { useMultiChat } from "@/hooks/useMultiChat";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { ToolExecutionCard } from "@/components/chat/ToolExecutionCard";
+import { ChatSidebar } from "@/components/ChatSidebar";
+import { MainNavSidebar } from "@/components/MainNavSidebar";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -32,6 +34,7 @@ const Workspace = () => {
   const { workspaceId, loading: workspaceLoading } = useWorkspace();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [showChatSidebar, setShowChatSidebar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -39,12 +42,19 @@ const Workspace = () => {
   const isMobile = useIsMobile();
   
   const { 
+    sessions,
+    activeSessionId,
     messages, 
     loading: chatLoading, 
+    messagesLoading,
     sending, 
     sendMessage,
-    clearConversation,
-  } = useBrianChat(user?.id, workspaceId);
+    createSession,
+    deleteSession,
+    updateSessionTitle,
+    selectSession,
+  } = useMultiChat(user?.id, workspaceId);
+  
   const [input, setInput] = useState("");
 
   // Redirect to auth if not logged in
@@ -77,6 +87,13 @@ const Workspace = () => {
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
     }
   }, [input]);
+
+  // Hide chat sidebar on mobile by default
+  useEffect(() => {
+    if (isMobile) {
+      setShowChatSidebar(false);
+    }
+  }, [isMobile]);
 
   const handleSendMessage = async () => {
     if (!workspaceId) {
@@ -169,6 +186,13 @@ const Workspace = () => {
     }
   };
 
+  const handleNewChat = async () => {
+    await createSession();
+    if (isMobile) {
+      setShowChatSidebar(false);
+    }
+  };
+
   // Loading state
   if (authLoading || workspaceLoading) {
     return (
@@ -186,254 +210,297 @@ const Workspace = () => {
   }
 
   return (
-    <div className="flex-1 h-screen flex flex-col bg-background overflow-hidden">
-      {/* Header */}
-      <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
-        <div className="flex items-center gap-3">
-          <ElixaLogo size={28} />
-          <span className="font-semibold text-foreground">Elixa</span>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/connections')}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Link className="h-4 w-4 mr-2" />
-            Connections
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                    {user.email?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium truncate">{user.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={clearConversation}
-                className="text-muted-foreground"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Clear chat
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  navigate('/auth');
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+    <div className="flex-1 h-screen flex bg-background overflow-hidden">
+      {/* Chat Sessions Sidebar */}
+      {showChatSidebar && !isMobile && (
+        <ChatSidebar
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={selectSession}
+          onNewChat={handleNewChat}
+          onDeleteSession={deleteSession}
+          onRenameSession={updateSessionTitle}
+        />
+      )}
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1">
-        <div className="max-w-3xl mx-auto px-4 py-6">
-          {chatLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-6">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <ElixaLogo size={40} />
-              </div>
-              <div className="text-center max-w-md">
-                <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Elixa</h2>
-                <p className="text-muted-foreground text-sm">
-                  I'm your AI assistant. Ask me anything, or connect your services to unlock my full capabilities.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {["What can you help me with?", "Connect my services", "Tell me about yourself"].map((suggestion) => (
-                  <Button
-                    key={suggestion}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setInput(suggestion)}
-                    className="text-sm"
-                  >
-                    {suggestion}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {messages.map((msg, idx) => {
-                const isUser = msg.role === "user";
-                const msgTimestamp = msg.timestamp ? new Date(msg.timestamp) : new Date();
-                
-                return (
-                  <div key={idx} className={`flex gap-3 ${isUser ? "justify-end" : ""}`}>
-                    {!isUser && (
-                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                        <ElixaLogo size={18} />
-                      </div>
-                    )}
-                    
-                    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} max-w-[85%] md:max-w-[75%]`}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs text-muted-foreground">
-                          {isUser ? "You" : "Elixa"} • {format(msgTimestamp, "h:mm a")}
-                        </span>
-                      </div>
-                      
-                      <div
-                        className={`px-4 py-3 rounded-2xl ${
-                          isUser 
-                            ? "bg-primary text-primary-foreground rounded-br-md" 
-                            : "bg-muted text-foreground rounded-bl-md"
-                        }`}
-                      >
-                        <div className={`text-sm prose prose-sm max-w-none ${
-                          isUser 
-                            ? '[&_*]:!text-primary-foreground [&_a]:!text-primary-foreground/80' 
-                            : 'dark:prose-invert'
-                        }`}>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {msg.content}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                      
-                      {msg.metadata?.files && msg.metadata.files.length > 0 && (
-                        <div className="mt-2">
-                          <FileMessageCard 
-                            files={msg.metadata.files} 
-                            senderName={isUser ? "You" : "Elixa"}
-                          />
-                        </div>
-                      )}
-                      
-                      {msg.metadata?.toolExecutions && msg.metadata.toolExecutions.length > 0 && (
-                        <div className="mt-2">
-                          <ToolExecutionCard executions={msg.metadata.toolExecutions} />
-                        </div>
-                      )}
-                    </div>
-                    
-                    {isUser && (
-                      <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
-                        <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
-                          {user.email?.charAt(0).toUpperCase() || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                  </div>
-                );
-              })}
-              
-              {sending && (
-                <div className="flex gap-3">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                    <ElixaLogo size={18} />
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-xs text-muted-foreground mb-1">Elixa</span>
-                    <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-muted">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                        <span className="text-sm text-muted-foreground">Thinking...</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
-      </ScrollArea>
-
-      {/* Input Area */}
-      <div className={`border-t border-border bg-card p-4 shrink-0 ${isMobile ? 'pb-6' : ''}`}>
-        <div className="max-w-3xl mx-auto">
-          {/* Selected Files Preview */}
-          {selectedFiles.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {selectedFiles.map((file, index) => (
-                <div 
-                  key={index} 
-                  className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg text-sm"
-                >
-                  <span className="truncate max-w-[150px] text-foreground">{file.name}</span>
-                  <button 
-                    onClick={() => removeFile(index)} 
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          <div className="flex gap-2 items-end">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx,.xls"
+      {/* Mobile Chat Sidebar Overlay */}
+      {showChatSidebar && isMobile && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setShowChatSidebar(false)}
+          />
+          <div className="fixed left-0 top-0 h-full z-50">
+            <ChatSidebar
+              sessions={sessions}
+              activeSessionId={activeSessionId}
+              onSelectSession={(id) => {
+                selectSession(id);
+                setShowChatSidebar(false);
+              }}
+              onNewChat={handleNewChat}
+              onDeleteSession={deleteSession}
+              onRenameSession={updateSessionTitle}
             />
-            
+          </div>
+        </>
+      )}
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
+          <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={sending || uploading}
-              className="shrink-0 h-10 w-10 text-muted-foreground hover:text-foreground"
+              onClick={() => setShowChatSidebar(!showChatSidebar)}
+              className="h-8 w-8"
             >
-              <Paperclip className="h-5 w-5" />
-            </Button>
-            
-            <Textarea
-              ref={textareaRef}
-              placeholder={workspaceId ? "Message Elixa..." : "Setting up workspace..."}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={sending}
-              className="flex-1 min-h-[44px] max-h-[200px] resize-none py-3 text-sm"
-              rows={1}
-            />
-            
-            <Button 
-              onClick={handleSendMessage}
-              disabled={sending || uploading || (!input.trim() && selectedFiles.length === 0)} 
-              size="icon"
-              className="shrink-0 h-10 w-10"
-            >
-              {sending || uploading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+              {showChatSidebar ? (
+                <PanelLeftClose className="h-5 w-5" />
               ) : (
-                <Send className="h-5 w-5" />
+                <Menu className="h-5 w-5" />
               )}
             </Button>
+            <ElixaLogo size={28} />
+            <span className="font-semibold text-foreground">Elixa</span>
           </div>
           
-          <p className="text-xs text-muted-foreground text-center mt-3">
-            Press Enter to send, Shift+Enter for new line
-          </p>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/connections')}
+              className="text-muted-foreground hover:text-foreground hidden sm:flex"
+            >
+              <Link className="h-4 w-4 mr-2" />
+              Connections
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Avatar className="h-7 w-7">
+                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                      {user.email?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium truncate">{user.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    navigate('/auth');
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* Messages Area */}
+        <ScrollArea className="flex-1">
+          <div className="max-w-3xl mx-auto px-4 py-6">
+            {chatLoading || messagesLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-6">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <ElixaLogo size={40} />
+                </div>
+                <div className="text-center max-w-md">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Elixa</h2>
+                  <p className="text-muted-foreground text-sm">
+                    I'm your AI assistant. Ask me anything, or connect your services to unlock my full capabilities.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {["What can you help me with?", "Connect my services", "Tell me about yourself"].map((suggestion) => (
+                    <Button
+                      key={suggestion}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInput(suggestion)}
+                      className="text-sm"
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {messages.map((msg) => {
+                  const isUser = msg.role === "user";
+                  const msgTimestamp = msg.created_at ? new Date(msg.created_at) : new Date();
+                  
+                  return (
+                    <div key={msg.id} className={`flex gap-3 ${isUser ? "justify-end" : ""}`}>
+                      {!isUser && (
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                          <ElixaLogo size={18} />
+                        </div>
+                      )}
+                      
+                      <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} max-w-[85%] md:max-w-[75%]`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs text-muted-foreground">
+                            {isUser ? "You" : "Elixa"} • {format(msgTimestamp, "h:mm a")}
+                          </span>
+                        </div>
+                        
+                        <div
+                          className={`px-4 py-3 rounded-2xl ${
+                            isUser 
+                              ? "bg-primary text-primary-foreground rounded-br-md" 
+                              : "bg-muted text-foreground rounded-bl-md"
+                          }`}
+                        >
+                          <div className={`text-sm prose prose-sm max-w-none ${
+                            isUser 
+                              ? '[&_*]:!text-primary-foreground [&_a]:!text-primary-foreground/80' 
+                              : 'dark:prose-invert'
+                          }`}>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                        
+                        {msg.metadata?.files && msg.metadata.files.length > 0 && (
+                          <div className="mt-2">
+                            <FileMessageCard 
+                              files={msg.metadata.files} 
+                              senderName={isUser ? "You" : "Elixa"}
+                            />
+                          </div>
+                        )}
+                        
+                        {msg.metadata?.toolExecutions && msg.metadata.toolExecutions.length > 0 && (
+                          <div className="mt-2">
+                            <ToolExecutionCard executions={msg.metadata.toolExecutions} />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {isUser && (
+                        <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
+                          <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
+                            {user.email?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  );
+                })}
+                
+                {sending && (
+                  <div className="flex gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                      <ElixaLogo size={18} />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-xs text-muted-foreground mb-1">Elixa</span>
+                      <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-muted">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Input Area */}
+        <div className={`border-t border-border bg-card p-4 shrink-0 ${isMobile ? 'pb-6' : ''}`}>
+          <div className="max-w-3xl mx-auto">
+            {/* Selected Files Preview */}
+            {selectedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedFiles.map((file, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg text-sm"
+                  >
+                    <span className="truncate max-w-[150px] text-foreground">{file.name}</span>
+                    <button 
+                      onClick={() => removeFile(index)} 
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex gap-2 items-end">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+                accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx,.xls"
+              />
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={sending || uploading}
+                className="shrink-0 h-10 w-10 text-muted-foreground hover:text-foreground"
+              >
+                <Paperclip className="h-5 w-5" />
+              </Button>
+              
+              <Textarea
+                ref={textareaRef}
+                placeholder={workspaceId ? "Message Elixa..." : "Setting up workspace..."}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={sending}
+                className="flex-1 min-h-[44px] max-h-[200px] resize-none py-3 text-sm"
+                rows={1}
+              />
+              
+              <Button 
+                onClick={handleSendMessage}
+                disabled={sending || uploading || (!input.trim() && selectedFiles.length === 0)} 
+                size="icon"
+                className="shrink-0 h-10 w-10"
+              >
+                {sending || uploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Send className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+            
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Press Enter to send, Shift+Enter for new line
+            </p>
+          </div>
         </div>
       </div>
     </div>
