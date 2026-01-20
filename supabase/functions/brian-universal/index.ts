@@ -3,6 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 import { platformTools, delegationTools, memoryTools } from "./tools.ts";
 import { reviewAgentOutput } from "./quality-reviewer.ts";
 import { delegateToAgent } from "./delegator.ts";
+import { loadDynamicTools, buildConnectedServicesPrompt } from "./dynamic-tools.ts";
+import { executeExternalTool, logToolExecution } from "./tool-executors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -267,11 +269,15 @@ serve(async (req) => {
       }
     }
 
-    const BRIAN_SYSTEM_PROMPT = buildBrianSystemPrompt(timeContext, relationshipContext, storedMemories);
+    // Load dynamic tools based on user's connected services
+    const { tools: dynamicTools, connectedServices, servicesSummary } = await loadDynamicTools(user_id);
+    
+    // Build system prompt with connected services context
+    const BRIAN_SYSTEM_PROMPT = buildBrianSystemPrompt(timeContext, relationshipContext, storedMemories) + 
+      "\n\n" + servicesSummary;
 
-    // All Brian tools
-    const { connectionTools, externalServiceTools } = await import("./tools.ts");
-    const allTools = [...platformTools, ...delegationTools, ...memoryTools, ...connectionTools, ...externalServiceTools];
+    // All Brian tools - platform tools + delegation + memory + dynamic external service tools
+    const allTools = [...platformTools, ...delegationTools, ...memoryTools, ...dynamicTools];
 
     // PHASE 4: Prepare messages with context compression
     let conversationMessages: Message[] = [
@@ -1026,7 +1032,41 @@ serve(async (req) => {
             }
           }
         } else {
-          toolResult = "Tool not implemented";
+          // Try to execute as a dynamic external tool
+          const isDynamicTool = dynamicTools.some((t: any) => t.function.name === toolName);
+          
+          if (isDynamicTool) {
+            // Fetch credential for this tool
+            const { getCredentialTypeForTool } = await import("./dynamic-tools.ts");
+            const credType = getCredentialTypeForTool(toolName);
+            
+            if (credType) {
+              const { data: credential } = await supabase
+                .from("user_credentials")
+                .select("*")
+                .eq("user_id", user_id)
+                .eq("credential_type", credType)
+                .single();
+              
+              if (credential) {
+                const { result } = await executeExternalTool(
+                  toolName,
+                  toolArgs,
+                  user_id,
+                  workspace_id,
+                  chat_id,
+                  credential
+                );
+                toolResult = result;
+              } else {
+                toolResult = `❌ ${toolName} requires ${credType} to be connected. Please visit the Connections page.`;
+              }
+            } else {
+              toolResult = "Tool not implemented";
+            }
+          } else {
+            toolResult = "Tool not implemented";
+          }
         }
 
         toolResults.push({

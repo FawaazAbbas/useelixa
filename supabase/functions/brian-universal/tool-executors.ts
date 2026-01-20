@@ -959,7 +959,7 @@ function getSuggestionForError(error: unknown): string {
   return "Please try again or check the Connections page if the issue persists.";
 }
 
-async function logToolExecution(
+export async function logToolExecution(
   toolName: string,
   args: any,
   result: ExecutionResult,
@@ -997,5 +997,38 @@ async function logToolExecution(
     }
   } catch (error) {
     console.error("Failed to log tool execution:", error);
+  }
+}
+
+/**
+ * Execute an external tool - wrapper for executeDynamicTool
+ */
+export async function executeExternalTool(
+  toolName: string,
+  args: any,
+  userId: string,
+  workspaceId?: string,
+  chatId?: string,
+  credential?: any
+): Promise<{ success: boolean; result: string }> {
+  const context: ExecutionContext = {
+    userId,
+    workspaceId,
+    chatId,
+    credential
+  };
+
+  const result = await executeDynamicTool(toolName, args, context);
+  
+  if (result.success) {
+    return {
+      success: true,
+      result: `✅ ${toolName} executed successfully: ${JSON.stringify(result.data)}`
+    };
+  } else {
+    return {
+      success: false,
+      result: `❌ ${toolName} failed: ${result.error}${result.suggestion ? ` (${result.suggestion})` : ""}`
+    };
   }
 }
