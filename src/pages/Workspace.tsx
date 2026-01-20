@@ -186,7 +186,7 @@ const Workspace = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="flex-1 h-screen flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
         <div className="flex items-center gap-3">
