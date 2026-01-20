@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Settings, Loader2, Paperclip, Phone, X, LogOut } from "lucide-react";
+import { Send, Loader2, Paperclip, X, LogOut, Trash2, Link } from "lucide-react";
 import { trackWorkspaceView, trackWorkspaceMessageSent } from '@/utils/analytics';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,34 +11,39 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { VoiceCallDialog } from "@/components/VoiceCallDialog";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { useToast } from "@/hooks/use-toast";
 import { useBrianChat } from "@/hooks/useBrianChat";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { ToolExecutionCard } from "@/components/chat/ToolExecutionCard";
-import { ConnectedServicesIndicator } from "@/components/chat/ConnectedServicesIndicator";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Workspace = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { workspaceId, loading: workspaceLoading } = useWorkspace();
-  const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  // Chat hook
   const { 
     messages, 
     loading: chatLoading, 
     sending, 
     sendMessage,
+    clearConversation,
   } = useBrianChat(user?.id, workspaceId);
   const [input, setInput] = useState("");
 
@@ -60,17 +65,25 @@ const Workspace = () => {
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-      }, 50);
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
   }, [messages, sending]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px';
+    }
+  }, [input]);
 
   const handleSendMessage = async () => {
     if (!workspaceId) {
       toast({
         variant: "destructive",
         title: "Workspace not ready",
-        description: "Your workspace is still being set up. Please try again in a moment.",
+        description: "Please wait a moment while we set up your workspace.",
       });
       return;
     }
@@ -110,10 +123,13 @@ const Workspace = () => {
         fileAttachments = await Promise.all(uploadPromises);
       }
 
-      const messageContent = input.trim() || (selectedFiles.length > 0 ? `Sent ${selectedFiles.length} file(s)` : '');
+      const messageContent = input.trim() || (selectedFiles.length > 0 ? `Attached ${selectedFiles.length} file(s)` : '');
       
       setInput("");
       setSelectedFiles([]);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
 
       trackWorkspaceMessageSent('chat');
       await sendMessage(messageContent, fileAttachments.length > 0 ? { files: fileAttachments } : undefined);
@@ -122,7 +138,7 @@ const Workspace = () => {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to send message'
+        description: 'Failed to send message. Please try again.'
       });
     } finally {
       setUploading(false);
@@ -131,6 +147,14 @@ const Workspace = () => {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    if (files.length + selectedFiles.length > 10) {
+      toast({
+        variant: "destructive",
+        title: "Too many files",
+        description: "You can attach up to 10 files at a time.",
+      });
+      return;
+    }
     setSelectedFiles(prev => [...prev, ...files]);
   };
 
@@ -138,92 +162,112 @@ const Workspace = () => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Show loading state while checking auth
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey && input.trim() && !sending) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // Loading state
   if (authLoading || workspaceLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground text-sm">Loading your workspace...</p>
         </div>
       </div>
     );
   }
 
-  // Don't render if not authenticated (will redirect)
   if (!user) {
     return null;
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="h-14 border-b flex items-center justify-between px-4 bg-card/50 backdrop-blur-sm shrink-0">
+      <header className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0">
         <div className="flex items-center gap-3">
-          <ElixaLogo size={32} />
-          <div>
-            <div className="font-semibold">Elixa</div>
-            <div className="text-xs text-muted-foreground">AI Assistant</div>
-          </div>
+          <ElixaLogo size={28} />
+          <span className="font-semibold text-foreground">Elixa</span>
         </div>
-        <div className="flex items-center gap-2">
-          <ConnectedServicesIndicator userId={user.id} />
+        
+        <div className="flex items-center gap-1">
           <Button 
             variant="ghost" 
-            size="icon"
-            onClick={() => setShowVoiceCall(true)}
-            title="Voice call"
-          >
-            <Phone className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
+            size="sm"
             onClick={() => navigate('/connections')}
-            title="Settings"
+            className="text-muted-foreground hover:text-foreground"
           >
-            <Settings className="h-4 w-4" />
+            <Link className="h-4 w-4 mr-2" />
+            Connections
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate('/auth');
-            }}
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    {user.email?.charAt(0).toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium truncate">{user.email}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={clearConversation}
+                className="text-muted-foreground"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear chat
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate('/auth');
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
+      </header>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4 max-w-3xl mx-auto">
+      <ScrollArea className="flex-1">
+        <div className="max-w-3xl mx-auto px-4 py-6">
           {chatLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <ElixaLogo size={64} />
-              <div className="text-center">
-                <h3 className="font-semibold text-lg mb-1">Welcome to Elixa</h3>
-                <p className="text-muted-foreground text-sm max-w-md">
-                  I'm your AI assistant. Connect your services to unlock my full capabilities, or just start chatting!
+            <div className="flex flex-col items-center justify-center py-20 gap-6">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <ElixaLogo size={40} />
+              </div>
+              <div className="text-center max-w-md">
+                <h2 className="text-xl font-semibold text-foreground mb-2">Welcome to Elixa</h2>
+                <p className="text-muted-foreground text-sm">
+                  I'm your AI assistant. Ask me anything, or connect your services to unlock my full capabilities.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2 justify-center mt-4">
+              <div className="flex flex-wrap gap-2 justify-center">
                 {["What can you help me with?", "Connect my services", "Tell me about yourself"].map((suggestion) => (
                   <Button
                     key={suggestion}
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setInput(suggestion);
-                    }}
-                    className="text-xs"
+                    onClick={() => setInput(suggestion)}
+                    className="text-sm"
                   >
                     {suggestion}
                   </Button>
@@ -231,89 +275,110 @@ const Workspace = () => {
               </div>
             </div>
           ) : (
-            messages.map((msg, idx) => {
-              const isUser = msg.role === "user";
-              const msgTimestamp = (msg as any).timestamp ? new Date((msg as any).timestamp) : new Date();
+            <div className="space-y-6">
+              {messages.map((msg, idx) => {
+                const isUser = msg.role === "user";
+                const msgTimestamp = msg.timestamp ? new Date(msg.timestamp) : new Date();
+                
+                return (
+                  <div key={idx} className={`flex gap-3 ${isUser ? "justify-end" : ""}`}>
+                    {!isUser && (
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                        <ElixaLogo size={18} />
+                      </div>
+                    )}
+                    
+                    <div className={`flex flex-col ${isUser ? "items-end" : "items-start"} max-w-[85%] md:max-w-[75%]`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs text-muted-foreground">
+                          {isUser ? "You" : "Elixa"} • {format(msgTimestamp, "h:mm a")}
+                        </span>
+                      </div>
+                      
+                      <div
+                        className={`px-4 py-3 rounded-2xl ${
+                          isUser 
+                            ? "bg-primary text-primary-foreground rounded-br-md" 
+                            : "bg-muted text-foreground rounded-bl-md"
+                        }`}
+                      >
+                        <div className={`text-sm prose prose-sm max-w-none ${
+                          isUser 
+                            ? '[&_*]:!text-primary-foreground [&_a]:!text-primary-foreground/80' 
+                            : 'dark:prose-invert'
+                        }`}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                      
+                      {msg.metadata?.files && msg.metadata.files.length > 0 && (
+                        <div className="mt-2">
+                          <FileMessageCard 
+                            files={msg.metadata.files} 
+                            senderName={isUser ? "You" : "Elixa"}
+                          />
+                        </div>
+                      )}
+                      
+                      {msg.metadata?.toolExecutions && msg.metadata.toolExecutions.length > 0 && (
+                        <div className="mt-2">
+                          <ToolExecutionCard executions={msg.metadata.toolExecutions} />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {isUser && (
+                      <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
+                        <AvatarFallback className="text-xs bg-secondary text-secondary-foreground">
+                          {user.email?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+                );
+              })}
               
-              return (
-                <div key={idx} className={`flex gap-3 ${isUser ? "justify-end" : ""}`}>
-                  {!isUser && (
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <ElixaLogo size={20} />
-                    </div>
-                  )}
-                  <div className={isUser ? "flex flex-col items-end max-w-[80%]" : "flex-1 max-w-[80%]"}>
-                    <div className={`flex items-center gap-2 mb-1 ${isUser ? "flex-row-reverse" : ""}`}>
-                      <span className="font-medium text-sm">{isUser ? "You" : "Elixa"}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(msgTimestamp, "h:mm a")}
-                      </span>
-                    </div>
-                    <div
-                      className={`inline-block px-4 py-3 rounded-2xl shadow-sm ${
-                        isUser ? "bg-primary text-primary-foreground" : "bg-muted"
-                      }`}
-                    >
-                      <div className={`text-sm prose prose-sm max-w-none ${isUser ? '[&_*]:!text-primary-foreground' : 'dark:prose-invert'}`}>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                    {(msg as any).metadata?.files && (
-                      <div className="mt-2">
-                        <FileMessageCard 
-                          files={(msg as any).metadata.files} 
-                          senderName={isUser ? "You" : "Elixa"}
-                        />
-                      </div>
-                    )}
-                    {(msg as any).metadata?.toolExecutions && (msg as any).metadata.toolExecutions.length > 0 && (
-                      <div className="mt-2">
-                        <ToolExecutionCard executions={(msg as any).metadata.toolExecutions} />
-                      </div>
-                    )}
+              {sending && (
+                <div className="flex gap-3">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <ElixaLogo size={18} />
                   </div>
-                  {isUser && (
-                    <Avatar className="h-8 w-8 flex-shrink-0">
-                      <AvatarFallback className="text-xs">
-                        {user.email?.charAt(0).toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              );
-            })
-          )}
-          {sending && (
-            <div className="flex gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <ElixaLogo size={20} />
-              </div>
-              <div className="flex-1">
-                <div className="inline-block px-4 py-2 rounded-2xl bg-muted">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm">Thinking...</span>
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs text-muted-foreground mb-1">Elixa</span>
+                    <div className="px-4 py-3 rounded-2xl rounded-bl-md bg-muted">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">Thinking...</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+              
+              <div ref={messagesEndRef} />
             </div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
 
       {/* Input Area */}
-      <div className={`p-4 border-t bg-card/50 backdrop-blur-sm shrink-0 ${isMobile ? 'pb-20' : ''}`}>
+      <div className={`border-t border-border bg-card p-4 shrink-0 ${isMobile ? 'pb-6' : ''}`}>
         <div className="max-w-3xl mx-auto">
-          {/* Selected Files */}
+          {/* Selected Files Preview */}
           {selectedFiles.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-3">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg text-sm">
-                  <span className="truncate max-w-[150px]">{file.name}</span>
-                  <button onClick={() => removeFile(index)} className="text-muted-foreground hover:text-foreground">
+                <div 
+                  key={index} 
+                  className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg text-sm"
+                >
+                  <span className="truncate max-w-[150px] text-foreground">{file.name}</span>
+                  <button 
+                    onClick={() => removeFile(index)} 
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     <X className="h-3 w-3" />
                   </button>
                 </div>
@@ -321,51 +386,56 @@ const Workspace = () => {
             </div>
           )}
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
             <input
               ref={fileInputRef}
               type="file"
               multiple
               onChange={handleFileSelect}
               className="hidden"
+              accept="image/*,.pdf,.doc,.docx,.txt,.csv,.xlsx,.xls"
             />
+            
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={sending || uploading}
+              className="shrink-0 h-10 w-10 text-muted-foreground hover:text-foreground"
             >
-              <Paperclip className="h-4 w-4" />
+              <Paperclip className="h-5 w-5" />
             </Button>
-            <Input
-              placeholder={workspaceId ? "Message Elixa..." : "Setting up (you can type)…"}
+            
+            <Textarea
+              ref={textareaRef}
+              placeholder={workspaceId ? "Message Elixa..." : "Setting up workspace..."}
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
               disabled={sending}
-              className="flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && input.trim() && !sending) {
-                  e.preventDefault();
-                  handleSendMessage();
-                }
-              }}
+              className="flex-1 min-h-[44px] max-h-[200px] resize-none py-3 text-sm"
+              rows={1}
             />
+            
             <Button 
-              disabled={sending || uploading || (!input.trim() && selectedFiles.length === 0)} 
               onClick={handleSendMessage}
+              disabled={sending || uploading || (!input.trim() && selectedFiles.length === 0)} 
+              size="icon"
+              className="shrink-0 h-10 w-10"
             >
-              {sending || uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {sending || uploading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
             </Button>
           </div>
+          
+          <p className="text-xs text-muted-foreground text-center mt-3">
+            Press Enter to send, Shift+Enter for new line
+          </p>
         </div>
       </div>
-
-      {/* Voice Call Dialog */}
-      <VoiceCallDialog
-        open={showVoiceCall}
-        onClose={() => setShowVoiceCall(false)}
-        agentName="Elixa"
-      />
     </div>
   );
 };
