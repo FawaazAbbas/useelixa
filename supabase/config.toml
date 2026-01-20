@@ -1,4 +1,1 @@
 project_id = "okkybxipbxpoyzqmtosz"
-
-[functions.ensure-workspace]
-verify_jwt = false
