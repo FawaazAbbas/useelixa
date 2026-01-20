@@ -5,6 +5,7 @@ import { useBrianChat } from "@/hooks/useBrianChat";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ChatEmptyState } from "@/components/chat/ChatEmptyState";
+import { ConnectedServicesIndicator } from "@/components/chat/ConnectedServicesIndicator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -94,6 +95,11 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      {/* Connected Services Indicator */}
+      <div className="border-b border-border/50 px-4 py-2">
+        <ConnectedServicesIndicator userId={userId} />
+      </div>
+      
       {messages.length === 0 ? (
         <ChatEmptyState onSuggestionClick={handleSuggestionClick} />
       ) : (

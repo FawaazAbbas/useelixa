@@ -684,6 +684,13 @@ When using connected services:
 }
 
 /**
+ * Build connected services prompt for system context
+ */
+export function buildConnectedServicesPrompt(services: ConnectedService[]): string {
+  return buildServicesSummary(services);
+}
+
+/**
  * Get the tool registry for reference
  */
 export function getToolRegistry(): Record<string, DynamicTool[]> {
@@ -695,4 +702,16 @@ export function getToolRegistry(): Record<string, DynamicTool[]> {
  */
 export function getServiceDisplayNames(): Record<string, string> {
   return SERVICE_DISPLAY_NAMES;
+}
+
+/**
+ * Get credential for a specific tool
+ */
+export function getCredentialTypeForTool(toolName: string): string | null {
+  for (const [credType, tools] of Object.entries(TOOL_REGISTRY)) {
+    if (tools.some(t => t.function.name === toolName)) {
+      return credType;
+    }
+  }
+  return null;
 }
