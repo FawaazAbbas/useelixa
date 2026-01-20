@@ -564,6 +564,8 @@ export async function loadDynamicTools(
   connectedServices: ConnectedService[];
   servicesSummary: string;
 }> {
+  console.log(`[MCP] Loading dynamic tools for user ${userId}`);
+  
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -572,13 +574,15 @@ export async function loadDynamicTools(
   // Fetch user's credentials
   const { data: credentials, error } = await supabase
     .from("user_credentials")
-    .select("credential_type, access_token, expires_at, account_email, bundle_type")
+    .select("id, credential_type, access_token, expires_at, account_email, bundle_type, scopes")
     .eq("user_id", userId);
 
   if (error) {
-    console.error("Error fetching user credentials:", error);
+    console.error("[MCP] Error fetching user credentials:", error);
     return { tools: [], connectedServices: [], servicesSummary: "" };
   }
+
+  console.log(`[MCP] Found ${credentials?.length || 0} credentials for user`);
 
   const connectedServices: ConnectedService[] = [];
   const availableTools: any[] = [];
@@ -588,6 +592,8 @@ export async function loadDynamicTools(
   for (const cred of credentials || []) {
     const isExpired = cred.expires_at && new Date(cred.expires_at) < new Date();
     const credType = cred.credential_type;
+    
+    console.log(`[MCP] Processing credential: ${credType}, expired: ${isExpired}, account: ${cred.account_email || 'N/A'}`);
     
     // Store credential for tool execution
     if (!credentialMap.has(credType)) {
@@ -605,19 +611,24 @@ export async function loadDynamicTools(
 
     // Add tools for this service if not expired
     if (!isExpired && TOOL_REGISTRY[credType]) {
-      for (const tool of TOOL_REGISTRY[credType]) {
+      const toolsForService = TOOL_REGISTRY[credType];
+      console.log(`[MCP] Adding ${toolsForService.length} tools for ${credType}`);
+      for (const tool of toolsForService) {
         availableTools.push({
           type: tool.type,
           function: tool.function
         });
       }
+    } else if (isExpired) {
+      console.log(`[MCP] Skipping tools for ${credType} - token expired`);
     }
   }
 
   // Build services summary for system prompt
   const servicesSummary = buildServicesSummary(connectedServices);
 
-  console.log(`Loaded ${availableTools.length} tools for ${connectedServices.length} connected services`);
+  console.log(`[MCP] ✅ Loaded ${availableTools.length} tools for ${connectedServices.length} connected services`);
+  console.log(`[MCP] Available tools: ${availableTools.map(t => t.function.name).join(', ')}`);
 
   return {
     tools: availableTools,

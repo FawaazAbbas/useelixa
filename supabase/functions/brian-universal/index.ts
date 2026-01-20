@@ -270,7 +270,9 @@ serve(async (req) => {
     }
 
     // Load dynamic tools based on user's connected services
+    console.log(`[Brian] Loading dynamic tools for user ${user_id}`);
     const { tools: dynamicTools, connectedServices, servicesSummary } = await loadDynamicTools(user_id);
+    console.log(`[Brian] Loaded ${dynamicTools.length} dynamic tools from ${connectedServices.length} services`);
     
     // Build system prompt with connected services context
     const BRIAN_SYSTEM_PROMPT = buildBrianSystemPrompt(timeContext, relationshipContext, storedMemories) + 
@@ -278,6 +280,9 @@ serve(async (req) => {
 
     // All Brian tools - platform tools + delegation + memory + dynamic external service tools
     const allTools = [...platformTools, ...delegationTools, ...memoryTools, ...dynamicTools];
+    console.log(`[Brian] Total tools available: ${allTools.length} (platform: ${platformTools.length}, delegation: ${delegationTools.length}, memory: ${memoryTools.length}, dynamic: ${dynamicTools.length})`);
+    console.log(`[Brian] Dynamic tool names: ${dynamicTools.map((t: any) => t.function?.name).join(', ')}`);
+
 
     // PHASE 4: Prepare messages with context compression
     let conversationMessages: Message[] = [
@@ -725,329 +730,69 @@ serve(async (req) => {
           } else {
             toolResult = `✅ ${toolArgs.service} is connected and working properly.`;
           }
-        } else if (toolName === "notion_create_page") {
-          // Create Notion page
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%notion%")
-            .single();
+        } else if (toolName === "notion_create_page" || toolName === "notion_query_database" || 
+                   toolName === "notion_search" || toolName === "notion_update_page" ||
+                   toolName === "gmail_send_email" || toolName === "gmail_search" || toolName === "gmail_read_email" ||
+                   toolName === "google_sheets_read" || toolName === "google_sheets_write" ||
+                   toolName === "google_drive_list" || toolName === "google_drive_upload" ||
+                   toolName === "google_calendar_list_events" || toolName === "google_calendar_create_event" ||
+                   toolName === "slack_send_message" || toolName === "slack_list_channels" || toolName === "slack_get_messages" ||
+                   toolName === "calendly_list_events" || toolName === "calendly_get_event_types" ||
+                   toolName === "outlook_send_email" || toolName === "outlook_search_email" ||
+                   toolName === "teams_send_message" || toolName === "onedrive_list_files" ||
+                   toolName === "hubspot_create_contact" || toolName === "hubspot_search_contacts" ||
+                   toolName === "mailchimp_list_audiences" || toolName === "mailchimp_add_subscriber") {
           
-          if (!credential) {
-            toolResult = "❌ Notion not connected. Please connect it on the Connections page.";
+          // Use centralized dynamic tool executor for all external service tools
+          console.log(`[Brian] Executing external tool via centralized executor: ${toolName}`);
+          
+          const { getCredentialTypeForTool } = await import("./dynamic-tools.ts");
+          const credType = getCredentialTypeForTool(toolName);
+          
+          if (!credType) {
+            toolResult = `❌ Tool ${toolName} is not recognized.`;
           } else {
-            try {
-              const response = await fetch(`https://api.notion.com/v1/pages`, {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${credential.access_token}`,
-                  "Notion-Version": "2022-06-28",
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  parent: { database_id: toolArgs.database_id },
-                  properties: {
-                    title: {
-                      title: [{ text: { content: toolArgs.title } }]
-                    },
-                    ...toolArgs.properties
-                  },
-                  children: toolArgs.content ? [{
-                    object: "block",
-                    type: "paragraph",
-                    paragraph: {
-                      rich_text: [{ type: "text", text: { content: toolArgs.content } }]
-                    }
-                  }] : []
-                })
-              });
-              
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Created Notion page: ${toolArgs.title}`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to create Notion page: ${error}`;
+            const { data: credential, error: credError } = await supabase
+              .from("user_credentials")
+              .select("*")
+              .eq("user_id", user_id)
+              .eq("credential_type", credType)
+              .maybeSingle();
+            
+            if (credError) {
+              console.error(`[Brian] Error fetching credential for ${credType}:`, credError);
+              toolResult = `❌ Error accessing ${credType} credentials.`;
+            } else if (!credential) {
+              const serviceName = credType
+                .replace('OAuth2Api', '')
+                .replace('Api', '')
+                .replace(/([A-Z])/g, ' $1')
+                .trim();
+              toolResult = `❌ ${serviceName} is not connected. Please visit the Connections page to connect it.`;
+            } else {
+              // Check if token is expired
+              const isExpired = credential.expires_at && new Date(credential.expires_at) < new Date();
+              if (isExpired) {
+                console.log(`[Brian] Token expired for ${credType}, will attempt refresh during execution`);
               }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Notion error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "notion_query_database") {
-          // Query Notion database
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%notion%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Notion not connected. Please connect it on the Connections page.";
-          } else {
-            try {
-              const response = await fetch(`https://api.notion.com/v1/databases/${toolArgs.database_id}/query`, {
-                method: "POST",
-                headers: {
-                  "Authorization": `Bearer ${credential.access_token}`,
-                  "Notion-Version": "2022-06-28",
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  filter: toolArgs.filter || {},
-                  page_size: toolArgs.page_size || 100
-                })
-              });
               
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Found ${result.results.length} Notion pages`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to query Notion: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Notion error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "gmail_send_email") {
-          // Send Gmail email
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%google%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Gmail not connected. Please connect Google on the Connections page.";
-          } else {
-            try {
-              const email = [
-                `To: ${toolArgs.to}`,
-                toolArgs.cc ? `Cc: ${toolArgs.cc}` : '',
-                toolArgs.bcc ? `Bcc: ${toolArgs.bcc}` : '',
-                `Subject: ${toolArgs.subject}`,
-                'Content-Type: text/plain; charset=utf-8',
-                '',
-                toolArgs.message
-              ].filter(Boolean).join('\r\n');
-              
-              const encoder = new TextEncoder();
-              const emailBytes = encoder.encode(email);
-              const base64 = btoa(String.fromCharCode(...emailBytes));
-              const encodedEmail = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-              
-              const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${credential.access_token}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ raw: encodedEmail })
-              });
-              
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Email sent successfully to ${toolArgs.to}`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to send email: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Gmail error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "gmail_search") {
-          // Search Gmail
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%google%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Gmail not connected. Please connect Google on the Connections page.";
-          } else {
-            try {
-              const response = await fetch(
-                `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(toolArgs.query)}&maxResults=${toolArgs.max_results || 10}`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${credential.access_token}`
-                  }
-                }
+              const { success, result } = await executeExternalTool(
+                toolName,
+                toolArgs,
+                user_id,
+                workspace_id,
+                chat_id,
+                credential
               );
-              
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Found ${result.messages?.length || 0} emails matching "${toolArgs.query}"`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to search Gmail: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Gmail error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "google_drive_upload") {
-          // Upload to Google Drive
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%google%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Google Drive not connected. Please connect Google on the Connections page.";
-          } else {
-            try {
-              const metadata = {
-                name: toolArgs.file_name,
-                mimeType: toolArgs.mime_type || 'text/plain',
-                ...(toolArgs.folder_id && { parents: [toolArgs.folder_id] })
-              };
-              
-              const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${credential.access_token}`,
-                  'Content-Type': 'multipart/related; boundary=boundary'
-                },
-                body: `--boundary\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(metadata)}\r\n--boundary\r\nContent-Type: ${toolArgs.mime_type || 'text/plain'}\r\n\r\n${toolArgs.content}\r\n--boundary--`
-              });
-              
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Uploaded '${toolArgs.file_name}' to Google Drive`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to upload to Drive: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Google Drive error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "google_drive_list") {
-          // List Google Drive files
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%google%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Google Drive not connected. Please connect Google on the Connections page.";
-          } else {
-            try {
-              let query = toolArgs.query || '';
-              if (toolArgs.folder_id) {
-                query = `'${toolArgs.folder_id}' in parents`;
-              }
-              
-              const response = await fetch(
-                `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&pageSize=${toolArgs.max_results || 20}`,
-                {
-                  headers: {
-                    'Authorization': `Bearer ${credential.access_token}`
-                  }
-                }
-              );
-              
-              if (response.ok) {
-                const result = await response.json();
-                const fileList = result.files.map((f: any) => f.name).join(', ');
-                toolResult = `✅ Found ${result.files.length} files: ${fileList}`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to list Drive files: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Google Drive error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "calendly_list_events") {
-          // List Calendly events
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%calendly%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Calendly not connected. Please connect it on the Connections page.";
-          } else {
-            try {
-              let url = 'https://api.calendly.com/scheduled_events?user=' + encodeURIComponent(credential.access_token);
-              if (toolArgs.start_time) url += `&min_start_time=${toolArgs.start_time}`;
-              if (toolArgs.end_time) url += `&max_start_time=${toolArgs.end_time}`;
-              
-              const response = await fetch(url, {
-                headers: {
-                  'Authorization': `Bearer ${credential.access_token}`
-                }
-              });
-              
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Found ${result.collection?.length || 0} Calendly events`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to list Calendly events: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Calendly error: ${errorMsg}`;
-            }
-          }
-        } else if (toolName === "calendly_get_availability") {
-          // Get Calendly availability
-          const { data: credential } = await supabase
-            .from("user_credentials")
-            .select("access_token")
-            .eq("user_id", user_id)
-            .ilike("credential_type", "%calendly%")
-            .single();
-          
-          if (!credential) {
-            toolResult = "❌ Calendly not connected. Please connect it on the Connections page.";
-          } else {
-            try {
-              const response = await fetch('https://api.calendly.com/event_types', {
-                headers: {
-                  'Authorization': `Bearer ${credential.access_token}`
-                }
-              });
-              
-              if (response.ok) {
-                const result = await response.json();
-                toolResult = `✅ Retrieved Calendly availability information`;
-              } else {
-                const error = await response.text();
-                toolResult = `❌ Failed to get Calendly availability: ${error}`;
-              }
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-              toolResult = `❌ Calendly error: ${errorMsg}`;
+              toolResult = result;
             }
           }
         } else {
-          // Try to execute as a dynamic external tool
+          // Check if it's a dynamic tool we haven't explicitly handled
           const isDynamicTool = dynamicTools.some((t: any) => t.function.name === toolName);
           
           if (isDynamicTool) {
-            // Fetch credential for this tool
+            console.log(`[Brian] Executing unhandled dynamic tool: ${toolName}`);
             const { getCredentialTypeForTool } = await import("./dynamic-tools.ts");
             const credType = getCredentialTypeForTool(toolName);
             

@@ -6,6 +6,32 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
+// Helper to get scopes for credential storage
+function getScopesForProvider(provider: string, bundleType?: string): string {
+  if (provider === 'google') {
+    const baseScopes = 'openid email profile';
+    switch (bundleType) {
+      case 'email_workspace':
+        return `${baseScopes} https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive`;
+      case 'ads_marketing':
+        return `${baseScopes} https://www.googleapis.com/auth/adwords`;
+      case 'analytics_reporting':
+        return `${baseScopes} https://www.googleapis.com/auth/analytics.readonly`;
+      case 'cloud_data':
+        return `${baseScopes} https://www.googleapis.com/auth/bigquery`;
+      case 'firebase_infra':
+        return `${baseScopes} https://www.googleapis.com/auth/firebase`;
+      case 'android_play':
+        return `${baseScopes} https://www.googleapis.com/auth/androidpublisher`;
+      default:
+        return baseScopes;
+    }
+  }
+  if (provider === 'slack') return 'channels:read,chat:write,users:read';
+  if (provider === 'microsoft') return 'openid profile email offline_access https://graph.microsoft.com/.default';
+  return '';
+}
+
 export default function OAuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -74,6 +100,11 @@ export default function OAuthCallback() {
 
       setMessage('Exchanging authorization code for access token...');
 
+      // Get scopes from OAuth config for proper credential storage
+      const scopesForProvider = getScopesForProvider(provider, bundleType);
+      
+      console.log(`[OAuth] Exchanging code for ${credentialType}`, { bundleType, scopesForProvider });
+
       // Exchange code for token via edge function
       const { data, error: exchangeError } = await supabase.functions.invoke('exchange-oauth-token', {
         body: { 
@@ -81,7 +112,7 @@ export default function OAuthCallback() {
           credentialType, 
           userId: user.id,
           bundleType: bundleType || undefined,
-          redirectUri: `${window.location.origin}/oauth/callback`,
+          scopes: scopesForProvider,
         }
       });
 
