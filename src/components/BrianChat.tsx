@@ -17,6 +17,7 @@ interface BrianChatProps {
 export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
   const { messages, loading, sending, sendMessage } = useBrianChat(userId, workspaceId);
   const [uploading, setUploading] = useState(false);
+  const [connectedServicesCount, setConnectedServicesCount] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -29,6 +30,27 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
       }
     }
   }, [messages, sending]);
+
+  // Fetch connected services count for empty state
+  useEffect(() => {
+    const fetchConnectionsCount = async () => {
+      if (!userId) return;
+      
+      const { count } = await supabase
+        .from("user_credentials")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+      
+      setConnectedServicesCount(count ?? 0);
+    };
+    
+    fetchConnectionsCount();
+    
+    // Re-fetch on window focus
+    const handleFocus = () => fetchConnectionsCount();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [userId]);
 
   const handleSend = async (content: string, files?: File[]) => {
     if ((!content && !files?.length) || sending || uploading) return;
@@ -101,7 +123,10 @@ export const BrianChat = ({ userId, workspaceId }: BrianChatProps) => {
       </div>
       
       {messages.length === 0 ? (
-        <ChatEmptyState onSuggestionClick={handleSuggestionClick} />
+        <ChatEmptyState 
+          onSuggestionClick={handleSuggestionClick} 
+          hasConnectedServices={(connectedServicesCount ?? 0) > 0}
+        />
       ) : (
         <ScrollArea className="flex-1" ref={scrollRef}>
           <div className="pb-4">

@@ -644,7 +644,20 @@ function buildServicesSummary(services: ConnectedService[]): string {
   if (services.length === 0) {
     return `
 ## CONNECTED SERVICES
-No external services connected yet. The user can connect Google, Notion, Slack, and more on the Connections page.
+
+**No external services connected yet.**
+
+You have powerful capabilities waiting to be unlocked! Encourage the user to connect their tools:
+
+- **Google Workspace**: Send emails, search Gmail, manage calendar, access Drive files, work with Sheets
+- **Notion**: Search pages, create notes, query databases
+- **Slack**: Post messages, search conversations
+- **Microsoft 365**: Outlook email, Teams messages, OneDrive files
+- **HubSpot**: CRM contacts and deals
+- **Mailchimp**: Email campaigns and audiences
+
+When the user asks you to do something with these services, explain that you can help once they connect on the **Connections page**.
+Example: "I'd love to help send that email! Once you connect your Google account on the Connections page, I'll be able to send emails, search your inbox, and manage your calendar directly from our chat."
 `;
   }
 
