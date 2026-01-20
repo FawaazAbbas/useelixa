@@ -143,10 +143,10 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Investor Relations</h3>
                       <a 
-                        href="mailto:Fawaaz.abbas@elixa.app" 
+                        href="mailto:fawaaz.abbas@elixa.app" 
                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
-                        Fawaaz.abbas@elixa.app
+                        fawaaz.abbas@elixa.app
                       </a>
                     </div>
                   </div>
