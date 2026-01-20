@@ -124,10 +124,10 @@ const Contact = () => {
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
                       <a 
-                        href="mailto:support@elixa.app" 
+                        href="mailto:outreach@elixa.app" 
                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
-                        support@elixa.app
+                        outreach@elixa.app
                       </a>
                     </div>
                   </div>
