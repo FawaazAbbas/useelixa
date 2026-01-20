@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, Settings, Loader2, Paperclip, Phone, X } from "lucide-react";
+import { Send, Settings, Loader2, Paperclip, Phone, X, LogOut } from "lucide-react";
 import { trackWorkspaceView, trackWorkspaceMessageSent } from '@/utils/analytics';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,6 +183,17 @@ const Workspace = () => {
             title="Settings"
           >
             <Settings className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate('/auth');
+            }}
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
