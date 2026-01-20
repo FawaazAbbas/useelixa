@@ -2,9 +2,19 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BrianAvatar } from "@/components/BrianAvatar";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
 import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
+import { ToolExecutionCard } from "@/components/chat/ToolExecutionCard";
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+
+interface ToolExecution {
+  toolName: string;
+  success: boolean;
+  executionTimeMs?: number;
+  inputSummary?: string;
+  outputSummary?: string;
+  errorMessage?: string;
+}
 
 interface ChatMessageProps {
   role: "user" | "assistant";
@@ -17,6 +27,7 @@ interface ChatMessageProps {
       type: string;
       size: number;
     }>;
+    toolExecutions?: ToolExecution[];
   };
   recommendedAgent?: {
     id: string;
@@ -90,6 +101,10 @@ export const ChatMessage = ({
 
             {isStreaming && (
               <span className="inline-block w-2 h-4 bg-primary animate-pulse rounded-sm" />
+            )}
+
+            {metadata?.toolExecutions && metadata.toolExecutions.length > 0 && (
+              <ToolExecutionCard executions={metadata.toolExecutions} />
             )}
 
             {metadata?.files && (

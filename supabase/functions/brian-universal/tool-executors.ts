@@ -18,6 +18,52 @@ interface ExecutionResult {
 }
 
 /**
+ * Refresh an OAuth token before execution if expired
+ */
+async function refreshTokenIfNeeded(credential: any, userId: string): Promise<{ refreshed: boolean; accessToken: string }> {
+  // Check if token is expired or about to expire (within 5 minutes)
+  if (credential.expires_at) {
+    const expiresAt = new Date(credential.expires_at);
+    const now = new Date();
+    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+    
+    if (expiresAt <= fiveMinutesFromNow) {
+      console.log(`Token expired or expiring soon, refreshing for ${credential.credential_type}`);
+      
+      try {
+        const response = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-oauth-token`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`
+          },
+          body: JSON.stringify({
+            userId,
+            credentialType: credential.credential_type,
+            credentialId: credential.id,
+            bundleType: credential.bundle_type,
+            accountEmail: credential.account_email
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.access_token) {
+          console.log(`✅ Token refreshed for ${credential.credential_type}`);
+          return { refreshed: true, accessToken: result.access_token };
+        } else {
+          console.error(`Token refresh failed: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("Error refreshing token:", error);
+      }
+    }
+  }
+  
+  return { refreshed: false, accessToken: credential.access_token };
+}
+
+/**
  * Main tool executor - routes to appropriate service executor
  */
 export async function executeDynamicTool(
@@ -29,29 +75,75 @@ export async function executeDynamicTool(
   let result: ExecutionResult;
 
   try {
+    // Auto-refresh token if needed
+    const { accessToken } = await refreshTokenIfNeeded(context.credential, context.userId);
+    const refreshedContext = {
+      ...context,
+      credential: { ...context.credential, access_token: accessToken }
+    };
+
     // Route to appropriate executor based on tool name prefix
     if (toolName.startsWith("gmail_")) {
-      result = await executeGmailTool(toolName, args, context);
+      result = await executeGmailTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("google_sheets_")) {
-      result = await executeSheetsTool(toolName, args, context);
+      result = await executeSheetsTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("google_drive_")) {
-      result = await executeDriveTool(toolName, args, context);
+      result = await executeDriveTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("google_calendar_")) {
-      result = await executeCalendarTool(toolName, args, context);
+      result = await executeCalendarTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("notion_")) {
-      result = await executeNotionTool(toolName, args, context);
+      result = await executeNotionTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("slack_")) {
-      result = await executeSlackTool(toolName, args, context);
+      result = await executeSlackTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("calendly_")) {
-      result = await executeCalendlyTool(toolName, args, context);
+      result = await executeCalendlyTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("outlook_") || toolName.startsWith("teams_") || toolName.startsWith("onedrive_")) {
-      result = await executeMicrosoftTool(toolName, args, context);
+      result = await executeMicrosoftTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("hubspot_")) {
-      result = await executeHubspotTool(toolName, args, context);
+      result = await executeHubspotTool(toolName, args, refreshedContext);
     } else if (toolName.startsWith("mailchimp_")) {
-      result = await executeMailchimpTool(toolName, args, context);
+      result = await executeMailchimpTool(toolName, args, refreshedContext);
     } else {
       result = { success: false, error: `Unknown tool: ${toolName}` };
+    }
+
+    // Handle 401 errors with token refresh retry
+    if (!result.success && result.error?.includes("401")) {
+      console.log("Got 401, attempting token refresh and retry...");
+      const refreshResult = await refreshTokenIfNeeded(
+        { ...context.credential, expires_at: new Date(0).toISOString() }, // Force refresh
+        context.userId
+      );
+      
+      if (refreshResult.refreshed) {
+        const retryContext = {
+          ...context,
+          credential: { ...context.credential, access_token: refreshResult.accessToken }
+        };
+        
+        // Retry the tool execution
+        if (toolName.startsWith("gmail_")) {
+          result = await executeGmailTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("google_sheets_")) {
+          result = await executeSheetsTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("google_drive_")) {
+          result = await executeDriveTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("google_calendar_")) {
+          result = await executeCalendarTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("notion_")) {
+          result = await executeNotionTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("slack_")) {
+          result = await executeSlackTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("calendly_")) {
+          result = await executeCalendlyTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("outlook_") || toolName.startsWith("teams_") || toolName.startsWith("onedrive_")) {
+          result = await executeMicrosoftTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("hubspot_")) {
+          result = await executeHubspotTool(toolName, args, retryContext);
+        } else if (toolName.startsWith("mailchimp_")) {
+          result = await executeMailchimpTool(toolName, args, retryContext);
+        }
+      }
     }
   } catch (error) {
     result = {

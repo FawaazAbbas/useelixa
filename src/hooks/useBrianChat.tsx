@@ -4,6 +4,15 @@ import { useToast } from "@/hooks/use-toast";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { mockBrianMessages } from "@/data/mockWorkspaceData";
 
+interface ToolExecution {
+  toolName: string;
+  success: boolean;
+  executionTimeMs?: number;
+  inputSummary?: string;
+  outputSummary?: string;
+  errorMessage?: string;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -15,6 +24,7 @@ interface Message {
       type: string;
       size: number;
     }>;
+    toolExecutions?: ToolExecution[];
   };
   recommendedAgent?: {
     id: string;
@@ -127,6 +137,7 @@ export const useBrianChat = (userId: string | undefined, workspaceId: string | u
       const brianMessage: Message = {
         role: "assistant",
         content: data.content,
+        metadata: data.toolExecutions ? { toolExecutions: data.toolExecutions } : undefined,
       };
 
       setMessages((prev) => [...prev, brianMessage]);

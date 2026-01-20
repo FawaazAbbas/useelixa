@@ -313,6 +313,16 @@ serve(async (req) => {
     const brianResponse = analysisResult.choices[0].message;
     let finalContent = brianResponse.content || "";
 
+    // Track tool executions for response metadata
+    const toolExecutions: Array<{
+      toolName: string;
+      success: boolean;
+      executionTimeMs?: number;
+      inputSummary?: string;
+      outputSummary?: string;
+      errorMessage?: string;
+    }> = [];
+
     // Handle tool calls
     if (brianResponse.tool_calls && brianResponse.tool_calls.length > 0) {
       const toolResults = [];
@@ -320,6 +330,7 @@ serve(async (req) => {
       for (const toolCall of brianResponse.tool_calls) {
         const toolName = toolCall.function.name;
         const toolArgs = JSON.parse(toolCall.function.arguments);
+        const toolStartTime = Date.now();
         console.log(`Brian executing tool: ${toolName}`, toolArgs);
 
         let toolResult;
@@ -1069,6 +1080,25 @@ serve(async (req) => {
           }
         }
 
+        // Track external tool execution
+        const toolEndTime = Date.now();
+        const isExternalTool = toolName.startsWith("gmail_") || toolName.startsWith("google_") || 
+          toolName.startsWith("notion_") || toolName.startsWith("slack_") || 
+          toolName.startsWith("calendly_") || toolName.startsWith("outlook_") || 
+          toolName.startsWith("teams_") || toolName.startsWith("onedrive_") ||
+          toolName.startsWith("hubspot_") || toolName.startsWith("mailchimp_");
+        
+        if (isExternalTool) {
+          toolExecutions.push({
+            toolName,
+            success: !String(toolResult).includes("❌"),
+            executionTimeMs: toolEndTime - toolStartTime,
+            inputSummary: JSON.stringify(toolArgs).substring(0, 100),
+            outputSummary: String(toolResult).substring(0, 150),
+            errorMessage: String(toolResult).includes("❌") ? String(toolResult) : undefined
+          });
+        }
+
         toolResults.push({
           tool_call_id: toolCall.id,
           role: "tool",
@@ -1221,7 +1251,10 @@ Return a JSON object with { observation: string | null, confidence: number (0-1)
     }
 
     return new Response(
-      JSON.stringify({ content: finalContent }),
+      JSON.stringify({ 
+        content: finalContent,
+        toolExecutions: toolExecutions.length > 0 ? toolExecutions : undefined
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
