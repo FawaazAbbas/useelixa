@@ -122,12 +122,31 @@ const Contact = () => {
                       <Mail className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1">Email</h3>
+                      <h3 className="font-semibold mb-1">General & Support</h3>
                       <a 
                         href="mailto:outreach@elixa.app" 
                         className="text-sm text-muted-foreground hover:text-primary transition-colors"
                       >
                         outreach@elixa.app
+                      </a>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/50 border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Mail className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">Investor Relations</h3>
+                      <a 
+                        href="mailto:Fawaaz.abbas@elixa.app" 
+                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        Fawaaz.abbas@elixa.app
                       </a>
                     </div>
                   </div>
