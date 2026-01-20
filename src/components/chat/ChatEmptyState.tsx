@@ -1,5 +1,7 @@
 import { BrianAvatar } from "@/components/BrianAvatar";
-import { Sparkles, Calendar, Search, Zap } from "lucide-react";
+import { Sparkles, Calendar, Search, Zap, Link2, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface SuggestionCardProps {
   icon: React.ReactNode;
@@ -21,9 +23,12 @@ const SuggestionCard = ({ icon, title, onClick }: SuggestionCardProps) => (
 
 interface ChatEmptyStateProps {
   onSuggestionClick: (message: string) => void;
+  hasConnectedServices?: boolean;
 }
 
-export const ChatEmptyState = ({ onSuggestionClick }: ChatEmptyStateProps) => {
+export const ChatEmptyState = ({ onSuggestionClick, hasConnectedServices = false }: ChatEmptyStateProps) => {
+  const navigate = useNavigate();
+  
   const suggestions = [
     {
       icon: <Sparkles className="h-5 w-5" />,
@@ -52,6 +57,32 @@ export const ChatEmptyState = ({ onSuggestionClick }: ChatEmptyStateProps) => {
         I'm Elixa, your AI workspace assistant. I can help you manage tasks, 
         find information, install agents, and automate your workflow.
       </p>
+
+      {/* Connection Prompt - Show when no services connected */}
+      {!hasConnectedServices && (
+        <div className="w-full max-w-2xl mb-6 p-4 rounded-xl border border-primary/20 bg-primary/5">
+          <div className="flex items-start gap-4">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Link2 className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-medium mb-1">Supercharge me with your tools</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Connect your Google, Notion, Slack, or other services and I'll be able to 
+                send emails, search your files, post messages, and much more—all through our chat.
+              </p>
+              <Button 
+                size="sm" 
+                onClick={() => navigate("/connections")}
+                className="gap-2"
+              >
+                Connect services
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-2xl">
         {suggestions.map((suggestion, index) => (
