@@ -43,7 +43,7 @@ export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterPro
                 </li>
                 <li>
                   <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
-                    Contact Support
+                    Contact
                   </Link>
                 </li>
               </ul>
