@@ -207,6 +207,50 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_summaries: {
+        Row: {
+          created_at: string | null
+          embedding: string | null
+          id: string
+          key_topics: string[] | null
+          message_count: number | null
+          session_id: string
+          summary: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          key_topics?: string[] | null
+          message_count?: number | null
+          session_id: string
+          summary: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          key_topics?: string[] | null
+          message_count?: number | null
+          session_id?: string
+          summary?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_summaries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credentials: {
         Row: {
           created_at: string
@@ -1071,6 +1115,22 @@ export type Database = {
       mark_messages_read: {
         Args: { p_chat_id: string; p_user_id: string }
         Returns: undefined
+      }
+      match_conversation_memories: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          match_user_id: string
+          query_embedding: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          key_topics: string[]
+          session_id: string
+          similarity: number
+          summary: string
+        }[]
       }
       match_documents: {
         Args: {

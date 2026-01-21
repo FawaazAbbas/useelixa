@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -32,11 +32,51 @@ interface UseChatOptions {
   onError?: (error: Error) => void;
 }
 
+// Threshold for triggering conversation summarization
+const SUMMARIZE_MESSAGE_THRESHOLD = 10;
+
 export function useChat({ sessionId, onError }: UseChatOptions) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const lastSummarizedCount = useRef<number>(0);
+
+  // Trigger conversation summarization when threshold is reached
+  const triggerSummarization = useCallback(async (targetSessionId: string, messageCount: number) => {
+    // Only summarize every SUMMARIZE_MESSAGE_THRESHOLD messages
+    if (messageCount < SUMMARIZE_MESSAGE_THRESHOLD) return;
+    if (messageCount - lastSummarizedCount.current < SUMMARIZE_MESSAGE_THRESHOLD) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return;
+
+      console.log(`[Memory] Triggering summarization for session ${targetSessionId} (${messageCount} messages)`);
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/conversation-memory`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            action: "summarize_session",
+            sessionId: targetSessionId,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        lastSummarizedCount.current = messageCount;
+        console.log(`[Memory] Session summarized successfully`);
+      }
+    } catch (error) {
+      console.error("[Memory] Failed to summarize session:", error);
+    }
+  }, []);
 
   // Real-time subscription for live message updates
   useEffect(() => {
@@ -354,8 +394,14 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
+
+      // Trigger summarization in background after successful message exchange
+      const currentMessageCount = messages.length + 2; // +2 for user + assistant
+      if (effectiveSessionId) {
+        triggerSummarization(effectiveSessionId, currentMessageCount);
+      }
     }
-  }, [messages, isLoading, sessionId, user, onError]);
+  }, [messages, isLoading, sessionId, user, onError, triggerSummarization]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
