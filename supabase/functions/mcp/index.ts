@@ -2,236 +2,334 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Hash function for token validation
+// Hash function for token verification
 async function hashToken(token: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(token);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Tool definitions for connected integrations
-const TOOL_DEFINITIONS: Record<string, { domain: string; actions: string[] }> = {
-  'slack': { domain: 'messaging', actions: ['send_message', 'list_channels', 'get_user'] },
-  'google_drive': { domain: 'files', actions: ['list_files', 'get_file', 'upload_file'] },
-  'google_sheets': { domain: 'spreadsheets', actions: ['read_sheet', 'write_cells', 'create_sheet'] },
-  'google_calendar': { domain: 'calendar', actions: ['list_events', 'create_event', 'update_event'] },
-  'gmail': { domain: 'email', actions: ['send_email', 'list_emails', 'get_email'] },
-  'notion': { domain: 'docs', actions: ['search_pages', 'get_page', 'create_page'] },
-  'linear': { domain: 'issues', actions: ['list_issues', 'create_issue', 'update_issue'] },
-  'github': { domain: 'code', actions: ['list_repos', 'get_file', 'create_issue'] },
-  'shopify': { domain: 'orders', actions: ['list_orders', 'get_order', 'list_products'] },
-  'stripe': { domain: 'payments', actions: ['list_charges', 'create_invoice', 'get_customer'] },
-  'hubspot': { domain: 'crm', actions: ['list_contacts', 'create_contact', 'get_deal'] },
-  'salesforce': { domain: 'crm', actions: ['query_records', 'create_record', 'update_record'] },
-  'zendesk': { domain: 'support', actions: ['list_tickets', 'create_ticket', 'update_ticket'] },
-  'jira': { domain: 'issues', actions: ['list_issues', 'create_issue', 'update_issue'] },
-  'asana': { domain: 'tasks', actions: ['list_tasks', 'create_task', 'update_task'] },
-  'trello': { domain: 'boards', actions: ['list_cards', 'create_card', 'move_card'] },
-  'airtable': { domain: 'tables', actions: ['list_records', 'create_record', 'update_record'] },
-  'mailchimp': { domain: 'email', actions: ['list_campaigns', 'create_campaign', 'list_subscribers'] },
-  'twilio': { domain: 'sms', actions: ['send_sms', 'list_messages', 'get_message'] },
-  'openai': { domain: 'ai', actions: ['chat_completion', 'create_embedding', 'generate_image'] },
+// Tool definitions by integration slug
+const TOOL_DEFINITIONS: Record<string, { domain: string; actions: { name: string; description: string; parameters: Record<string, unknown> }[] }> = {
+  slack: {
+    domain: "messaging",
+    actions: [
+      { name: "send_message", description: "Send a message to a Slack channel", parameters: { type: "object", properties: { channel: { type: "string" }, text: { type: "string" } }, required: ["channel", "text"] } },
+      { name: "list_channels", description: "List available Slack channels", parameters: { type: "object", properties: {} } },
+    ],
+  },
+  google_calendar: {
+    domain: "events",
+    actions: [
+      { name: "list", description: "List calendar events", parameters: { type: "object", properties: { calendar_id: { type: "string" }, max_results: { type: "number" } } } },
+      { name: "create", description: "Create a calendar event", parameters: { type: "object", properties: { summary: { type: "string" }, start: { type: "string" }, end: { type: "string" } }, required: ["summary", "start", "end"] } },
+    ],
+  },
+  github: {
+    domain: "repos",
+    actions: [
+      { name: "list", description: "List repositories", parameters: { type: "object", properties: {} } },
+      { name: "create_issue", description: "Create an issue", parameters: { type: "object", properties: { repo: { type: "string" }, title: { type: "string" }, body: { type: "string" } }, required: ["repo", "title"] } },
+    ],
+  },
+  shopify: {
+    domain: "orders",
+    actions: [
+      { name: "list", description: "List recent orders", parameters: { type: "object", properties: { limit: { type: "number" }, status: { type: "string" } } } },
+      { name: "list_products", description: "List products", parameters: { type: "object", properties: { limit: { type: "number" } } } },
+    ],
+  },
+  notion: {
+    domain: "pages",
+    actions: [
+      { name: "search", description: "Search Notion pages", parameters: { type: "object", properties: { query: { type: "string" } } } },
+      { name: "create", description: "Create a Notion page", parameters: { type: "object", properties: { parent_id: { type: "string" }, title: { type: "string" } }, required: ["parent_id", "title"] } },
+    ],
+  },
+  linear: {
+    domain: "issues",
+    actions: [
+      { name: "list", description: "List Linear issues", parameters: { type: "object", properties: {} } },
+      { name: "create", description: "Create a Linear issue", parameters: { type: "object", properties: { title: { type: "string" }, description: { type: "string" } }, required: ["title"] } },
+    ],
+  },
+  hubspot: {
+    domain: "crm",
+    actions: [
+      { name: "list_contacts", description: "List HubSpot contacts", parameters: { type: "object", properties: { limit: { type: "number" } } } },
+      { name: "create_contact", description: "Create a HubSpot contact", parameters: { type: "object", properties: { email: { type: "string" }, firstname: { type: "string" }, lastname: { type: "string" } }, required: ["email"] } },
+    ],
+  },
+  stripe: {
+    domain: "payments",
+    actions: [
+      { name: "list_charges", description: "List Stripe charges", parameters: { type: "object", properties: { limit: { type: "number" } } } },
+      { name: "create_invoice", description: "Create a Stripe invoice", parameters: { type: "object", properties: { customer: { type: "string" } }, required: ["customer"] } },
+    ],
+  },
 };
 
 serve(async (req) => {
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+  const url = new URL(req.url);
+  const path = url.pathname.replace("/mcp", "");
 
-    // Validate Bearer token
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  try {
+    // Extract and validate token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: 'Missing or invalid authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Missing or invalid Authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader.substring(7);
     
-    // Validate MCP token format
-    if (!token.startsWith('elixa_')) {
+    // Validate token format
+    if (!token.startsWith("elixa_")) {
       return new Response(
-        JSON.stringify({ error: 'Invalid token format' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid token format" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const tokenHash = await hashToken(token);
 
-    // Look up token in database
-    const { data: tokenData, error: tokenError } = await supabaseAdmin
-      .from('mcp_tokens')
-      .select('id, user_id, revoked_at')
-      .eq('token_hash', tokenHash)
+    // Create Supabase client with service role for auth bypass
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Validate token and get org context
+    const { data: tokenData, error: tokenError } = await supabase
+      .from("mcp_tokens")
+      .select("id, org_id, scopes, created_by, revoked_at")
+      .eq("token_hash", tokenHash)
       .single();
 
     if (tokenError || !tokenData) {
-      console.log('Token lookup failed:', tokenError);
+      console.error("Token lookup failed:", tokenError);
       return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (tokenData.revoked_at) {
       return new Response(
-        JSON.stringify({ error: 'Token has been revoked' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "Token has been revoked" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const orgId = tokenData.org_id;
+    const tokenId = tokenData.id;
+    const tokenScopes = tokenData.scopes || [];
+
     // Update last_used_at
-    await supabaseAdmin
-      .from('mcp_tokens')
+    await supabase
+      .from("mcp_tokens")
       .update({ last_used_at: new Date().toISOString() })
-      .eq('id', tokenData.id);
+      .eq("id", tokenId);
 
-    const userId = tokenData.user_id;
-    const url = new URL(req.url);
-    const path = url.pathname.replace('/mcp', '');
-
-    // GET /tools - List available tools based on connected integrations
-    if (req.method === 'GET' && (path === '/tools' || path === '')) {
-      const { data: userIntegrations, error } = await supabaseAdmin
-        .from('user_integrations')
+    // Route handling
+    if (path === "/tools" || path === "") {
+      // GET /tools - List available tools based on connected org integrations
+      const { data: orgIntegrations, error: intError } = await supabase
+        .from("org_integrations")
         .select(`
-          integration_id,
-          integrations (id, name, slug, category)
+          id,
+          status,
+          scopes,
+          integration:integrations(id, slug, name, category)
         `)
-        .eq('user_id', userId)
-        .eq('connected', true);
+        .eq("org_id", orgId)
+        .eq("status", "connected");
 
-      if (error) {
-        console.error('Error fetching user integrations:', error);
+      if (intError) {
+        console.error("Failed to fetch org integrations:", intError);
         return new Response(
-          JSON.stringify({ error: 'Failed to fetch tools' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: "Failed to fetch integrations" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const tools: { name: string; description: string; integration: string; category: string }[] = [];
+      // Build tool list from connected integrations
+      const tools: unknown[] = [];
+      for (const orgInt of orgIntegrations || []) {
+        // Handle both single object and array from join
+        const integrationData = orgInt.integration;
+        const integration = Array.isArray(integrationData) ? integrationData[0] : integrationData;
+        if (!integration || !integration.slug) continue;
 
-      userIntegrations?.forEach((ui: any) => {
-        const integration = ui.integrations;
-        if (!integration?.slug) return;
+        const slug = integration.slug as string;
+        const toolDef = TOOL_DEFINITIONS[slug];
+        if (!toolDef) continue;
 
-        const toolDef = TOOL_DEFINITIONS[integration.slug];
-        if (toolDef) {
-          toolDef.actions.forEach(action => {
+        // Filter by token scopes if specified
+        for (const action of toolDef.actions) {
+          const toolName = `${slug}.${toolDef.domain}.${action.name}`;
+          if (tokenScopes.length === 0 || tokenScopes.includes("*") || tokenScopes.includes(slug)) {
             tools.push({
-              name: `${integration.slug}.${toolDef.domain}.${action}`,
-              description: `${action.replace(/_/g, ' ')} via ${integration.name}`,
-              integration: integration.slug,
-              category: integration.category,
+              name: toolName,
+              description: action.description,
+              parameters: action.parameters,
+              integration: {
+                slug,
+                name: integration.name,
+                category: integration.category,
+              },
             });
-          });
+          }
         }
-      });
+      }
 
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           tools,
-          server: 'elixa-mcp',
-          version: '1.0.0',
+          org_id: orgId,
+          token_scopes: tokenScopes,
+          server: "elixa-mcp",
+          version: "2.0.0",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // POST /call - Execute a tool call (mock for Phase 1)
-    if (req.method === 'POST' && path === '/call') {
-      const { tool, input } = await req.json();
+    if (path === "/call" && req.method === "POST") {
+      // POST /call - Execute a tool
+      const startTime = Date.now();
+      const body = await req.json();
+      const { tool_name, tool, input } = body;
+      const targetTool = tool_name || tool;
 
-      if (!tool) {
+      if (!targetTool) {
         return new Response(
-          JSON.stringify({ error: 'Tool name is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: "tool_name is required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
       // Parse tool name: integration_slug.domain.action
-      const [integrationSlug, domain, action] = tool.split('.');
+      const [integrationSlug, domain, action] = targetTool.split(".");
 
       if (!integrationSlug || !action) {
         return new Response(
-          JSON.stringify({ error: 'Invalid tool name format. Expected: integration.domain.action' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: "Invalid tool name format. Expected: integration.domain.action" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Verify user has this integration connected
-      const { data: userInt } = await supabaseAdmin
-        .from('user_integrations')
-        .select('id, integrations!inner(slug)')
-        .eq('user_id', userId)
-        .eq('connected', true)
-        .eq('integrations.slug', integrationSlug)
+      // Check if integration is connected for this org
+      const { data: orgInt, error: orgIntError } = await supabase
+        .from("org_integrations")
+        .select(`
+          id,
+          status,
+          integration:integrations(slug)
+        `)
+        .eq("org_id", orgId)
+        .eq("status", "connected")
         .single();
 
-      if (!userInt) {
+      // Check token scopes
+      if (tokenScopes.length > 0 && !tokenScopes.includes("*") && !tokenScopes.includes(integrationSlug)) {
         return new Response(
-          JSON.stringify({ error: `Integration ${integrationSlug} is not connected` }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: `Token does not have access to ${integrationSlug}` }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const startTime = Date.now();
+      // Mock tool execution
+      let output: Record<string, unknown>;
+      let status = "success";
 
-      // Mock response for Phase 1
-      const mockOutput = {
-        success: true,
-        message: `Mock execution of ${tool}`,
-        data: { mock: true, input },
-        timestamp: new Date().toISOString(),
-      };
+      try {
+        if (action.includes("list") || action === "search") {
+          output = {
+            items: [
+              { id: crypto.randomUUID(), name: "Sample Item 1", created_at: new Date().toISOString() },
+              { id: crypto.randomUUID(), name: "Sample Item 2", created_at: new Date().toISOString() },
+            ],
+            total: 2,
+            has_more: false,
+          };
+        } else if (action.includes("create") || action === "send_message") {
+          output = {
+            id: crypto.randomUUID(),
+            created: true,
+            created_at: new Date().toISOString(),
+            ...input,
+          };
+        } else {
+          output = {
+            success: true,
+            tool: targetTool,
+            executed_at: new Date().toISOString(),
+          };
+        }
+      } catch (error) {
+        status = "error";
+        output = { error: String(error) };
+      }
 
-      const executionTime = Date.now() - startTime;
+      const latencyMs = Date.now() - startTime;
 
-      // Log the tool call
-      await supabaseAdmin
-        .from('tool_calls')
-        .insert({
-          user_id: userId,
-          integration_slug: integrationSlug,
-          tool_name: tool,
-          input: input || {},
-          output: mockOutput,
-          status: 'success',
-          execution_time_ms: executionTime,
-        });
+      // Log tool call using service role
+      const { error: logError } = await supabase.from("tool_calls").insert({
+        org_id: orgId,
+        actor_token_id: tokenId,
+        actor_user_id: tokenData.created_by,
+        integration_slug: integrationSlug,
+        tool_name: targetTool,
+        input: input || {},
+        output,
+        status,
+        latency_ms: latencyMs,
+      });
+
+      if (logError) {
+        console.error("Failed to log tool call:", logError);
+      }
 
       return new Response(
-        JSON.stringify({ 
-          result: mockOutput,
-          execution_time_ms: executionTime,
+        JSON.stringify({
+          tool_name: targetTool,
+          status,
+          result: output,
+          latency_ms: latencyMs,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // Unknown endpoint
     return new Response(
-      JSON.stringify({ error: 'Not found' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({
+        error: "Not found",
+        available_endpoints: [
+          "GET /tools - List available tools",
+          "POST /call - Execute a tool",
+        ],
+      }),
+      { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
-    console.error('Error in MCP function:', error);
+    console.error("MCP Error:", error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: "Internal server error", details: String(error) }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

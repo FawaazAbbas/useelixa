@@ -1136,6 +1136,44 @@ export type Database = {
         }
         Relationships: []
       }
+      credentials: {
+        Row: {
+          created_at: string
+          encrypted_blob_ref: string | null
+          id: string
+          org_id: string
+          provider: string
+          rotated_at: string | null
+          vault_ref: string | null
+        }
+        Insert: {
+          created_at?: string
+          encrypted_blob_ref?: string | null
+          id?: string
+          org_id: string
+          provider: string
+          rotated_at?: string | null
+          vault_ref?: string | null
+        }
+        Update: {
+          created_at?: string
+          encrypted_blob_ref?: string | null
+          id?: string
+          org_id?: string
+          provider?: string
+          rotated_at?: string | null
+          vault_ref?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credentials_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       developer_applications: {
         Row: {
           created_at: string
@@ -1280,32 +1318,49 @@ export type Database = {
       mcp_tokens: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
           label: string
           last_used_at: string | null
+          org_id: string | null
           revoked_at: string | null
+          scopes: string[] | null
           token_hash: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           label: string
           last_used_at?: string | null
+          org_id?: string | null
           revoked_at?: string | null
+          scopes?: string[] | null
           token_hash: string
           user_id: string
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           label?: string
           last_used_at?: string | null
+          org_id?: string | null
           revoked_at?: string | null
+          scopes?: string[] | null
           token_hash?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mcp_tokens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -1376,6 +1431,114 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      org_integrations: {
+        Row: {
+          connected_at: string | null
+          credential_id: string | null
+          external_account_id: string | null
+          id: string
+          integration_id: string
+          org_id: string
+          scopes: string[] | null
+          status: Database["public"]["Enums"]["integration_status"]
+          updated_at: string
+        }
+        Insert: {
+          connected_at?: string | null
+          credential_id?: string | null
+          external_account_id?: string | null
+          id?: string
+          integration_id: string
+          org_id: string
+          scopes?: string[] | null
+          status?: Database["public"]["Enums"]["integration_status"]
+          updated_at?: string
+        }
+        Update: {
+          connected_at?: string | null
+          credential_id?: string | null
+          external_account_id?: string | null
+          id?: string
+          integration_id?: string
+          org_id?: string
+          scopes?: string[] | null
+          status?: Database["public"]["Enums"]["integration_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_org_integrations_credential"
+            columns: ["credential_id"]
+            isOneToOne: false
+            referencedRelation: "credentials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_integrations_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_integrations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_members: {
+        Row: {
+          created_at: string
+          org_id: string
+          role: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          org_id: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          org_id?: string
+          role?: Database["public"]["Enums"]["org_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orgs: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          plan: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          plan?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          plan?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -1540,42 +1703,69 @@ export type Database = {
       }
       tool_calls: {
         Row: {
+          actor_token_id: string | null
+          actor_user_id: string | null
           created_at: string | null
           error_message: string | null
           execution_time_ms: number | null
           id: string
           input: Json | null
           integration_slug: string
+          latency_ms: number | null
+          org_id: string | null
           output: Json | null
           status: string | null
           tool_name: string
           user_id: string
         }
         Insert: {
+          actor_token_id?: string | null
+          actor_user_id?: string | null
           created_at?: string | null
           error_message?: string | null
           execution_time_ms?: number | null
           id?: string
           input?: Json | null
           integration_slug: string
+          latency_ms?: number | null
+          org_id?: string | null
           output?: Json | null
           status?: string | null
           tool_name: string
           user_id: string
         }
         Update: {
+          actor_token_id?: string | null
+          actor_user_id?: string | null
           created_at?: string | null
           error_message?: string | null
           execution_time_ms?: number | null
           id?: string
           input?: Json | null
           integration_slug?: string
+          latency_ms?: number | null
+          org_id?: string | null
           output?: Json | null
           status?: string | null
           tool_name?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tool_calls_actor_token_id_fkey"
+            columns: ["actor_token_id"]
+            isOneToOne: false
+            referencedRelation: "mcp_tokens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_calls_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tool_execution_log: {
         Row: {
@@ -2152,6 +2342,8 @@ export type Database = {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
       }
+      is_org_admin: { Args: { _org_id: string }; Returns: boolean }
+      is_org_member: { Args: { _org_id: string }; Returns: boolean }
       mark_messages_read: {
         Args: { p_chat_id: string; p_user_id: string }
         Returns: undefined
@@ -2163,6 +2355,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      integration_status: "connected" | "disconnected" | "error"
+      org_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2291,6 +2485,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      integration_status: ["connected", "disconnected", "error"],
+      org_role: ["owner", "admin", "member"],
     },
   },
 } as const
