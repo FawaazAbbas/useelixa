@@ -56,6 +56,7 @@ async function executeTool(
 
   try {
     switch (toolName) {
+      // Gmail tools
       case "gmail_list_emails": {
         const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
           method: "POST",
@@ -80,6 +81,7 @@ async function executeTool(
         return await response.json();
       }
 
+      // Calendar tools
       case "calendar_list_events": {
         const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
           method: "POST",
@@ -104,6 +106,118 @@ async function executeTool(
         return await response.json();
       }
 
+      // Stripe tools
+      case "stripe_get_balance": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/stripe-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "get_balance", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "stripe_list_payments": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/stripe-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_charges", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "stripe_list_customers": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/stripe-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_customers", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Shopify tools
+      case "shopify_list_orders": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/shopify-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_orders", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "shopify_list_products": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/shopify-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_products", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "shopify_get_analytics": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/shopify-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "get_analytics_summary", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Notes tools
+      case "notes_list": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notes-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notes_search": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notes-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "search", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notes_create": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notes-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "create", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Task tools
       case "create_task": {
         const { data, error } = await supabase
           .from("tasks")
@@ -138,6 +252,7 @@ async function executeTool(
         return { tasks: data };
       }
 
+      // Knowledge base search
       case "search_knowledge": {
         const { data, error } = await supabase
           .from("workspace_documents")

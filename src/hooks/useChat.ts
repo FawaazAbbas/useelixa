@@ -60,6 +60,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
             content: string;
             created_at: string;
             tool_calls?: unknown[];
+            metadata?: { pendingAction?: PendingAction };
           };
           
           // Only add if not already in messages (avoid duplicates from our own sends)
@@ -71,6 +72,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
               content: newMsg.content,
               timestamp: newMsg.created_at,
               toolCalls: newMsg.tool_calls as ToolCall[] | undefined,
+              pendingAction: newMsg.metadata?.pendingAction,
             }];
           });
         }
@@ -82,11 +84,43 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     };
   }, [sessionId]);
 
-  const sendMessage = useCallback(async (content: string) => {
+  // Load messages for a session from the database
+  const loadSessionMessages = useCallback(async (targetSessionId: string) => {
+    if (!user || !targetSessionId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("chat_messages_v2")
+        .select("*")
+        .eq("session_id", targetSessionId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      const loadedMessages: ChatMessage[] = (data || []).map((m: any) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        timestamp: m.created_at,
+        toolCalls: m.tool_calls as ToolCall[] | undefined,
+        pendingAction: m.metadata?.pendingAction,
+      }));
+
+      setMessages(loadedMessages);
+    } catch (error) {
+      console.error("Error loading session messages:", error);
+      onError?.(error instanceof Error ? error : new Error("Failed to load messages"));
+    }
+  }, [user, onError]);
+
+  const sendMessage = useCallback(async (content: string, targetSessionId?: string) => {
     if (!content.trim() || isLoading) return;
 
+    const effectiveSessionId = targetSessionId || sessionId;
+    const userMessageId = crypto.randomUUID();
+
     const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: userMessageId,
       role: "user",
       content: content.trim(),
       timestamp: new Date().toISOString(),
@@ -97,6 +131,22 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     setIsStreaming(true);
 
     try {
+      // Persist user message to database
+      if (user && effectiveSessionId) {
+        const insertData = {
+          session_id: effectiveSessionId,
+          role: "user",
+          content: content.trim(),
+        };
+        await supabase.from("chat_messages_v2").insert(insertData as any);
+
+        // Update session timestamp
+        await supabase
+          .from("chat_sessions_v2")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", effectiveSessionId);
+      }
+
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
       
       // Get session for auth
@@ -117,7 +167,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         },
         body: JSON.stringify({
           messages: messagesToSend,
-          sessionId,
+          sessionId: effectiveSessionId,
         }),
       });
 
@@ -136,8 +186,18 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         let pendingAction: PendingAction | undefined;
         
         if (data.requiresConfirmation) {
+          // Fetch the actual pending action from database
+          const { data: pendingActionData } = await supabase
+            .from("pending_actions")
+            .select("id")
+            .eq("session_id", effectiveSessionId)
+            .eq("status", "pending")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
           pendingAction = {
-            id: crypto.randomUUID(),
+            id: pendingActionData?.id || crypto.randomUUID(),
             toolName: data.toolName,
             displayName: data.toolName?.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
             parameters: data.toolArgs,
@@ -145,13 +205,26 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
           };
         }
 
-        setMessages(prev => [...prev, {
+        const assistantMessage: ChatMessage = {
           id: assistantMessageId,
           role: "assistant",
           content: data.content || data.error || "I encountered an issue.",
           timestamp: new Date().toISOString(),
           pendingAction,
-        }]);
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Persist assistant message to database
+        if (user && effectiveSessionId) {
+          const insertData = {
+            session_id: effectiveSessionId,
+            role: "assistant",
+            content: assistantMessage.content,
+            metadata: pendingAction ? { pendingAction } : null,
+          };
+          await supabase.from("chat_messages_v2").insert(insertData as any);
+        }
         
         return;
       }
@@ -243,25 +316,36 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         }
       }
 
-      // Final message update
+      // Final message update and persist
       if (assistantContent || toolCalls.length > 0) {
+        const finalMessage: ChatMessage = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: assistantContent,
+          timestamp: new Date().toISOString(),
+          toolCalls,
+        };
+
         setMessages(prev => {
           const existing = prev.find(m => m.id === assistantMessageId);
           if (existing) {
             return prev.map(m => 
-              m.id === assistantMessageId 
-                ? { ...m, content: assistantContent, toolCalls }
-                : m
+              m.id === assistantMessageId ? finalMessage : m
             );
           }
-          return [...prev, {
-            id: assistantMessageId,
+          return [...prev, finalMessage];
+        });
+
+        // Persist to database
+        if (user && effectiveSessionId) {
+          const insertData = {
+            session_id: effectiveSessionId,
             role: "assistant",
             content: assistantContent,
-            timestamp: new Date().toISOString(),
-            toolCalls,
-          }];
-        });
+            metadata: toolCalls.length > 0 ? { toolCalls } : null,
+          };
+          await supabase.from("chat_messages_v2").insert(insertData as any);
+        }
       }
 
     } catch (error) {
@@ -271,7 +355,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
       setIsLoading(false);
       setIsStreaming(false);
     }
-  }, [messages, isLoading, sessionId, onError]);
+  }, [messages, isLoading, sessionId, user, onError]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -284,5 +368,6 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     sendMessage,
     clearMessages,
     setMessages,
+    loadSessionMessages,
   };
 }
