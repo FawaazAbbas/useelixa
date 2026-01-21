@@ -23,7 +23,7 @@ async function callStripeAPI(
   apiKey: string,
   method: string = "GET",
   params?: Record<string, string>
-) {
+): Promise<Response> {
   const url = new URL(`https://api.stripe.com/v1/${endpoint}`);
   
   if (method === "GET" && params) {
@@ -32,7 +32,7 @@ async function callStripeAPI(
     });
   }
 
-  const response = await fetch(url.toString(), {
+  return fetch(url.toString(), {
     method,
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -40,9 +40,24 @@ async function callStripeAPI(
     },
     body: method !== "GET" && params ? new URLSearchParams(params).toString() : undefined,
   });
+}
+
+async function callStripeWithRetry(
+  endpoint: string,
+  apiKey: string,
+  method: string = "GET",
+  params?: Record<string, string>
+) {
+  const response = await callStripeAPI(endpoint, apiKey, method, params);
 
   if (!response.ok) {
     const errorData = await response.json();
+    
+    // Stripe uses different error codes - handle auth failures specifically
+    if (response.status === 401) {
+      throw new Error("Invalid Stripe API key. Please reconnect your Stripe account in Connections.");
+    }
+    
     throw new Error(errorData.error?.message || `Stripe API error: ${response.status}`);
   }
 
@@ -92,9 +107,12 @@ serve(async (req) => {
     let result;
     const startTime = Date.now();
 
+    // Note: Stripe uses API keys, not OAuth, so no token refresh is needed
+    // We use callStripeWithRetry for better error handling
+
     switch (action) {
       case "get_balance": {
-        result = await callStripeAPI("balance", apiKey);
+        result = await callStripeWithRetry("balance", apiKey);
         break;
       }
 
@@ -103,7 +121,7 @@ serve(async (req) => {
           limit: String(params?.limit || 10),
         };
         if (params?.customer) queryParams.customer = params.customer;
-        result = await callStripeAPI("charges", apiKey, "GET", queryParams);
+        result = await callStripeWithRetry("charges", apiKey, "GET", queryParams);
         break;
       }
 
@@ -112,7 +130,7 @@ serve(async (req) => {
           limit: String(params?.limit || 10),
         };
         if (params?.email) queryParams.email = params.email;
-        result = await callStripeAPI("customers", apiKey, "GET", queryParams);
+        result = await callStripeWithRetry("customers", apiKey, "GET", queryParams);
         break;
       }
 
@@ -120,7 +138,7 @@ serve(async (req) => {
         if (!params?.customer_id) {
           throw new Error("customer_id is required");
         }
-        result = await callStripeAPI(`customers/${params.customer_id}`, apiKey);
+        result = await callStripeWithRetry(`customers/${params.customer_id}`, apiKey);
         break;
       }
 
@@ -128,7 +146,7 @@ serve(async (req) => {
         const queryParams: Record<string, string> = {
           limit: String(params?.limit || 10),
         };
-        result = await callStripeAPI("payment_intents", apiKey, "GET", queryParams);
+        result = await callStripeWithRetry("payment_intents", apiKey, "GET", queryParams);
         break;
       }
 
@@ -138,7 +156,7 @@ serve(async (req) => {
         };
         if (params?.customer) queryParams.customer = params.customer;
         if (params?.status) queryParams.status = params.status;
-        result = await callStripeAPI("subscriptions", apiKey, "GET", queryParams);
+        result = await callStripeWithRetry("subscriptions", apiKey, "GET", queryParams);
         break;
       }
 
@@ -147,13 +165,13 @@ serve(async (req) => {
           limit: String(params?.limit || 10),
         };
         if (params?.customer) queryParams.customer = params.customer;
-        result = await callStripeAPI("invoices", apiKey, "GET", queryParams);
+        result = await callStripeWithRetry("invoices", apiKey, "GET", queryParams);
         break;
       }
 
       case "get_revenue_summary": {
         // Get recent charges to calculate revenue
-        const charges = await callStripeAPI("charges", apiKey, "GET", { limit: "100" });
+        const charges = await callStripeWithRetry("charges", apiKey, "GET", { limit: "100" });
         const successfulCharges = charges.data.filter((c: any) => c.status === "succeeded");
         const totalRevenue = successfulCharges.reduce((sum: number, c: any) => sum + c.amount, 0);
         

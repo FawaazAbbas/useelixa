@@ -1,61 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getDecryptedCredentials, updateRefreshedToken } from "../_shared/credentials.ts";
+import { getFreshToken, withTokenRefresh } from "../_shared/oauth-retry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-async function getGoogleAccessToken(supabase: any, userId: string): Promise<string | null> {
-  // Get the user's Google credentials (with decryption)
-  const credential = await getDecryptedCredentials(supabase, userId, "googleOAuth2Api", "calendar");
-
-  if (!credential) {
-    return null;
-  }
-
-  if (credential.expires_at) {
-    const expiresAt = new Date(credential.expires_at);
-    if (expiresAt <= new Date() && credential.refresh_token) {
-      return await refreshGoogleToken(supabase, userId, credential.refresh_token);
-    }
-  }
-
-  return credential.access_token;
-}
-
-async function refreshGoogleToken(supabase: any, userId: string, refreshToken: string): Promise<string | null> {
-  try {
-    const response = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID") || "",
-        client_secret: Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET") || "",
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      }),
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    
-    // Update with encryption
-    await updateRefreshedToken(
-      supabase,
-      userId,
-      "googleOAuth2Api",
-      data.access_token,
-      data.expires_in,
-      "calendar"
-    );
-
-    return data.access_token;
-  } catch {
-    return null;
-  }
-}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -87,10 +37,19 @@ serve(async (req) => {
       return await handleLocalCalendar(supabase, user.id, action, params);
     }
 
-    // For Google Calendar, get access token
-    const accessToken = await getGoogleAccessToken(supabase, user.id);
+    const retryConfig = {
+      userId: user.id,
+      credentialType: "googleOAuth2Api",
+      bundleType: "calendar",
+    };
+
+    const getToken = () => getFreshToken(supabase, user.id, "googleOAuth2Api", "calendar");
+    
+    // Check if user has Google Calendar connected
+    const accessToken = await getToken();
     if (!accessToken) {
       // Fall back to local calendar
+      console.log("[Calendar] No Google Calendar token, falling back to local");
       return await handleLocalCalendar(supabase, user.id, action, params);
     }
 
@@ -109,17 +68,25 @@ serve(async (req) => {
         url.searchParams.set("singleEvents", "true");
         url.searchParams.set("orderBy", "startTime");
 
-        const response = await fetch(url.toString(), {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const { data, error, tokenRefreshed } = await withTokenRefresh<any>(
+          retryConfig,
+          getToken,
+          (token) => fetch(url.toString(), {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        );
 
-        if (!response.ok) {
-          throw new Error(`Google Calendar API error: ${response.status}`);
+        if (error) {
+          console.log(`[Calendar] Google Calendar error: ${error}, falling back to local`);
+          return await handleLocalCalendar(supabase, user.id, action, params);
         }
 
-        const data = await response.json();
+        if (tokenRefreshed) {
+          console.log("[Calendar] Token was refreshed during list operation");
+        }
+
         result = {
-          events: (data.items || []).map((event: any) => ({
+          events: (data?.items || []).map((event: any) => ({
             id: event.id,
             title: event.summary || "(no title)",
             description: event.description || "",
@@ -128,6 +95,7 @@ serve(async (req) => {
             allDay: !event.start?.dateTime,
             location: event.location || "",
           })),
+          source: "google",
         };
         break;
       }
@@ -138,37 +106,46 @@ serve(async (req) => {
           throw new Error("title, startTime, and endTime are required");
         }
 
-        const response = await fetch(
-          "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              summary: title,
-              description: description || "",
-              location: location || "",
-              start: { dateTime: startTime, timeZone: "UTC" },
-              end: { dateTime: endTime, timeZone: "UTC" },
-            }),
-          }
+        const { data, error, tokenRefreshed } = await withTokenRefresh<any>(
+          retryConfig,
+          getToken,
+          (token) => fetch(
+            "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                summary: title,
+                description: description || "",
+                location: location || "",
+                start: { dateTime: startTime, timeZone: "UTC" },
+                end: { dateTime: endTime, timeZone: "UTC" },
+              }),
+            }
+          )
         );
 
-        if (!response.ok) {
-          throw new Error(`Failed to create event: ${response.status}`);
+        if (error) {
+          console.log(`[Calendar] Failed to create Google event: ${error}, trying local`);
+          return await handleLocalCalendar(supabase, user.id, "create_local", params);
         }
 
-        const created = await response.json();
+        if (tokenRefreshed) {
+          console.log("[Calendar] Token was refreshed during create operation");
+        }
+
         result = {
           success: true,
           event: {
-            id: created.id,
-            title: created.summary,
-            start: created.start?.dateTime,
-            end: created.end?.dateTime,
+            id: data.id,
+            title: data.summary,
+            start: data.start?.dateTime,
+            end: data.end?.dateTime,
           },
+          source: "google",
         };
         break;
       }
