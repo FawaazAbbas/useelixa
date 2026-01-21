@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
@@ -37,6 +37,50 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+
+  // Real-time subscription for live message updates
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const channel = supabase
+      .channel(`chat-messages-${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages_v2',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload) => {
+          console.log('Chat realtime update:', payload);
+          const newMsg = payload.new as {
+            id: string;
+            role: string;
+            content: string;
+            created_at: string;
+            tool_calls?: unknown[];
+          };
+          
+          // Only add if not already in messages (avoid duplicates from our own sends)
+          setMessages(prev => {
+            if (prev.find(m => m.id === newMsg.id)) return prev;
+            return [...prev, {
+              id: newMsg.id,
+              role: newMsg.role as "user" | "assistant",
+              content: newMsg.content,
+              timestamp: newMsg.created_at,
+              toolCalls: newMsg.tool_calls as ToolCall[] | undefined,
+            }];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [sessionId]);
 
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return;
