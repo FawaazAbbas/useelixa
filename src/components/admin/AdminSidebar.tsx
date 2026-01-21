@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Users, Code, FileText, LayoutDashboard, LogOut, RefreshCw, ChevronLeft, ChevronRight, Gift } from "lucide-react";
+import { LayoutDashboard, LogOut, RefreshCw, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -9,17 +9,12 @@ interface AdminSidebarProps {
   onRefresh: () => void;
   onSignOut: () => void;
   refreshing: boolean;
-  waitlistCount: number;
-  developerCount: number;
   collapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
 }
 
 const navItems = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
-  { id: "waitlist", label: "Waitlist", icon: Users },
-  { id: "referrals", label: "Referrals", icon: Gift },
-  { id: "developers", label: "Developers", icon: Code },
   { id: "blog", label: "Blog", icon: FileText },
 ];
 
@@ -29,17 +24,9 @@ export const AdminSidebar = ({
   onRefresh,
   onSignOut,
   refreshing,
-  waitlistCount,
-  developerCount,
   collapsed,
   onCollapsedChange,
 }: AdminSidebarProps) => {
-  const getCount = (id: string) => {
-    if (id === "waitlist") return waitlistCount;
-    if (id === "developers") return developerCount;
-    return null;
-  };
-
   return (
     <aside
       className={cn(
@@ -79,7 +66,6 @@ export const AdminSidebar = ({
         <ScrollArea className="flex-1 px-3 py-4">
           <nav className="space-y-1">
             {navItems.map((item) => {
-              const count = getCount(item.id);
               const isActive = activeTab === item.id;
               
               return (
@@ -96,19 +82,7 @@ export const AdminSidebar = ({
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
                   {!collapsed && (
-                    <>
-                      <span className="flex-1 text-left">{item.label}</span>
-                      {count !== null && (
-                        <span className={cn(
-                          "rounded-full px-2 py-0.5 text-xs font-medium",
-                          isActive
-                            ? "bg-primary-foreground/20 text-primary-foreground"
-                            : "bg-muted-foreground/10 text-muted-foreground"
-                        )}>
-                          {count}
-                        </span>
-                      )}
-                    </>
+                    <span className="flex-1 text-left">{item.label}</span>
                   )}
                 </button>
               );

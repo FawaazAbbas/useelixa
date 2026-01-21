@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -10,21 +9,11 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminBlogTab } from "@/components/admin/AdminBlogTab";
 
-interface DeveloperApplication {
-  id: string;
-  name: string;
-  email: string;
-  skills: string[] | null;
-  message: string | null;
-  created_at: string;
-}
-
 const Admin = () => {
   const { isAdmin, loading: adminLoading } = useAdminAuth();
   const { signOut } = useAuth();
   const navigate = useNavigate();
   
-  const [developerApplications, setDeveloperApplications] = useState<DeveloperApplication[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
@@ -33,12 +22,7 @@ const Admin = () => {
   const fetchData = async () => {
     setRefreshing(true);
     try {
-      const { data } = await supabase
-        .from("developer_applications")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (data) setDeveloperApplications(data);
+      // No legacy data to fetch
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch data");
@@ -61,40 +45,19 @@ const Admin = () => {
 
   if (adminLoading || loadingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner />
       </div>
     );
   }
 
   if (!isAdmin) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Access denied. Admin only.</p>
+      </div>
+    );
   }
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case "overview":
-        return (
-          <AdminOverviewTab
-            waitlistSignups={[]}
-            developerApplications={developerApplications}
-            onNavigate={setActiveTab}
-          />
-        );
-      case "blog":
-        return <AdminBlogTab />;
-      default:
-        return null;
-    }
-  };
-
-  const getPageTitle = () => {
-    switch (activeTab) {
-      case "overview": return "Dashboard Overview";
-      case "blog": return "Blog Management";
-      default: return "Admin Dashboard";
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -104,8 +67,6 @@ const Admin = () => {
         onRefresh={fetchData}
         onSignOut={handleSignOut}
         refreshing={refreshing}
-        waitlistCount={0}
-        developerCount={developerApplications.length}
         collapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
       />
@@ -118,14 +79,16 @@ const Admin = () => {
       >
         <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center px-6">
-            <div>
-              <h1 className="text-xl font-semibold text-foreground">{getPageTitle()}</h1>
-            </div>
+            <h1 className="text-xl font-semibold">
+              {activeTab === "overview" && "Dashboard Overview"}
+              {activeTab === "blog" && "Blog Management"}
+            </h1>
           </div>
         </header>
 
         <div className="p-6">
-          {renderContent()}
+          {activeTab === "overview" && <AdminOverviewTab />}
+          {activeTab === "blog" && <AdminBlogTab />}
         </div>
       </main>
     </div>

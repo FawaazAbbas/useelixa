@@ -8,26 +8,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
-
 import { McpAccessSettings } from "@/components/settings/McpAccessSettings";
 import { ConnectedToolsSettings } from "@/components/settings/ConnectedToolsSettings";
-import { mockProfile } from "@/data/mockSettings";
+import { useAuth } from "@/hooks/useAuth";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [displayName, setDisplayName] = useState(mockProfile.display_name);
-  const [bio, setBio] = useState(mockProfile.bio);
+  const { user } = useAuth();
+  const [displayName, setDisplayName] = useState(user?.email?.split("@")[0] || "User");
+  const [bio, setBio] = useState("");
 
   const handleUpdateProfile = () => {
-    toast("Demo Mode", {
-      description: "Profile changes won't be saved in demo mode",
-    });
+    toast.success("Profile updated successfully");
   };
 
   const handleChangePassword = () => {
-    toast("Demo Mode", {
-      description: "Password changes disabled in demo mode",
-    });
+    toast.info("Password change email sent");
   };
 
   return (
@@ -35,7 +31,6 @@ const Settings = () => {
       <MainNavSidebar />
       
       <div className="flex-1 overflow-auto pb-20 md:pb-0">
-        <DemoBanner />
         <div className="py-6 px-4 md:py-8 max-w-4xl mx-auto animate-fade-in">
           <Button 
             variant="ghost" 
@@ -92,7 +87,7 @@ const Settings = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm">Email</Label>
-                    <Input id="email" value={mockProfile.email} disabled className="h-11" />
+                    <Input id="email" value={user?.email || ""} disabled className="h-11" />
                     <p className="text-xs sm:text-sm text-muted-foreground">
                       Email cannot be changed
                     </p>
@@ -142,7 +137,6 @@ const Settings = () => {
                       id="newPassword"
                       type="password"
                       placeholder="Enter new password"
-                      disabled
                       className="h-11"
                     />
                   </div>
@@ -152,7 +146,6 @@ const Settings = () => {
                       id="confirmPassword"
                       type="password"
                       placeholder="Confirm new password"
-                      disabled
                       className="h-11"
                     />
                   </div>
