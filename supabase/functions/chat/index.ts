@@ -8,98 +8,21 @@ const corsHeaders = {
 
 // Tool definitions for the AI
 const TOOL_DEFINITIONS = [
-  {
-    type: "function",
-    function: {
-      name: "gmail_list_emails",
-      description: "List recent emails from the user's Gmail inbox",
-      parameters: {
-        type: "object",
-        properties: {
-          maxResults: { type: "number", description: "Maximum number of emails to return (default 10)" },
-          query: { type: "string", description: "Search query to filter emails" }
-        }
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "gmail_send_email",
-      description: "Send an email on behalf of the user. REQUIRES CONFIRMATION.",
-      parameters: {
-        type: "object",
-        properties: {
-          to: { type: "string", description: "Recipient email address" },
-          subject: { type: "string", description: "Email subject" },
-          body: { type: "string", description: "Email body content" }
-        },
-        required: ["to", "subject", "body"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "calendar_list_events",
-      description: "List upcoming calendar events",
-      parameters: {
-        type: "object",
-        properties: {
-          timeMin: { type: "string", description: "Start time in ISO format" },
-          timeMax: { type: "string", description: "End time in ISO format" },
-          maxResults: { type: "number", description: "Maximum number of events" }
-        }
-      }
-    }
-  },
-  {
-    type: "function", 
-    function: {
-      name: "calendar_create_event",
-      description: "Create a new calendar event. REQUIRES CONFIRMATION.",
-      parameters: {
-        type: "object",
-        properties: {
-          title: { type: "string", description: "Event title" },
-          startTime: { type: "string", description: "Start time in ISO format" },
-          endTime: { type: "string", description: "End time in ISO format" },
-          description: { type: "string", description: "Event description" }
-        },
-        required: ["title", "startTime", "endTime"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "create_task",
-      description: "Create a new task in the user's task list",
-      parameters: {
-        type: "object",
-        properties: {
-          title: { type: "string", description: "Task title" },
-          description: { type: "string", description: "Task description" },
-          priority: { type: "string", enum: ["low", "medium", "high"], description: "Task priority" },
-          dueDate: { type: "string", description: "Due date in ISO format" }
-        },
-        required: ["title"]
-      }
-    }
-  },
-  {
-    type: "function",
-    function: {
-      name: "list_tasks",
-      description: "List the user's tasks",
-      parameters: {
-        type: "object",
-        properties: {
-          status: { type: "string", enum: ["todo", "in_progress", "done"], description: "Filter by status" }
-        }
-      }
-    }
-  }
+  { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
+  { type: "function", function: { name: "gmail_send_email", description: "Send an email. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
+  { type: "function", function: { name: "calendar_list_events", description: "List upcoming calendar events", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
+  { type: "function", function: { name: "calendar_create_event", description: "Create a calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, startTime: { type: "string" }, endTime: { type: "string" }, description: { type: "string" } }, required: ["title", "startTime", "endTime"] } } },
+  { type: "function", function: { name: "create_task", description: "Create a new task", parameters: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, priority: { type: "string", enum: ["low", "medium", "high"] }, dueDate: { type: "string" } }, required: ["title"] } } },
+  { type: "function", function: { name: "list_tasks", description: "List user's tasks", parameters: { type: "object", properties: { status: { type: "string", enum: ["todo", "in_progress", "done"] } } } } },
+  { type: "function", function: { name: "stripe_get_balance", description: "Get Stripe account balance", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "stripe_list_payments", description: "List recent Stripe payments", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
+  { type: "function", function: { name: "stripe_list_customers", description: "List Stripe customers", parameters: { type: "object", properties: { limit: { type: "number" }, email: { type: "string" } } } } },
+  { type: "function", function: { name: "shopify_list_orders", description: "List Shopify orders", parameters: { type: "object", properties: { limit: { type: "number" }, status: { type: "string" } } } } },
+  { type: "function", function: { name: "shopify_list_products", description: "List Shopify products", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
+  { type: "function", function: { name: "shopify_get_analytics", description: "Get Shopify analytics summary", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "notes_list", description: "List user's notes", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
+  { type: "function", function: { name: "notes_search", description: "Search notes by query", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
+  { type: "function", function: { name: "notes_create", description: "Create a new note", parameters: { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title"] } } },
 ];
 
 // Tools that require user confirmation before execution

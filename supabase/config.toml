@@ -20,3 +20,27 @@ verify_jwt = false
 
 [functions.extract-document-text]
 verify_jwt = false
+
+[functions.stripe-integration]
+verify_jwt = false
+
+[functions.shopify-integration]
+verify_jwt = false
+
+[functions.notes-integration]
+verify_jwt = false
+
+[functions.google-calendar-sync]
+verify_jwt = false
+
+[functions.invite-member]
+verify_jwt = false
+
+[functions.exchange-oauth-token]
+verify_jwt = false
+
+[functions.refresh-oauth-token]
+verify_jwt = false
+
+[functions.realtime-token]
+verify_jwt = false
