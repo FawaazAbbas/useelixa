@@ -11,6 +11,8 @@ import Calendar from "./pages/Calendar";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import Notes from "./pages/Notes";
 import Chat from "./pages/Chat";
+import Team from "./pages/Team";
+import Billing from "./pages/Billing";
 import Auth from "./pages/Auth";
 import Logs from "./pages/Logs";
 import Connections from "./pages/Connections";
@@ -132,6 +134,24 @@ const AppContent = () => {
                 <MainNavSidebar />
               </div>
               <Connections />
+              <MobileBottomNav />
+            </div>
+          } />
+          <Route path="/team" element={
+            <div className="flex h-screen overflow-hidden">
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
+              <Team />
+              <MobileBottomNav />
+            </div>
+          } />
+          <Route path="/billing" element={
+            <div className="flex h-screen overflow-hidden">
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
+              <Billing />
               <MobileBottomNav />
             </div>
           } />
