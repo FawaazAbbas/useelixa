@@ -1,8 +1,6 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, FileText, Image as ImageIcon, FileVideo, FileAudio } from 'lucide-react';
-import { FilePreviewDialog } from './FilePreviewDialog';
 
 interface FileAttachment {
   name: string;
@@ -17,10 +15,7 @@ interface FileMessageCardProps {
   timestamp?: string;
 }
 
-export const FileMessageCard = ({ files, senderName, timestamp }: FileMessageCardProps) => {
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<FileAttachment | null>(null);
-
+export const FileMessageCard = ({ files }: FileMessageCardProps) => {
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return <ImageIcon className="w-5 h-5" />;
     if (type.startsWith('video/')) return <FileVideo className="w-5 h-5" />;
@@ -36,76 +31,58 @@ export const FileMessageCard = ({ files, senderName, timestamp }: FileMessageCar
 
   const isImage = (type: string) => type.startsWith('image/');
 
-  const handleFileClick = (file: FileAttachment) => {
-    setSelectedFile(file);
-    setPreviewOpen(true);
+  const handleDownload = (file: FileAttachment) => {
+    window.open(file.url, '_blank');
   };
 
   return (
-    <>
-      <div className="space-y-2">
-        {files.map((file, index) => (
-          <Card 
-            key={index} 
-            className="overflow-hidden cursor-pointer hover:border-primary/30 transition-colors"
-            onClick={() => handleFileClick(file)}
-          >
-            {isImage(file.type) ? (
-              <div className="relative">
-                <img
-                  src={file.url}
-                  alt={file.name}
-                  className="w-full max-h-[400px] object-contain"
-                />
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="absolute top-2 right-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFileClick(file);
-                  }}
+    <div className="space-y-2">
+      {files.map((file, index) => (
+        <Card 
+          key={index} 
+          className="overflow-hidden hover:border-primary/30 transition-colors"
+        >
+          {isImage(file.type) ? (
+            <div className="relative">
+              <img
+                src={file.url}
+                alt={file.name}
+                className="w-full max-h-[400px] object-contain"
+              />
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute top-2 right-2"
+                onClick={() => handleDownload(file)}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+            </div>
+          ) : (
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getFileIcon(file.type)}
+                  <div>
+                    <p className="font-medium text-sm">{file.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatFileSize(file.size)}
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleDownload(file)}
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
+                  <Download className="w-4 h-4" />
                 </Button>
               </div>
-            ) : (
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getFileIcon(file.type)}
-                    <div>
-                      <p className="font-medium text-sm">{file.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(file.size)}
-                      </p>
-                    </div>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFileClick(file);
-                    }}
-                  >
-                    <Download className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        ))}
-      </div>
-
-      <FilePreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        file={selectedFile}
-        uploadedBy={senderName}
-        uploadedAt={timestamp}
-      />
-    </>
+            </CardContent>
+          )}
+        </Card>
+      ))}
+    </div>
   );
 };

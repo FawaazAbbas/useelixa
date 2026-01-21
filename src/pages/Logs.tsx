@@ -10,7 +10,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format, formatDistanceToNow } from "date-fns";
-import { DemoBanner } from "@/components/DemoBanner";
 import { combinedActivityLogs, activityStats } from "@/data/mockCombinedActivityLogs";
 import { type MockActivityLog } from "@/data/mockLogs";
 import { cn } from "@/lib/utils";
