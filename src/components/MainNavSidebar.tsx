@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug, BookOpen, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Store, Plug, BookOpen, Settings as SettingsIcon, LogOut, Bot } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navItems = [
+  { icon: Bot, label: "AI Chat", path: "/chat" },
   { icon: MessageSquare, label: "Messenger", path: "/workspace" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },

@@ -493,6 +493,51 @@ export type Database = {
         }
         Relationships: []
       }
+      pending_actions: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          org_id: string | null
+          parameters: Json
+          resolved_at: string | null
+          result: Json | null
+          session_id: string
+          status: string | null
+          tool_display_name: string | null
+          tool_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          org_id?: string | null
+          parameters?: Json
+          resolved_at?: string | null
+          result?: Json | null
+          session_id: string
+          status?: string | null
+          tool_display_name?: string | null
+          tool_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          org_id?: string | null
+          parameters?: Json
+          resolved_at?: string | null
+          result?: Json | null
+          session_id?: string
+          status?: string | null
+          tool_display_name?: string | null
+          tool_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

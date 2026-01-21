@@ -9,6 +9,7 @@ import Workspace from "./pages/Workspace";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
 import Logs from "./pages/Logs";
 import Connections from "./pages/Connections";
@@ -62,6 +63,9 @@ const AppContent = () => {
 
           {/* Back-compat: old demo link */}
           <Route path="/workspace/demo" element={<Navigate to="/workspace" replace />} />
+
+          {/* Chat route - main AI interface */}
+          <Route path="/chat" element={<Chat />} />
 
           {/* App routes with main navigation */}
           <Route
