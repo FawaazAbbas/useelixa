@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Activity, CheckCircle, XCircle, AlertCircle, Clock, Search, Filter, Bot, RefreshCw } from "lucide-react";
+import { Activity, CheckCircle, XCircle, AlertCircle, Clock, Search, Filter, Bot, RefreshCw, Download, CalendarIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,14 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
-import { format, formatDistanceToNow } from "date-fns";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, formatDistanceToNow, subDays } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
+import { toast } from "sonner";
+import { DateRange } from "react-day-picker";
 
 interface ToolCall {
   id: string;
@@ -33,14 +37,32 @@ const Logs = () => {
   const [integrationFilter, setIntegrationFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLog, setSelectedLog] = useState<ToolCall | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 7),
+    to: new Date(),
+  });
 
   const fetchLogs = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    
+    let query = supabase
       .from("tool_calls")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(500);
+
+    // Apply date range filter
+    if (dateRange?.from) {
+      query = query.gte("created_at", dateRange.from.toISOString());
+    }
+    if (dateRange?.to) {
+      // Add 1 day to include the end date fully
+      const endDate = new Date(dateRange.to);
+      endDate.setDate(endDate.getDate() + 1);
+      query = query.lt("created_at", endDate.toISOString());
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching logs:", error);
@@ -52,7 +74,7 @@ const Logs = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, []);
+  }, [dateRange]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -99,6 +121,41 @@ const Logs = () => {
     { key: "pending", label: "Pending", count: stats.pending, icon: AlertCircle, color: "text-yellow-500" },
   ];
 
+  const exportToCSV = () => {
+    if (filteredLogs.length === 0) {
+      toast.error("No logs to export");
+      return;
+    }
+
+    const headers = ["Timestamp", "Tool Name", "Integration", "Status", "Latency (ms)", "User ID"];
+    const rows = filteredLogs.map(log => [
+      format(new Date(log.created_at), "yyyy-MM-dd HH:mm:ss"),
+      log.tool_name,
+      log.integration_slug,
+      log.status,
+      log.latency_ms?.toString() || "",
+      log.actor_user_id || ""
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `tool-logs-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast.success(`Exported ${filteredLogs.length} logs to CSV`);
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <MainNavSidebar />
@@ -113,6 +170,57 @@ const Logs = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Date Range Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="hidden sm:flex">
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "MMM d")} - {format(dateRange.to, "MMM d")}
+                        </>
+                      ) : (
+                        format(dateRange.from, "MMM d, yyyy")
+                      )
+                    ) : (
+                      "Pick a date range"
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                  />
+                  <div className="p-3 border-t flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDateRange({ from: subDays(new Date(), 7), to: new Date() })}
+                    >
+                      Last 7 days
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDateRange({ from: subDays(new Date(), 30), to: new Date() })}
+                    >
+                      Last 30 days
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Button variant="outline" size="sm" onClick={exportToCSV} disabled={filteredLogs.length === 0}>
+                <Download className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Export CSV</span>
+              </Button>
+              
               <Button variant="outline" size="sm" onClick={fetchLogs} disabled={loading}>
                 <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
                 Refresh

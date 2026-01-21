@@ -6,6 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Rate limit configuration
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const MAX_MESSAGES_PER_MINUTE = 20;
+const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
+
 // Tool definitions for the AI
 const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
@@ -17,9 +22,11 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "stripe_get_balance", description: "Get Stripe account balance", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "stripe_list_payments", description: "List recent Stripe payments", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
   { type: "function", function: { name: "stripe_list_customers", description: "List Stripe customers", parameters: { type: "object", properties: { limit: { type: "number" }, email: { type: "string" } } } } },
+  { type: "function", function: { name: "stripe_create_customer", description: "Create a new Stripe customer. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { email: { type: "string" }, name: { type: "string" }, description: { type: "string" } }, required: ["email"] } } },
   { type: "function", function: { name: "shopify_list_orders", description: "List Shopify orders", parameters: { type: "object", properties: { limit: { type: "number" }, status: { type: "string" } } } } },
   { type: "function", function: { name: "shopify_list_products", description: "List Shopify products", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
   { type: "function", function: { name: "shopify_get_analytics", description: "Get Shopify analytics summary", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "shopify_create_product", description: "Create a new Shopify product. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, price: { type: "number" }, vendor: { type: "string" } }, required: ["title", "price"] } } },
   { type: "function", function: { name: "notes_list", description: "List user's notes", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
   { type: "function", function: { name: "notes_search", description: "Search notes by query", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
   { type: "function", function: { name: "notes_create", description: "Create a new note. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title"] } } },
@@ -27,7 +34,13 @@ const TOOL_DEFINITIONS = [
 ];
 
 // Tools that require user confirmation before execution
-const WRITE_TOOLS = ["gmail_send_email", "calendar_create_event", "notes_create"];
+const WRITE_TOOLS = [
+  "gmail_send_email", 
+  "calendar_create_event", 
+  "notes_create",
+  "stripe_create_customer",
+  "shopify_create_product",
+];
 
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
 
@@ -35,16 +48,61 @@ You have access to the following capabilities:
 - Read and send emails via Gmail (use gmail_list_emails, gmail_send_email)
 - View and create calendar events (use calendar_list_events, calendar_create_event)
 - Manage tasks (use create_task, list_tasks)
-- Access Stripe data (use stripe_get_balance, stripe_list_payments, stripe_list_customers)
-- Access Shopify data (use shopify_list_orders, shopify_list_products, shopify_get_analytics)
+- Access Stripe data (use stripe_get_balance, stripe_list_payments, stripe_list_customers, stripe_create_customer)
+- Access Shopify data (use shopify_list_orders, shopify_list_products, shopify_get_analytics, shopify_create_product)
 - Manage notes (use notes_list, notes_search, notes_create)
 - Search knowledge base documents (use search_knowledge_base)
 
-When using tools that modify data (sending emails, creating events, creating notes), always clearly explain what you're about to do and ask for confirmation.
+When using tools that modify data (sending emails, creating events, creating notes, creating customers, creating products), always clearly explain what you're about to do and ask for confirmation.
 
 Be helpful, concise, and proactive. If you notice opportunities to help the user be more productive, suggest them.
 
 Current date/time: ${new Date().toISOString()}`;
+
+// Helper to check rate limits
+async function checkRateLimits(
+  serviceSupabase: any, 
+  userId: string, 
+  orgId: string | null
+): Promise<{ allowed: boolean; reason?: string }> {
+  const now = new Date();
+  const oneMinuteAgo = new Date(now.getTime() - RATE_LIMIT_WINDOW_MS).toISOString();
+  
+  // Check per-minute rate limit
+  const { count: recentMessageCount } = await serviceSupabase
+    .from("chat_messages_v2")
+    .select("*", { count: "exact", head: true })
+    .eq("role", "user")
+    .gte("created_at", oneMinuteAgo);
+
+  if (recentMessageCount && recentMessageCount > MAX_MESSAGES_PER_MINUTE) {
+    return { 
+      allowed: false, 
+      reason: "Rate limit exceeded. Please wait a moment before sending more messages." 
+    };
+  }
+
+  // Check monthly usage limit
+  if (orgId) {
+    const currentMonth = now.toISOString().slice(0, 7) + "-01";
+    
+    const { data: usageData } = await serviceSupabase
+      .from("usage_stats")
+      .select("ai_calls")
+      .eq("org_id", orgId)
+      .eq("month", currentMonth)
+      .single();
+
+    if (usageData?.ai_calls && usageData.ai_calls >= MONTHLY_AI_CALL_LIMIT) {
+      return { 
+        allowed: false, 
+        reason: "Monthly AI credit limit reached. Please upgrade your plan or wait until next month." 
+      };
+    }
+  }
+
+  return { allowed: true };
+}
 
 // Helper to execute tools
 async function executeTool(
@@ -147,6 +205,18 @@ async function executeTool(
         return await response.json();
       }
 
+      case "stripe_create_customer": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/stripe-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "create_customer", params: args }),
+        });
+        return await response.json();
+      }
+
       // Shopify tools
       case "shopify_list_orders": {
         const response = await fetch(`${supabaseUrl}/functions/v1/shopify-integration`, {
@@ -180,6 +250,18 @@ async function executeTool(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ action: "get_analytics_summary", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "shopify_create_product": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/shopify-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "create_product", params: args }),
         });
         return await response.json();
       }
@@ -378,17 +460,28 @@ serve(async (req) => {
 
     console.log(`[Chat] Processing request for user: ${userId}, session: ${sessionId}`);
 
+    // Create service client for usage tracking and rate limiting
+    const serviceSupabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Check rate limits
+    if (userId) {
+      const rateLimitCheck = await checkRateLimits(serviceSupabase, userId, orgId);
+      if (!rateLimitCheck.allowed) {
+        return new Response(
+          JSON.stringify({ error: rateLimitCheck.reason }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     // Build the full message history with system prompt
     const fullMessages = [
       { role: "system", content: SYSTEM_PROMPT },
       ...messages
     ];
-
-    // Create service client for usage tracking
-    const serviceSupabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
 
     // Track AI call usage
     if (orgId) {

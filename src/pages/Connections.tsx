@@ -28,6 +28,7 @@ interface UserCredential {
   id: string;
   credential_type: string;
   account_email: string | null;
+  scopes: string[] | null;
   connected_at: string;
 }
 
@@ -80,12 +81,13 @@ const Connections = () => {
     if (user) {
       const { data: credentialsData, error: credentialsError } = await supabase
         .from("user_credentials")
-        .select("id, credential_type, account_email, created_at")
+        .select("id, credential_type, account_email, scopes, created_at")
         .eq("user_id", user.id);
 
       if (!credentialsError && credentialsData) {
         setCredentials(credentialsData.map(c => ({
           ...c,
+          scopes: c.scopes || null,
           connected_at: c.created_at
         })));
       }
@@ -254,9 +256,26 @@ const Connections = () => {
                           </CardHeader>
                           <CardContent>
                             {credential?.account_email && (
-                              <p className="text-xs text-muted-foreground mb-2 truncate">
+                              <p className="text-xs text-muted-foreground mb-1 truncate">
                                 {credential.account_email}
                               </p>
+                            )}
+                            {credential?.scopes && credential.scopes.length > 0 && (
+                              <div className="mb-3">
+                                <p className="text-[10px] text-muted-foreground mb-1">Permissions:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {credential.scopes.slice(0, 3).map((scope, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 py-0">
+                                      {scope.split('/').pop()?.replace('.readonly', ' (read)') || scope}
+                                    </Badge>
+                                  ))}
+                                  {credential.scopes.length > 3 && (
+                                    <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                                      +{credential.scopes.length - 3} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
                             )}
                             <Button
                               variant="outline"
