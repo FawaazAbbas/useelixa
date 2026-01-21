@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckSquare, Plus, Trash2, Edit2, X, Check } from "lucide-react";
+import { CheckSquare, Plus, Trash2, Edit2, LayoutGrid, List } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,20 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  status: "todo" | "in_progress" | "done";
-  priority: "low" | "medium" | "high";
-  due_date: string | null;
-  created_at: string;
-}
+import { KanbanBoard, Task } from "@/components/tasks/KanbanBoard";
 
 const Tasks = () => {
   const { user } = useAuth();
@@ -29,6 +21,7 @@ const Tasks = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("kanban");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -45,7 +38,7 @@ const Tasks = () => {
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("position", { ascending: true });
 
     if (error) {
       toast({ title: "Error fetching tasks", description: error.message, variant: "destructive" });
@@ -58,6 +51,10 @@ const Tasks = () => {
   const handleSubmit = async () => {
     if (!formData.title.trim() || !user) return;
 
+    const maxPosition = tasks
+      .filter(t => t.status === formData.status)
+      .reduce((max, t) => Math.max(max, t.position), 0);
+
     const taskData = {
       title: formData.title,
       description: formData.description || null,
@@ -65,6 +62,7 @@ const Tasks = () => {
       priority: formData.priority,
       due_date: formData.due_date || null,
       user_id: user.id,
+      position: editingTask ? editingTask.position : maxPosition + 1,
     };
 
     if (editingTask) {
@@ -115,6 +113,42 @@ const Tasks = () => {
     setDialogOpen(true);
   };
 
+  const handleTaskMove = async (taskId: string, newStatus: Task["status"], newPosition: number) => {
+    // Optimistic update
+    setTasks(prev => {
+      const task = prev.find(t => t.id === taskId);
+      if (!task) return prev;
+
+      const otherTasks = prev.filter(t => t.id !== taskId);
+      const sameStatusTasks = otherTasks.filter(t => t.status === newStatus);
+      
+      // Insert at new position
+      sameStatusTasks.splice(newPosition, 0, { ...task, status: newStatus });
+      
+      // Update positions
+      sameStatusTasks.forEach((t, i) => {
+        t.position = i;
+      });
+
+      const differentStatusTasks = otherTasks.filter(t => t.status !== newStatus);
+      
+      return [...differentStatusTasks, ...sameStatusTasks].map(t => 
+        t.id === taskId ? { ...t, status: newStatus, position: newPosition } : t
+      );
+    });
+
+    // Persist to database
+    const { error } = await supabase
+      .from("tasks")
+      .update({ status: newStatus, position: newPosition })
+      .eq("id", taskId);
+
+    if (error) {
+      toast({ title: "Error moving task", description: error.message, variant: "destructive" });
+      fetchTasks(); // Revert on error
+    }
+  };
+
   const resetForm = () => {
     setFormData({ title: "", description: "", status: "todo", priority: "medium", due_date: "" });
     setEditingTask(null);
@@ -156,64 +190,74 @@ const Tasks = () => {
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
       <header className="border-b bg-card/80 px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <CheckSquare className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-semibold">Tasks</h1>
             <Badge variant="secondary">{tasks.length}</Badge>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => resetForm()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Task
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingTask ? "Edit Task" : "New Task"}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <Input
-                  placeholder="Task title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                />
-                <Textarea
-                  placeholder="Description (optional)"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v as Task["status"] })}>
-                    <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="todo">To Do</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="done">Done</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v as Task["priority"] })}>
-                    <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
+          <div className="flex items-center gap-2">
+            <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "kanban")}>
+              <ToggleGroupItem value="kanban" aria-label="Kanban view">
+                <LayoutGrid className="h-4 w-4" />
+              </ToggleGroupItem>
+              <ToggleGroupItem value="list" aria-label="List view">
+                <List className="h-4 w-4" />
+              </ToggleGroupItem>
+            </ToggleGroup>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => resetForm()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingTask ? "Edit Task" : "New Task"}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
+                  <Input
+                    placeholder="Task title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  />
+                  <Textarea
+                    placeholder="Description (optional)"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v as Task["status"] })}>
+                      <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="todo">To Do</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="done">Done</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v as Task["priority"] })}>
+                      <SelectTrigger><SelectValue placeholder="Priority" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input
+                    type="date"
+                    value={formData.due_date}
+                    onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="outline" onClick={resetForm}>Cancel</Button>
+                    <Button onClick={handleSubmit}>{editingTask ? "Update" : "Create"}</Button>
+                  </div>
                 </div>
-                <Input
-                  type="date"
-                  value={formData.due_date}
-                  onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                />
-                <div className="flex gap-2 justify-end">
-                  <Button variant="outline" onClick={resetForm}>Cancel</Button>
-                  <Button onClick={handleSubmit}>{editingTask ? "Update" : "Create"}</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </header>
 
@@ -227,6 +271,15 @@ const Tasks = () => {
               <p>No tasks yet. Create your first task!</p>
             </CardContent>
           </Card>
+        ) : viewMode === "kanban" ? (
+          <div className="max-w-6xl mx-auto">
+            <KanbanBoard
+              tasks={tasks}
+              onTaskMove={handleTaskMove}
+              onTaskEdit={handleEdit}
+              onTaskDelete={handleDelete}
+            />
+          </div>
         ) : (
           <div className="max-w-3xl mx-auto space-y-3">
             {tasks.map((task) => (
