@@ -44,3 +44,12 @@ verify_jwt = false
 
 [functions.realtime-token]
 verify_jwt = false
+
+[functions.execute-pending-action]
+verify_jwt = false
+
+[functions.search-knowledge-base]
+verify_jwt = false
+
+[functions.ai-task-runner]
+verify_jwt = false

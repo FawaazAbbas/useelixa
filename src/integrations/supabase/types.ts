@@ -605,6 +605,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          assigned_to: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -617,6 +618,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -629,6 +631,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -761,6 +764,50 @@ export type Database = {
           },
         ]
       }
+      usage_stats: {
+        Row: {
+          ai_calls: number | null
+          created_at: string | null
+          documents_uploaded: number | null
+          id: string
+          month: string
+          org_id: string | null
+          storage_bytes_used: number | null
+          tool_executions: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_calls?: number | null
+          created_at?: string | null
+          documents_uploaded?: number | null
+          id?: string
+          month: string
+          org_id?: string | null
+          storage_bytes_used?: number | null
+          tool_executions?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_calls?: number | null
+          created_at?: string | null
+          documents_uploaded?: number | null
+          id?: string
+          month?: string
+          org_id?: string | null
+          storage_bytes_used?: number | null
+          tool_executions?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_stats_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_credentials: {
         Row: {
           access_token: string
@@ -839,6 +886,7 @@ export type Database = {
       workspace_documents: {
         Row: {
           created_at: string | null
+          embedding: string | null
           extracted_content: string | null
           file_path: string
           file_size: number
@@ -852,6 +900,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          embedding?: string | null
           extracted_content?: string | null
           file_path: string
           file_size: number
@@ -865,6 +914,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          embedding?: string | null
           extracted_content?: string | null
           file_path?: string
           file_size?: number
@@ -994,6 +1044,20 @@ export type Database = {
       mark_messages_read: {
         Args: { p_chat_id: string; p_user_id: string }
         Returns: undefined
+      }
+      match_documents: {
+        Args: {
+          match_count: number
+          match_threshold: number
+          p_workspace_id: string
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: string
+          similarity: number
+          title: string
+        }[]
       }
       record_invite: {
         Args: { recipient_email: string; sender_email: string }

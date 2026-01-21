@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { MessageSquare, Plus, Send, Loader2, Bot, User, Menu, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,29 +11,77 @@ import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { supabase } from "@/integrations/supabase/client";
+import { PendingActionButtons } from "@/components/chat/PendingActionButtons";
 
 interface ChatSession {
   id: string;
   title: string;
-  createdAt: string;
+  updated_at: string;
 }
 
 const Chat = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string>(() => crypto.randomUUID());
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loadingSessions, setLoadingSessions] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, isLoading, isStreaming, sendMessage, clearMessages } = useChat({
-    sessionId: activeSessionId,
+  const { messages, isLoading, isStreaming, sendMessage, clearMessages, setMessages, loadSessionMessages } = useChat({
+    sessionId: activeSessionId || "",
     onError: (error) => {
       toast.error(error.message);
     },
   });
+
+  // Load sessions from database
+  useEffect(() => {
+    const loadSessions = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("chat_sessions_v2")
+          .select("id, title, updated_at")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false });
+
+        if (error) throw error;
+        
+        setSessions(data || []);
+        
+        // Set active session to first one or create new
+        if (data && data.length > 0) {
+          setActiveSessionId(data[0].id);
+        } else {
+          // Create a new session
+          const newId = crypto.randomUUID();
+          setActiveSessionId(newId);
+        }
+      } catch (error) {
+        console.error("Error loading sessions:", error);
+      } finally {
+        setLoadingSessions(false);
+      }
+    };
+
+    loadSessions();
+  }, [user]);
+
+  // Load messages when session changes
+  useEffect(() => {
+    if (activeSessionId && !loadingSessions) {
+      const existingSession = sessions.find(s => s.id === activeSessionId);
+      if (existingSession) {
+        loadSessionMessages(activeSessionId);
+      } else {
+        clearMessages();
+      }
+    }
+  }, [activeSessionId, loadingSessions]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -51,22 +98,44 @@ const Chat = () => {
     }
   }, [messages]);
 
-  const handleSend = useCallback(() => {
-    if (!input.trim() || isLoading) return;
+  const createSession = async (title: string): Promise<string> => {
+    const sessionId = crypto.randomUUID();
     
-    // Create session on first message
-    if (messages.length === 0) {
-      const newSession: ChatSession = {
-        id: activeSessionId,
-        title: input.slice(0, 50) + (input.length > 50 ? "..." : ""),
-        createdAt: new Date().toISOString(),
-      };
-      setSessions(prev => [newSession, ...prev]);
+    if (user) {
+      const { error } = await supabase
+        .from("chat_sessions_v2")
+        .insert({
+          id: sessionId,
+          user_id: user.id,
+          title: title.slice(0, 100),
+        });
+
+      if (!error) {
+        setSessions(prev => [{
+          id: sessionId,
+          title: title.slice(0, 100),
+          updated_at: new Date().toISOString(),
+        }, ...prev]);
+      }
     }
     
-    sendMessage(input);
+    return sessionId;
+  };
+
+  const handleSend = useCallback(async () => {
+    if (!input.trim() || isLoading) return;
+    
+    let sessionId = activeSessionId;
+    
+    // Create session on first message if needed
+    if (!sessionId || !sessions.find(s => s.id === sessionId)) {
+      sessionId = await createSession(input.slice(0, 50) + (input.length > 50 ? "..." : ""));
+      setActiveSessionId(sessionId);
+    }
+    
+    sendMessage(input, sessionId);
     setInput("");
-  }, [input, isLoading, sendMessage, messages.length, activeSessionId]);
+  }, [input, isLoading, sendMessage, activeSessionId, sessions]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -84,17 +153,51 @@ const Chat = () => {
   };
 
   const handleSelectSession = (sessionId: string) => {
+    if (sessionId === activeSessionId) return;
     setActiveSessionId(sessionId);
-    clearMessages(); // In a real app, we'd load messages from DB
     setSidebarOpen(false);
   };
 
-  const handleDeleteSession = (sessionId: string) => {
+  const handleDeleteSession = async (sessionId: string) => {
+    if (user) {
+      await supabase
+        .from("chat_sessions_v2")
+        .delete()
+        .eq("id", sessionId)
+        .eq("user_id", user.id);
+    }
+    
     setSessions(prev => prev.filter(s => s.id !== sessionId));
+    
     if (sessionId === activeSessionId) {
       handleNewChat();
     }
   };
+
+  // Group sessions by date
+  const groupedSessions = sessions.reduce((groups, session) => {
+    const date = new Date(session.updated_at);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    let group: string;
+    if (date.toDateString() === today.toDateString()) {
+      group = "Today";
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      group = "Yesterday";
+    } else if (date > weekAgo) {
+      group = "This Week";
+    } else {
+      group = "Older";
+    }
+
+    if (!groups[group]) groups[group] = [];
+    groups[group].push(session);
+    return groups;
+  }, {} as Record<string, ChatSession[]>);
 
   const SessionList = () => (
     <div className="flex flex-col h-full">
@@ -105,35 +208,47 @@ const Chat = () => {
         </Button>
       </div>
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {sessions.map(session => (
-            <div
-              key={session.id}
-              className={cn(
-                "group flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
-                session.id === activeSessionId && "bg-accent"
-              )}
-              onClick={() => handleSelectSession(session.id)}
-            >
-              <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-              <span className="flex-1 truncate text-sm">{session.title}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteSession(session.id);
-                }}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
+        <div className="p-2 space-y-4">
+          {Object.entries(groupedSessions).map(([group, groupSessions]) => (
+            <div key={group}>
+              <p className="text-xs font-medium text-muted-foreground px-3 py-1">{group}</p>
+              <div className="space-y-1">
+                {groupSessions.map(session => (
+                  <div
+                    key={session.id}
+                    className={cn(
+                      "group flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
+                      session.id === activeSessionId && "bg-accent"
+                    )}
+                    onClick={() => handleSelectSession(session.id)}
+                  >
+                    <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                    <span className="flex-1 truncate text-sm">{session.title}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSession(session.id);
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
-          {sessions.length === 0 && (
+          {sessions.length === 0 && !loadingSessions && (
             <p className="text-sm text-muted-foreground text-center py-8">
               No chat history yet
             </p>
+          )}
+          {loadingSessions && (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
           )}
         </div>
       </ScrollArea>
@@ -178,13 +293,17 @@ const Chat = () => {
                 <Bot className="h-16 w-16 text-primary mb-4" />
                 <h2 className="text-2xl font-semibold mb-2">Welcome to Elixa AI</h2>
                 <p className="text-muted-foreground max-w-md">
-                  I'm your intelligent assistant. I can help you manage emails, calendar events, and tasks.
+                  I'm your intelligent assistant. I can help you manage emails, calendar events, tasks, notes, and connect with your Stripe and Shopify data.
                   What would you like to do today?
                 </p>
               </div>
             ) : (
               messages.map((message) => (
-                <MessageBubble key={message.id} message={message} isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"} />
+                <MessageBubble 
+                  key={message.id} 
+                  message={message} 
+                  isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"} 
+                />
               ))
             )}
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
@@ -245,6 +364,7 @@ interface MessageBubbleProps {
 
 const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
   const isUser = message.role === "user";
+  const [actionResolved, setActionResolved] = useState(false);
 
   return (
     <div className={cn("flex items-start gap-3", isUser && "flex-row-reverse")}>
@@ -273,6 +393,14 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
         )}
         {isStreaming && (
           <span className="inline-block w-1.5 h-5 ml-0.5 bg-current animate-pulse" />
+        )}
+        
+        {/* Pending Action Approval Buttons */}
+        {message.pendingAction && !actionResolved && (
+          <PendingActionButtons
+            action={message.pendingAction}
+            onResolved={() => setActionResolved(true)}
+          />
         )}
       </div>
     </div>
