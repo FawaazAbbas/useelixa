@@ -1,21 +1,15 @@
-import { useState } from "react";
-import { Send, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { ElixaLogo } from "@/components/ElixaLogo";
-import { MainNavSidebar } from "@/components/MainNavSidebar";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plug, Key, Activity } from "lucide-react";
 
 const Workspace = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { workspaceId, loading: workspaceLoading } = useWorkspace();
-  const [message, setMessage] = useState("");
 
   if (authLoading || workspaceLoading) {
     return (
@@ -31,16 +25,13 @@ const Workspace = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <MainNavSidebar />
-      
-      <div className="flex-1 flex flex-col">
-        <header className="border-b bg-card/80 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <ElixaLogo size={32} />
-            <span className="font-bold text-xl">Elixa Workspace</span>
-          </div>
-        </header>
+    <div className="flex-1 flex flex-col min-h-screen bg-background">
+      <header className="border-b bg-card/80 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <ElixaLogo size={32} />
+          <span className="font-bold text-xl">Elixa Workspace</span>
+        </div>
+      </header>
 
         <ScrollArea className="flex-1 p-6">
           <div className="max-w-4xl mx-auto space-y-6">
@@ -80,7 +71,6 @@ const Workspace = () => {
           </div>
         </ScrollArea>
       </div>
-    </div>
   );
 };
 

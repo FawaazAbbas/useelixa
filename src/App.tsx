@@ -6,6 +6,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import TalentPool from "./pages/TalentPool";
 import Workspace from "./pages/Workspace";
+import Tasks from "./pages/Tasks";
+import Calendar from "./pages/Calendar";
+import KnowledgeBase from "./pages/KnowledgeBase";
 import Auth from "./pages/Auth";
 import Logs from "./pages/Logs";
 import Connections from "./pages/Connections";
@@ -53,9 +56,6 @@ const AppContent = () => {
           <Route path="/waitlist" element={<Navigate to="/auth" replace />} />
           <Route path="/referral" element={<Navigate to="/tool-library" replace />} />
           <Route path="/pitch-deck" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/tasks" element={<Navigate to="/workspace" replace />} />
-          <Route path="/calendar" element={<Navigate to="/workspace" replace />} />
-          <Route path="/knowledge-base" element={<Navigate to="/workspace" replace />} />
           
           <Route path="/auth" element={<Auth />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
@@ -76,6 +76,33 @@ const AppContent = () => {
               </div>
             }
           />
+          <Route path="/tasks" element={
+            <div className="flex h-screen overflow-hidden">
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
+              <Tasks />
+              <MobileBottomNav />
+            </div>
+          } />
+          <Route path="/calendar" element={
+            <div className="flex h-screen overflow-hidden">
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
+              <Calendar />
+              <MobileBottomNav />
+            </div>
+          } />
+          <Route path="/knowledge-base" element={
+            <div className="flex h-screen overflow-hidden">
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
+              <KnowledgeBase />
+              <MobileBottomNav />
+            </div>
+          } />
           <Route path="/logs" element={
             <div className="flex h-screen overflow-hidden">
               <div className="hidden md:block">
