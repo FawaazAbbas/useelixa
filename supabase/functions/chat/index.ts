@@ -59,6 +59,70 @@ Be helpful, concise, and proactive. If you notice opportunities to help the user
 
 Current date/time: ${new Date().toISOString()}`;
 
+/**
+ * Retrieve relevant conversation memories for context
+ */
+async function getConversationMemories(
+  serviceSupabase: any,
+  userId: string,
+  currentMessage: string
+): Promise<string> {
+  try {
+    // Get embedding for current message to find relevant memories
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
+    const embeddingResponse = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "text-embedding-3-small",
+        input: currentMessage,
+      }),
+    });
+
+    if (!embeddingResponse.ok) {
+      console.log("[Memory] Could not generate embedding for memory recall");
+      return "";
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    const queryEmbedding = embeddingData.data?.[0]?.embedding;
+
+    if (!queryEmbedding) {
+      return "";
+    }
+
+    // Search for relevant past conversations
+    const { data: memories, error } = await serviceSupabase.rpc(
+      "match_conversation_memories",
+      {
+        query_embedding: queryEmbedding,
+        match_user_id: userId,
+        match_threshold: 0.6,
+        match_count: 3,
+      }
+    );
+
+    if (error || !memories || memories.length === 0) {
+      return "";
+    }
+
+    // Format memories as context
+    const memoryContext = memories
+      .map((m: any) => `[Previous conversation about ${m.key_topics?.join(", ") || "various topics"}]: ${m.summary}`)
+      .join("\n");
+
+    console.log(`[Memory] Retrieved ${memories.length} relevant memories`);
+    return `\n\nRelevant context from past conversations:\n${memoryContext}`;
+  } catch (error) {
+    console.error("[Memory] Error retrieving memories:", error);
+    return "";
+  }
+}
+
 // Helper to check rate limits
 async function checkRateLimits(
   serviceSupabase: any, 
@@ -575,9 +639,19 @@ serve(async (req) => {
       }
     }
 
-    // Build the full message history with system prompt
+    // Retrieve relevant conversation memories for context
+    let memoryContext = "";
+    if (userId && messages.length > 0) {
+      const lastUserMessage = messages.filter((m: any) => m.role === "user").pop();
+      if (lastUserMessage) {
+        memoryContext = await getConversationMemories(serviceSupabase, userId, lastUserMessage.content);
+      }
+    }
+
+    // Build the full message history with system prompt and memory context
+    const systemPromptWithMemory = SYSTEM_PROMPT + memoryContext;
     const fullMessages = [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: systemPromptWithMemory },
       ...messages
     ];
 
