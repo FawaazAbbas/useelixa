@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, Bot, FileText } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, Bot, FileText, Users, CreditCard } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -19,8 +19,9 @@ const navItems = [
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
-  { icon: Activity, label: "Logs", path: "/logs" },
   { icon: Plug, label: "Connections", path: "/connections" },
+  { icon: Users, label: "Team", path: "/team" },
+  { icon: Activity, label: "Logs", path: "/logs" },
 ];
 
 export const MainNavSidebar = () => {
