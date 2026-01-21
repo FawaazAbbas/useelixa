@@ -385,6 +385,44 @@ export type Database = {
           },
         ]
       }
+      notes: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string
+          title: string
+          updated_at: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string
+          updated_at?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       org_integrations: {
         Row: {
           connected_at: string | null
@@ -797,6 +835,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      workspace_documents: {
+        Row: {
+          created_at: string | null
+          extracted_content: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          extracted_content?: string | null
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string | null
+          extracted_content?: string | null
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_documents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_members: {
         Row: {

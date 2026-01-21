@@ -1,0 +1,123 @@
+import { useState, useMemo } from "react";
+import { FileText, Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNotes, type Note } from "@/hooks/useNotes";
+import { NotesList } from "@/components/notes/NotesList";
+import { NoteEditor } from "@/components/notes/NoteEditor";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+
+const Notes = () => {
+  const { notes, loading, saving, createNote, updateNote, deleteNote } = useNotes();
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredNotes = useMemo(() => {
+    if (!searchQuery.trim()) return notes;
+    const query = searchQuery.toLowerCase();
+    return notes.filter(
+      (note) =>
+        note.title.toLowerCase().includes(query) ||
+        note.content.toLowerCase().includes(query)
+    );
+  }, [notes, searchQuery]);
+
+  const handleCreateNote = async () => {
+    const newNote = await createNote();
+    if (newNote) {
+      setSelectedNote(newNote);
+    }
+  };
+
+  const handleSelectNote = (note: Note) => {
+    setSelectedNote(note);
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    const success = await deleteNote(id);
+    if (success && selectedNote?.id === id) {
+      setSelectedNote(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex h-screen bg-background">
+      {/* Sidebar */}
+      <div className="w-72 border-r flex flex-col">
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <h1 className="font-semibold">Notes</h1>
+            </div>
+            <Button size="sm" onClick={handleCreateNote}>
+              <Plus className="h-4 w-4 mr-1" />
+              New
+            </Button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search notes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+        <ScrollArea className="flex-1 p-2">
+          {filteredNotes.length > 0 ? (
+            <NotesList
+              notes={filteredNotes}
+              selectedId={selectedNote?.id || null}
+              onSelect={handleSelectNote}
+              onDelete={handleDeleteNote}
+            />
+          ) : notes.length > 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Search className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm">No notes match your search</p>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <FileText className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm">No notes yet</p>
+              <p className="text-xs mt-1">Click "New" to create one</p>
+            </div>
+          )}
+        </ScrollArea>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {selectedNote ? (
+          <NoteEditor
+            key={selectedNote.id}
+            note={selectedNote}
+            onUpdate={updateNote}
+            saving={saving}
+          />
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <FileText className="h-12 w-12 mx-auto mb-3" />
+              <p className="font-medium">Select a note to view</p>
+              <p className="text-sm mt-1">Or create a new one</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Notes;
