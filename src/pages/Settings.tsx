@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock } from "lucide-react";
+import { ArrowLeft, User, Lock, Key, Plug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
 import { DemoBanner } from "@/components/DemoBanner";
+import { McpAccessSettings } from "@/components/settings/McpAccessSettings";
+import { ConnectedToolsSettings } from "@/components/settings/ConnectedToolsSettings";
 import { mockProfile } from "@/data/mockSettings";
 
 const Settings = () => {
@@ -34,7 +36,7 @@ const Settings = () => {
       
       <div className="flex-1 overflow-auto pb-20 md:pb-0">
         <DemoBanner />
-        <div className="py-6 px-4 md:py-8 max-w-7xl mx-auto animate-fade-in">
+        <div className="py-6 px-4 md:py-8 max-w-4xl mx-auto animate-fade-in">
           <Button 
             variant="ghost" 
             className="gap-2 mb-6"
@@ -52,14 +54,28 @@ const Settings = () => {
               <h1 className="text-3xl md:text-4xl font-bold">Settings</h1>
             </div>
             <p className="text-muted-foreground text-sm md:text-base">
-              Manage your account preferences
+              Manage your account, tools, and MCP access
             </p>
           </div>
 
           <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
-            <TabsList className="w-full grid grid-cols-2 h-auto">
-              <TabsTrigger value="profile" className="text-xs md:text-sm py-3 touch-manipulation">Profile</TabsTrigger>
-              <TabsTrigger value="security" className="text-xs md:text-sm py-3 touch-manipulation">Security</TabsTrigger>
+            <TabsList className="w-full grid grid-cols-4 h-auto">
+              <TabsTrigger value="profile" className="text-xs md:text-sm py-3 touch-manipulation">
+                <User className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="security" className="text-xs md:text-sm py-3 touch-manipulation">
+                <Lock className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                Security
+              </TabsTrigger>
+              <TabsTrigger value="tools" className="text-xs md:text-sm py-3 touch-manipulation">
+                <Plug className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                Tools
+              </TabsTrigger>
+              <TabsTrigger value="mcp" className="text-xs md:text-sm py-3 touch-manipulation">
+                <Key className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                MCP Access
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
@@ -145,6 +161,14 @@ const Settings = () => {
                   </Button>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="tools">
+              <ConnectedToolsSettings />
+            </TabsContent>
+
+            <TabsContent value="mcp">
+              <McpAccessSettings />
             </TabsContent>
           </Tabs>
         </div>

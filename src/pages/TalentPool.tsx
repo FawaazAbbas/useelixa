@@ -581,16 +581,16 @@ const TalentPool = () => {
           <div className="text-center space-y-4 md:space-y-6 mb-8 md:mb-10">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
               <span className="bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
-                Your company,
+                Your AI tools,
               </span>
               <br />
               <span className="bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent">
-                <TypingText text="staffed with AI." typingSpeed={70} startDelay={400} />
+                <TypingText text="unified & connected." typingSpeed={70} startDelay={400} />
               </span>
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
-              Hire AI employees and run your business from one workspace - Meet Elixa.
+              Connect your tools and expose them via MCP — one hub for all your integrations.
             </p>
           </div>
 
@@ -615,7 +615,7 @@ const TalentPool = () => {
               </button>
               <button
                 onClick={() => {
-                  // Scroll to agents section
+                  // Scroll to tools section
                   const agentsSection = document.getElementById("agents-section");
                   if (agentsSection) {
                     agentsSection.scrollIntoView({ behavior: "smooth" });
@@ -623,7 +623,7 @@ const TalentPool = () => {
                 }}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Browse AI talent pool →
+                Browse Tool Library →
               </button>
             </div>
           </div>
@@ -662,7 +662,7 @@ const TalentPool = () => {
                   <div className="absolute inset-0 rounded-full bg-primary/30 blur-md animate-pulse" />
                   <div className="relative animate-spin rounded-full h-12 w-12 border-2 border-muted border-t-primary" />
                 </div>
-                <p className="mt-4 text-sm text-muted-foreground">Loading agents...</p>
+                <p className="mt-4 text-sm text-muted-foreground">Loading tools...</p>
               </div>
             ) : isFiltering ? (
               /* Filtered Results */
@@ -672,13 +672,13 @@ const TalentPool = () => {
                     <h2 className="text-xl font-semibold">
                       {searchQuery ? `Results for "${searchQuery}"` : "Filtered Results"}
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-1">{filteredAgents.length} agents found</p>
+                    <p className="text-sm text-muted-foreground mt-1">{filteredAgents.length} tools found</p>
                   </div>
                 </div>
 
                 {filteredAgents.length === 0 ? (
                   <div className="text-center py-16 bg-card/30 rounded-xl border border-border/50">
-                    <p className="text-lg text-muted-foreground mb-4">No agents match your criteria</p>
+                    <p className="text-lg text-muted-foreground mb-4">No tools match your criteria</p>
                     <Button onClick={clearFilters}>Clear filters</Button>
                   </div>
                 ) : (
@@ -693,7 +693,7 @@ const TalentPool = () => {
                     }
                     endMessage={
                       <p className="text-center py-6 text-sm text-muted-foreground">
-                        All {filteredAgents.length} agents loaded
+                        All {filteredAgents.length} tools loaded
                       </p>
                     }
                   >
@@ -773,7 +773,7 @@ const TalentPool = () => {
                 {/* All */}
                 <section>
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="text-xl font-semibold">All Agents</h2>
+                    <h2 className="text-xl font-semibold">All Tools</h2>
                     <span className="text-sm text-muted-foreground">{agents.length} total</span>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -786,7 +786,7 @@ const TalentPool = () => {
                   {agents.length > 12 && (
                     <div className="text-center mt-8">
                       <Button variant="outline" size="lg" onClick={() => setSearchQuery(" ")}>
-                        View All {agents.length} Agents
+                        View All {agents.length} Tools
                       </Button>
                     </div>
                   )}

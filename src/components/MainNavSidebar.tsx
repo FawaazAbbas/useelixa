@@ -84,7 +84,7 @@ export const MainNavSidebar = () => {
             className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-lg border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 ease-out whitespace-nowrap" 
             style={{ zIndex: 999999, position: 'absolute' }}
           >
-            AI Talent Pool
+            Tool Library
           </span>
         </NavLink>
       </div>

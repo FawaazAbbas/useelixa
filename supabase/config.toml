@@ -1,1 +1,10 @@
 project_id = "okkybxipbxpoyzqmtosz"
+
+[functions.mcp-tokens]
+verify_jwt = false
+
+[functions.mcp-integrations]
+verify_jwt = false
+
+[functions.mcp]
+verify_jwt = false
