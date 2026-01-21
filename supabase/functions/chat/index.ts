@@ -22,11 +22,12 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "shopify_get_analytics", description: "Get Shopify analytics summary", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "notes_list", description: "List user's notes", parameters: { type: "object", properties: { limit: { type: "number" } } } } },
   { type: "function", function: { name: "notes_search", description: "Search notes by query", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
-  { type: "function", function: { name: "notes_create", description: "Create a new note", parameters: { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title"] } } },
+  { type: "function", function: { name: "notes_create", description: "Create a new note. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title"] } } },
+  { type: "function", function: { name: "search_knowledge_base", description: "Search the organization's knowledge base documents for relevant information using semantic search", parameters: { type: "object", properties: { query: { type: "string", description: "The search query" } }, required: ["query"] } } },
 ];
 
 // Tools that require user confirmation before execution
-const WRITE_TOOLS = ["gmail_send_email", "calendar_create_event"];
+const WRITE_TOOLS = ["gmail_send_email", "calendar_create_event", "notes_create"];
 
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
 
@@ -34,9 +35,12 @@ You have access to the following capabilities:
 - Read and send emails via Gmail (use gmail_list_emails, gmail_send_email)
 - View and create calendar events (use calendar_list_events, calendar_create_event)
 - Manage tasks (use create_task, list_tasks)
-- Search knowledge base documents (use search_knowledge)
+- Access Stripe data (use stripe_get_balance, stripe_list_payments, stripe_list_customers)
+- Access Shopify data (use shopify_list_orders, shopify_list_products, shopify_get_analytics)
+- Manage notes (use notes_list, notes_search, notes_create)
+- Search knowledge base documents (use search_knowledge_base)
 
-When using tools that modify data (sending emails, creating events), always clearly explain what you're about to do and confirm the details with the user before proceeding.
+When using tools that modify data (sending emails, creating events, creating notes), always clearly explain what you're about to do and ask for confirmation.
 
 Be helpful, concise, and proactive. If you notice opportunities to help the user be more productive, suggest them.
 
@@ -252,7 +256,7 @@ async function executeTool(
         return { tasks: data };
       }
 
-      // Knowledge base search
+      // Knowledge base search (legacy)
       case "search_knowledge": {
         const { data, error } = await supabase
           .from("workspace_documents")
@@ -272,12 +276,58 @@ async function executeTool(
         return { documents: data || [] };
       }
 
+      // Knowledge base semantic search
+      case "search_knowledge_base": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/search-knowledge-base`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ query: args.query, limit: args.limit || 5 }),
+        });
+        return await response.json();
+      }
+
       default:
         return { error: `Unknown tool: ${toolName}` };
     }
   } catch (error) {
     console.error(`[Chat] Tool execution error:`, error);
     return { error: error instanceof Error ? error.message : "Tool execution failed" };
+  }
+}
+
+// Helper to increment usage stats
+async function incrementUsage(serviceSupabase: any, orgId: string, field: string) {
+  const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
+  
+  try {
+    // Try to update existing record
+    const { data: existing } = await serviceSupabase
+      .from("usage_stats")
+      .select("id, " + field)
+      .eq("org_id", orgId)
+      .eq("month", currentMonth)
+      .single();
+
+    if (existing) {
+      await serviceSupabase
+        .from("usage_stats")
+        .update({ [field]: (existing[field] || 0) + 1 })
+        .eq("id", existing.id);
+    } else {
+      // Create new record for this month
+      await serviceSupabase
+        .from("usage_stats")
+        .insert({
+          org_id: orgId,
+          month: currentMonth,
+          [field]: 1,
+        });
+    }
+  } catch (error) {
+    console.error("[Chat] Error incrementing usage:", error);
   }
 }
 
@@ -303,6 +353,8 @@ serve(async (req) => {
     let userId: string | null = null;
     let supabase: any = null;
 
+    let orgId: string | null = null;
+
     if (authHeader) {
       supabase = createClient(
         Deno.env.get("SUPABASE_URL")!,
@@ -311,6 +363,17 @@ serve(async (req) => {
       );
       const { data: { user } } = await supabase.auth.getUser();
       userId = user?.id || null;
+
+      // Get user's org for usage tracking
+      if (userId) {
+        const { data: orgMember } = await supabase
+          .from("org_members")
+          .select("org_id")
+          .eq("user_id", userId)
+          .limit(1)
+          .single();
+        orgId = orgMember?.org_id || null;
+      }
     }
 
     console.log(`[Chat] Processing request for user: ${userId}, session: ${sessionId}`);
@@ -320,6 +383,17 @@ serve(async (req) => {
       { role: "system", content: SYSTEM_PROMPT },
       ...messages
     ];
+
+    // Create service client for usage tracking
+    const serviceSupabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Track AI call usage
+    if (orgId) {
+      await incrementUsage(serviceSupabase, orgId, "ai_calls");
+    }
 
     // Call Lovable AI Gateway (non-streaming for tool handling)
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -371,12 +445,6 @@ serve(async (req) => {
 
         // Check if this is a write tool that needs confirmation
         if (WRITE_TOOLS.includes(toolName)) {
-          // Return a pending action response
-          const serviceSupabase = createClient(
-            Deno.env.get("SUPABASE_URL")!,
-            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-          );
-
           await serviceSupabase.from("pending_actions").insert({
             user_id: userId,
             session_id: sessionId,
@@ -399,6 +467,12 @@ serve(async (req) => {
 
         // Execute read-only tools directly
         const result = await executeTool(toolName, toolArgs, supabase, userId, authHeader);
+        
+        // Track tool execution
+        if (orgId) {
+          await incrementUsage(serviceSupabase, orgId, "tool_executions");
+        }
+
         toolResults.push({
           tool_call_id: toolCall.id,
           role: "tool",
