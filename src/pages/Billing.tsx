@@ -1,10 +1,20 @@
-import { CreditCard, Zap, CheckCircle, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useTeam } from "@/hooks/useTeam";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
+interface UsageStats {
+  ai_calls: number;
+  tool_executions: number;
+  documents_uploaded: number;
+  storage_bytes_used: number;
+}
 
 const plans = [
   {
@@ -14,10 +24,11 @@ const plans = [
     features: [
       "1 workspace",
       "3 team members",
-      "Basic AI features",
+      "1,000 AI credits/month",
       "5 integrations",
       "Community support",
     ],
+    limits: { ai_calls: 1000, tool_executions: 500, documents: 50 },
     current: true,
   },
   {
@@ -28,11 +39,12 @@ const plans = [
     features: [
       "Unlimited workspaces",
       "10 team members",
-      "Advanced AI features",
+      "10,000 AI credits/month",
       "Unlimited integrations",
       "Priority support",
       "Custom branding",
     ],
+    limits: { ai_calls: 10000, tool_executions: 5000, documents: 500 },
     highlighted: true,
   },
   {
@@ -42,16 +54,58 @@ const plans = [
     features: [
       "Everything in Pro",
       "Unlimited team members",
+      "Unlimited AI credits",
       "SSO & SAML",
       "Dedicated support",
       "SLA guarantee",
-      "Custom contracts",
     ],
+    limits: { ai_calls: Infinity, tool_executions: Infinity, documents: Infinity },
   },
 ];
 
 const Billing = () => {
+  const { user } = useAuth();
   const { organization, loading } = useTeam();
+  const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+  const [loadingUsage, setLoadingUsage] = useState(true);
+
+  useEffect(() => {
+    const fetchUsage = async () => {
+      if (!organization?.id) {
+        setLoadingUsage(false);
+        return;
+      }
+
+      try {
+        const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
+        
+        const { data, error } = await supabase
+          .from("usage_stats")
+          .select("*")
+          .eq("org_id", organization.id)
+          .eq("month", currentMonth)
+          .maybeSingle();
+
+        if (!error && data) {
+          setUsageStats(data as UsageStats);
+        } else {
+          // No usage data yet, show zeros
+          setUsageStats({
+            ai_calls: 0,
+            tool_executions: 0,
+            documents_uploaded: 0,
+            storage_bytes_used: 0,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching usage:", error);
+      } finally {
+        setLoadingUsage(false);
+      }
+    };
+
+    fetchUsage();
+  }, [organization?.id]);
 
   if (loading) {
     return (
@@ -62,7 +116,27 @@ const Billing = () => {
   }
 
   const currentPlan = organization?.plan || "free";
-  const usagePercent = 35; // Placeholder usage
+  const currentPlanData = plans.find(p => p.name.toLowerCase() === currentPlan) || plans[0];
+  
+  const aiCreditsUsed = usageStats?.ai_calls || 0;
+  const aiCreditsLimit = currentPlanData.limits?.ai_calls || 1000;
+  const aiUsagePercent = Math.min((aiCreditsUsed / aiCreditsLimit) * 100, 100);
+  
+  const toolsUsed = usageStats?.tool_executions || 0;
+  const toolsLimit = currentPlanData.limits?.tool_executions || 500;
+  const toolsUsagePercent = Math.min((toolsUsed / toolsLimit) * 100, 100);
+
+  const docsUploaded = usageStats?.documents_uploaded || 0;
+  const docsLimit = currentPlanData.limits?.documents || 50;
+  const docsUsagePercent = Math.min((docsUploaded / docsLimit) * 100, 100);
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  };
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-background">
@@ -87,17 +161,58 @@ const Billing = () => {
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">AI Credits Used</span>
-                <span className="font-medium">{usagePercent}%</span>
+          <CardContent className="space-y-6">
+            {loadingUsage ? (
+              <div className="flex justify-center py-4">
+                <LoadingSpinner />
               </div>
-              <Progress value={usagePercent} className="h-2" />
-              <p className="text-xs text-muted-foreground">
-                350 of 1,000 credits used this month
-              </p>
-            </div>
+            ) : (
+              <>
+                {/* AI Credits */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      AI Credits Used
+                    </span>
+                    <span className="font-medium">
+                      {aiCreditsUsed.toLocaleString()} / {aiCreditsLimit.toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress value={aiUsagePercent} className="h-2" />
+                </div>
+
+                {/* Tool Executions */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      Tool Executions
+                    </span>
+                    <span className="font-medium">
+                      {toolsUsed.toLocaleString()} / {toolsLimit.toLocaleString()}
+                    </span>
+                  </div>
+                  <Progress value={toolsUsagePercent} className="h-2" />
+                </div>
+
+                {/* Documents */}
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Documents Uploaded</span>
+                    <span className="font-medium">
+                      {docsUploaded} / {docsLimit}
+                    </span>
+                  </div>
+                  <Progress value={docsUsagePercent} className="h-2" />
+                </div>
+
+                {/* Storage */}
+                <div className="text-sm text-muted-foreground">
+                  Storage used: {formatBytes(usageStats?.storage_bytes_used || 0)}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
