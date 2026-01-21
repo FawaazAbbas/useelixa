@@ -34,7 +34,7 @@ import BlogPost from "./pages/BlogPost";
 import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
 import { MobileBottomNav } from "./components/MobileBottomNav";
-import { FloatingWaitlistButton } from "./components/FloatingWaitlistButton";
+
 import { ScrollToTop } from "./components/ScrollToTop";
 import { RouteTracker } from "./components/RouteTracker";
 import { useGlobalButtonTracking } from "./hooks/useGlobalButtonTracking";
@@ -49,7 +49,7 @@ const AppContent = () => {
       <ScrollToTop />
       <RouteTracker />
       <MobileRedirect />
-      <FloatingWaitlistButton />
+      
         <Routes>
           <Route path="/" element={<TalentPool />} />
           <Route path="/talent-pool" element={<TalentPool />} />
