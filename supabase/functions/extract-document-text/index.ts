@@ -63,22 +63,72 @@ serve(async (req) => {
       extractedContent = `Binary file (${fileType}). Size: ${bytes.length} bytes. File is available for agent direct access.`;
     }
 
-    // Update the document record with extracted content
+    // Generate embedding for semantic search if we have meaningful text content
+    let embedding: number[] | null = null;
+    
+    if (extractedContent && extractedContent.length > 50 && !extractedContent.startsWith('Binary file') && !extractedContent.startsWith('Image file')) {
+      console.log('Generating embedding for document...');
+      
+      try {
+        // Truncate content for embedding (max ~8000 tokens worth)
+        const contentForEmbedding = extractedContent.slice(0, 30000);
+        
+        const embeddingResponse = await fetch(
+          "https://ai.gateway.lovable.dev/v1/embeddings",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "text-embedding-3-small",
+              input: contentForEmbedding,
+            }),
+          }
+        );
+
+        if (embeddingResponse.ok) {
+          const embeddingData = await embeddingResponse.json();
+          embedding = embeddingData?.data?.[0]?.embedding;
+          
+          if (embedding) {
+            console.log(`Generated embedding with ${embedding.length} dimensions`);
+          }
+        } else {
+          console.error('Embedding generation failed:', await embeddingResponse.text());
+        }
+      } catch (embeddingError) {
+        console.error('Error generating embedding:', embeddingError);
+        // Continue without embedding - document will still be searchable by text
+      }
+    }
+
+    // Update the document record with extracted content and embedding
+    const updateData: Record<string, unknown> = { 
+      extracted_content: extractedContent,
+      status: 'ready'
+    };
+    
+    if (embedding) {
+      updateData.embedding = embedding;
+    }
+
     const { error: updateError } = await supabase
       .from('workspace_documents')
-      .update({ extracted_content: extractedContent })
+      .update(updateData)
       .eq('id', documentId);
 
     if (updateError) {
       throw new Error(`Failed to update document: ${updateError.message}`);
     }
 
-    console.log(`Successfully extracted content for document ${documentId}`);
+    console.log(`Successfully extracted content for document ${documentId}${embedding ? ' with embedding' : ''}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         extractedLength: extractedContent.length,
+        hasEmbedding: !!embedding,
         contentPreview: extractedContent.substring(0, 200)
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
