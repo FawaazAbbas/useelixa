@@ -111,12 +111,7 @@ const BlogPostPage = () => {
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistName, setWaitlistName] = useState("");
-  const [waitlistIndustry, setWaitlistIndustry] = useState("");
-  const [waitlistPosition, setWaitlistPosition] = useState("");
-  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
-  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  // Removed waitlist state - table dropped
 
   useEffect(() => {
     if (slug) {
@@ -169,34 +164,7 @@ const BlogPostPage = () => {
     }
   };
 
-  const isWaitlistFormValid = waitlistName.trim() && waitlistEmail.trim() && waitlistIndustry.trim() && waitlistPosition.trim();
-
-  const handleWaitlistSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isWaitlistFormValid) return;
-
-    setWaitlistSubmitting(true);
-    try {
-      const { error } = await supabase.from("waitlist_signups").insert({
-        email: waitlistEmail.trim(),
-        name: waitlistName.trim(),
-        company: waitlistIndustry.trim(),
-        use_case: waitlistPosition.trim(),
-      });
-
-      if (error) throw error;
-      setWaitlistSubmitted(true);
-      toast.success("You're on the list!");
-    } catch (error: any) {
-      if (error.code === "23505") {
-        toast.error("This email is already on the waitlist!");
-      } else {
-        toast.error("Something went wrong. Please try again.");
-      }
-    } finally {
-      setWaitlistSubmitting(false);
-    }
-  };
+  // Waitlist functionality removed
 
   // Calculate reading time from plain text
   const getPlainText = (html: string) => html.replace(/<[^>]*>/g, '');
@@ -363,94 +331,35 @@ const BlogPostPage = () => {
             </motion.div>
           )}
 
-          {/* Waitlist CTA Section */}
+          {/* CTA Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mt-8 sm:mt-12 relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-violet-500/20 to-fuchsia-500/20 rounded-xl sm:rounded-2xl blur-xl opacity-60" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 rounded-xl sm:rounded-2xl blur-xl opacity-60" />
             <div className="relative bg-card/90 backdrop-blur-xl rounded-xl sm:rounded-2xl p-5 sm:p-8 border border-primary/20 overflow-hidden">
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-tr from-violet-500/20 to-fuchsia-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
               
               <div className="relative text-center">
-                {!waitlistSubmitted ? (
-                  <>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                      <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                      <span className="text-[10px] sm:text-xs font-medium text-primary uppercase tracking-wider">Early Access</span>
-                    </div>
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
-                      <span className="bg-gradient-to-r from-primary via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
-                        Join the Elixa Waitlist
-                      </span>
-                    </h3>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6 max-w-md mx-auto">
-                      Be the first to experience AI agents that transform how you work. Get early access and exclusive updates.
-                    </p>
-                    <form onSubmit={handleWaitlistSubmit} className="max-w-md mx-auto space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Input
-                          placeholder="Full name *"
-                          value={waitlistName}
-                          onChange={(e) => setWaitlistName(e.target.value)}
-                          required
-                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
-                        />
-                        <Input
-                          type="email"
-                          placeholder="Email *"
-                          value={waitlistEmail}
-                          onChange={(e) => setWaitlistEmail(e.target.value)}
-                          required
-                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
-                        />
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Input
-                          placeholder="Industry *"
-                          value={waitlistIndustry}
-                          onChange={(e) => setWaitlistIndustry(e.target.value)}
-                          required
-                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
-                        />
-                        <Input
-                          placeholder="Position *"
-                          value={waitlistPosition}
-                          onChange={(e) => setWaitlistPosition(e.target.value)}
-                          required
-                          className="h-11 sm:h-12 bg-background/80 border-border rounded-xl focus:border-primary text-sm sm:text-base"
-                        />
-                      </div>
-                      <Button 
-                        type="submit"
-                        disabled={waitlistSubmitting || !isWaitlistFormValid}
-                        className="w-full h-11 sm:h-12 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 rounded-xl shadow-lg shadow-primary/25 transition-all text-sm sm:text-base"
-                      >
-                        {waitlistSubmitting ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <>
-                            Join Elixa <ArrowRight className="w-4 h-4 ml-1.5" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  </>
-                ) : (
-                  <div className="py-4">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/30">
-                      <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-bold mb-2">You're on the list!</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      We'll notify you when Elixa is ready. Stay tuned!
-                    </p>
-                  </div>
-                )}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
+                  <span className="text-[10px] sm:text-xs font-medium text-primary uppercase tracking-wider">Get Started</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
+                  <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                    Try Elixa Today
+                  </span>
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground mb-5 sm:mb-6 max-w-md mx-auto">
+                  Connect your tools and start automating workflows with MCP.
+                </p>
+                <Link to="/auth">
+                  <Button className="h-11 sm:h-12 px-8 rounded-xl shadow-lg shadow-primary/25 transition-all text-sm sm:text-base">
+                    Get Started <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </motion.div>
