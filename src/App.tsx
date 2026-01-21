@@ -9,6 +9,7 @@ import Workspace from "./pages/Workspace";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import Notes from "./pages/Notes";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
 import Logs from "./pages/Logs";
@@ -104,6 +105,15 @@ const AppContent = () => {
                 <MainNavSidebar />
               </div>
               <KnowledgeBase />
+              <MobileBottomNav />
+            </div>
+          } />
+          <Route path="/notes" element={
+            <div className="flex h-screen overflow-hidden">
+              <div className="hidden md:block">
+                <MainNavSidebar />
+              </div>
+              <Notes />
               <MobileBottomNav />
             </div>
           } />
