@@ -1,11 +1,10 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { BrianAvatar } from "@/components/BrianAvatar";
 import { FileMessageCard } from "@/components/chat/FileMessageCard";
-import { AgentRecommendationCard } from "@/components/chat/AgentRecommendationCard";
 import { ToolExecutionCard } from "@/components/chat/ToolExecutionCard";
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ElixaLogo } from "@/components/ElixaLogo";
 
 interface ToolExecution {
   toolName: string;
@@ -29,13 +28,6 @@ interface ChatMessageProps {
     }>;
     toolExecutions?: ToolExecution[];
   };
-  recommendedAgent?: {
-    id: string;
-    name: string;
-    description?: string;
-    category?: string;
-    rating?: number;
-  };
   isStreaming?: boolean;
 }
 
@@ -44,7 +36,6 @@ export const ChatMessage = ({
   content,
   timestamp,
   metadata,
-  recommendedAgent,
   isStreaming,
 }: ChatMessageProps) => {
   const [copied, setCopied] = useState(false);
@@ -60,7 +51,9 @@ export const ChatMessage = ({
       <div className="max-w-3xl mx-auto px-4">
         <div className="flex gap-4">
           {role === "assistant" ? (
-            <BrianAvatar size="md" rounded="full" className="flex-shrink-0 mt-1" />
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+              <ElixaLogo size={18} />
+            </div>
           ) : (
             <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
               <AvatarFallback className="text-xs bg-primary text-primary-foreground">
@@ -111,16 +104,6 @@ export const ChatMessage = ({
               <FileMessageCard
                 files={metadata.files}
                 senderName={role === "user" ? "You" : "Elixa"}
-              />
-            )}
-
-            {recommendedAgent && (
-              <AgentRecommendationCard
-                agentId={recommendedAgent.id}
-                agentName={recommendedAgent.name}
-                description={recommendedAgent.description}
-                category={recommendedAgent.category}
-                rating={recommendedAgent.rating}
               />
             )}
 

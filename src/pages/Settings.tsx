@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
-import { DemoBanner } from "@/components/DemoBanner";
+
 import { McpAccessSettings } from "@/components/settings/McpAccessSettings";
 import { ConnectedToolsSettings } from "@/components/settings/ConnectedToolsSettings";
 import { mockProfile } from "@/data/mockSettings";

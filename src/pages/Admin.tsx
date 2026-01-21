@@ -8,19 +8,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
-import { AdminWaitlistTab } from "@/components/admin/AdminWaitlistTab";
-import { AdminDevelopersTab } from "@/components/admin/AdminDevelopersTab";
 import { AdminBlogTab } from "@/components/admin/AdminBlogTab";
-import { AdminReferralsTab } from "@/components/admin/AdminReferralsTab";
-
-interface WaitlistSignup {
-  id: string;
-  name: string;
-  email: string;
-  company: string | null;
-  use_case: string | null;
-  created_at: string;
-}
 
 interface DeveloperApplication {
   id: string;
@@ -36,7 +24,6 @@ const Admin = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   
-  const [waitlistSignups, setWaitlistSignups] = useState<WaitlistSignup[]>([]);
   const [developerApplications, setDeveloperApplications] = useState<DeveloperApplication[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,19 +33,12 @@ const Admin = () => {
   const fetchData = async () => {
     setRefreshing(true);
     try {
-      const [waitlistRes, developerRes] = await Promise.all([
-        supabase
-          .from("waitlist_signups")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("developer_applications")
-          .select("*")
-          .order("created_at", { ascending: false }),
-      ]);
+      const { data } = await supabase
+        .from("developer_applications")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (waitlistRes.data) setWaitlistSignups(waitlistRes.data);
-      if (developerRes.data) setDeveloperApplications(developerRes.data);
+      if (data) setDeveloperApplications(data);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch data");
@@ -96,27 +76,11 @@ const Admin = () => {
       case "overview":
         return (
           <AdminOverviewTab
-            waitlistSignups={waitlistSignups}
+            waitlistSignups={[]}
             developerApplications={developerApplications}
             onNavigate={setActiveTab}
           />
         );
-      case "waitlist":
-        return (
-          <AdminWaitlistTab
-            signups={waitlistSignups}
-            onRefresh={fetchData}
-          />
-        );
-      case "developers":
-        return (
-          <AdminDevelopersTab
-            applications={developerApplications}
-            onRefresh={fetchData}
-          />
-        );
-      case "referrals":
-        return <AdminReferralsTab onRefresh={fetchData} />;
       case "blog":
         return <AdminBlogTab />;
       default:
@@ -127,9 +91,6 @@ const Admin = () => {
   const getPageTitle = () => {
     switch (activeTab) {
       case "overview": return "Dashboard Overview";
-      case "waitlist": return "Waitlist Management";
-      case "referrals": return "Referral Program";
-      case "developers": return "Developer Applications";
       case "blog": return "Blog Management";
       default: return "Admin Dashboard";
     }
@@ -137,42 +98,32 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar */}
       <AdminSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onRefresh={fetchData}
         onSignOut={handleSignOut}
         refreshing={refreshing}
-        waitlistCount={waitlistSignups.length}
+        waitlistCount={0}
         developerCount={developerApplications.length}
         collapsed={sidebarCollapsed}
         onCollapsedChange={setSidebarCollapsed}
       />
 
-      {/* Main Content */}
       <main
         className={cn(
           "min-h-screen transition-all duration-300",
           sidebarCollapsed ? "ml-16" : "ml-64"
         )}
       >
-        {/* Header */}
         <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex h-16 items-center px-6">
             <div>
               <h1 className="text-xl font-semibold text-foreground">{getPageTitle()}</h1>
-              <p className="text-sm text-muted-foreground">
-                {activeTab === "overview" && "Welcome back to your admin dashboard"}
-                {activeTab === "waitlist" && `Managing ${waitlistSignups.length} waitlist entries`}
-                {activeTab === "developers" && `Managing ${developerApplications.length} applications`}
-                {activeTab === "blog" && "Create and manage blog posts"}
-              </p>
             </div>
           </div>
         </header>
 
-        {/* Page Content */}
         <div className="p-6">
           {renderContent()}
         </div>
