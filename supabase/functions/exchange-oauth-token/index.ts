@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken, isEncryptionAvailable } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -202,15 +203,44 @@ serve(async (req) => {
     );
 
     // Prepare credential data with ACTUAL GRANTED SCOPES
+    // Encrypt tokens if encryption is available
+    let accessTokenToStore = tokens.access_token;
+    let refreshTokenToStore = tokens.refresh_token;
+    let isEncrypted = false;
+    let encryptedAccessToken = null;
+    let encryptedRefreshToken = null;
+
+    if (isEncryptionAvailable()) {
+      try {
+        encryptedAccessToken = await encryptToken(tokens.access_token);
+        if (tokens.refresh_token) {
+          encryptedRefreshToken = await encryptToken(tokens.refresh_token);
+        }
+        isEncrypted = true;
+        // Clear plaintext tokens when encrypted
+        accessTokenToStore = null;
+        refreshTokenToStore = null;
+        console.log(`✓ Tokens encrypted successfully`);
+      } catch (encryptError) {
+        console.error("⚠️ Encryption failed, storing plaintext:", encryptError);
+        // Fall back to plaintext storage
+      }
+    } else {
+      console.warn("⚠️ Encryption not available, storing tokens in plaintext");
+    }
+
     const credentialData = {
       user_id: userId,
       credential_type: credentialType,
       bundle_type: bundleType || null,
       account_email: accountEmail || null,
       account_label: accountEmail || null,
-      scopes: actualGrantedScopes ? actualGrantedScopes.split(' ') : null, // Use actual granted scopes!
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
+      scopes: actualGrantedScopes ? actualGrantedScopes.split(' ') : null,
+      access_token: accessTokenToStore,
+      refresh_token: refreshTokenToStore,
+      encrypted_access_token: encryptedAccessToken,
+      encrypted_refresh_token: encryptedRefreshToken,
+      is_encrypted: isEncrypted,
       expires_at: tokens.expires_in 
         ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
         : null,

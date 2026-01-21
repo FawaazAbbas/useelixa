@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getDecryptedCredentials, updateRefreshedToken } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,25 +8,22 @@ const corsHeaders = {
 };
 
 async function getGoogleAccessToken(supabase: any, userId: string): Promise<string | null> {
-  // Get the user's Google credentials
-  const { data: credential, error } = await supabase
-    .from("user_credentials")
-    .select("access_token, refresh_token, expires_at")
-    .eq("user_id", userId)
-    .eq("credential_type", "google")
-    .single();
+  // Get the user's Google credentials (with decryption)
+  const credential = await getDecryptedCredentials(supabase, userId, "googleOAuth2Api", "gmail");
 
-  if (error || !credential) {
+  if (!credential) {
     console.log("No Google credentials found for user");
     return null;
   }
 
   // Check if token is expired
-  const expiresAt = new Date(credential.expires_at);
-  if (expiresAt <= new Date()) {
-    // Refresh the token
-    const refreshed = await refreshGoogleToken(supabase, userId, credential.refresh_token);
-    return refreshed;
+  if (credential.expires_at) {
+    const expiresAt = new Date(credential.expires_at);
+    if (expiresAt <= new Date() && credential.refresh_token) {
+      // Refresh the token
+      const refreshed = await refreshGoogleToken(supabase, userId, credential.refresh_token);
+      return refreshed;
+    }
   }
 
   return credential.access_token;
@@ -51,15 +49,15 @@ async function refreshGoogleToken(supabase: any, userId: string, refreshToken: s
 
     const data = await response.json();
     
-    // Update the stored token
-    await supabase
-      .from("user_credentials")
-      .update({
-        access_token: data.access_token,
-        expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
-      })
-      .eq("user_id", userId)
-      .eq("credential_type", "google");
+    // Update the stored token with encryption
+    await updateRefreshedToken(
+      supabase,
+      userId,
+      "googleOAuth2Api",
+      data.access_token,
+      data.expires_in,
+      "gmail"
+    );
 
     return data.access_token;
   } catch (error) {

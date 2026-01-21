@@ -1,25 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getDecryptedCredentials } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function getStripeCredentials(supabase: any, userId: string) {
-  const { data: credentials, error } = await supabase
-    .from("user_credentials")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("credential_type", "stripe")
-    .single();
+async function getStripeCredentials(supabase: any, userId: string): Promise<string | null> {
+  const credential = await getDecryptedCredentials(supabase, userId, "stripe");
 
-  if (error || !credentials) {
+  if (!credential) {
     console.log("[Stripe] No credentials found for user");
     return null;
   }
 
-  return credentials;
+  return credential.access_token;
 }
 
 async function callStripeAPI(
@@ -81,15 +77,14 @@ serve(async (req) => {
       );
     }
 
-    const credentials = await getStripeCredentials(supabase, user.id);
-    if (!credentials) {
+    const apiKey = await getStripeCredentials(supabase, user.id);
+    if (!apiKey) {
       return new Response(
         JSON.stringify({ error: "Stripe not connected. Please add your Stripe API key in Connections." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const apiKey = credentials.access_token;
     const { action, params } = await req.json();
 
     console.log(`[Stripe] Action: ${action}`, params);

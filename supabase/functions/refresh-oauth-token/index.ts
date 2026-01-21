@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encryptToken, decryptToken, isEncryptionAvailable } from "../_shared/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,7 +43,22 @@ serve(async (req) => {
 
     const { data: creds, error: fetchError } = await query.maybeSingle();
 
-    if (fetchError || !creds || !creds.refresh_token) {
+    if (fetchError || !creds) {
+      throw new Error("No credentials found. Please reconnect your account.");
+    }
+
+    // Decrypt refresh token if encrypted
+    let refreshToken = creds.refresh_token;
+    if (creds.is_encrypted && creds.encrypted_refresh_token && isEncryptionAvailable()) {
+      try {
+        refreshToken = await decryptToken(creds.encrypted_refresh_token);
+      } catch (e) {
+        console.error("Failed to decrypt refresh token:", e);
+        throw new Error("Failed to decrypt credentials. Please reconnect your account.");
+      }
+    }
+
+    if (!refreshToken) {
       throw new Error("No refresh token found. Please reconnect your account.");
     }
 
@@ -64,7 +80,7 @@ serve(async (req) => {
       const params = new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
-        refresh_token: creds.refresh_token,
+        refresh_token: refreshToken,
         grant_type: "refresh_token",
       });
 
@@ -85,7 +101,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          refresh_token: creds.refresh_token,
+          refresh_token: refreshToken,
           grant_type: "refresh_token",
         }),
       });
@@ -94,7 +110,7 @@ serve(async (req) => {
       const params = new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
-        refresh_token: creds.refresh_token,
+        refresh_token: refreshToken,
         grant_type: "refresh_token",
       });
 
@@ -116,7 +132,7 @@ serve(async (req) => {
         },
         body: new URLSearchParams({
           client_id: clientId,
-          refresh_token: creds.refresh_token,
+          refresh_token: refreshToken,
           grant_type: "refresh_token",
         }).toString(),
       });
@@ -125,7 +141,7 @@ serve(async (req) => {
       const params = new URLSearchParams({
         client_id: clientId,
         client_secret: clientSecret,
-        refresh_token: creds.refresh_token,
+        refresh_token: refreshToken,
         grant_type: "refresh_token",
       });
 
@@ -146,7 +162,7 @@ serve(async (req) => {
         body: JSON.stringify({
           client_id: clientId,
           client_secret: clientSecret,
-          refresh_token: creds.refresh_token,
+          refresh_token: refreshToken,
           grant_type: "refresh_token",
         }),
       });
@@ -160,16 +176,35 @@ serve(async (req) => {
 
     const tokens = await tokenResponse.json();
 
+    // Prepare update data - encrypt if available
+    let updateData: Record<string, any> = {
+      expires_at: tokens.expires_in 
+        ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
+        : null,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isEncryptionAvailable()) {
+      try {
+        const encryptedAccessToken = await encryptToken(tokens.access_token);
+        updateData.encrypted_access_token = encryptedAccessToken;
+        updateData.access_token = null;
+        updateData.is_encrypted = true;
+        console.log("✓ Refreshed token encrypted successfully");
+      } catch (e) {
+        console.error("Failed to encrypt refreshed token:", e);
+        updateData.access_token = tokens.access_token;
+        updateData.is_encrypted = false;
+      }
+    } else {
+      updateData.access_token = tokens.access_token;
+      updateData.is_encrypted = false;
+    }
+
     // Update credentials with new access token
     let updateQuery = supabaseClient
       .from("user_credentials")
-      .update({
-        access_token: tokens.access_token,
-        expires_at: tokens.expires_in 
-          ? new Date(Date.now() + tokens.expires_in * 1000).toISOString()
-          : null,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq("user_id", userId)
       .eq("credential_type", credentialType);
 
