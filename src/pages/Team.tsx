@@ -1,9 +1,18 @@
 import { useState } from "react";
-import { Users, Crown, Shield, User, MoreVertical, Trash2 } from "lucide-react";
+import { Users, Crown, Shield, User, MoreVertical, Trash2, UserPlus, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +30,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useTeam, type TeamMember } from "@/hooks/useTeam";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const roleIcons = {
   owner: Crown,
@@ -138,9 +158,110 @@ const MemberCard = ({
   );
 };
 
+const InviteMemberDialog = ({ onSuccess }: { onSuccess: () => void }) => {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"admin" | "member">("member");
+  const [loading, setLoading] = useState(false);
+
+  const handleInvite = async () => {
+    if (!email) return;
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("invite-member", {
+        body: { email, role },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(data.message);
+        setEmail("");
+        setOpen(false);
+        onSuccess();
+      } else {
+        toast.error(data.error || "Failed to send invitation");
+      }
+    } catch (error) {
+      console.error("Error inviting member:", error);
+      toast.error("Failed to send invitation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Invite Member
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite Team Member</DialogTitle>
+          <DialogDescription>
+            Send an invitation to join your organization. They'll receive an email with instructions.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <div className="flex gap-2">
+              <Mail className="h-4 w-4 mt-3 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="colleague@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="role">Role</Label>
+            <Select value={role} onValueChange={(v) => setRole(v as "admin" | "member")}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="member">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Member
+                  </div>
+                </SelectItem>
+                <SelectItem value="admin">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Admins can manage team members and organization settings.
+            </p>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleInvite} disabled={loading || !email}>
+            {loading ? "Sending..." : "Send Invitation"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Team = () => {
   const { user } = useAuth();
-  const { organization, members, loading, isAdmin, updateMemberRole, removeMember } = useTeam();
+  const { organization, members, loading, isAdmin, updateMemberRole, removeMember, refetch } = useTeam();
 
   if (loading) {
     return (
@@ -163,9 +284,12 @@ const Team = () => {
               )}
             </div>
           </div>
-          <Badge variant="outline" className="capitalize">
-            {organization?.plan || "Free"} Plan
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="capitalize">
+              {organization?.plan || "Free"} Plan
+            </Badge>
+            {isAdmin && <InviteMemberDialog onSuccess={refetch} />}
+          </div>
         </div>
       </header>
 
@@ -182,6 +306,11 @@ const Team = () => {
               <div className="text-center py-8 text-muted-foreground">
                 <Users className="h-12 w-12 mx-auto mb-3" />
                 <p>No team members yet</p>
+                {isAdmin && (
+                  <p className="text-sm mt-2">
+                    Click "Invite Member" to add someone to your team.
+                  </p>
+                )}
               </div>
             ) : (
               members
@@ -202,23 +331,6 @@ const Team = () => {
             )}
           </CardContent>
         </Card>
-
-        {isAdmin && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Invite Members</CardTitle>
-              <CardDescription>
-                Invite new team members by sharing your organization link
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Member invitation feature coming soon. For now, new users can be added 
-                directly to your organization by an administrator.
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </main>
     </div>
   );
