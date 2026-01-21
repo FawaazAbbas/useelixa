@@ -764,6 +764,30 @@ export type Database = {
           },
         ]
       }
+      tool_scope_requirements: {
+        Row: {
+          created_at: string | null
+          credential_type: string
+          id: string
+          required_scopes: string[]
+          tool_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          credential_type: string
+          id?: string
+          required_scopes?: string[]
+          tool_name: string
+        }
+        Update: {
+          created_at?: string | null
+          credential_type?: string
+          id?: string
+          required_scopes?: string[]
+          tool_name?: string
+        }
+        Relationships: []
+      }
       usage_stats: {
         Row: {
           ai_calls: number | null
@@ -818,6 +842,7 @@ export type Database = {
           credential_type: string
           expires_at: string | null
           id: string
+          is_encrypted: boolean | null
           last_used_at: string | null
           refresh_token: string | null
           scopes: string[] | null
@@ -835,6 +860,7 @@ export type Database = {
           credential_type: string
           expires_at?: string | null
           id?: string
+          is_encrypted?: boolean | null
           last_used_at?: string | null
           refresh_token?: string | null
           scopes?: string[] | null
@@ -852,6 +878,7 @@ export type Database = {
           credential_type?: string
           expires_at?: string | null
           id?: string
+          is_encrypted?: boolean | null
           last_used_at?: string | null
           refresh_token?: string | null
           scopes?: string[] | null

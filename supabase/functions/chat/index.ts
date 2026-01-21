@@ -104,13 +104,111 @@ async function checkRateLimits(
   return { allowed: true };
 }
 
+// Tool to credential type mapping
+const TOOL_CREDENTIAL_MAP: Record<string, string> = {
+  gmail_list_emails: "googleOAuth2Api",
+  gmail_send_email: "googleOAuth2Api",
+  calendar_list_events: "googleOAuth2Api",
+  calendar_create_event: "googleOAuth2Api",
+  stripe_get_balance: "stripe",
+  stripe_list_payments: "stripe",
+  stripe_list_customers: "stripe",
+  stripe_create_customer: "stripe",
+  shopify_list_orders: "shopify",
+  shopify_list_products: "shopify",
+  shopify_get_analytics: "shopify",
+  shopify_create_product: "shopify",
+  // Internal tools don't need credentials
+  notes_list: "internal",
+  notes_search: "internal",
+  notes_create: "internal",
+  create_task: "internal",
+  list_tasks: "internal",
+  search_knowledge_base: "internal",
+  search_knowledge: "internal",
+};
+
+// Helper to verify user has required scopes for a tool
+async function verifyToolScope(
+  serviceSupabase: any,
+  userId: string,
+  toolName: string
+): Promise<{ allowed: boolean; error?: string }> {
+  const credentialType = TOOL_CREDENTIAL_MAP[toolName];
+  
+  // Internal tools don't need external credentials
+  if (!credentialType || credentialType === "internal") {
+    return { allowed: true };
+  }
+
+  // Get scope requirements for this tool
+  const { data: scopeReq } = await serviceSupabase
+    .from("tool_scope_requirements")
+    .select("required_scopes")
+    .eq("tool_name", toolName)
+    .single();
+
+  // If no scope requirements defined, allow (backward compatibility)
+  if (!scopeReq || !scopeReq.required_scopes || scopeReq.required_scopes.length === 0) {
+    // Still check if credential exists
+    const { data: credential } = await serviceSupabase
+      .from("user_credentials")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("credential_type", credentialType)
+      .limit(1)
+      .maybeSingle();
+
+    if (!credential) {
+      return { 
+        allowed: false, 
+        error: `${toolName.replace(/_/g, " ")} requires connecting your ${credentialType.replace(/Api$/, "").replace(/OAuth2/, "")} account first. Go to Connections to set this up.` 
+      };
+    }
+    return { allowed: true };
+  }
+
+  // Check if user has the credential with required scopes
+  const { data: credentials } = await serviceSupabase
+    .from("user_credentials")
+    .select("scopes")
+    .eq("user_id", userId)
+    .eq("credential_type", credentialType);
+
+  if (!credentials || credentials.length === 0) {
+    return { 
+      allowed: false, 
+      error: `${toolName.replace(/_/g, " ")} requires connecting your account first. Go to Connections to set this up.` 
+    };
+  }
+
+  // Check if any credential has at least one of the required scopes
+  const requiredScopes: string[] = scopeReq.required_scopes;
+  const hasRequiredScope = credentials.some((cred: any) => {
+    if (!cred.scopes) return false;
+    return requiredScopes.some((required: string) => 
+      cred.scopes.includes(required)
+    );
+  });
+
+  if (!hasRequiredScope) {
+    return { 
+      allowed: false, 
+      error: `${toolName.replace(/_/g, " ")} requires additional permissions. Please reconnect your account with the required scopes.` 
+    };
+  }
+
+  return { allowed: true };
+}
+
 // Helper to execute tools
 async function executeTool(
   toolName: string, 
   args: any, 
   supabase: any, 
   userId: string,
-  authHeader: string
+  authHeader: string,
+  serviceSupabase: any
 ): Promise<any> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   
