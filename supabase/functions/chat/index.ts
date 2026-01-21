@@ -657,7 +657,7 @@ serve(async (req) => {
         }
 
         // Execute read-only tools directly
-        const result = await executeTool(toolName, toolArgs, supabase, userId, authHeader);
+        const result = await executeTool(toolName, toolArgs, supabase, userId, authHeader, serviceSupabase);
         
         // Track tool execution
         if (orgId) {
