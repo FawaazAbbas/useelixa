@@ -11,3 +11,12 @@ verify_jwt = false
 
 [functions.mcp]
 verify_jwt = false
+
+[functions.gmail-integration]
+verify_jwt = false
+
+[functions.calendar-integration]
+verify_jwt = false
+
+[functions.extract-document-text]
+verify_jwt = false

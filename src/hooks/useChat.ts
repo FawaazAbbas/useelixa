@@ -55,6 +55,9 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
       
+      // Get session for auth
+      const { data: { session } } = await supabase.auth.getSession();
+      
       const messagesToSend = [...messages, userMessage].map(m => ({
         role: m.role,
         content: m.content,
@@ -64,7 +67,9 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: session?.access_token 
+            ? `Bearer ${session.access_token}`
+            : `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           messages: messagesToSend,
@@ -77,18 +82,46 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         throw new Error(errorData.error || `Request failed: ${response.status}`);
       }
 
+      const contentType = response.headers.get("content-type") || "";
+      const assistantMessageId = crypto.randomUUID();
+
+      // Handle JSON response (non-streaming with tool execution)
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        
+        let pendingAction: PendingAction | undefined;
+        
+        if (data.requiresConfirmation) {
+          pendingAction = {
+            id: crypto.randomUUID(),
+            toolName: data.toolName,
+            displayName: data.toolName?.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+            parameters: data.toolArgs,
+            status: "pending",
+          };
+        }
+
+        setMessages(prev => [...prev, {
+          id: assistantMessageId,
+          role: "assistant",
+          content: data.content || data.error || "I encountered an issue.",
+          timestamp: new Date().toISOString(),
+          pendingAction,
+        }]);
+        
+        return;
+      }
+
+      // Handle SSE streaming response
       if (!response.body) {
         throw new Error("No response body");
       }
 
-      // Stream the response
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantContent = "";
       let toolCalls: ToolCall[] = [];
       let textBuffer = "";
-
-      const assistantMessageId = crypto.randomUUID();
 
       while (true) {
         const { done, value } = await reader.read();
@@ -143,7 +176,6 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
               for (const toolCall of delta.tool_calls) {
                 const existingTool = toolCalls.find(t => t.id === toolCall.id);
                 if (existingTool) {
-                  // Append to existing tool call arguments
                   if (toolCall.function?.arguments) {
                     existingTool.arguments = {
                       ...existingTool.arguments,
@@ -161,7 +193,6 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
               }
             }
           } catch {
-            // Incomplete JSON, put it back
             textBuffer = line + "\n" + textBuffer;
             break;
           }
