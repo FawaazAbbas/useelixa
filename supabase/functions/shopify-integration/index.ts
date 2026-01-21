@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getDecryptedCredentials } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,22 +13,28 @@ interface ShopifyCredentials {
 }
 
 async function getShopifyCredentials(supabase: any, userId: string): Promise<ShopifyCredentials | null> {
-  const { data: credentials, error } = await supabase
+  // First get the account_label for shop domain
+  const { data: credentialRow, error } = await supabase
     .from("user_credentials")
-    .select("*")
+    .select("account_label, account_email")
     .eq("user_id", userId)
     .eq("credential_type", "shopify")
     .single();
 
-  if (error || !credentials) {
+  if (error || !credentialRow) {
     console.log("[Shopify] No credentials found for user");
     return null;
   }
 
-  // access_token contains the API key, account_label contains shop domain
+  // Get decrypted access token
+  const credential = await getDecryptedCredentials(supabase, userId, "shopify");
+  if (!credential) {
+    return null;
+  }
+
   return {
-    shop_domain: credentials.account_label || credentials.account_email,
-    access_token: credentials.access_token,
+    shop_domain: credentialRow.account_label || credentialRow.account_email,
+    access_token: credential.access_token,
   };
 }
 
