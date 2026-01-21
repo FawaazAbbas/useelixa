@@ -1198,6 +1198,7 @@ export type Database = {
       }
       integrations: {
         Row: {
+          auth_type: string | null
           bundle_type: string | null
           category: string
           color: string | null
@@ -1211,9 +1212,12 @@ export type Database = {
           is_google_bundle: boolean | null
           logo_url: string
           name: string
+          slug: string
+          status: string | null
           updated_at: string | null
         }
         Insert: {
+          auth_type?: string | null
           bundle_type?: string | null
           category: string
           color?: string | null
@@ -1227,9 +1231,12 @@ export type Database = {
           is_google_bundle?: boolean | null
           logo_url: string
           name: string
+          slug: string
+          status?: string | null
           updated_at?: string | null
         }
         Update: {
+          auth_type?: string | null
           bundle_type?: string | null
           category?: string
           color?: string | null
@@ -1243,6 +1250,8 @@ export type Database = {
           is_google_bundle?: boolean | null
           logo_url?: string
           name?: string
+          slug?: string
+          status?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1265,6 +1274,36 @@ export type Database = {
           invitee_email?: string
           sent_at?: string
           user_email?: string
+        }
+        Relationships: []
+      }
+      mcp_tokens: {
+        Row: {
+          created_at: string | null
+          id: string
+          label: string
+          last_used_at: string | null
+          revoked_at: string | null
+          token_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          label: string
+          last_used_at?: string | null
+          revoked_at?: string | null
+          token_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          revoked_at?: string | null
+          token_hash?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1499,6 +1538,45 @@ export type Database = {
           },
         ]
       }
+      tool_calls: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input: Json | null
+          integration_slug: string
+          output: Json | null
+          status: string | null
+          tool_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input?: Json | null
+          integration_slug: string
+          output?: Json | null
+          status?: string | null
+          tool_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input?: Json | null
+          integration_slug?: string
+          output?: Json | null
+          status?: string | null
+          tool_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tool_execution_log: {
         Row: {
           chat_id: string | null
@@ -1653,6 +1731,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_integrations: {
+        Row: {
+          connected: boolean | null
+          connected_at: string | null
+          created_at: string | null
+          id: string
+          integration_id: string
+          last_tested_at: string | null
+          metadata: Json | null
+          token_ref: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          connected?: boolean | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          integration_id: string
+          last_tested_at?: string | null
+          metadata?: Json | null
+          token_ref?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          connected?: boolean | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          integration_id?: string
+          last_tested_at?: string | null
+          metadata?: Json | null
+          token_ref?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_integrations_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
