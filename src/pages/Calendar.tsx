@@ -9,11 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay } from "date-fns";
+import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 
 interface CalendarEvent {
   id: string;
@@ -235,238 +236,232 @@ const Calendar = () => {
 
   if (!user) {
     return (
-      <div className="flex-1 flex flex-col min-h-screen bg-background">
-        <header className="border-b bg-card/80 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <CalendarIcon className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-semibold">Calendar</h1>
-          </div>
-        </header>
-        <main className="flex-1 p-6 flex items-center justify-center">
-          <p className="text-muted-foreground">Please sign in to manage events.</p>
-        </main>
-      </div>
+      <PageLayout title="Calendar" icon={CalendarIcon}>
+        <PageEmptyState
+          icon={CalendarIcon}
+          title="Sign in required"
+          description="Please sign in to manage your calendar events."
+        />
+      </PageLayout>
     );
   }
 
-  return (
-    <div className="flex-1 flex flex-col min-h-screen bg-background">
-      <header className="border-b bg-card/80 px-6 py-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <CalendarIcon className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-semibold">Calendar</h1>
-            <Badge variant="secondary">{allEvents.length} events</Badge>
-            {googleConnected && (
-              <Badge variant="outline" className="text-green-600 border-green-500/30">
-                Google Connected
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={syncGoogleCalendar}
-              disabled={syncingGoogle}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${syncingGoogle ? "animate-spin" : ""}`} />
-              Sync
-            </Button>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={openNewEventDialog}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Event
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>{editingEvent ? "Edit Event" : "New Event"}</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <Input
-                    placeholder="Event title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  />
-                  <Textarea
-                    placeholder="Description (optional)"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="all-day"
-                      checked={formData.all_day}
-                      onCheckedChange={(v) => setFormData({ ...formData, all_day: v })}
-                    />
-                    <Label htmlFor="all-day">All day event</Label>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Start Date</Label>
-                      <Input
-                        type="date"
-                        value={formData.start_date}
-                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      />
-                    </div>
-                    {!formData.all_day && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Start Time</Label>
-                        <Input
-                          type="time"
-                          value={formData.start_time}
-                          onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">End Date</Label>
-                      <Input
-                        type="date"
-                        value={formData.end_date}
-                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      />
-                    </div>
-                    {!formData.all_day && (
-                      <div>
-                        <Label className="text-xs text-muted-foreground">End Time</Label>
-                        <Input
-                          type="time"
-                          value={formData.end_time}
-                          onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Color</Label>
-                    <div className="flex gap-2 mt-1">
-                      {["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"].map((c) => (
-                        <button
-                          key={c}
-                          className={`w-8 h-8 rounded-full border-2 ${formData.color === c ? "border-foreground" : "border-transparent"}`}
-                          style={{ backgroundColor: c }}
-                          onClick={() => setFormData({ ...formData, color: c })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="outline" onClick={resetForm}>Cancel</Button>
-                    <Button onClick={handleSubmit}>{editingEvent ? "Update" : "Create"}</Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 p-6 overflow-auto pb-20 md:pb-6">
-        {loading ? (
-          <div className="text-center text-muted-foreground">Loading...</div>
-        ) : (
-          <div className="max-w-4xl mx-auto grid md:grid-cols-[auto_1fr] gap-6">
-            <div className="space-y-4">
-              <Card className="p-4">
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  modifiers={{ hasEvent: datesWithEvents }}
-                  modifiersStyles={{
-                    hasEvent: { fontWeight: "bold", textDecoration: "underline" }
-                  }}
+  const headerActions = (
+    <div className="flex items-center gap-2">
+      {googleConnected && (
+        <Badge variant="outline" className="text-green-600 border-green-500/30">
+          Google Connected
+        </Badge>
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={syncGoogleCalendar}
+        disabled={syncingGoogle}
+      >
+        <RefreshCw className={`h-4 w-4 mr-2 ${syncingGoogle ? "animate-spin" : ""}`} />
+        Sync
+      </Button>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogTrigger asChild>
+          <Button onClick={openNewEventDialog}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Event
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingEvent ? "Edit Event" : "New Event"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <Input
+              placeholder="Event title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            />
+            <Textarea
+              placeholder="Description (optional)"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+            <div className="flex items-center gap-2">
+              <Switch
+                id="all-day"
+                checked={formData.all_day}
+                onCheckedChange={(v) => setFormData({ ...formData, all_day: v })}
+              />
+              <Label htmlFor="all-day">All day event</Label>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-muted-foreground">Start Date</Label>
+                <Input
+                  type="date"
+                  value={formData.start_date}
+                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                 />
-              </Card>
-              {googleConnected && googleAccount && (
-                <div className="text-xs text-muted-foreground text-center">
-                  Synced with {googleAccount}
+              </div>
+              {!formData.all_day && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">Start Time</Label>
+                  <Input
+                    type="time"
+                    value={formData.start_time}
+                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                  />
                 </div>
               )}
             </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">
-                  {format(selectedDate, "EEEE, MMMM d, yyyy")}
-                </h2>
-                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-                  <TabsList className="h-8">
-                    <TabsTrigger value="all" className="text-xs px-3">All</TabsTrigger>
-                    <TabsTrigger value="local" className="text-xs px-3">Local</TabsTrigger>
-                    <TabsTrigger value="google" className="text-xs px-3">Google</TabsTrigger>
-                  </TabsList>
-                </Tabs>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs text-muted-foreground">End Date</Label>
+                <Input
+                  type="date"
+                  value={formData.end_date}
+                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                />
               </div>
-              
-              {eventsOnSelectedDate.length === 0 ? (
-                <Card>
-                  <CardContent className="pt-6 text-center text-muted-foreground">
-                    <p>No events on this day</p>
-                    <Button variant="link" onClick={openNewEventDialog}>
-                      Add an event
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-3">
-                  {eventsOnSelectedDate.map((event) => (
-                    <Card key={event.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex gap-3">
-                            <div
-                              className="w-1 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: event.source === "google" ? "#4285f4" : event.color }}
-                            />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <h3 className="font-medium">{event.title}</h3>
-                                {event.source === "google" && (
-                                  <Badge variant="outline" className="text-xs">Google</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {event.all_day
-                                  ? "All day"
-                                  : `${format(new Date(event.start_time), "h:mm a")} - ${format(new Date(event.end_time), "h:mm a")}`}
-                              </p>
-                              {event.description && (
-                                <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+              {!formData.all_day && (
+                <div>
+                  <Label className="text-xs text-muted-foreground">End Time</Label>
+                  <Input
+                    type="time"
+                    value={formData.end_time}
+                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Color</Label>
+              <div className="flex gap-2 mt-1">
+                {["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"].map((c) => (
+                  <button
+                    key={c}
+                    className={`w-8 h-8 rounded-full border-2 ${formData.color === c ? "border-foreground" : "border-transparent"}`}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setFormData({ ...formData, color: c })}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={resetForm}>Cancel</Button>
+              <Button onClick={handleSubmit}>{editingEvent ? "Update" : "Create"}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+
+  return (
+    <PageLayout
+      title="Calendar"
+      icon={CalendarIcon}
+      badge={`${allEvents.length} events`}
+      actions={headerActions}
+    >
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+        </div>
+      ) : (
+        <div className="max-w-4xl mx-auto grid md:grid-cols-[auto_1fr] gap-6">
+          <div className="space-y-4">
+            <Card className="p-4">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                modifiers={{ hasEvent: datesWithEvents }}
+                modifiersStyles={{
+                  hasEvent: { fontWeight: "bold", textDecoration: "underline" }
+                }}
+              />
+            </Card>
+            {googleConnected && googleAccount && (
+              <div className="text-xs text-muted-foreground text-center">
+                Synced with {googleAccount}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-lg">
+                {format(selectedDate, "EEEE, MMMM d, yyyy")}
+              </h2>
+              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="all" className="text-xs px-3">All</TabsTrigger>
+                  <TabsTrigger value="local" className="text-xs px-3">Local</TabsTrigger>
+                  <TabsTrigger value="google" className="text-xs px-3">Google</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            {eventsOnSelectedDate.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center text-muted-foreground">
+                  <p>No events on this day</p>
+                  <Button variant="link" onClick={openNewEventDialog}>
+                    Add an event
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {eventsOnSelectedDate.map((event) => (
+                  <Card key={event.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex gap-3">
+                          <div
+                            className="w-1 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: event.source === "google" ? "#4285f4" : event.color }}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium">{event.title}</h3>
+                              {event.source === "google" && (
+                                <Badge variant="outline" className="text-xs">Google</Badge>
                               )}
                             </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
-                              {event.source === "google" ? (
-                                <ExternalLink className="h-4 w-4" />
-                              ) : (
-                                <Edit2 className="h-4 w-4" />
-                              )}
-                            </Button>
-                            {event.source !== "google" && (
-                              <Button variant="ghost" size="icon" onClick={() => handleDelete(event)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                            <p className="text-sm text-muted-foreground">
+                              {event.all_day
+                                ? "All day"
+                                : `${format(new Date(event.start_time), "h:mm a")} - ${format(new Date(event.end_time), "h:mm a")}`}
+                            </p>
+                            {event.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
                             )}
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(event)}>
+                            {event.source === "google" ? (
+                              <ExternalLink className="h-4 w-4" />
+                            ) : (
+                              <Edit2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                          {event.source !== "google" && (
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(event)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </main>
-    </div>
+        </div>
+      )}
+    </PageLayout>
   );
 };
 
