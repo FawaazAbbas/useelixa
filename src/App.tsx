@@ -27,7 +27,6 @@ import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Notifications from "./pages/Notifications";
-import Analytics from "./pages/Analytics";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -82,7 +81,7 @@ const AppContent = () => {
           <Route path="/connections" element={<Connections />} />
           <Route path="/team" element={<Team />} />
           <Route path="/billing" element={<Billing />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/analytics" element={<Logs />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/about" element={<About />} />
