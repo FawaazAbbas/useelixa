@@ -226,6 +226,19 @@ serve(async (req) => {
           break;
         }
 
+        case "calendly_cancel_event": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "cancel_event", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
         default:
           executionError = `Unknown tool: ${toolName}`;
       }

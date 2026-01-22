@@ -59,6 +59,14 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "notion_get_page", description: "Get the content of a specific Notion page", parameters: { type: "object", properties: { page_id: { type: "string", description: "The page ID" } }, required: ["page_id"] } } },
   { type: "function", function: { name: "notion_create_page", description: "Create a new Notion page. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { parent_id: { type: "string", description: "Parent database or page ID" }, title: { type: "string", description: "Page title" }, content: { type: "string", description: "Page content" }, parent_type: { type: "string", enum: ["database_id", "page_id"], description: "Type of parent (default: database_id)" } }, required: ["parent_id", "title"] } } },
   { type: "function", function: { name: "notion_update_page", description: "Update a Notion page properties. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { page_id: { type: "string", description: "The page ID to update" }, properties: { type: "object", description: "Properties to update" }, archived: { type: "boolean", description: "Set to true to archive the page" } }, required: ["page_id"] } } },
+  // Calendly tools
+  { type: "function", function: { name: "calendly_get_user", description: "Get the current Calendly user profile information including scheduling URL", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "calendly_list_event_types", description: "List all Calendly event types (meeting templates) the user has created", parameters: { type: "object", properties: { limit: { type: "number", description: "Max results (default 25)" } } } } },
+  { type: "function", function: { name: "calendly_list_scheduled_events", description: "List scheduled Calendly events/meetings", parameters: { type: "object", properties: { status: { type: "string", enum: ["active", "canceled"], description: "Filter by status" }, min_start_time: { type: "string", description: "ISO datetime for earliest start" }, max_start_time: { type: "string", description: "ISO datetime for latest start" }, limit: { type: "number", description: "Max results (default 25)" } } } } },
+  { type: "function", function: { name: "calendly_get_event", description: "Get details of a specific scheduled Calendly event", parameters: { type: "object", properties: { event_uuid: { type: "string", description: "The event UUID" } }, required: ["event_uuid"] } } },
+  { type: "function", function: { name: "calendly_get_invitees", description: "Get invitees/attendees of a scheduled Calendly event", parameters: { type: "object", properties: { event_uuid: { type: "string", description: "The event UUID" } }, required: ["event_uuid"] } } },
+  { type: "function", function: { name: "calendly_check_availability", description: "Check available time slots for a Calendly event type", parameters: { type: "object", properties: { event_type_uri: { type: "string", description: "The event type URI" }, start_time: { type: "string", description: "ISO datetime for start of range" }, end_time: { type: "string", description: "ISO datetime for end of range" } }, required: ["event_type_uri"] } } },
+  { type: "function", function: { name: "calendly_cancel_event", description: "Cancel a scheduled Calendly event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { event_uuid: { type: "string", description: "The event UUID to cancel" }, reason: { type: "string", description: "Cancellation reason" } }, required: ["event_uuid"] } } },
 ];
 
 // Tools that require user confirmation before execution
@@ -76,6 +84,7 @@ const WRITE_TOOLS = [
   "local_calendar_create",
   "notion_create_page",
   "notion_update_page",
+  "calendly_cancel_event",
 ];
 
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
@@ -139,6 +148,15 @@ You can also CREATE files for users:
 - Get page content: notion_get_page
 - Create new pages: notion_create_page
 - Update pages: notion_update_page
+
+**Calendly:**
+- Get user profile: calendly_get_user
+- List event types: calendly_list_event_types
+- List scheduled events: calendly_list_scheduled_events
+- Get event details: calendly_get_event
+- Get event invitees: calendly_get_invitees
+- Check availability: calendly_check_availability
+- Cancel events: calendly_cancel_event
 
 ## CRITICAL EMAIL BEHAVIOR
 
@@ -1080,6 +1098,70 @@ async function executeTool(
           method: "POST",
           headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "update_page", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Calendly tools
+      case "calendly_get_user": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_user", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "calendly_list_event_types": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_event_types", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "calendly_list_scheduled_events": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_scheduled_events", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "calendly_get_event": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_event", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "calendly_get_invitees": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_event_invitees", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "calendly_check_availability": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "check_availability", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "calendly_cancel_event": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendly-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "cancel_event", params: args }),
         });
         return await response.json();
       }
