@@ -1065,7 +1065,7 @@ export type Database = {
       }
       user_credentials: {
         Row: {
-          access_token: string
+          access_token: string | null
           account_email: string | null
           account_label: string | null
           bundle_type: string | null
@@ -1085,7 +1085,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          access_token: string
+          access_token?: string | null
           account_email?: string | null
           account_label?: string | null
           bundle_type?: string | null
@@ -1105,7 +1105,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          access_token?: string
+          access_token?: string | null
           account_email?: string | null
           account_label?: string | null
           bundle_type?: string | null
