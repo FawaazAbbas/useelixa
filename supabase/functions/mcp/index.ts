@@ -31,6 +31,14 @@ const TOOL_DEFINITIONS: Record<string, { domain: string; actions: { name: string
       { name: "create", description: "Create a calendar event", parameters: { type: "object", properties: { summary: { type: "string" }, start: { type: "string" }, end: { type: "string" } }, required: ["summary", "start", "end"] } },
     ],
   },
+  gmail: {
+    domain: "email",
+    actions: [
+      { name: "list", description: "List emails", parameters: { type: "object", properties: { max_results: { type: "number" }, query: { type: "string" } } } },
+      { name: "get", description: "Get a specific email", parameters: { type: "object", properties: { message_id: { type: "string" } }, required: ["message_id"] } },
+      { name: "send", description: "Send an email", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } },
+    ],
+  },
   github: {
     domain: "repos",
     actions: [
@@ -74,6 +82,118 @@ const TOOL_DEFINITIONS: Record<string, { domain: string; actions: { name: string
     ],
   },
 };
+
+// Map integration slugs to their edge function and action mappings
+const INTEGRATION_FUNCTION_MAP: Record<string, { functionName: string; actionMap: Record<string, string> }> = {
+  gmail: {
+    functionName: "gmail-integration",
+    actionMap: {
+      list: "list",
+      get: "get",
+      send: "send",
+    },
+  },
+  google_calendar: {
+    functionName: "calendar-integration",
+    actionMap: {
+      list: "list",
+      create: "create",
+    },
+  },
+  shopify: {
+    functionName: "shopify-integration",
+    actionMap: {
+      list: "list_orders",
+      list_products: "list_products",
+    },
+  },
+  stripe: {
+    functionName: "stripe-integration",
+    actionMap: {
+      list_charges: "list_charges",
+      create_invoice: "create_invoice",
+    },
+  },
+};
+
+// Execute real integration call
+async function executeIntegrationCall(
+  integrationSlug: string,
+  action: string,
+  input: Record<string, unknown>,
+  userId: string,
+  authHeader: string
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
+  const mapping = INTEGRATION_FUNCTION_MAP[integrationSlug];
+  
+  if (!mapping) {
+    console.log(`[MCP] No real integration mapping for ${integrationSlug}, returning mock data`);
+    return { success: true, data: getMockResponse(action, input) };
+  }
+
+  const mappedAction = mapping.actionMap[action];
+  if (!mappedAction) {
+    console.log(`[MCP] No action mapping for ${integrationSlug}.${action}, returning mock data`);
+    return { success: true, data: getMockResponse(action, input) };
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const functionUrl = `${supabaseUrl}/functions/v1/${mapping.functionName}`;
+
+    console.log(`[MCP] Calling ${functionUrl} with action: ${mappedAction}`);
+
+    const response = await fetch(functionUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authHeader,
+      },
+      body: JSON.stringify({
+        action: mappedAction,
+        params: input,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[MCP] Integration call failed: ${response.status} - ${errorText}`);
+      return { success: false, error: `Integration error: ${response.status}` };
+    }
+
+    const result = await response.json();
+    console.log(`[MCP] Integration call succeeded for ${integrationSlug}.${action}`);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error(`[MCP] Error calling integration ${integrationSlug}:`, error);
+    return { success: false, error: String(error) };
+  }
+}
+
+// Get mock response for integrations without real implementation
+function getMockResponse(action: string, input: Record<string, unknown>): Record<string, unknown> {
+  if (action.includes("list") || action === "search") {
+    return {
+      items: [
+        { id: crypto.randomUUID(), name: "Sample Item 1", created_at: new Date().toISOString() },
+        { id: crypto.randomUUID(), name: "Sample Item 2", created_at: new Date().toISOString() },
+      ],
+      total: 2,
+      has_more: false,
+    };
+  } else if (action.includes("create") || action === "send_message" || action === "send") {
+    return {
+      id: crypto.randomUUID(),
+      created: true,
+      created_at: new Date().toISOString(),
+      ...input,
+    };
+  }
+  return {
+    success: true,
+    executed_at: new Date().toISOString(),
+  };
+}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -136,6 +256,7 @@ serve(async (req) => {
     const orgId = tokenData.org_id;
     const tokenId = tokenData.id;
     const tokenScopes = tokenData.scopes || [];
+    const userId = tokenData.created_by;
 
     // Update last_used_at
     await supabase
@@ -190,6 +311,7 @@ serve(async (req) => {
                 name: integration.name,
                 category: integration.category,
               },
+              realIntegration: !!INTEGRATION_FUNCTION_MAP[slug],
             });
           }
         }
@@ -201,7 +323,7 @@ serve(async (req) => {
           org_id: orgId,
           token_scopes: tokenScopes,
           server: "elixa-mcp",
-          version: "2.0.0",
+          version: "2.1.0",
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -231,18 +353,6 @@ serve(async (req) => {
         );
       }
 
-      // Check if integration is connected for this org
-      const { data: orgInt, error: orgIntError } = await supabase
-        .from("org_integrations")
-        .select(`
-          id,
-          status,
-          integration:integrations(slug)
-        `)
-        .eq("org_id", orgId)
-        .eq("status", "connected")
-        .single();
-
       // Check token scopes
       if (tokenScopes.length > 0 && !tokenScopes.includes("*") && !tokenScopes.includes(integrationSlug)) {
         return new Response(
@@ -251,50 +361,27 @@ serve(async (req) => {
         );
       }
 
-      // Mock tool execution
-      let output: Record<string, unknown>;
-      let status = "success";
-
-      try {
-        if (action.includes("list") || action === "search") {
-          output = {
-            items: [
-              { id: crypto.randomUUID(), name: "Sample Item 1", created_at: new Date().toISOString() },
-              { id: crypto.randomUUID(), name: "Sample Item 2", created_at: new Date().toISOString() },
-            ],
-            total: 2,
-            has_more: false,
-          };
-        } else if (action.includes("create") || action === "send_message") {
-          output = {
-            id: crypto.randomUUID(),
-            created: true,
-            created_at: new Date().toISOString(),
-            ...input,
-          };
-        } else {
-          output = {
-            success: true,
-            tool: targetTool,
-            executed_at: new Date().toISOString(),
-          };
-        }
-      } catch (error) {
-        status = "error";
-        output = { error: String(error) };
-      }
+      // Execute the integration call (real or mock)
+      const result = await executeIntegrationCall(
+        integrationSlug,
+        action,
+        input || {},
+        userId,
+        authHeader
+      );
 
       const latencyMs = Date.now() - startTime;
+      const status = result.success ? "success" : "error";
 
       // Log tool call using service role
       const { error: logError } = await supabase.from("tool_calls").insert({
         org_id: orgId,
         actor_token_id: tokenId,
-        actor_user_id: tokenData.created_by,
+        actor_user_id: userId,
         integration_slug: integrationSlug,
         tool_name: targetTool,
         input: input || {},
-        output,
+        output: result.data || { error: result.error },
         status,
         latency_ms: latencyMs,
       });
@@ -303,11 +390,23 @@ serve(async (req) => {
         console.error("Failed to log tool call:", logError);
       }
 
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({
+            tool_name: targetTool,
+            status: "error",
+            error: result.error,
+            latency_ms: latencyMs,
+          }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
         JSON.stringify({
           tool_name: targetTool,
-          status,
-          result: output,
+          status: "success",
+          result: result.data,
           latency_ms: latencyMs,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
