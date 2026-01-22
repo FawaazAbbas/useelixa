@@ -1071,6 +1071,8 @@ export type Database = {
           bundle_type: string | null
           created_at: string
           credential_type: string
+          encrypted_access_token: string | null
+          encrypted_refresh_token: string | null
           expires_at: string | null
           id: string
           is_encrypted: boolean | null
@@ -1089,6 +1091,8 @@ export type Database = {
           bundle_type?: string | null
           created_at?: string
           credential_type: string
+          encrypted_access_token?: string | null
+          encrypted_refresh_token?: string | null
           expires_at?: string | null
           id?: string
           is_encrypted?: boolean | null
@@ -1107,6 +1111,8 @@ export type Database = {
           bundle_type?: string | null
           created_at?: string
           credential_type?: string
+          encrypted_access_token?: string | null
+          encrypted_refresh_token?: string | null
           expires_at?: string | null
           id?: string
           is_encrypted?: boolean | null
