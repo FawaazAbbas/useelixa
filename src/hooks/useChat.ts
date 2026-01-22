@@ -273,10 +273,16 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
       // Get session for auth
       const { data: { session } } = await supabase.auth.getSession();
       
+      // Include file information for AI to process
       const messagesToSend = [...messages, userMessage].map(m => ({
         role: m.role,
         content: m.content,
-        files: m.files,
+        files: m.files?.map(f => ({
+          name: f.name,
+          url: f.url,
+          type: f.type,
+          size: f.size,
+        })),
       }));
 
       const response = await fetch(CHAT_URL, {

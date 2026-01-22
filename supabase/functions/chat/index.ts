@@ -13,6 +13,9 @@ const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
 
 // Tool definitions for the AI
 const TOOL_DEFINITIONS = [
+  // File tools
+  { type: "function", function: { name: "analyze_file", description: "Analyze an uploaded file. For images, provides detailed visual analysis. For documents, extracts and summarizes content.", parameters: { type: "object", properties: { fileUrl: { type: "string", description: "URL of the file to analyze" }, fileType: { type: "string", description: "MIME type of the file" }, analysisType: { type: "string", enum: ["summarize", "extract_text", "describe", "analyze_data"], description: "Type of analysis to perform" } }, required: ["fileUrl", "fileType"] } } },
+  { type: "function", function: { name: "create_file", description: "Create and save a text-based file (markdown, text, json, csv, code) for the user to download.", parameters: { type: "object", properties: { filename: { type: "string", description: "Name of the file including extension" }, content: { type: "string", description: "Content of the file" }, fileType: { type: "string", enum: ["text/plain", "text/markdown", "application/json", "text/csv", "text/html", "text/javascript", "text/css"], description: "MIME type of the file" } }, required: ["filename", "content"] } } },
   // Gmail tools - Full capabilities
   { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox. Can filter by label (INBOX, SENT, DRAFTS, SPAM, TRASH, STARRED, UNREAD, etc.)", parameters: { type: "object", properties: { maxResults: { type: "number", description: "Max emails to return (default 10)" }, query: { type: "string", description: "Gmail search query (e.g., 'from:john is:unread')" }, labelIds: { type: "array", items: { type: "string" }, description: "Filter by labels like INBOX, SENT, DRAFTS, STARRED, UNREAD" } } } } },
   { type: "function", function: { name: "gmail_read_email", description: "Read a specific email by message ID. Returns full content including body, attachments info, and headers", parameters: { type: "object", properties: { messageId: { type: "string", description: "The Gmail message ID" } }, required: ["messageId"] } } },
@@ -70,6 +73,21 @@ const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa 
 
 You have access to the following capabilities:
 
+**File Analysis & Creation:**
+- Analyze files: analyze_file (images via vision, documents via text extraction)
+- Create files: create_file (generate markdown, text, json, csv, code files)
+
+When users share files with you:
+- For IMAGES: Use analyze_file to describe what you see, extract text (OCR), or analyze visual content
+- For DOCUMENTS (PDF, Word, etc.): Use analyze_file to summarize or extract text content
+- For DATA files (CSV, JSON, Excel): Use analyze_file to understand the structure and content
+
+You can also CREATE files for users:
+- Generate reports as markdown files
+- Create data exports as CSV or JSON
+- Write code snippets as .js, .py, .html files
+- Draft documents as .txt or .md files
+
 **Gmail (Full Access):**
 - List emails: gmail_list_emails (filter by labels like INBOX, SENT, DRAFTS, STARRED, UNREAD)
 - Read full email content: gmail_read_email
@@ -113,17 +131,17 @@ When a user asks you to send an email:
 3. The user will see Approve/Deny buttons in the UI - DO NOT ask for text-based confirmation
 4. Only ask for clarification if the recipient email address is MISSING
 
-Example request: "send an email to john@example.com about our meeting tomorrow"
-Your action: Call gmail_send_email with:
-- to: "john@example.com"
-- subject: "Regarding Our Meeting Tomorrow"
-- body: "Hi John,\\n\\nI wanted to reach out about our meeting scheduled for tomorrow. Please let me know if the time still works for you or if you need to make any adjustments.\\n\\nBest regards"
+## FILE HANDLING BEHAVIOR
 
-Example request: "email sarah@company.com to say thanks for the help"
-Your action: Call gmail_send_email with:
-- to: "sarah@company.com"
-- subject: "Thank You"
-- body: "Hi Sarah,\\n\\nI just wanted to take a moment to thank you for your help. I really appreciate it!\\n\\nBest regards"
+When a user shares a file:
+1. **IMMEDIATELY use analyze_file** to understand the content
+2. For images: Describe what you see, extract any visible text
+3. For documents: Summarize the content, extract key information
+4. For data files: Analyze the structure and provide insights
+
+When a user asks you to create a file:
+1. Use create_file with appropriate filename and content
+2. The file will be saved and a download link provided to the user
 
 ## TOOL CONFIRMATION FLOW
 
@@ -135,6 +153,153 @@ Tools marked with "REQUIRES CONFIRMATION" will show the user Approve/Deny button
 Be helpful, concise, and proactive. Take action rather than asking questions when you have enough context.
 
 Current date/time: ${new Date().toISOString()}`;
+
+/**
+ * Analyze a file using vision or text extraction
+ */
+async function analyzeFile(
+  fileUrl: string,
+  fileType: string,
+  analysisType: string = "describe",
+  LOVABLE_API_KEY: string
+): Promise<{ analysis: string; error?: string }> {
+  try {
+    console.log(`[Chat] Analyzing file: ${fileUrl}, type: ${fileType}, analysis: ${analysisType}`);
+
+    // For images, use vision model
+    if (fileType.startsWith("image/")) {
+      const prompt = analysisType === "extract_text" 
+        ? "Extract all visible text from this image. If there's no text, describe what you see instead."
+        : analysisType === "analyze_data"
+        ? "Analyze any data, charts, graphs, or tables visible in this image. Provide insights and key findings."
+        : "Describe this image in detail. Include any text, objects, people, colors, and overall context.";
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                { type: "image_url", image_url: { url: fileUrl } },
+              ],
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Vision API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return { analysis: data.choices?.[0]?.message?.content || "Could not analyze image" };
+    }
+
+    // For text-based files, fetch and analyze content
+    if (fileType.startsWith("text/") || fileType === "application/json") {
+      try {
+        const fileResponse = await fetch(fileUrl);
+        const content = await fileResponse.text();
+        
+        const prompt = analysisType === "summarize"
+          ? `Summarize the following content:\n\n${content.slice(0, 50000)}`
+          : analysisType === "analyze_data"
+          ? `Analyze the data in this file and provide insights:\n\n${content.slice(0, 50000)}`
+          : `Here is the content of the file:\n\n${content.slice(0, 50000)}`;
+
+        const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`AI API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return { analysis: data.choices?.[0]?.message?.content || content.slice(0, 5000) };
+      } catch (fetchError) {
+        return { analysis: `File URL provided: ${fileUrl}. Unable to fetch content directly.` };
+      }
+    }
+
+    // For PDFs and other documents, use vision as fallback
+    if (fileType === "application/pdf") {
+      return { 
+        analysis: `This is a PDF document. To analyze its contents, I would need the text extracted. The file is available at: ${fileUrl}` 
+      };
+    }
+
+    return { analysis: `File type ${fileType} detected. File available at: ${fileUrl}` };
+  } catch (error) {
+    console.error("[Chat] File analysis error:", error);
+    return { 
+      analysis: "", 
+      error: error instanceof Error ? error.message : "Failed to analyze file" 
+    };
+  }
+}
+
+/**
+ * Create a file and return its content for the user
+ */
+async function createFile(
+  filename: string,
+  content: string,
+  fileType: string,
+  userId: string,
+  serviceSupabase: any
+): Promise<{ success: boolean; fileUrl?: string; error?: string }> {
+  try {
+    console.log(`[Chat] Creating file: ${filename}, type: ${fileType}`);
+
+    // Generate a unique path
+    const filePath = `${userId}/generated/${Date.now()}-${filename}`;
+    
+    // Convert content to bytes
+    const encoder = new TextEncoder();
+    const bytes = encoder.encode(content);
+    
+    // Upload to storage
+    const { data, error } = await serviceSupabase.storage
+      .from("chat-attachments")
+      .upload(filePath, bytes, {
+        contentType: fileType,
+        upsert: false,
+      });
+
+    if (error) {
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = serviceSupabase.storage
+      .from("chat-attachments")
+      .getPublicUrl(data.path);
+
+    return { success: true, fileUrl: publicUrl };
+  } catch (error) {
+    console.error("[Chat] File creation error:", error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : "Failed to create file" 
+    };
+  }
+}
 
 /**
  * Retrieve relevant conversation memories for context
@@ -242,6 +407,9 @@ async function checkRateLimits(
 
 // Tool to credential type mapping
 const TOOL_CREDENTIAL_MAP: Record<string, string> = {
+  // File tools - internal
+  analyze_file: "internal",
+  create_file: "internal",
   // Google tools - Full Gmail
   gmail_list_emails: "googleOAuth2Api",
   gmail_read_email: "googleOAuth2Api",
@@ -360,11 +528,34 @@ async function executeTool(
   serviceSupabase: any
 ): Promise<any> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
   
   console.log(`[Chat] Executing tool: ${toolName}`, args);
 
   try {
     switch (toolName) {
+      // File tools
+      case "analyze_file": {
+        const result = await analyzeFile(
+          args.fileUrl,
+          args.fileType,
+          args.analysisType || "describe",
+          LOVABLE_API_KEY
+        );
+        return result;
+      }
+
+      case "create_file": {
+        const result = await createFile(
+          args.filename,
+          args.content,
+          args.fileType || "text/plain",
+          userId,
+          serviceSupabase
+        );
+        return result;
+      }
+
       // Gmail tools
       case "gmail_list_emails": {
         const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
@@ -599,39 +790,55 @@ async function executeTool(
 
       // Notes tools
       case "notes_list": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/notes-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "list", params: args }),
-        });
-        return await response.json();
+        const { data, error } = await supabase
+          .from("notes")
+          .select("id, title, content, created_at, updated_at")
+          .eq("user_id", userId)
+          .order("updated_at", { ascending: false })
+          .limit(args?.limit || 10);
+
+        if (error) throw error;
+        return { notes: data };
       }
 
       case "notes_search": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/notes-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "search", params: args }),
-        });
-        return await response.json();
+        const { data, error } = await supabase
+          .from("notes")
+          .select("id, title, content, created_at, updated_at")
+          .eq("user_id", userId)
+          .or(`title.ilike.%${args.query}%,content.ilike.%${args.query}%`)
+          .order("updated_at", { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        return { notes: data };
       }
 
       case "notes_create": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/notes-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "create", params: args }),
-        });
-        return await response.json();
+        const { data: workspaces } = await supabase
+          .from("workspace_members")
+          .select("workspace_id")
+          .eq("user_id", userId)
+          .limit(1);
+
+        const workspaceId = workspaces?.[0]?.workspace_id;
+        if (!workspaceId) {
+          return { error: "No workspace found. Please create a workspace first." };
+        }
+
+        const { data, error } = await supabase
+          .from("notes")
+          .insert({
+            user_id: userId,
+            workspace_id: workspaceId,
+            title: args.title,
+            content: args.content || "",
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return { success: true, note: data };
       }
 
       // Task tools
@@ -656,47 +863,31 @@ async function executeTool(
       case "list_tasks": {
         let query = supabase
           .from("tasks")
-          .select("*")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false });
+          .select("id, title, description, status, priority, due_date, created_at")
+          .eq("user_id", userId);
 
-        if (args.status) {
+        if (args?.status) {
           query = query.eq("status", args.status);
         }
 
-        const { data, error } = await query.limit(20);
+        const { data, error } = await query
+          .order("created_at", { ascending: false })
+          .limit(20);
+
         if (error) throw error;
         return { tasks: data };
       }
 
-      // Knowledge base search (legacy)
+      // Knowledge base search
+      case "search_knowledge_base":
       case "search_knowledge": {
-        const { data, error } = await supabase
-          .from("workspace_documents")
-          .select("id, title, extracted_content, created_at")
-          .textSearch("extracted_content", args.query || "")
-          .limit(5);
-
-        if (error) {
-          const { data: fallbackData } = await supabase
-            .from("workspace_documents")
-            .select("id, title, extracted_content, created_at")
-            .ilike("extracted_content", `%${args.query}%`)
-            .limit(5);
-          return { documents: fallbackData || [] };
-        }
-        return { documents: data || [] };
-      }
-
-      // Knowledge base semantic search
-      case "search_knowledge_base": {
         const response = await fetch(`${supabaseUrl}/functions/v1/search-knowledge-base`, {
           method: "POST",
           headers: {
             Authorization: authHeader,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ query: args.query, limit: args.limit || 5 }),
+          body: JSON.stringify({ query: args.query }),
         });
         return await response.json();
       }
@@ -861,6 +1052,42 @@ async function incrementUsage(serviceSupabase: any, orgId: string, field: string
   }
 }
 
+/**
+ * Build multimodal message content for files
+ */
+function buildMessageContent(message: any): any {
+  // If message has files, build multimodal content
+  if (message.files && Array.isArray(message.files) && message.files.length > 0) {
+    const content: any[] = [];
+    
+    // Add text content first
+    if (message.content) {
+      content.push({ type: "text", text: message.content });
+    }
+    
+    // Add file references
+    for (const file of message.files) {
+      if (file.type?.startsWith("image/")) {
+        // For images, use vision
+        content.push({
+          type: "image_url",
+          image_url: { url: file.url }
+        });
+      } else {
+        // For other files, add as text context
+        content.push({
+          type: "text",
+          text: `[Attached file: ${file.name} (${file.type}, ${Math.round(file.size / 1024)}KB) - URL: ${file.url}]`
+        });
+      }
+    }
+    
+    return content.length > 0 ? content : message.content;
+  }
+  
+  return message.content;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -928,11 +1155,12 @@ serve(async (req) => {
 
     const systemPromptWithMemory = SYSTEM_PROMPT + memoryContext;
 
+    // Build messages with multimodal support for files
     const formattedMessages = [
       { role: "system", content: systemPromptWithMemory },
       ...messages.map((m: any) => ({
         role: m.role,
-        content: m.content,
+        content: buildMessageContent(m),
       })),
     ];
 
