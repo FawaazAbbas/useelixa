@@ -200,6 +200,32 @@ serve(async (req) => {
           break;
         }
 
+        case "notion_create_page": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "create_page", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "notion_update_page": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "update_page", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
         default:
           executionError = `Unknown tool: ${toolName}`;
       }
