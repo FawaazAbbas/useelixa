@@ -82,6 +82,15 @@ serve(async (req) => {
         })
         .eq("id", actionId);
 
+      // Create notification for denied action
+      await serviceSupabase.from("notifications").insert({
+        user_id: user.id,
+        type: "pending_action",
+        title: `Action Denied: ${action.tool_display_name}`,
+        message: "You denied this pending action.",
+        metadata: { action_id: actionId, tool_name: action.tool_name },
+      });
+
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -165,6 +174,18 @@ serve(async (req) => {
       success: !executionError,
       input_summary: JSON.stringify(toolArgs).substring(0, 500),
       output_summary: executionError || JSON.stringify(result).substring(0, 500),
+    });
+
+    // Create notification for completed/failed action
+    await serviceSupabase.from("notifications").insert({
+      user_id: user.id,
+      type: executionError ? "integration_error" : "task_complete",
+      title: executionError 
+        ? `Action Failed: ${action.tool_display_name}` 
+        : `Action Completed: ${action.tool_display_name}`,
+      message: executionError || "The action was executed successfully.",
+      metadata: { action_id: actionId, tool_name: toolName, result },
+      action_url: "/logs",
     });
 
     if (executionError) {

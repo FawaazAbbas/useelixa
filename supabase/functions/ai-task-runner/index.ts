@@ -125,6 +125,16 @@ Please complete this task and provide a detailed summary of what you accomplishe
           output_summary: result.substring(0, 500),
         });
 
+        // Create notification for completed task
+        await serviceSupabase.from("notifications").insert({
+          user_id: task.user_id,
+          type: "task_complete",
+          title: `AI Task Completed: ${task.title}`,
+          message: result.substring(0, 200),
+          metadata: { task_id: task.id },
+          action_url: "/tasks",
+        });
+
         results.push({
           taskId: task.id,
           title: task.title,
@@ -152,6 +162,16 @@ Please complete this task and provide a detailed summary of what you accomplishe
           execution_time_ms: Date.now() - startTime,
           input_summary: `Task: ${task.title}`,
           output_summary: taskError instanceof Error ? taskError.message : "Unknown error",
+        });
+
+        // Create notification for failed task
+        await serviceSupabase.from("notifications").insert({
+          user_id: task.user_id,
+          type: "integration_error",
+          title: `AI Task Failed: ${task.title}`,
+          message: taskError instanceof Error ? taskError.message : "Unknown error",
+          metadata: { task_id: task.id },
+          action_url: "/tasks",
         });
 
         results.push({

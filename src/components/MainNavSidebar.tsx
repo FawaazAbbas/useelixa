@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { NotificationBell } from "@/components/notifications";
 
 const navItems = [
   { icon: MessageSquare, label: "AI Chat", path: "/chat" },
@@ -73,11 +74,12 @@ export const MainNavSidebar = () => {
         ))}
       </nav>
 
-      {/* AI Talent Pool - Separated */}
-      <div className="flex flex-col items-center" style={{ position: 'relative', zIndex: 50 }}>
-        <div className="w-12 h-px bg-border mb-4" />
+      {/* Notifications + Settings */}
+      <div className="flex flex-col items-center gap-2" style={{ position: 'relative', zIndex: 50 }}>
+        <div className="w-12 h-px bg-border mb-2" />
+        <NotificationBell />
         <NavLink
-          to="/talent-pool"
+          to="/settings"
           className="group relative p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105"
           activeClassName="bg-accent active"
           style={{ position: 'relative', zIndex: 50 }}
