@@ -5,7 +5,7 @@
  */
 
 export const OAUTH_CLIENT_IDS = {
-  GOOGLE: import.meta.env.VITE_GOOGLE_CLIENT_ID || '983139658776-0arasasoa08a2ggpvgfso1g2fgeqjkeu.apps.googleusercontent.com',
+  GOOGLE: import.meta.env.VITE_GOOGLE_CLIENT_ID,
   NOTION: import.meta.env.VITE_NOTION_CLIENT_ID || '2bad872b-594c-8087-a5e1-00374ca27750',
   SLACK: '8186913077078.8224803663382',
   MICROSOFT: import.meta.env.VITE_MICROSOFT_CLIENT_ID || '9ebd49b8-d209-4881-94f6-ad7d587b9962',
