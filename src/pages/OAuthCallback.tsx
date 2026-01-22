@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { getCodeVerifier } from '@/config/oauth';
 
 // Generate a short unique correlation ID for tracking OAuth attempts
 function generateCorrelationId(): string {
@@ -186,6 +187,9 @@ export default function OAuthCallback() {
         scopes: scopesForProvider,
       };
 
+      // Get PKCE code verifier if this provider requires it
+      const codeVerifier = getCodeVerifier(provider);
+
       // Exchange code for token via edge function
       const { data, error: exchangeError } = await supabase.functions.invoke('exchange-oauth-token', {
         body: { 
@@ -195,6 +199,7 @@ export default function OAuthCallback() {
           bundleType: bundleType || undefined,
           scopes: scopesForProvider,
           correlationId, // Pass correlation ID to backend for end-to-end tracing
+          codeVerifier, // PKCE code verifier for providers that require it
         }
       });
 

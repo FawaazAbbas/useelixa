@@ -114,7 +114,7 @@ const Connections = () => {
     // Use the bundle type from the mapping if available
     const bundleType = mapping.bundleType;
 
-    const oauthUrl = getOAuthUrl(mapping.provider, bundleType);
+    const oauthUrl = await getOAuthUrl(mapping.provider, bundleType);
     
     if (!oauthUrl) {
       toast.error(`OAuth URL not available for ${integration.name}`);

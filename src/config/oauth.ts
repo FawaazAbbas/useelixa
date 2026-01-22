@@ -25,9 +25,31 @@ const CANONICAL_SITE_URL = "https://workspace.elixa.app";
 const REDIRECT_URI = `${CANONICAL_SITE_URL}/oauth/callback`;
 
 /**
+ * Generate PKCE code verifier and challenge for OAuth flows that require it
+ */
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+/**
  * Get OAuth URL for a provider
  */
-export function getOAuthUrl(provider: string, bundleType?: string): string | null {
+export async function getOAuthUrl(provider: string, bundleType?: string): Promise<string | null> {
   const state = JSON.stringify({
     provider,
     bundleType,
@@ -53,8 +75,14 @@ export function getOAuthUrl(provider: string, bundleType?: string): string | nul
       return `https://api.notion.com/v1/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.NOTION}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&owner=user&state=${encodedState}`;
     case "slack":
       return `https://slack.com/oauth/v2/authorize?client_id=${OAUTH_CLIENT_IDS.SLACK}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=channels:read,chat:write,users:read&state=${encodedState}`;
-    case "calendly":
-      return `https://auth.calendly.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.CALENDLY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&state=${encodedState}`;
+    case "calendly": {
+      // Calendly requires PKCE
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      // Store verifier in sessionStorage for token exchange
+      sessionStorage.setItem('calendly_code_verifier', codeVerifier);
+      return `https://auth.calendly.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.CALENDLY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${encodedState}`;
+    }
     case "mailchimp":
       return `https://login.mailchimp.com/oauth2/authorize?client_id=${OAUTH_CLIENT_IDS.MAILCHIMP}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&state=${encodedState}`;
     case "shopify":
@@ -63,6 +91,19 @@ export function getOAuthUrl(provider: string, bundleType?: string): string | nul
     default:
       return null;
   }
+}
+
+/**
+ * Get the stored PKCE code verifier for a provider
+ */
+export function getCodeVerifier(provider: string): string | null {
+  if (provider === "calendly") {
+    const verifier = sessionStorage.getItem('calendly_code_verifier');
+    // Clear after retrieval (one-time use)
+    sessionStorage.removeItem('calendly_code_verifier');
+    return verifier;
+  }
+  return null;
 }
 
 function getGoogleScopes(bundleType?: string): string {
