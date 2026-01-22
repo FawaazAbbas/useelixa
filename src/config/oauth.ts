@@ -8,7 +8,7 @@ export const OAUTH_CLIENT_IDS = {
   NOTION: import.meta.env.VITE_NOTION_CLIENT_ID || "2bad872b-594c-8087-a5e1-00374ca27750",
   SLACK: "8186913077078.8224803663382",
   MICROSOFT: import.meta.env.VITE_MICROSOFT_CLIENT_ID || "9ebd49b8-d209-4881-94f6-ad7d587b9962",
-  CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "Nnj-dmLFXc9lRSx6m7I5g2xEv33H4AEUCeQJA6rW-fI",
+  CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "",
   MAILCHIMP: import.meta.env.VITE_MAILCHIMP_CLIENT_ID || "334313964170",
   SHOPIFY: import.meta.env.VITE_SHOPIFY_CLIENT_ID || "44ad1408b7b236bb6dfe4d8ee9efff5d",
   META: "your-meta-client-id",
@@ -76,12 +76,17 @@ export async function getOAuthUrl(provider: string, bundleType?: string): Promis
     case "slack":
       return `https://slack.com/oauth/v2/authorize?client_id=${OAUTH_CLIENT_IDS.SLACK}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=channels:read,chat:write,users:read&state=${encodedState}`;
     case "calendly": {
+      const clientId = OAUTH_CLIENT_IDS.CALENDLY;
+      if (!clientId) {
+        console.error("Calendly OAuth Client ID not configured. Set VITE_CALENDLY_CLIENT_ID environment variable.");
+        return null;
+      }
       // Calendly requires PKCE
       const codeVerifier = generateCodeVerifier();
       const codeChallenge = await generateCodeChallenge(codeVerifier);
       // Store verifier in sessionStorage for token exchange
       sessionStorage.setItem('calendly_code_verifier', codeVerifier);
-      return `https://auth.calendly.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.CALENDLY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${encodedState}`;
+      return `https://auth.calendly.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${encodedState}`;
     }
     case "mailchimp":
       return `https://login.mailchimp.com/oauth2/authorize?client_id=${OAUTH_CLIENT_IDS.MAILCHIMP}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&state=${encodedState}`;
