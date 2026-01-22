@@ -113,15 +113,7 @@ const AppContent = () => {
             </div>
           } />
           <Route path="/notes" element={<Notes />} />
-          <Route path="/logs" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Logs />
-              <MobileBottomNav />
-            </div>
-          } />
+          <Route path="/logs" element={<Logs />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/email" element={<Email />} />
           <Route path="/team" element={
