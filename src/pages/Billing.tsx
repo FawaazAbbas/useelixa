@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useTeam } from "@/hooks/useTeam";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { PageLayout, CardGrid } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -89,7 +89,6 @@ const Billing = () => {
         if (!error && data) {
           setUsageStats(data as UsageStats);
         } else {
-          // No usage data yet, show zeros
           setUsageStats({
             ai_calls: 0,
             tool_executions: 0,
@@ -109,9 +108,11 @@ const Billing = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
+      <PageLayout title="Billing" icon={CreditCard}>
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+        </div>
+      </PageLayout>
     );
   }
 
@@ -139,15 +140,12 @@ const Billing = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-background">
-      <header className="border-b bg-card/80 px-6 py-4">
-        <div className="flex items-center gap-3">
-          <CreditCard className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-semibold">Billing</h1>
-        </div>
-      </header>
-
-      <main className="flex-1 p-6 max-w-5xl mx-auto w-full space-y-6">
+    <PageLayout
+      title="Billing"
+      icon={CreditCard}
+      badge={currentPlan}
+    >
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Current Usage */}
         <Card>
           <CardHeader>
@@ -164,7 +162,7 @@ const Billing = () => {
           <CardContent className="space-y-6">
             {loadingUsage ? (
               <div className="flex justify-center py-4">
-                <LoadingSpinner />
+                <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
               </div>
             ) : (
               <>
@@ -219,7 +217,7 @@ const Billing = () => {
         {/* Plans */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Available Plans</h2>
-          <div className="grid md:grid-cols-3 gap-4">
+          <CardGrid columns={3}>
             {plans.map((plan) => (
               <Card
                 key={plan.name}
@@ -276,7 +274,7 @@ const Billing = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </CardGrid>
         </div>
 
         {/* Billing History */}
@@ -291,8 +289,8 @@ const Billing = () => {
             </p>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 

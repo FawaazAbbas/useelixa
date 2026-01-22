@@ -28,9 +28,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Email from "./pages/Email";
 import Notifications from "./pages/Notifications";
-import { MainNavSidebar } from "./components/MainNavSidebar";
 import { MobileRedirect } from "./components/MobileRedirect";
-import { MobileBottomNav } from "./components/MobileBottomNav";
 
 import { ScrollToTop } from "./components/ScrollToTop";
 import { RouteTracker } from "./components/RouteTracker";
@@ -73,59 +71,17 @@ const AppContent = () => {
           <Route path="/chat" element={<Chat />} />
 
           {/* App routes with main navigation */}
-          <Route
-            path="/workspace"
-            element={
-              <div className="flex h-screen overflow-hidden">
-                <div className="hidden md:block">
-                  <MainNavSidebar />
-                </div>
-                <Workspace />
-                <MobileBottomNav />
-              </div>
-            }
-          />
+          {/* App routes - all use PageLayout internally */}
+          <Route path="/workspace" element={<Workspace />} />
           <Route path="/tasks" element={<Tasks />} />
-          <Route path="/calendar" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Calendar />
-              <MobileBottomNav />
-            </div>
-          } />
-          <Route path="/knowledge-base" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <KnowledgeBase />
-              <MobileBottomNav />
-            </div>
-          } />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/knowledge-base" element={<KnowledgeBase />} />
           <Route path="/notes" element={<Notes />} />
           <Route path="/logs" element={<Logs />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/email" element={<Email />} />
-          <Route path="/team" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Team />
-              <MobileBottomNav />
-            </div>
-          } />
-          <Route path="/billing" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Billing />
-              <MobileBottomNav />
-            </div>
-          } />
+          <Route path="/team" element={<Team />} />
+          <Route path="/billing" element={<Billing />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/about" element={<About />} />

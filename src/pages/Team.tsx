@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import { useTeam, type TeamMember } from "@/hooks/useTeam";
 import { useAuth } from "@/hooks/useAuth";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -265,53 +265,37 @@ const Team = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
+      <PageLayout title="Team" icon={Users}>
+        <div className="flex items-center justify-center py-16">
+          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
+        </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-screen bg-background">
-      <header className="border-b bg-card/80 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Users className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="text-xl font-semibold">Team</h1>
-              {organization && (
-                <p className="text-sm text-muted-foreground">{organization.name}</p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="capitalize">
-              {organization?.plan || "Free"} Plan
-            </Badge>
-            {isAdmin && <InviteMemberDialog onSuccess={refetch} />}
-          </div>
-        </div>
-      </header>
-
-      <main className="flex-1 p-6 max-w-3xl mx-auto w-full">
+    <PageLayout
+      title="Team"
+      icon={Users}
+      badge={organization?.plan ? `${organization.plan} Plan` : undefined}
+      actions={isAdmin ? <InviteMemberDialog onSuccess={refetch} /> : undefined}
+    >
+      <div className="max-w-3xl mx-auto">
         <Card>
           <CardHeader>
             <CardTitle>Team Members</CardTitle>
             <CardDescription>
               {members.length} member{members.length !== 1 ? "s" : ""} in your organization
+              {organization && ` • ${organization.name}`}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {members.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-3" />
-                <p>No team members yet</p>
-                {isAdmin && (
-                  <p className="text-sm mt-2">
-                    Click "Invite Member" to add someone to your team.
-                  </p>
-                )}
-              </div>
+              <PageEmptyState
+                icon={Users}
+                title="No team members yet"
+                description={isAdmin ? "Click 'Invite Member' to add someone to your team." : "No team members found."}
+              />
             ) : (
               members
                 .sort((a, b) => {
@@ -331,8 +315,8 @@ const Team = () => {
             )}
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </PageLayout>
   );
 };
 
