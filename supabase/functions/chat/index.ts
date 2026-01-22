@@ -52,6 +52,13 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "search_knowledge_base", description: "Search the organization's knowledge base documents for relevant information using semantic search", parameters: { type: "object", properties: { query: { type: "string", description: "The search query" } }, required: ["query"] } } },
   { type: "function", function: { name: "local_calendar_list", description: "List upcoming events from local calendar", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
   { type: "function", function: { name: "local_calendar_create", description: "Create a local calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, startTime: { type: "string" }, endTime: { type: "string" }, description: { type: "string" } }, required: ["title", "startTime", "endTime"] } } },
+  // Notion tools
+  { type: "function", function: { name: "notion_search", description: "Search Notion pages and databases by query", parameters: { type: "object", properties: { query: { type: "string", description: "Search query" }, limit: { type: "number", description: "Max results (default 10)" } } } } },
+  { type: "function", function: { name: "notion_list_databases", description: "List all Notion databases the user has access to", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "notion_query_database", description: "Query a Notion database to retrieve entries", parameters: { type: "object", properties: { database_id: { type: "string", description: "The database ID" }, filter: { type: "object", description: "Optional filter object" }, limit: { type: "number", description: "Max results" } }, required: ["database_id"] } } },
+  { type: "function", function: { name: "notion_get_page", description: "Get the content of a specific Notion page", parameters: { type: "object", properties: { page_id: { type: "string", description: "The page ID" } }, required: ["page_id"] } } },
+  { type: "function", function: { name: "notion_create_page", description: "Create a new Notion page. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { parent_id: { type: "string", description: "Parent database or page ID" }, title: { type: "string", description: "Page title" }, content: { type: "string", description: "Page content" }, parent_type: { type: "string", enum: ["database_id", "page_id"], description: "Type of parent (default: database_id)" } }, required: ["parent_id", "title"] } } },
+  { type: "function", function: { name: "notion_update_page", description: "Update a Notion page properties. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { page_id: { type: "string", description: "The page ID to update" }, properties: { type: "object", description: "Properties to update" }, archived: { type: "boolean", description: "Set to true to archive the page" } }, required: ["page_id"] } } },
 ];
 
 // Tools that require user confirmation before execution
@@ -67,6 +74,8 @@ const WRITE_TOOLS = [
   "stripe_create_customer",
   "shopify_create_product",
   "local_calendar_create",
+  "notion_create_page",
+  "notion_update_page",
 ];
 
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
@@ -122,6 +131,14 @@ You can also CREATE files for users:
 **Notes & Knowledge:**
 - Manage notes: notes_list, notes_search, notes_create
 - Search documents: search_knowledge_base
+
+**Notion:**
+- Search pages and databases: notion_search
+- List all databases: notion_list_databases
+- Query database entries: notion_query_database
+- Get page content: notion_get_page
+- Create new pages: notion_create_page
+- Update pages: notion_update_page
 
 ## CRITICAL EMAIL BEHAVIOR
 
@@ -1010,6 +1027,61 @@ async function executeTool(
 
         if (error) throw error;
         return { success: true, event: data, source: "local" };
+      }
+
+      // Notion tools
+      case "notion_search": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "search", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notion_list_databases": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_databases", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notion_query_database": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "query_database", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notion_get_page": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_page", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notion_create_page": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_page", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "notion_update_page": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notion-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_page", params: args }),
+        });
+        return await response.json();
       }
 
       default:
