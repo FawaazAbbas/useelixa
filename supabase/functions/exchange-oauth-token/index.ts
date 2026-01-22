@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { code, credentialType, userId, bundleType, scopes, correlationId, codeVerifier } = await req.json();
+    const { code, credentialType, userId, bundleType, scopes, correlationId, codeVerifier, shopDomain } = await req.json();
 
     // Use client-provided correlation ID or generate one server-side
     const corrId = correlationId || `srv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -157,6 +157,27 @@ serve(async (req) => {
         },
         body: params.toString(),
       });
+    } else if (credentialType === "shopifyApi") {
+      // Shopify requires shop domain and uses form-urlencoded
+      if (!shopDomain) {
+        console.error(`[${corrId}] Missing shopDomain for Shopify OAuth`);
+        throw new Error("Missing shop domain for Shopify OAuth");
+      }
+      
+      console.log(`[${corrId}] Exchanging Shopify token for shop: ${shopDomain}`);
+      
+      const shopifyTokenUrl = `https://${shopDomain}/admin/oauth/access_token`;
+      tokenResponse = await fetch(shopifyTokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_id: clientId,
+          client_secret: clientSecret,
+          code,
+        }).toString(),
+      });
     } else {
       // Default: JSON for other providers
       tokenResponse = await fetch(tokenUrl, {
@@ -225,6 +246,12 @@ serve(async (req) => {
       } catch (e) {
         console.warn(`[${corrId}] Failed to fetch Google user info:`, e);
       }
+    }
+    
+    // For Shopify, use shopDomain as account identifier
+    if (credentialType === "shopifyApi" && shopDomain) {
+      accountEmail = shopDomain;
+      console.log(`[${corrId}] ✓ Shopify store domain: ${shopDomain}`);
     }
     
     console.log(`[${corrId}] 📝 Credential storage data:`, { 

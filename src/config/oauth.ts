@@ -91,7 +91,8 @@ export async function getOAuthUrl(provider: string, bundleType?: string): Promis
     case "mailchimp":
       return `https://login.mailchimp.com/oauth2/authorize?client_id=${OAUTH_CLIENT_IDS.MAILCHIMP}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&state=${encodedState}`;
     case "shopify":
-      // Shopify requires a shop domain - would need additional UI
+      // Shopify requires a shop domain - handled by ShopifyConnectDialog
+      // This returns null because Shopify OAuth needs shop-specific URLs
       return null;
     default:
       return null;

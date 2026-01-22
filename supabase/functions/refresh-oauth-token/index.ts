@@ -165,6 +165,19 @@ serve(async (req) => {
         },
         body: params.toString(),
       });
+    } else if (credentialType === "shopifyApi") {
+      // Shopify offline access tokens don't expire and don't need refresh
+      // Just return success with existing token
+      console.log(`Shopify tokens don't expire - no refresh needed`);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Shopify tokens don't expire",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     } else {
       // Default: JSON for other providers
       tokenResponse = await fetch(tokenUrl, {
