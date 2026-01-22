@@ -128,6 +128,20 @@ const Connections = () => {
       return;
     }
 
+    // Debug: surface which client_id is actually being used (helps diagnose "deleted_client")
+    try {
+      const url = new URL(oauthUrl);
+      const clientId = url.searchParams.get("client_id");
+      if (mapping.provider === "google") {
+        console.log("[Connections] Google OAuth client_id:", clientId);
+        toast.message("Opening Google OAuth", {
+          description: clientId ? `client_id: ${clientId}` : "client_id missing",
+        });
+      }
+    } catch {
+      // ignore
+    }
+
     window.location.href = oauthUrl;
   };
 
