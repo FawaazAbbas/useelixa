@@ -67,6 +67,28 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "calendly_get_invitees", description: "Get invitees/attendees of a scheduled Calendly event", parameters: { type: "object", properties: { event_uuid: { type: "string", description: "The event UUID" } }, required: ["event_uuid"] } } },
   { type: "function", function: { name: "calendly_check_availability", description: "Check available time slots for a Calendly event type", parameters: { type: "object", properties: { event_type_uri: { type: "string", description: "The event type URI" }, start_time: { type: "string", description: "ISO datetime for start of range" }, end_time: { type: "string", description: "ISO datetime for end of range" } }, required: ["event_type_uri"] } } },
   { type: "function", function: { name: "calendly_cancel_event", description: "Cancel a scheduled Calendly event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { event_uuid: { type: "string", description: "The event UUID to cancel" }, reason: { type: "string", description: "Cancellation reason" } }, required: ["event_uuid"] } } },
+  // Google Ads tools
+  { type: "function", function: { name: "gads_list_customers", description: "List accessible Google Ads customer accounts", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "gads_get_campaigns", description: "Get Google Ads campaigns with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, startDate: { type: "string", description: "Start date (YYYY-MM-DD)" }, endDate: { type: "string", description: "End date (YYYY-MM-DD)" } }, required: ["customerId"] } } },
+  { type: "function", function: { name: "gads_get_ad_groups", description: "Get ad groups with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, campaignId: { type: "string", description: "Filter by campaign ID" } }, required: ["customerId"] } } },
+  { type: "function", function: { name: "gads_get_ads", description: "Get ads with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, campaignId: { type: "string" }, adGroupId: { type: "string" } }, required: ["customerId"] } } },
+  { type: "function", function: { name: "gads_get_keywords", description: "Get keywords with performance and quality score", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, campaignId: { type: "string" }, adGroupId: { type: "string" } }, required: ["customerId"] } } },
+  { type: "function", function: { name: "gads_get_budget_summary", description: "Get budget summary across campaigns", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" } }, required: ["customerId"] } } },
+  { type: "function", function: { name: "gads_get_account_performance", description: "Get overall account performance metrics", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } } },
+  { type: "function", function: { name: "gads_update_campaign_status", description: "Enable, pause, or remove a Google Ads campaign. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, campaignId: { type: "string", description: "Campaign ID to update" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "campaignId", "status"] } } },
+  { type: "function", function: { name: "gads_update_campaign_budget", description: "Update a Google Ads campaign budget amount. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, budgetId: { type: "string", description: "Budget ID to update" }, amount: { type: "number", description: "New daily budget amount in currency units" } }, required: ["customerId", "budgetId", "amount"] } } },
+  { type: "function", function: { name: "gads_update_ad_group_status", description: "Enable, pause, or remove a Google Ads ad group. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID to update" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "adGroupId", "status"] } } },
+  { type: "function", function: { name: "gads_update_ad_status", description: "Enable, pause, or remove a Google Ads ad. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, adId: { type: "string", description: "Ad ID to update" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "adGroupId", "adId", "status"] } } },
+  { type: "function", function: { name: "gads_update_keyword_status", description: "Enable, pause, or remove a keyword. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, criterionId: { type: "string", description: "Keyword criterion ID" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "adGroupId", "criterionId", "status"] } } },
+  { type: "function", function: { name: "gads_add_keyword", description: "Add a new keyword to an ad group. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, keywordText: { type: "string", description: "Keyword text" }, matchType: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"], description: "Match type (default: BROAD)" } }, required: ["customerId", "adGroupId", "keywordText"] } } },
+  // Google Analytics tools
+  { type: "function", function: { name: "ga_list_properties", description: "List Google Analytics properties", parameters: { type: "object", properties: { accountId: { type: "string", description: "Optional account ID filter" } } } } },
+  { type: "function", function: { name: "ga_get_traffic", description: "Get website traffic data (pageviews, sessions, users)", parameters: { type: "object", properties: { propertyId: { type: "string", description: "GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_user_behavior", description: "Get user behavior data (engagement, bounce rate, session duration)", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_conversions", description: "Get conversion and event data", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, eventFilter: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_traffic_sources", description: "Get traffic sources breakdown", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_realtime", description: "Get realtime active users", parameters: { type: "object", properties: { propertyId: { type: "string" } }, required: ["propertyId"] } } },
 ];
 
 // Tools that require user confirmation before execution
@@ -85,6 +107,12 @@ const WRITE_TOOLS = [
   "notion_create_page",
   "notion_update_page",
   "calendly_cancel_event",
+  "gads_update_campaign_status",
+  "gads_update_campaign_budget",
+  "gads_update_ad_group_status",
+  "gads_update_ad_status",
+  "gads_update_keyword_status",
+  "gads_add_keyword",
 ];
 
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
@@ -157,6 +185,32 @@ You can also CREATE files for users:
 - Get event invitees: calendly_get_invitees
 - Check availability: calendly_check_availability
 - Cancel events: calendly_cancel_event
+
+**Google Ads (Read):**
+- List customer accounts: gads_list_customers
+- Get campaigns with performance: gads_get_campaigns
+- Get ad groups: gads_get_ad_groups
+- Get ads: gads_get_ads
+- Get keywords with quality score: gads_get_keywords
+- Get budget summary: gads_get_budget_summary
+- Get account performance: gads_get_account_performance
+
+**Google Ads (Write - REQUIRES CONFIRMATION):**
+- Update campaign status: gads_update_campaign_status (ENABLED/PAUSED/REMOVED)
+- Update campaign budget: gads_update_campaign_budget
+- Update ad group status: gads_update_ad_group_status
+- Update ad status: gads_update_ad_status
+- Update keyword status: gads_update_keyword_status
+- Add new keyword: gads_add_keyword
+
+**Google Analytics:**
+- List properties: ga_list_properties
+- Get website traffic: ga_get_traffic
+- Get user behavior: ga_get_user_behavior
+- Get conversions: ga_get_conversions
+- Get top pages: ga_get_top_pages
+- Get traffic sources: ga_get_traffic_sources
+- Get realtime users: ga_get_realtime
 
 ## CRITICAL EMAIL BEHAVIOR
 
@@ -1162,6 +1216,188 @@ async function executeTool(
           method: "POST",
           headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "cancel_event", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Google Ads tools
+      case "gads_list_customers": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_customers", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_get_campaigns": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_campaigns", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_get_ad_groups": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_ad_groups", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_get_ads": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_ads", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_get_keywords": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_keywords", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_get_budget_summary": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_budget_summary", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_get_account_performance": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_account_performance", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_update_campaign_status": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_campaign_status", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_update_campaign_budget": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_campaign_budget", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_update_ad_group_status": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_ad_group_status", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_update_ad_status": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_ad_status", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_update_keyword_status": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_keyword_status", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gads_add_keyword": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "add_keyword", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Google Analytics tools
+      case "ga_list_properties": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_properties", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_traffic": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_traffic", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_user_behavior": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_user_behavior", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_conversions": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_conversions", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_top_pages": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_top_pages", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_traffic_sources": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_traffic_sources", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_realtime": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_realtime", params: args }),
         });
         return await response.json();
       }

@@ -239,6 +239,85 @@ serve(async (req) => {
           break;
         }
 
+        // Google Ads write actions
+        case "gads_update_campaign_status": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "update_campaign_status", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gads_update_campaign_budget": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "update_campaign_budget", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gads_update_ad_group_status": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "update_ad_group_status", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gads_update_ad_status": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "update_ad_status", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gads_update_keyword_status": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "update_keyword_status", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gads_add_keyword": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "add_keyword", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
         default:
           executionError = `Unknown tool: ${toolName}`;
       }
