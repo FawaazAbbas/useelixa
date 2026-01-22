@@ -1,60 +1,63 @@
 
+Goal: Fix Calendly OAuth “invalid_client” (401) during token exchange.
 
-# Plan: Fix Calendly OAuth Client ID Mismatch
+What the logs show
+- The OAuth callback is reaching the backend function successfully, and the backend confirms it can read the Calendly Client ID + Client Secret (“✓ OAuth config found for calendlyApi”).
+- Calendly’s token endpoint responds 401 with: “unknown client, no client authentication included, or unsupported authentication method.”
+- This specific Calendly error commonly occurs when the token request uses the wrong client authentication method (not using the required Basic auth header), even if the client ID/secret values are correct.
 
-## Problem
+Root cause (most likely)
+- Our Calendly token exchange currently sends `client_id` and `client_secret` in the x-www-form-urlencoded body.
+- Calendly expects client authentication via an `Authorization: Basic base64(client_id:client_secret)` header for the token call (with `Content-Type: application/x-www-form-urlencoded`), plus PKCE `code_verifier` in the body.
+- Because the backend is not authenticating the client in the supported way, Calendly returns `invalid_client`.
 
-The Calendly OAuth is failing with `invalid_client` (401) because there's a **Client ID mismatch** between the frontend and backend:
+Implementation changes (code)
+1) Update backend token exchange for Calendly to use Basic Auth
+   - File: `supabase/functions/exchange-oauth-token/index.ts`
+   - In the `credentialType === "calendlyApi"` branch:
+     - Build a Basic header:
+       - `const basicAuth = btoa(`${clientId}:${clientSecret}`);`
+     - Send request with headers:
+       - `Authorization: Basic ${basicAuth}`
+       - `Content-Type: application/x-www-form-urlencoded`
+       - (Optional but safe) `Accept: application/json`
+     - Send body params WITHOUT `client_secret` (and often also without `client_id`, since Basic auth covers it):
+       - `grant_type=authorization_code`
+       - `code=...`
+       - `redirect_uri=...`
+       - `code_verifier=...`
+     - Keep PKCE requirement (already present) and keep returning structured JSON on failure (already present).
 
-| Component | Source | Current Value |
-|-----------|--------|---------------|
-| Frontend | `VITE_CALENDLY_CLIENT_ID` in `.env` | Empty (`""`), falls back to hardcoded: `Nnj-dmLFXc9lRSx6m7I5g2xEv33H4AEUCeQJA6rW-fI` |
-| Backend | `CALENDLY_OAUTH_CLIENT_ID` secret | Unknown (likely different value) |
+   Why this should work:
+   - It matches Calendly’s supported client authentication method for the token endpoint and aligns with real-world working examples.
 
-When Calendly receives the authorization code with one Client ID but the token exchange uses a different Client ID, it returns `invalid_client`.
+2) (Recommended hardening) Remove the Calendly hardcoded fallback Client ID on the frontend
+   - File: `src/config/oauth.ts`
+   - Change:
+     - `CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "Nnj-..."`
+   - To:
+     - `CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || ""`
+   - Add a guard similar to Google’s:
+     - If `OAUTH_CLIENT_IDS.CALENDLY` is empty, return `null` from `getOAuthUrl("calendly")` and show a clear error/toast.
+   Why:
+   - Prevents future mismatches where the UI silently uses a fallback while the backend uses configured secrets, causing confusing OAuth failures.
 
-## Solution
+Verification plan (after implementation)
+1) Retry Calendly connect from `/connections`.
+2) If it still fails, use the correlation ID to inspect backend logs again and confirm:
+   - The request includes `Authorization: Basic ...` (we won’t log the value, but we can log that the header is being set).
+   - The body includes `code_verifier` and `redirect_uri`.
+3) If still `invalid_client` after Basic auth is implemented:
+   - The remaining likely cause is an incorrect Calendly Client Secret in `CALENDLY_OAUTH_CLIENT_SECRET` (or the client is from a different Calendly app/environment than the secret).
+   - Next step would be to re-check/re-enter the Calendly Client Secret in Lovable Cloud secrets and retry.
 
-Ensure both frontend and backend use the **same** Calendly OAuth Client ID.
+Edge cases to keep in mind
+- Redirect URI must match exactly (it appears correct: `https://workspace.elixa.app/oauth/callback`).
+- Authorization codes are one-time use; repeated retries may require starting a fresh connect flow.
+- PKCE verifier is stored in sessionStorage; private browsing or strict settings could clear it, but we already confirmed the earlier “missing code_verifier” issue is fixed.
 
-### Option A: Update `.env` file (Recommended)
+Deliverables
+- Backend fix: Calendly token exchange uses Basic auth (primary fix).
+- Frontend hardening: remove fallback client id for Calendly to avoid future drift (recommended).
 
-Set `VITE_CALENDLY_CLIENT_ID` in the `.env` file to match the value stored in `CALENDLY_OAUTH_CLIENT_ID` secret.
-
-**Steps:**
-1. Retrieve the correct Client ID from your Calendly OAuth application settings
-2. Update `.env` to set `VITE_CALENDLY_CLIENT_ID` to that value
-3. Ensure `CALENDLY_OAUTH_CLIENT_ID` secret has the same value
-
-### Option B: Remove hardcoded fallback
-
-Update `src/config/oauth.ts` to remove the hardcoded fallback and require the environment variable:
-
-```typescript
-CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "",
-```
-
-Then add a check to show an error if the Client ID is not configured.
-
-## Calendly Developer Portal Setup Verification
-
-Before connecting, verify in the [Calendly Developer Portal](https://developer.calendly.com/):
-
-1. **Redirect URI** is set to: `https://workspace.elixa.app/oauth/callback`
-2. **Client ID** matches what's in both `.env` and the secrets
-3. **Client Secret** matches `CALENDLY_OAUTH_CLIENT_SECRET` secret
-
-## Implementation Steps
-
-1. **Update `.env`**: Set `VITE_CALENDLY_CLIENT_ID` to your actual Calendly Client ID
-2. **Verify secrets**: Ensure `CALENDLY_OAUTH_CLIENT_ID` and `CALENDLY_OAUTH_CLIENT_SECRET` in Lovable Cloud secrets match your Calendly app
-3. **Test connection**: Click Connect on Calendly in the Connections page
-
-## What You Need To Do
-
-Please confirm or provide:
-1. What is your Calendly OAuth Client ID? (You can find this in the Calendly Developer Portal under your app's settings)
-2. Is the redirect URI `https://workspace.elixa.app/oauth/callback` configured in your Calendly app?
-
-Once confirmed, I can update the configuration to ensure both frontend and backend use matching credentials.
-
+No backend schema changes required.
