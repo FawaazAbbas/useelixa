@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, GripVertical } from "lucide-react";
+import { Edit2, Trash2, GripVertical, Bot, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Task } from "./KanbanBoard";
@@ -40,6 +40,12 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
               )}>
                 {task.title}
               </h4>
+              {task.assigned_to === "ai" && (
+                <Badge variant="outline" className="gap-1 text-xs px-1.5 py-0 h-5">
+                  <Bot className="h-3 w-3" />
+                  AI
+                </Badge>
+              )}
             </div>
             {task.description && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
@@ -47,11 +53,24 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
               </p>
             )}
             <div className="flex items-center justify-between">
-              {task.due_date && (
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(task.due_date), "MMM d")}
-                </span>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                {task.due_date && (
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(task.due_date), "MMM d")}
+                  </span>
+                )}
+                {task.assigned_to === "ai" && task.scheduled_at && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {format(new Date(task.scheduled_at), "MMM d, h:mm a")}
+                  </span>
+                )}
+                {task.assigned_to === "ai" && task.last_run_at && (
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
+                    Executed
+                  </Badge>
+                )}
+              </div>
               <div className="flex gap-1 ml-auto">
                 <Button
                   variant="ghost"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckSquare, Plus, Trash2, Edit2, LayoutGrid, List } from "lucide-react";
+import { CheckSquare, Plus, Trash2, Edit2, LayoutGrid, List, Bot, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { KanbanBoard, Task } from "@/components/tasks/KanbanBoard";
+
+const AI_TOOLS = [
+  { id: "search_knowledge_base", label: "Search Knowledge Base", description: "Search uploaded documents" },
+  { id: "create_note", label: "Create Notes", description: "Create notes with findings" },
+  { id: "create_subtask", label: "Create Subtasks", description: "Break into smaller tasks" },
+  { id: "list_calendar_events", label: "Check Calendar", description: "Get calendar context" },
+];
 
 const Tasks = () => {
   const { user } = useAuth();
@@ -28,6 +37,10 @@ const Tasks = () => {
     status: "todo" as Task["status"],
     priority: "medium" as Task["priority"],
     due_date: "",
+    assigned_to: "user" as "user" | "ai",
+    scheduled_at: "",
+    ai_tools_allowed: [] as string[],
+    ai_context: "",
   });
 
   useEffect(() => {
@@ -97,6 +110,12 @@ const Tasks = () => {
       due_date: formData.due_date || null,
       user_id: user.id,
       position: editingTask ? editingTask.position : maxPosition + 1,
+      assigned_to: formData.assigned_to,
+      scheduled_at: formData.assigned_to === "ai" && formData.scheduled_at 
+        ? new Date(formData.scheduled_at).toISOString() 
+        : null,
+      ai_tools_allowed: formData.assigned_to === "ai" ? formData.ai_tools_allowed : [],
+      ai_context: formData.assigned_to === "ai" && formData.ai_context ? formData.ai_context : null,
     };
 
     if (editingTask) {
@@ -143,6 +162,10 @@ const Tasks = () => {
       status: task.status,
       priority: task.priority,
       due_date: task.due_date ? task.due_date.split("T")[0] : "",
+      assigned_to: (task.assigned_to === "ai" ? "ai" : "user") as "user" | "ai",
+      scheduled_at: task.scheduled_at ? task.scheduled_at.slice(0, 16) : "",
+      ai_tools_allowed: task.ai_tools_allowed || [],
+      ai_context: task.ai_context || "",
     });
     setDialogOpen(true);
   };
@@ -184,9 +207,28 @@ const Tasks = () => {
   };
 
   const resetForm = () => {
-    setFormData({ title: "", description: "", status: "todo", priority: "medium", due_date: "" });
+    setFormData({ 
+      title: "", 
+      description: "", 
+      status: "todo", 
+      priority: "medium", 
+      due_date: "",
+      assigned_to: "user",
+      scheduled_at: "",
+      ai_tools_allowed: [],
+      ai_context: "",
+    });
     setEditingTask(null);
     setDialogOpen(false);
+  };
+
+  const toggleTool = (toolId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      ai_tools_allowed: prev.ai_tools_allowed.includes(toolId)
+        ? prev.ai_tools_allowed.filter(t => t !== toolId)
+        : [...prev.ai_tools_allowed, toolId],
+    }));
   };
 
   const getStatusColor = (status: Task["status"]) => {
@@ -246,7 +288,7 @@ const Tasks = () => {
                   Add Task
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>{editingTask ? "Edit Task" : "New Task"}</DialogTitle>
                 </DialogHeader>
@@ -284,6 +326,101 @@ const Tasks = () => {
                     value={formData.due_date}
                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                   />
+
+                  {/* Assignment Toggle */}
+                  <div className="space-y-3 pt-2">
+                    <Label className="text-sm font-medium">Assign to</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={formData.assigned_to === "user" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, assigned_to: "user" })}
+                        className="flex-1"
+                      >
+                        Me
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={formData.assigned_to === "ai" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, assigned_to: "ai" })}
+                        className="flex-1 gap-2"
+                      >
+                        <Bot className="h-4 w-4" />
+                        AI Agent
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* AI Configuration Panel */}
+                  {formData.assigned_to === "ai" && (
+                    <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Bot className="h-4 w-4" />
+                        AI Configuration
+                      </div>
+
+                      {/* Scheduled Execution */}
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center gap-2">
+                          <Clock className="h-3.5 w-3.5" />
+                          Execute at
+                        </Label>
+                        <Input
+                          type="datetime-local"
+                          value={formData.scheduled_at}
+                          onChange={(e) => setFormData({ ...formData, scheduled_at: e.target.value })}
+                          className="text-sm"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Leave empty for immediate execution when status is "To Do"
+                        </p>
+                      </div>
+
+                      {/* AI Context */}
+                      <div className="space-y-2">
+                        <Label className="text-sm">Additional context for AI</Label>
+                        <Textarea
+                          placeholder="Any specific instructions or context for the AI..."
+                          value={formData.ai_context}
+                          onChange={(e) => setFormData({ ...formData, ai_context: e.target.value })}
+                          className="text-sm min-h-[80px]"
+                        />
+                      </div>
+
+                      {/* Tool Permissions */}
+                      <div className="space-y-2">
+                        <Label className="text-sm">AI can use these tools</Label>
+                        <div className="space-y-2">
+                          {AI_TOOLS.map((tool) => (
+                            <div
+                              key={tool.id}
+                              className="flex items-start space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors"
+                            >
+                              <Checkbox
+                                id={tool.id}
+                                checked={formData.ai_tools_allowed.includes(tool.id)}
+                                onCheckedChange={() => toggleTool(tool.id)}
+                              />
+                              <div className="grid gap-0.5 leading-none">
+                                <label
+                                  htmlFor={tool.id}
+                                  className="text-sm font-medium cursor-pointer"
+                                >
+                                  {tool.label}
+                                </label>
+                                <p className="text-xs text-muted-foreground">
+                                  {tool.description}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2 justify-end">
                     <Button variant="outline" onClick={resetForm}>Cancel</Button>
                     <Button onClick={handleSubmit}>{editingTask ? "Update" : "Create"}</Button>
@@ -321,7 +458,7 @@ const Tasks = () => {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 className={`font-medium ${task.status === "done" ? "line-through" : ""}`}>
                           {task.title}
                         </h3>
@@ -331,15 +468,34 @@ const Tasks = () => {
                         <span className={`text-xs font-medium ${getPriorityColor(task.priority)}`}>
                           {task.priority}
                         </span>
+                        {task.assigned_to === "ai" && (
+                          <Badge variant="outline" className="gap-1 text-xs">
+                            <Bot className="h-3 w-3" />
+                            AI
+                          </Badge>
+                        )}
                       </div>
                       {task.description && (
                         <p className="text-sm text-muted-foreground line-clamp-2">{task.description}</p>
                       )}
-                      {task.due_date && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Due: {format(new Date(task.due_date), "MMM d, yyyy")}
-                        </p>
-                      )}
+                      <div className="flex items-center gap-3 mt-1 flex-wrap">
+                        {task.due_date && (
+                          <p className="text-xs text-muted-foreground">
+                            Due: {format(new Date(task.due_date), "MMM d, yyyy")}
+                          </p>
+                        )}
+                        {task.assigned_to === "ai" && task.scheduled_at && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Scheduled: {format(new Date(task.scheduled_at), "MMM d, h:mm a")}
+                          </p>
+                        )}
+                        {task.assigned_to === "ai" && task.last_run_at && (
+                          <Badge variant="secondary" className="text-xs">
+                            Executed
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(task)}>

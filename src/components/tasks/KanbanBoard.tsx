@@ -25,6 +25,11 @@ export interface Task {
   due_date: string | null;
   position: number;
   created_at: string;
+  assigned_to: string | null;
+  scheduled_at: string | null;
+  ai_tools_allowed: string[] | null;
+  ai_context: string | null;
+  last_run_at: string | null;
 }
 
 interface KanbanBoardProps {
