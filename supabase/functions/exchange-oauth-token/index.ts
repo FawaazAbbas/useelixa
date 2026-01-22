@@ -47,24 +47,7 @@ serve(async (req) => {
     // Exchange authorization code for access token
     let tokenResponse;
     
-    if (credentialType === "googleOAuth2Api") {
-      // Google requires application/x-www-form-urlencoded
-      const params = new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: getRedirectUri(),
-        grant_type: "authorization_code",
-      });
-
-      tokenResponse = await fetch(tokenUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: params.toString(),
-      });
-    } else if (credentialType === "notionApi") {
+    if (credentialType === "notionApi") {
       // Notion uses Basic Auth
       const basicAuth = btoa(`${clientId}:${clientSecret}`);
       tokenResponse = await fetch(tokenUrl, {
@@ -160,8 +143,6 @@ serve(async (req) => {
 
       console.error(`❌ Token exchange failed (${providerStatus}):`, providerText);
 
-      // IMPORTANT: return 200 so the frontend can always display debug info.
-      // The caller should check `success === true`.
       return new Response(
         JSON.stringify({
           success: false,
@@ -181,36 +162,8 @@ serve(async (req) => {
 
     const tokens = await tokenResponse.json();
 
-    // For Google OAuth, fetch user email and use ACTUAL GRANTED SCOPES from token response
     let accountEmail = null;
-    let actualGrantedScopes = scopes; // Default to requested scopes
-    
-    if (credentialType === "googleOAuth2Api") {
-      // CRITICAL: Use the scopes that Google ACTUALLY GRANTED, not what we requested
-      if (tokens.scope) {
-        actualGrantedScopes = tokens.scope; // Google returns space-separated string
-        console.log(`✓ Google granted scopes: ${actualGrantedScopes}`);
-        
-        // Warn if granted scopes differ from requested
-        if (scopes && actualGrantedScopes !== scopes) {
-          console.warn(`⚠️ Scope mismatch! Requested: ${scopes.split(' ').length} scopes, Granted: ${actualGrantedScopes.split(' ').length} scopes`);
-          console.warn(`   Requested but NOT granted: ${scopes.split(' ').filter((s: string) => !actualGrantedScopes.includes(s)).join(', ')}`);
-        }
-      }
-      
-      try {
-        const userInfoResponse = await fetch(
-          'https://www.googleapis.com/oauth2/v2/userinfo',
-          { headers: { 'Authorization': `Bearer ${tokens.access_token}` }}
-        );
-        const userInfo = await userInfoResponse.json();
-        accountEmail = userInfo.email;
-        console.log(`✓ Fetched Google account email: ${accountEmail}`);
-      } catch (emailError) {
-        console.error("⚠️ Failed to fetch account email:", emailError);
-        // Continue without email - we'll handle it below
-      }
-    }
+    let actualGrantedScopes = scopes;
     
     console.log(`📝 Credential storage data:`, { 
       credentialType, 
@@ -226,7 +179,6 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Prepare credential data with ACTUAL GRANTED SCOPES
     // Encrypt tokens if encryption is available
     let accessTokenToStore = tokens.access_token;
     let refreshTokenToStore = tokens.refresh_token;
@@ -241,13 +193,11 @@ serve(async (req) => {
           encryptedRefreshToken = await encryptToken(tokens.refresh_token);
         }
         isEncrypted = true;
-        // Clear plaintext tokens when encrypted
         accessTokenToStore = null;
         refreshTokenToStore = null;
         console.log(`✓ Tokens encrypted successfully`);
       } catch (encryptError) {
         console.error("⚠️ Encryption failed, storing plaintext:", encryptError);
-        // Fall back to plaintext storage
       }
     } else {
       console.warn("⚠️ Encryption not available, storing tokens in plaintext");
@@ -271,7 +221,6 @@ serve(async (req) => {
       token_type: tokens.token_type || "Bearer",
     };
 
-    // Use select-then-insert/update pattern for all credential types
     console.log(`🔍 Checking for existing credential...`);
     
     const query = supabaseClient
@@ -280,7 +229,6 @@ serve(async (req) => {
       .eq('user_id', userId)
       .eq('credential_type', credentialType);
     
-    // Add filters for bundle_type and account_email based on what we have
     if (bundleType) {
       query.eq('bundle_type', bundleType);
     } else {
@@ -296,7 +244,6 @@ serve(async (req) => {
     const { data: existing } = await query.maybeSingle();
 
     if (existing) {
-      // UPDATE existing credential
       console.log(`📝 Updating existing credential (id: ${existing.id})...`);
       const { error: updateError } = await supabaseClient
         .from("user_credentials")
@@ -309,7 +256,6 @@ serve(async (req) => {
       }
       console.log(`✅ Updated ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
     } else {
-      // INSERT new credential
       console.log(`📝 Inserting new credential...`);
       const { error: insertError } = await supabaseClient
         .from("user_credentials")
@@ -332,7 +278,6 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("OAuth token exchange error:", error);
-    // IMPORTANT: return 200 so the frontend can always display debug info.
     return new Response(
       JSON.stringify({
         success: false,
@@ -350,7 +295,6 @@ function getTokenUrl(credentialType: string): string {
   const urls: Record<string, string> = {
     notionApi: "https://api.notion.com/v1/oauth/token",
     slackOAuth2Api: "https://slack.com/api/oauth.v2.access",
-    googleOAuth2Api: "https://oauth2.googleapis.com/token",
     quickbooksApi: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
     microsoftOAuth2Api: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     calendlyApi: "https://auth.calendly.com/oauth/token",
@@ -368,7 +312,6 @@ function getTokenUrl(credentialType: string): string {
 
 function getSecretNames(credentialType: string): { clientIdKey: string; clientSecretKey: string } {
   const mappings: Record<string, { clientIdKey: string; clientSecretKey: string }> = {
-    googleOAuth2Api: { clientIdKey: 'GOOGLEOAUTH2API_CLIENT_ID', clientSecretKey: 'GOOGLEOAUTH2API_CLIENT_SECRET' },
     notionApi: { clientIdKey: 'NOTION_OAUTH_CLIENT_ID', clientSecretKey: 'NOTION_OAUTH_CLIENT_SECRET' },
     microsoftOAuth2Api: { clientIdKey: 'MICROSOFT_OAUTH_APPLICATION_ID', clientSecretKey: 'MICROSOFT_OAUTH_CLIENT_SECRET' },
     calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },
@@ -387,7 +330,6 @@ function getSecretNames(credentialType: string): { clientIdKey: string; clientSe
 }
 
 function getRedirectUri(): string {
-  // In production, this should be your actual domain
   const baseUrl = Deno.env.get("SITE_URL") || "http://localhost:5173";
   return `${baseUrl}/oauth/callback`;
 }

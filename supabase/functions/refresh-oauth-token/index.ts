@@ -33,11 +33,9 @@ serve(async (req) => {
       .eq("user_id", userId)
       .eq("credential_type", credentialType);
 
-    // If credentialId is provided, use it for precise lookup
     if (credentialId) {
       query = query.eq("id", credentialId);
     } else if (bundleType && accountEmail) {
-      // For Google bundles, match by bundle and account
       query = query.eq("bundle_type", bundleType).eq("account_email", accountEmail);
     }
 
@@ -75,23 +73,7 @@ serve(async (req) => {
     // Refresh the token
     let tokenResponse;
     
-    if (credentialType === "googleOAuth2Api") {
-      // Google uses form-urlencoded
-      const params = new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: "refresh_token",
-      });
-
-      tokenResponse = await fetch(tokenUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: params.toString(),
-      });
-    } else if (credentialType === "notionApi") {
+    if (credentialType === "notionApi") {
       // Notion uses Basic Auth
       const basicAuth = btoa(`${clientId}:${clientSecret}`);
       tokenResponse = await fetch(tokenUrl, {
@@ -249,7 +231,6 @@ serve(async (req) => {
 
 function getSecretNames(credentialType: string): { clientIdKey: string; clientSecretKey: string } {
   const mappings: Record<string, { clientIdKey: string; clientSecretKey: string }> = {
-    googleOAuth2Api: { clientIdKey: 'GOOGLEOAUTH2API_CLIENT_ID', clientSecretKey: 'GOOGLEOAUTH2API_CLIENT_SECRET' },
     notionApi: { clientIdKey: 'NOTION_OAUTH_CLIENT_ID', clientSecretKey: 'NOTION_OAUTH_CLIENT_SECRET' },
     microsoftOAuth2Api: { clientIdKey: 'MICROSOFT_OAUTH_APPLICATION_ID', clientSecretKey: 'MICROSOFT_OAUTH_CLIENT_SECRET' },
     calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },
@@ -271,7 +252,6 @@ function getTokenUrl(credentialType: string): string {
   const urls: Record<string, string> = {
     notionApi: "https://api.notion.com/v1/oauth/token",
     slackOAuth2Api: "https://slack.com/api/oauth.v2.access",
-    googleOAuth2Api: "https://oauth2.googleapis.com/token",
     quickbooksApi: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
     microsoftOAuth2Api: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
     calendlyApi: "https://auth.calendly.com/oauth/token",

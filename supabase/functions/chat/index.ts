@@ -11,12 +11,8 @@ const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 const MAX_MESSAGES_PER_MINUTE = 20;
 const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
 
-// Tool definitions for the AI
+// Tool definitions for the AI (Google tools removed)
 const TOOL_DEFINITIONS = [
-  { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
-  { type: "function", function: { name: "gmail_send_email", description: "Send an email via Gmail. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
-  { type: "function", function: { name: "calendar_list_events", description: "List upcoming Google Calendar events", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
-  { type: "function", function: { name: "calendar_create_event", description: "Create a Google Calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, startTime: { type: "string" }, endTime: { type: "string" }, description: { type: "string" } }, required: ["title", "startTime", "endTime"] } } },
   { type: "function", function: { name: "outlook_list_emails", description: "List recent emails from Outlook inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
   { type: "function", function: { name: "outlook_send_email", description: "Send an email via Outlook. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
   { type: "function", function: { name: "outlook_list_calendar", description: "List upcoming Outlook calendar events", parameters: { type: "object", properties: { startDateTime: { type: "string" }, endDateTime: { type: "string" }, maxResults: { type: "number" } } } } },
@@ -37,37 +33,27 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "notes_search", description: "Search notes by query", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
   { type: "function", function: { name: "notes_create", description: "Create a new note. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title"] } } },
   { type: "function", function: { name: "search_knowledge_base", description: "Search the organization's knowledge base documents for relevant information using semantic search", parameters: { type: "object", properties: { query: { type: "string", description: "The search query" } }, required: ["query"] } } },
-  // Google Ads tools
-  { type: "function", function: { name: "google_ads_list_campaigns", description: "List Google Ads campaigns with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID (optional, uses first accessible account if not provided)" }, limit: { type: "number", description: "Maximum campaigns to return" } } } } },
-  { type: "function", function: { name: "google_ads_get_campaign_performance", description: "Get detailed performance metrics for a specific Google Ads campaign", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string", description: "YYYY-MM-DD format" }, endDate: { type: "string", description: "YYYY-MM-DD format" } }, required: ["customerId", "campaignId"] } } },
-  { type: "function", function: { name: "google_ads_get_spend_summary", description: "Get Google Ads spend summary including impressions, clicks, conversions, and costs", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string", description: "YYYY-MM-DD format" }, endDate: { type: "string", description: "YYYY-MM-DD format" } } } } },
-  // Google Analytics tools
-  { type: "function", function: { name: "google_analytics_list_properties", description: "List available Google Analytics properties", parameters: { type: "object", properties: {} } } },
-  { type: "function", function: { name: "google_analytics_get_traffic", description: "Get website traffic overview with sessions, users, and pageviews", parameters: { type: "object", properties: { propertyId: { type: "string", description: "GA4 property ID (optional, uses first property if not provided)" }, startDate: { type: "string", description: "YYYY-MM-DD format" }, endDate: { type: "string", description: "YYYY-MM-DD format" } } } } },
-  { type: "function", function: { name: "google_analytics_get_sources", description: "Get traffic sources breakdown showing where visitors come from", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } } } } },
-  { type: "function", function: { name: "google_analytics_get_top_pages", description: "Get top pages by pageviews", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } } } } },
-  { type: "function", function: { name: "google_analytics_get_geo", description: "Get geographic breakdown of visitors by country", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "local_calendar_list", description: "List upcoming events from local calendar", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
+  { type: "function", function: { name: "local_calendar_create", description: "Create a local calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, startTime: { type: "string" }, endTime: { type: "string" }, description: { type: "string" } }, required: ["title", "startTime", "endTime"] } } },
 ];
 
 // Tools that require user confirmation before execution
 const WRITE_TOOLS = [
-  "gmail_send_email", 
-  "calendar_create_event", 
   "outlook_send_email",
   "outlook_create_event",
   "notes_create",
   "stripe_create_customer",
   "shopify_create_product",
+  "local_calendar_create",
 ];
 
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
 
 You have access to the following capabilities:
-- Read and send emails via Gmail (use gmail_list_emails, gmail_send_email)
-- View and create Google Calendar events (use calendar_list_events, calendar_create_event)
 - Read and send emails via Outlook (use outlook_list_emails, outlook_send_email)
 - View and create Outlook calendar events (use outlook_list_calendar, outlook_create_event)
 - Browse and search OneDrive files (use onedrive_list_files, onedrive_search_files)
+- Manage local calendar events (use local_calendar_list, local_calendar_create)
 - Manage tasks (use create_task, list_tasks)
 - Access Stripe data (use stripe_get_balance, stripe_list_payments, stripe_list_customers, stripe_create_customer)
 - Access Shopify data (use shopify_list_orders, shopify_list_products, shopify_get_analytics, shopify_create_product)
@@ -89,7 +75,6 @@ async function getConversationMemories(
   currentMessage: string
 ): Promise<string> {
   try {
-    // Get embedding for current message to find relevant memories
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     const embeddingResponse = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
@@ -116,7 +101,6 @@ async function getConversationMemories(
       return "";
     }
 
-    // Search for relevant past conversations
     const { data: memories, error } = await serviceSupabase.rpc(
       "match_conversation_memories",
       {
@@ -131,7 +115,6 @@ async function getConversationMemories(
       return "";
     }
 
-    // Format memories as context
     const memoryContext = memories
       .map((m: any) => `[Previous conversation about ${m.key_topics?.join(", ") || "various topics"}]: ${m.summary}`)
       .join("\n");
@@ -153,7 +136,6 @@ async function checkRateLimits(
   const now = new Date();
   const oneMinuteAgo = new Date(now.getTime() - RATE_LIMIT_WINDOW_MS).toISOString();
   
-  // Check per-minute rate limit
   const { count: recentMessageCount } = await serviceSupabase
     .from("chat_messages_v2")
     .select("*", { count: "exact", head: true })
@@ -167,7 +149,6 @@ async function checkRateLimits(
     };
   }
 
-  // Check monthly usage limit
   if (orgId) {
     const currentMonth = now.toISOString().slice(0, 7) + "-01";
     
@@ -189,12 +170,8 @@ async function checkRateLimits(
   return { allowed: true };
 }
 
-// Tool to credential type mapping
+// Tool to credential type mapping (Google removed)
 const TOOL_CREDENTIAL_MAP: Record<string, string> = {
-  gmail_list_emails: "google",
-  gmail_send_email: "google",
-  calendar_list_events: "google",
-  calendar_create_event: "google",
   outlook_list_emails: "microsoft",
   outlook_send_email: "microsoft",
   outlook_list_calendar: "microsoft",
@@ -209,16 +186,6 @@ const TOOL_CREDENTIAL_MAP: Record<string, string> = {
   shopify_list_products: "shopify",
   shopify_get_analytics: "shopify",
   shopify_create_product: "shopify",
-  // Google Ads tools
-  google_ads_list_campaigns: "google",
-  google_ads_get_campaign_performance: "google",
-  google_ads_get_spend_summary: "google",
-  // Google Analytics tools
-  google_analytics_list_properties: "google",
-  google_analytics_get_traffic: "google",
-  google_analytics_get_sources: "google",
-  google_analytics_get_top_pages: "google",
-  google_analytics_get_geo: "google",
   // Internal tools don't need credentials
   notes_list: "internal",
   notes_search: "internal",
@@ -227,6 +194,8 @@ const TOOL_CREDENTIAL_MAP: Record<string, string> = {
   list_tasks: "internal",
   search_knowledge_base: "internal",
   search_knowledge: "internal",
+  local_calendar_list: "internal",
+  local_calendar_create: "internal",
 };
 
 // Helper to verify user has required scopes for a tool
@@ -237,21 +206,17 @@ async function verifyToolScope(
 ): Promise<{ allowed: boolean; error?: string }> {
   const credentialType = TOOL_CREDENTIAL_MAP[toolName];
   
-  // Internal tools don't need external credentials
   if (!credentialType || credentialType === "internal") {
     return { allowed: true };
   }
 
-  // Get scope requirements for this tool
   const { data: scopeReq } = await serviceSupabase
     .from("tool_scope_requirements")
     .select("required_scopes")
     .eq("tool_name", toolName)
     .single();
 
-  // If no scope requirements defined, allow (backward compatibility)
   if (!scopeReq || !scopeReq.required_scopes || scopeReq.required_scopes.length === 0) {
-    // Still check if credential exists
     const { data: credential } = await serviceSupabase
       .from("user_credentials")
       .select("id")
@@ -269,7 +234,6 @@ async function verifyToolScope(
     return { allowed: true };
   }
 
-  // Check if user has the credential with required scopes
   const { data: credentials } = await serviceSupabase
     .from("user_credentials")
     .select("scopes")
@@ -283,7 +247,6 @@ async function verifyToolScope(
     };
   }
 
-  // Check if any credential has at least one of the required scopes
   const requiredScopes: string[] = scopeReq.required_scopes;
   const hasRequiredScope = credentials.some((cred: any) => {
     if (!cred.scopes) return false;
@@ -317,56 +280,6 @@ async function executeTool(
 
   try {
     switch (toolName) {
-      // Gmail tools
-      case "gmail_list_emails": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "list", params: args }),
-        });
-        return await response.json();
-      }
-
-      case "gmail_send_email": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "send", params: args }),
-        });
-        return await response.json();
-      }
-
-      // Calendar tools
-      case "calendar_list_events": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "list", params: args }),
-        });
-        return await response.json();
-      }
-
-      case "calendar_create_event": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
-          method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ action: "create", params: args }),
-        });
-        return await response.json();
-      }
-
       // Stripe tools
       case "stripe_get_balance": {
         const response = await fetch(`${supabaseUrl}/functions/v1/stripe-integration`, {
@@ -546,7 +459,6 @@ async function executeTool(
           .limit(5);
 
         if (error) {
-          // Fallback to simple ILIKE search
           const { data: fallbackData } = await supabase
             .from("workspace_documents")
             .select("id, title, extracted_content, created_at")
@@ -640,78 +552,54 @@ async function executeTool(
         return await response.json();
       }
 
-      // Google Ads tools
-      case "google_ads_list_campaigns": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "list_campaigns", params: args }),
-        });
-        return await response.json();
+      // Local calendar tools
+      case "local_calendar_list": {
+        const timeMin = args?.timeMin || new Date().toISOString();
+        const timeMax = args?.timeMax || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        
+        const { data, error } = await supabase
+          .from("calendar_events")
+          .select("*")
+          .eq("user_id", userId)
+          .gte("start_time", timeMin)
+          .lte("end_time", timeMax)
+          .order("start_time", { ascending: true })
+          .limit(args?.maxResults || 20);
+
+        if (error) throw error;
+        return {
+          events: (data || []).map((e: any) => ({
+            id: e.id,
+            title: e.title,
+            description: e.description,
+            start: e.start_time,
+            end: e.end_time,
+            allDay: e.all_day,
+            color: e.color,
+          })),
+          source: "local",
+        };
       }
 
-      case "google_ads_get_campaign_performance": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_campaign_performance", params: args }),
-        });
-        return await response.json();
-      }
+      case "local_calendar_create": {
+        const { title, startTime, endTime, description, allDay, color } = args;
+        
+        const { data, error } = await supabase
+          .from("calendar_events")
+          .insert({
+            user_id: userId,
+            title,
+            description: description || "",
+            start_time: startTime,
+            end_time: endTime,
+            all_day: allDay || false,
+            color: color || null,
+          })
+          .select()
+          .single();
 
-      case "google_ads_get_spend_summary": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_spend_summary", params: args }),
-        });
-        return await response.json();
-      }
-
-      // Google Analytics tools
-      case "google_analytics_list_properties": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "list_properties", params: args }),
-        });
-        return await response.json();
-      }
-
-      case "google_analytics_get_traffic": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_traffic", params: args }),
-        });
-        return await response.json();
-      }
-
-      case "google_analytics_get_sources": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_sources", params: args }),
-        });
-        return await response.json();
-      }
-
-      case "google_analytics_get_top_pages": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_top_pages", params: args }),
-        });
-        return await response.json();
-      }
-
-      case "google_analytics_get_geo": {
-        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
-          method: "POST",
-          headers: { Authorization: authHeader, "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "get_geo", params: args }),
-        });
-        return await response.json();
+        if (error) throw error;
+        return { success: true, event: data, source: "local" };
       }
 
       default:
@@ -728,7 +616,6 @@ async function incrementUsage(serviceSupabase: any, orgId: string, field: string
   const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
   
   try {
-    // Try to update existing record
     const { data: existing } = await serviceSupabase
       .from("usage_stats")
       .select("id, " + field)
@@ -742,7 +629,6 @@ async function incrementUsage(serviceSupabase: any, orgId: string, field: string
         .update({ [field]: (existing[field] || 0) + 1 })
         .eq("id", existing.id);
     } else {
-      // Create new record for this month
       await serviceSupabase
         .from("usage_stats")
         .insert({
@@ -773,11 +659,9 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Get authorization for user context
     const authHeader = req.headers.get("Authorization");
     let userId: string | null = null;
     let supabase: any = null;
-
     let orgId: string | null = null;
 
     if (authHeader) {
@@ -789,7 +673,6 @@ serve(async (req) => {
       const { data: { user } } = await supabase.auth.getUser();
       userId = user?.id || null;
 
-      // Get user's org for usage tracking
       if (userId) {
         const { data: orgMember } = await supabase
           .from("org_members")
@@ -801,47 +684,41 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[Chat] Processing request for user: ${userId}, session: ${sessionId}`);
-
-    // Create service client for usage tracking and rate limiting
     const serviceSupabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check rate limits
-    if (userId) {
-      const rateLimitCheck = await checkRateLimits(serviceSupabase, userId, orgId);
-      if (!rateLimitCheck.allowed) {
+    if (userId && orgId) {
+      const rateLimitResult = await checkRateLimits(serviceSupabase, userId, orgId);
+      if (!rateLimitResult.allowed) {
         return new Response(
-          JSON.stringify({ error: rateLimitCheck.reason }),
+          JSON.stringify({ error: rateLimitResult.reason }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
     }
 
-    // Retrieve relevant conversation memories for context
     let memoryContext = "";
     if (userId && messages.length > 0) {
       const lastUserMessage = messages.filter((m: any) => m.role === "user").pop();
-      if (lastUserMessage) {
+      if (lastUserMessage?.content) {
         memoryContext = await getConversationMemories(serviceSupabase, userId, lastUserMessage.content);
       }
     }
 
-    // Build the full message history with system prompt and memory context
     const systemPromptWithMemory = SYSTEM_PROMPT + memoryContext;
-    const fullMessages = [
+
+    const formattedMessages = [
       { role: "system", content: systemPromptWithMemory },
-      ...messages
+      ...messages.map((m: any) => ({
+        role: m.role,
+        content: m.content,
+      })),
     ];
 
-    // Track AI call usage
-    if (orgId) {
-      await incrementUsage(serviceSupabase, orgId, "ai_calls");
-    }
+    console.log(`[Chat] Calling AI gateway with ${formattedMessages.length} messages`);
 
-    // Call Lovable AI Gateway (non-streaming for tool handling)
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -849,75 +726,86 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: fullMessages,
+        model: "google/gemini-2.5-flash",
+        messages: formattedMessages,
         tools: TOOL_DEFINITIONS,
-        stream: false,
+        tool_choice: "auto",
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Usage limits reached. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("[Chat] AI gateway error:", errorText);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const aiResponse = await response.json();
-    const choice = aiResponse.choices?.[0];
+    const assistantMessage = aiResponse.choices?.[0]?.message;
 
-    if (!choice) {
-      throw new Error("No response from AI");
+    if (orgId) {
+      await incrementUsage(serviceSupabase, orgId, "ai_calls");
     }
 
-    // Check if the AI wants to call tools
-    if (choice.message?.tool_calls && choice.message.tool_calls.length > 0 && userId && supabase && authHeader) {
-      const toolResults: any[] = [];
+    if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
+      const toolResults: { tool_call_id: string; role: string; content: string }[] = [];
 
-      for (const toolCall of choice.message.tool_calls) {
+      for (const toolCall of assistantMessage.tool_calls) {
         const toolName = toolCall.function.name;
-        const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
+        let toolArgs = {};
 
-        // Check if this is a write tool that needs confirmation
+        try {
+          toolArgs = JSON.parse(toolCall.function.arguments || "{}");
+        } catch {
+          console.error("[Chat] Failed to parse tool arguments");
+        }
+
         if (WRITE_TOOLS.includes(toolName)) {
-          await serviceSupabase.from("pending_actions").insert({
-            user_id: userId,
-            session_id: sessionId,
-            tool_name: toolName,
-            tool_display_name: toolName.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
-            parameters: toolArgs,
-            status: "pending",
-          });
-
           return new Response(
             JSON.stringify({
-              content: `I'd like to ${toolName.replace(/_/g, " ")}. Here are the details:\n\n${JSON.stringify(toolArgs, null, 2)}\n\nPlease confirm this action.`,
-              requiresConfirmation: true,
-              toolName,
-              toolArgs,
+              content: assistantMessage.content || "",
+              pending_action: {
+                name: toolName,
+                display_name: toolName.replace(/_/g, " "),
+                parameters: toolArgs,
+                tool_call_id: toolCall.id,
+              },
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
 
-        // Execute read-only tools directly
-        const result = await executeTool(toolName, toolArgs, supabase, userId, authHeader, serviceSupabase);
-        
-        // Track tool execution
-        if (orgId) {
-          await incrementUsage(serviceSupabase, orgId, "tool_executions");
+        if (userId) {
+          const scopeCheck = await verifyToolScope(serviceSupabase, userId, toolName);
+          if (!scopeCheck.allowed) {
+            toolResults.push({
+              tool_call_id: toolCall.id,
+              role: "tool",
+              content: JSON.stringify({ error: scopeCheck.error }),
+            });
+            continue;
+          }
         }
+
+        const result = await executeTool(
+          toolName,
+          toolArgs,
+          supabase,
+          userId!,
+          authHeader!,
+          serviceSupabase
+        );
+
+        if (orgId) {
+          await incrementUsage(serviceSupabase, orgId, "tool_calls");
+        }
+
+        await serviceSupabase.from("tool_execution_log").insert({
+          user_id: userId,
+          tool_name: toolName,
+          success: !result.error,
+          input_summary: JSON.stringify(toolArgs).substring(0, 500),
+          output_summary: JSON.stringify(result).substring(0, 500),
+        });
 
         toolResults.push({
           tool_call_id: toolCall.id,
@@ -926,10 +814,9 @@ serve(async (req) => {
         });
       }
 
-      // Make a follow-up call with tool results
       const followUpMessages = [
-        ...fullMessages,
-        choice.message,
+        ...formattedMessages,
+        assistantMessage,
         ...toolResults,
       ];
 
@@ -940,35 +827,47 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-2.5-flash",
           messages: followUpMessages,
-          stream: false,
         }),
       });
 
       if (!followUpResponse.ok) {
-        throw new Error("Failed to get follow-up response");
+        throw new Error(`AI gateway follow-up error: ${followUpResponse.status}`);
       }
 
-      const followUpData = await followUpResponse.json();
-      const finalContent = followUpData.choices?.[0]?.message?.content || "I encountered an issue processing the results.";
+      const followUpAiResponse = await followUpResponse.json();
+      const finalMessage = followUpAiResponse.choices?.[0]?.message;
+
+      if (orgId) {
+        await incrementUsage(serviceSupabase, orgId, "ai_calls");
+      }
 
       return new Response(
-        JSON.stringify({ content: finalContent }),
+        JSON.stringify({
+          content: finalMessage?.content || "I processed that request.",
+          tool_calls: assistantMessage.tool_calls.map((tc: any) => ({
+            name: tc.function.name,
+            arguments: JSON.parse(tc.function.arguments || "{}"),
+            result: toolResults.find((r) => r.tool_call_id === tc.id)?.content,
+          })),
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // No tool calls, return the direct response
     return new Response(
-      JSON.stringify({ content: choice.message?.content || "" }),
+      JSON.stringify({
+        content: assistantMessage?.content || "I'm here to help!",
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (error) {
-    console.error("Chat error:", error);
+    console.error("[Chat] Error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "An error occurred",
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
