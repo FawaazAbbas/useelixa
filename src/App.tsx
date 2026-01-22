@@ -112,15 +112,7 @@ const AppContent = () => {
               <MobileBottomNav />
             </div>
           } />
-          <Route path="/notes" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Notes />
-              <MobileBottomNav />
-            </div>
-          } />
+          <Route path="/notes" element={<Notes />} />
           <Route path="/logs" element={
             <div className="flex h-screen overflow-hidden">
               <div className="hidden md:block">
@@ -130,15 +122,7 @@ const AppContent = () => {
               <MobileBottomNav />
             </div>
           } />
-          <Route path="/connections" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Connections />
-              <MobileBottomNav />
-            </div>
-          } />
+          <Route path="/connections" element={<Connections />} />
           <Route path="/email" element={<Email />} />
           <Route path="/team" element={
             <div className="flex h-screen overflow-hidden">
