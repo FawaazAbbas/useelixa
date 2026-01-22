@@ -65,3 +65,9 @@ verify_jwt = false
 
 [functions.calendly-integration]
 verify_jwt = false
+
+[functions.google-analytics-integration]
+verify_jwt = false
+
+[functions.google-ads-integration]
+verify_jwt = false

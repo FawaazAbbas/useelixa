@@ -81,6 +81,33 @@ const TOOL_DEFINITIONS: Record<string, { domain: string; actions: { name: string
       { name: "create_invoice", description: "Create a Stripe invoice", parameters: { type: "object", properties: { customer: { type: "string" } }, required: ["customer"] } },
     ],
   },
+  "google-analytics": {
+    domain: "analytics",
+    actions: [
+      { name: "list_accounts", description: "List all accessible Google Analytics accounts", parameters: { type: "object", properties: {} } },
+      { name: "list_properties", description: "List Google Analytics properties", parameters: { type: "object", properties: { accountId: { type: "string" } } } },
+      { name: "get_traffic", description: "Get website traffic data (pageviews, sessions, users)", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } },
+      { name: "get_user_behavior", description: "Get user behavior data (engagement, bounce rate, session duration)", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } },
+      { name: "get_conversions", description: "Get conversion and event data", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, eventFilter: { type: "string" } }, required: ["propertyId"] } },
+      { name: "get_top_pages", description: "Get top pages by pageviews", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } },
+      { name: "get_traffic_sources", description: "Get traffic sources breakdown", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } },
+      { name: "get_realtime", description: "Get realtime active users", parameters: { type: "object", properties: { propertyId: { type: "string" } }, required: ["propertyId"] } },
+      { name: "get_demographics", description: "Get user demographics by location", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } },
+    ],
+  },
+  "google-ads": {
+    domain: "advertising",
+    actions: [
+      { name: "list_customers", description: "List accessible Google Ads customer accounts", parameters: { type: "object", properties: {} } },
+      { name: "get_customer", description: "Get Google Ads customer account details", parameters: { type: "object", properties: { customerId: { type: "string" } }, required: ["customerId"] } },
+      { name: "get_campaigns", description: "Get campaigns with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "get_ad_groups", description: "Get ad groups with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "get_ads", description: "Get ads with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "get_keywords", description: "Get keywords with performance and quality score", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "get_budget_summary", description: "Get budget summary across campaigns", parameters: { type: "object", properties: { customerId: { type: "string" } }, required: ["customerId"] } },
+      { name: "get_account_performance", description: "Get overall account performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+    ],
+  },
 };
 
 // Map integration slugs to their edge function and action mappings
@@ -112,6 +139,33 @@ const INTEGRATION_FUNCTION_MAP: Record<string, { functionName: string; actionMap
     actionMap: {
       list_charges: "list_charges",
       create_invoice: "create_invoice",
+    },
+  },
+  "google-analytics": {
+    functionName: "google-analytics-integration",
+    actionMap: {
+      list_accounts: "list_accounts",
+      list_properties: "list_properties",
+      get_traffic: "get_traffic",
+      get_user_behavior: "get_user_behavior",
+      get_conversions: "get_conversions",
+      get_top_pages: "get_top_pages",
+      get_traffic_sources: "get_traffic_sources",
+      get_realtime: "get_realtime",
+      get_demographics: "get_demographics",
+    },
+  },
+  "google-ads": {
+    functionName: "google-ads-integration",
+    actionMap: {
+      list_customers: "list_customers",
+      get_customer: "get_customer",
+      get_campaigns: "get_campaigns",
+      get_ad_groups: "get_ad_groups",
+      get_ads: "get_ads",
+      get_keywords: "get_keywords",
+      get_budget_summary: "get_budget_summary",
+      get_account_performance: "get_account_performance",
     },
   },
 };
