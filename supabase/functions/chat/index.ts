@@ -14,9 +14,15 @@ const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
 // Tool definitions for the AI
 const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
-  { type: "function", function: { name: "gmail_send_email", description: "Send an email. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
-  { type: "function", function: { name: "calendar_list_events", description: "List upcoming calendar events", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
-  { type: "function", function: { name: "calendar_create_event", description: "Create a calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, startTime: { type: "string" }, endTime: { type: "string" }, description: { type: "string" } }, required: ["title", "startTime", "endTime"] } } },
+  { type: "function", function: { name: "gmail_send_email", description: "Send an email via Gmail. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
+  { type: "function", function: { name: "calendar_list_events", description: "List upcoming Google Calendar events", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
+  { type: "function", function: { name: "calendar_create_event", description: "Create a Google Calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, startTime: { type: "string" }, endTime: { type: "string" }, description: { type: "string" } }, required: ["title", "startTime", "endTime"] } } },
+  { type: "function", function: { name: "outlook_list_emails", description: "List recent emails from Outlook inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
+  { type: "function", function: { name: "outlook_send_email", description: "Send an email via Outlook. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
+  { type: "function", function: { name: "outlook_list_calendar", description: "List upcoming Outlook calendar events", parameters: { type: "object", properties: { startDateTime: { type: "string" }, endDateTime: { type: "string" }, maxResults: { type: "number" } } } } },
+  { type: "function", function: { name: "outlook_create_event", description: "Create an Outlook calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { subject: { type: "string" }, start: { type: "string" }, end: { type: "string" }, body: { type: "string" } }, required: ["subject", "start", "end"] } } },
+  { type: "function", function: { name: "onedrive_list_files", description: "List files in OneDrive", parameters: { type: "object", properties: { path: { type: "string" } } } } },
+  { type: "function", function: { name: "onedrive_search_files", description: "Search files in OneDrive", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
   { type: "function", function: { name: "create_task", description: "Create a new task", parameters: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, priority: { type: "string", enum: ["low", "medium", "high"] }, dueDate: { type: "string" } }, required: ["title"] } } },
   { type: "function", function: { name: "list_tasks", description: "List user's tasks", parameters: { type: "object", properties: { status: { type: "string", enum: ["todo", "in_progress", "done"] } } } } },
   { type: "function", function: { name: "stripe_get_balance", description: "Get Stripe account balance", parameters: { type: "object", properties: {} } } },
@@ -37,6 +43,8 @@ const TOOL_DEFINITIONS = [
 const WRITE_TOOLS = [
   "gmail_send_email", 
   "calendar_create_event", 
+  "outlook_send_email",
+  "outlook_create_event",
   "notes_create",
   "stripe_create_customer",
   "shopify_create_product",
@@ -46,7 +54,10 @@ const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa 
 
 You have access to the following capabilities:
 - Read and send emails via Gmail (use gmail_list_emails, gmail_send_email)
-- View and create calendar events (use calendar_list_events, calendar_create_event)
+- View and create Google Calendar events (use calendar_list_events, calendar_create_event)
+- Read and send emails via Outlook (use outlook_list_emails, outlook_send_email)
+- View and create Outlook calendar events (use outlook_list_calendar, outlook_create_event)
+- Browse and search OneDrive files (use onedrive_list_files, onedrive_search_files)
 - Manage tasks (use create_task, list_tasks)
 - Access Stripe data (use stripe_get_balance, stripe_list_payments, stripe_list_customers, stripe_create_customer)
 - Access Shopify data (use shopify_list_orders, shopify_list_products, shopify_get_analytics, shopify_create_product)
@@ -170,10 +181,16 @@ async function checkRateLimits(
 
 // Tool to credential type mapping
 const TOOL_CREDENTIAL_MAP: Record<string, string> = {
-  gmail_list_emails: "googleOAuth2Api",
-  gmail_send_email: "googleOAuth2Api",
-  calendar_list_events: "googleOAuth2Api",
-  calendar_create_event: "googleOAuth2Api",
+  gmail_list_emails: "google",
+  gmail_send_email: "google",
+  calendar_list_events: "google",
+  calendar_create_event: "google",
+  outlook_list_emails: "microsoft",
+  outlook_send_email: "microsoft",
+  outlook_list_calendar: "microsoft",
+  outlook_create_event: "microsoft",
+  onedrive_list_files: "microsoft",
+  onedrive_search_files: "microsoft",
   stripe_get_balance: "stripe",
   stripe_list_payments: "stripe",
   stripe_list_customers: "stripe",
@@ -529,6 +546,79 @@ async function executeTool(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ query: args.query, limit: args.limit || 5 }),
+        });
+        return await response.json();
+      }
+
+      // Microsoft/Outlook tools
+      case "outlook_list_emails": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_emails", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "outlook_send_email": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "send_email", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "outlook_list_calendar": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_calendar_events", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "outlook_create_event": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "create_calendar_event", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "onedrive_list_files": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list_files", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "onedrive_search_files": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "search_files", params: args }),
         });
         return await response.json();
       }
