@@ -247,7 +247,7 @@ serve(async (req) => {
 
 function getSecretNames(credentialType: string): { clientIdKey: string; clientSecretKey: string } {
   const mappings: Record<string, { clientIdKey: string; clientSecretKey: string }> = {
-    googleOAuth2Api: { clientIdKey: 'GOOGLE_OAUTH_CLIENT_ID', clientSecretKey: 'GOOGLE_OAUTH_CLIENT_SECRET' },
+    googleOAuth2Api: { clientIdKey: 'GOOGLEOAUTH2API_CLIENT_ID', clientSecretKey: 'GOOGLEOAUTH2API_CLIENT_SECRET' },
     notionApi: { clientIdKey: 'NOTION_OAUTH_CLIENT_ID', clientSecretKey: 'NOTION_OAUTH_CLIENT_SECRET' },
     microsoftOAuth2Api: { clientIdKey: 'MICROSOFT_OAUTH_APPLICATION_ID', clientSecretKey: 'MICROSOFT_OAUTH_CLIENT_SECRET' },
     calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },
