@@ -1,132 +1,160 @@
 
-# Deep Analysis: Gmail Email Sending Not Working
 
-## Root Causes Identified
+# Plan: Add Notion Integration to AI Chat
 
-After extensive investigation, I found **multiple issues** preventing Gmail email sending:
+## Problem Summary
 
-### Issue 1: AI Model Not Invoking Tools (Primary Issue)
-The chat message history reveals that when users ask to "send an email", the AI often responds with text questions instead of invoking the `gmail_send_email` tool. For example:
-- User: "send an email to fawaazabbas2@gmail.com about something random"
-- AI: "I can help with that! What would you like the subject and body of the email to be?"
+Notion OAuth connection works correctly, but the AI assistant (Elixa) cannot use Notion because:
 
-The AI should instead **invoke the tool directly** when the user provides enough information, or compose a sensible email and request confirmation.
+1. No Notion tools are defined in the chat function's `TOOL_DEFINITIONS`
+2. No `executeTool` cases exist to handle Notion operations  
+3. No `notion-integration` edge function exists to call the Notion API
 
-**Cause**: The system prompt needs stronger guidance to proactively use tools rather than asking follow-up questions.
+## Solution Overview
 
-### Issue 2: Missing Execute Handlers for New Gmail Tools
-The `execute-pending-action` function only handles 3 tools:
-- `gmail_send_email` (handled)
-- `calendar_create_event` (handled)
-- `notes_create` (handled)
+Create a complete Notion integration that mirrors how Gmail, Stripe, and Shopify integrations work:
 
-**Missing handlers for**:
-- `gmail_reply`
-- `gmail_modify_labels`
-- `gmail_trash`
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                     Current State                               │
+├─────────────────────────────────────────────────────────────────┤
+│  User connects Notion → OAuth succeeds → Credentials saved      │
+│                          ↓                                      │
+│  User asks AI about Notion → AI has NO Notion tools → Can't help│
+└─────────────────────────────────────────────────────────────────┘
 
-When users approve these actions, they will fail with "Unknown tool" error.
+┌─────────────────────────────────────────────────────────────────┐
+│                     After Fix                                   │
+├─────────────────────────────────────────────────────────────────┤
+│  User connects Notion → OAuth succeeds → Credentials saved      │
+│                          ↓                                      │
+│  User asks AI about Notion → AI sees Notion tools → Calls       │
+│  notion-integration edge function → Returns Notion data         │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### Issue 3: Scope Verification May Be Blocking
-The `verifyToolScope` function checks `tool_scope_requirements` table. If Gmail tools are listed there but scopes don't match, the tool won't execute.
+## Implementation Steps
 
----
+### Step 1: Create `notion-integration` Edge Function
 
-## Solution Plan
+Create `supabase/functions/notion-integration/index.ts`:
 
-### Step 1: Update AI System Prompt
-Modify the system prompt in `supabase/functions/chat/index.ts` to be more proactive:
-- When user says "send email to X about Y", compose a reasonable email and invoke the tool
-- Only ask for clarification if critical information (recipient) is truly missing
-- Use the "REQUIRES CONFIRMATION" mechanism rather than asking via text
+**Actions to support:**
+- `search` - Search pages and databases
+- `list_databases` - List all databases the integration has access to
+- `query_database` - Query a specific database
+- `get_page` - Get page content
+- `create_page` - Create a new page (write action)
+- `update_page` - Update an existing page (write action)
 
-### Step 2: Add Missing Execute Handlers
-Update `supabase/functions/execute-pending-action/index.ts` to handle:
-- `gmail_reply` - call gmail-integration with action "reply"
-- `gmail_modify_labels` - call gmail-integration with action "modifyLabels"
-- `gmail_trash` - call gmail-integration with action "trash"
-- `gcal_create_event` - fix the mismatched tool name (should match chat function)
+**Key implementation details:**
+- Retrieve user's Notion credentials from `user_credentials` table using `notionApi` credential type
+- Use decryption utilities from `_shared/credentials.ts`
+- Call Notion API with proper headers including `Notion-Version: 2022-06-28`
+- Handle token refresh if expired
 
-### Step 3: Verify Scope Requirements
-Query and update the `tool_scope_requirements` table to ensure Gmail tools are properly configured.
+### Step 2: Add Notion Tools to Chat Function
 
-### Step 4: Enhance Error Logging
-Add more detailed logging to the chat function to track when tools are invoked vs when the AI decides not to invoke them.
+Update `supabase/functions/chat/index.ts`:
 
----
+**Add to `TOOL_DEFINITIONS` array:**
+```javascript
+{ type: "function", function: { 
+  name: "notion_search", 
+  description: "Search Notion pages and databases by query",
+  parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] }
+}},
+{ type: "function", function: { 
+  name: "notion_list_databases", 
+  description: "List all Notion databases the user has access to",
+  parameters: { type: "object", properties: {} }
+}},
+{ type: "function", function: { 
+  name: "notion_query_database", 
+  description: "Query a Notion database to retrieve entries",
+  parameters: { type: "object", properties: { 
+    database_id: { type: "string" },
+    filter: { type: "object" }
+  }, required: ["database_id"] }
+}},
+{ type: "function", function: { 
+  name: "notion_get_page", 
+  description: "Get the content of a specific Notion page",
+  parameters: { type: "object", properties: { page_id: { type: "string" } }, required: ["page_id"] }
+}},
+{ type: "function", function: { 
+  name: "notion_create_page", 
+  description: "Create a new Notion page. REQUIRES CONFIRMATION.",
+  parameters: { type: "object", properties: { 
+    parent_id: { type: "string" },
+    title: { type: "string" },
+    content: { type: "string" }
+  }, required: ["parent_id", "title"] }
+}},
+{ type: "function", function: { 
+  name: "notion_update_page", 
+  description: "Update a Notion page. REQUIRES CONFIRMATION.",
+  parameters: { type: "object", properties: { 
+    page_id: { type: "string" },
+    properties: { type: "object" }
+  }, required: ["page_id"] }
+}}
+```
 
-## Files to Modify
+**Add to `WRITE_TOOLS` array:**
+```javascript
+"notion_create_page",
+"notion_update_page"
+```
 
-| File | Changes |
-|------|---------|
-| `supabase/functions/chat/index.ts` | Update SYSTEM_PROMPT to be more proactive about using Gmail tools |
-| `supabase/functions/execute-pending-action/index.ts` | Add handlers for `gmail_reply`, `gmail_modify_labels`, `gmail_trash`, and fix `gcal_create_event` |
+**Add to `SYSTEM_PROMPT`:**
+```
+**Notion:**
+- Search pages and databases: notion_search
+- List databases: notion_list_databases
+- Query database: notion_query_database
+- Get page content: notion_get_page
+- Create pages: notion_create_page
+- Update pages: notion_update_page
+```
 
----
+**Add `executeTool` cases** for each Notion tool that call the new edge function.
+
+### Step 3: Add Tool Scope Requirements (Optional Enhancement)
+
+Add entries to `tool_scope_requirements` table for Notion tools to ensure proper permission verification.
 
 ## Technical Details
 
-### Updated System Prompt (Key Section)
-The prompt should instruct the AI:
-```text
-When a user asks you to send an email:
-1. If they provide a recipient email, compose a sensible email based on context
-2. Include subject and body in the gmail_send_email tool call
-3. The user will approve/deny via the confirmation UI - DO NOT ask for confirmation in text
-4. Only ask questions if the recipient email is missing
-
-Example: "send an email to john@example.com about our meeting"
-Action: Call gmail_send_email with to="john@example.com", subject="Regarding Our Meeting", body="Hi John,\n\nI wanted to follow up about our upcoming meeting..."
-```
-
-### Execute Handler Additions
-```typescript
-case "gmail_reply": {
-  const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
-    method: "POST",
-    headers: { Authorization: authHeader, "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "reply", params: toolArgs }),
-  });
-  result = await response.json();
-  break;
-}
-
-case "gmail_modify_labels": {
-  const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
-    method: "POST",
-    headers: { Authorization: authHeader, "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "modifyLabels", params: toolArgs }),
-  });
-  result = await response.json();
-  break;
-}
-
-case "gmail_trash": {
-  const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
-    method: "POST",
-    headers: { Authorization: authHeader, "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "trash", params: toolArgs }),
-  });
-  result = await response.json();
-  break;
-}
-
-case "gcal_create_event": {
-  const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
-    method: "POST",
-    headers: { Authorization: authHeader, "Content-Type": "application/json" },
-    body: JSON.stringify({ action: "google_create", params: toolArgs }),
-  });
-  result = await response.json();
-  break;
+### Notion API Headers Required
+```javascript
+headers: {
+  "Authorization": `Bearer ${accessToken}`,
+  "Notion-Version": "2022-06-28",
+  "Content-Type": "application/json"
 }
 ```
 
----
+### Notion API Endpoints
+- Search: `POST https://api.notion.com/v1/search`
+- List databases: `POST https://api.notion.com/v1/search` (filter by type)
+- Query database: `POST https://api.notion.com/v1/databases/{id}/query`
+- Get page: `GET https://api.notion.com/v1/pages/{id}`
+- Create page: `POST https://api.notion.com/v1/pages`
+- Update page: `PATCH https://api.notion.com/v1/pages/{id}`
+
+### Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `supabase/functions/notion-integration/index.ts` | Create new |
+| `supabase/functions/chat/index.ts` | Modify - add tools, handlers, system prompt |
 
 ## Expected Outcome
+
 After implementation:
-1. AI will proactively compose and send emails when given sufficient context
-2. Users will see Approve/Deny buttons for email actions
-3. Clicking Approve will successfully send the email via Gmail API
-4. All Gmail write tools (send, reply, modify labels, trash) will work end-to-end
+1. AI will see Notion in its available tools list
+2. Users can ask "Search my Notion for project notes" and AI will execute `notion_search`
+3. Users can ask "Create a page in Notion about X" and get the HITL confirmation flow
+4. Connected Services Indicator will show Notion as functional (not just connected)
+
