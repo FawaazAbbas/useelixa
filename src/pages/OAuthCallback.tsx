@@ -1,10 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Bug } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
+interface DebugInfo {
+  timestamp: string;
+  request: {
+    credentialType: string;
+    bundleType?: string;
+    scopes: string;
+  };
+  response: {
+    status?: number;
+    data?: unknown;
+    error?: string;
+  };
+}
 
 // Helper to get scopes for credential storage
 function getScopesForProvider(provider: string, bundleType?: string): string {
@@ -38,6 +53,8 @@ export default function OAuthCallback() {
   const { user } = useAuth();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('Completing authentication...');
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+  const [debugOpen, setDebugOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -105,6 +122,13 @@ export default function OAuthCallback() {
       
       console.log(`[OAuth] Exchanging code for ${credentialType}`, { bundleType, scopesForProvider });
 
+      // Initialize debug info
+      const debugRequest = {
+        credentialType,
+        bundleType,
+        scopes: scopesForProvider,
+      };
+
       // Exchange code for token via edge function
       const { data, error: exchangeError } = await supabase.functions.invoke('exchange-oauth-token', {
         body: { 
@@ -114,6 +138,16 @@ export default function OAuthCallback() {
           bundleType: bundleType || undefined,
           scopes: scopesForProvider,
         }
+      });
+
+      // Capture debug info
+      setDebugInfo({
+        timestamp: new Date().toISOString(),
+        request: debugRequest,
+        response: {
+          data,
+          error: exchangeError?.message,
+        },
       });
 
       if (exchangeError) {
@@ -136,6 +170,8 @@ export default function OAuthCallback() {
       console.error('OAuth callback error:', error);
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Authentication failed');
+      // Auto-open debug panel on error
+      setDebugOpen(true);
     }
   };
 
@@ -167,6 +203,39 @@ export default function OAuthCallback() {
               Return to Connections
             </Button>
           </>
+        )}
+
+        {/* Debug Panel */}
+        {debugInfo && (
+          <Collapsible open={debugOpen} onOpenChange={setDebugOpen} className="mt-6">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full flex items-center justify-center gap-2 text-muted-foreground">
+                <Bug className="h-4 w-4" />
+                Debug Info
+                {debugOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="bg-muted/50 rounded-lg p-4 text-left text-xs font-mono overflow-x-auto max-h-64 overflow-y-auto">
+                <div className="mb-2">
+                  <span className="text-muted-foreground">Timestamp:</span>{' '}
+                  <span>{debugInfo.timestamp}</span>
+                </div>
+                <div className="mb-2">
+                  <span className="text-muted-foreground">Request:</span>
+                  <pre className="mt-1 whitespace-pre-wrap break-all">
+                    {JSON.stringify(debugInfo.request, null, 2)}
+                  </pre>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Response:</span>
+                  <pre className="mt-1 whitespace-pre-wrap break-all">
+                    {JSON.stringify(debugInfo.response, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         )}
       </Card>
     </div>
