@@ -572,8 +572,314 @@ serve(async (req) => {
         break;
       }
 
+      // ==================== WRITE ACTIONS ====================
+
+      case "update_campaign_status": {
+        // Enable, pause, or remove a campaign
+        const customerId = params?.customerId;
+        const campaignId = params?.campaignId;
+        const status = params?.status; // ENABLED, PAUSED, REMOVED
+        
+        if (!customerId) throw new Error("customerId is required");
+        if (!campaignId) throw new Error("campaignId is required");
+        if (!status || !["ENABLED", "PAUSED", "REMOVED"].includes(status)) {
+          throw new Error("status must be ENABLED, PAUSED, or REMOVED");
+        }
+
+        const operations = [{
+          update: {
+            resourceName: `customers/${customerId}/campaigns/${campaignId}`,
+            status: status,
+          },
+          updateMask: "status",
+        }];
+
+        const response = await fetch(
+          `${GOOGLE_ADS_API_BASE}/customers/${customerId}/campaigns:mutate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "developer-token": developerToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ operations }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Google Ads] Update campaign status error:", error);
+          throw new Error(`Google Ads API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          campaignId,
+          newStatus: status,
+          results: data.results,
+        };
+        break;
+      }
+
+      case "update_campaign_budget": {
+        // Update a campaign budget amount
+        const customerId = params?.customerId;
+        const budgetId = params?.budgetId;
+        const amountMicros = params?.amountMicros || (params?.amount ? Math.round(params.amount * 1000000) : null);
+        
+        if (!customerId) throw new Error("customerId is required");
+        if (!budgetId) throw new Error("budgetId is required");
+        if (!amountMicros) throw new Error("amount or amountMicros is required");
+
+        const operations = [{
+          update: {
+            resourceName: `customers/${customerId}/campaignBudgets/${budgetId}`,
+            amountMicros: amountMicros.toString(),
+          },
+          updateMask: "amount_micros",
+        }];
+
+        const response = await fetch(
+          `${GOOGLE_ADS_API_BASE}/customers/${customerId}/campaignBudgets:mutate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "developer-token": developerToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ operations }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Google Ads] Update budget error:", error);
+          throw new Error(`Google Ads API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          budgetId,
+          newAmount: amountMicros / 1000000,
+          results: data.results,
+        };
+        break;
+      }
+
+      case "update_ad_group_status": {
+        // Enable, pause, or remove an ad group
+        const customerId = params?.customerId;
+        const adGroupId = params?.adGroupId;
+        const status = params?.status; // ENABLED, PAUSED, REMOVED
+        
+        if (!customerId) throw new Error("customerId is required");
+        if (!adGroupId) throw new Error("adGroupId is required");
+        if (!status || !["ENABLED", "PAUSED", "REMOVED"].includes(status)) {
+          throw new Error("status must be ENABLED, PAUSED, or REMOVED");
+        }
+
+        const operations = [{
+          update: {
+            resourceName: `customers/${customerId}/adGroups/${adGroupId}`,
+            status: status,
+          },
+          updateMask: "status",
+        }];
+
+        const response = await fetch(
+          `${GOOGLE_ADS_API_BASE}/customers/${customerId}/adGroups:mutate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "developer-token": developerToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ operations }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Google Ads] Update ad group status error:", error);
+          throw new Error(`Google Ads API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          adGroupId,
+          newStatus: status,
+          results: data.results,
+        };
+        break;
+      }
+
+      case "update_ad_status": {
+        // Enable, pause, or remove an ad
+        const customerId = params?.customerId;
+        const adGroupId = params?.adGroupId;
+        const adId = params?.adId;
+        const status = params?.status; // ENABLED, PAUSED, REMOVED
+        
+        if (!customerId) throw new Error("customerId is required");
+        if (!adGroupId) throw new Error("adGroupId is required");
+        if (!adId) throw new Error("adId is required");
+        if (!status || !["ENABLED", "PAUSED", "REMOVED"].includes(status)) {
+          throw new Error("status must be ENABLED, PAUSED, or REMOVED");
+        }
+
+        const operations = [{
+          update: {
+            resourceName: `customers/${customerId}/adGroupAds/${adGroupId}~${adId}`,
+            status: status,
+          },
+          updateMask: "status",
+        }];
+
+        const response = await fetch(
+          `${GOOGLE_ADS_API_BASE}/customers/${customerId}/adGroupAds:mutate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "developer-token": developerToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ operations }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Google Ads] Update ad status error:", error);
+          throw new Error(`Google Ads API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          adId,
+          adGroupId,
+          newStatus: status,
+          results: data.results,
+        };
+        break;
+      }
+
+      case "update_keyword_status": {
+        // Enable, pause, or remove a keyword
+        const customerId = params?.customerId;
+        const adGroupId = params?.adGroupId;
+        const criterionId = params?.criterionId;
+        const status = params?.status; // ENABLED, PAUSED, REMOVED
+        
+        if (!customerId) throw new Error("customerId is required");
+        if (!adGroupId) throw new Error("adGroupId is required");
+        if (!criterionId) throw new Error("criterionId is required");
+        if (!status || !["ENABLED", "PAUSED", "REMOVED"].includes(status)) {
+          throw new Error("status must be ENABLED, PAUSED, or REMOVED");
+        }
+
+        const operations = [{
+          update: {
+            resourceName: `customers/${customerId}/adGroupCriteria/${adGroupId}~${criterionId}`,
+            status: status,
+          },
+          updateMask: "status",
+        }];
+
+        const response = await fetch(
+          `${GOOGLE_ADS_API_BASE}/customers/${customerId}/adGroupCriteria:mutate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "developer-token": developerToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ operations }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Google Ads] Update keyword status error:", error);
+          throw new Error(`Google Ads API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          criterionId,
+          adGroupId,
+          newStatus: status,
+          results: data.results,
+        };
+        break;
+      }
+
+      case "add_keyword": {
+        // Add a new keyword to an ad group
+        const customerId = params?.customerId;
+        const adGroupId = params?.adGroupId;
+        const keywordText = params?.keywordText;
+        const matchType = params?.matchType || "BROAD"; // EXACT, PHRASE, BROAD
+        
+        if (!customerId) throw new Error("customerId is required");
+        if (!adGroupId) throw new Error("adGroupId is required");
+        if (!keywordText) throw new Error("keywordText is required");
+        if (!["EXACT", "PHRASE", "BROAD"].includes(matchType)) {
+          throw new Error("matchType must be EXACT, PHRASE, or BROAD");
+        }
+
+        const operations = [{
+          create: {
+            adGroup: `customers/${customerId}/adGroups/${adGroupId}`,
+            status: "ENABLED",
+            keyword: {
+              text: keywordText,
+              matchType: matchType,
+            },
+          },
+        }];
+
+        const response = await fetch(
+          `${GOOGLE_ADS_API_BASE}/customers/${customerId}/adGroupCriteria:mutate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "developer-token": developerToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ operations }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Google Ads] Add keyword error:", error);
+          throw new Error(`Google Ads API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          keywordText,
+          matchType,
+          adGroupId,
+          results: data.results,
+        };
+        break;
+      }
+
       default:
-        throw new Error(`Unknown action: ${action}. Available actions: list_customers, get_customer, get_campaigns, get_ad_groups, get_ads, get_keywords, get_budget_summary, get_account_performance`);
+        throw new Error(`Unknown action: ${action}. Available actions: list_customers, get_customer, get_campaigns, get_ad_groups, get_ads, get_keywords, get_budget_summary, get_account_performance, update_campaign_status, update_campaign_budget, update_ad_group_status, update_ad_status, update_keyword_status, add_keyword`);
     }
 
     // Log execution
