@@ -32,8 +32,14 @@ export function getOAuthUrl(provider: string, bundleType?: string): string | nul
 
   switch (provider) {
     case 'google': {
+      if (!OAUTH_CLIENT_IDS.GOOGLE) {
+        // If this happens, the frontend environment variable isn't injected into the build.
+        // Returning null lets the caller show a friendly error.
+        console.error('[OAuth] Missing VITE_GOOGLE_CLIENT_ID (OAUTH_CLIENT_IDS.GOOGLE is empty)');
+        return null;
+      }
       const scopes = getGoogleScopes(bundleType);
-      return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${OAUTH_CLIENT_IDS.GOOGLE}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&access_type=offline&prompt=consent&state=${encodedState}`;
+      return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(OAUTH_CLIENT_IDS.GOOGLE)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&access_type=offline&prompt=consent&state=${encodedState}`;
     }
     case 'microsoft': {
       const scopes = getMicrosoftScopes(bundleType);
