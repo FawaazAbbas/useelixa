@@ -148,6 +148,58 @@ serve(async (req) => {
           break;
         }
 
+        case "gmail_reply": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "reply", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gmail_modify_labels": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "modifyLabels", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gmail_trash": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "trash", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
+        case "gcal_create_event": {
+          const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
+            method: "POST",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "google_create", params: toolArgs }),
+          });
+          result = await response.json();
+          break;
+        }
+
         default:
           executionError = `Unknown tool: ${toolName}`;
       }
