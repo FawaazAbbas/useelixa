@@ -9,6 +9,15 @@ export interface ChatMessage {
   timestamp: string;
   toolCalls?: ToolCall[];
   pendingAction?: PendingAction;
+  files?: ChatFile[];
+}
+
+export interface ChatFile {
+  id: string;
+  name: string;
+  url: string;
+  type: string;
+  size: number;
 }
 
 export interface ToolCall {
@@ -40,7 +49,11 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const lastSummarizedCount = useRef<number>(0);
+  
+  // Track message IDs we've added locally to prevent realtime duplicates
+  const localMessageIds = useRef<Set<string>>(new Set());
 
   // Trigger conversation summarization when threshold is reached
   const triggerSummarization = useCallback(async (targetSessionId: string, messageCount: number) => {
@@ -78,7 +91,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     }
   }, []);
 
-  // Real-time subscription for live message updates
+  // Real-time subscription for live message updates - only for messages from OTHER sources
   useEffect(() => {
     if (!sessionId) return;
 
@@ -100,10 +113,16 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
             content: string;
             created_at: string;
             tool_calls?: unknown[];
-            metadata?: { pendingAction?: PendingAction };
+            metadata?: { pendingAction?: PendingAction; files?: ChatFile[] };
           };
           
-          // Only add if not already in messages (avoid duplicates from our own sends)
+          // Skip if we added this message locally
+          if (localMessageIds.current.has(newMsg.id)) {
+            console.log('Skipping duplicate message from realtime:', newMsg.id);
+            return;
+          }
+          
+          // Only add if not already in messages
           setMessages(prev => {
             if (prev.find(m => m.id === newMsg.id)) return prev;
             return [...prev, {
@@ -113,6 +132,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
               timestamp: newMsg.created_at,
               toolCalls: newMsg.tool_calls as ToolCall[] | undefined,
               pendingAction: newMsg.metadata?.pendingAction,
+              files: newMsg.metadata?.files,
             }];
           });
         }
@@ -122,6 +142,11 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [sessionId]);
+
+  // Clear local message IDs when session changes
+  useEffect(() => {
+    localMessageIds.current.clear();
   }, [sessionId]);
 
   // Load messages for a session from the database
@@ -144,8 +169,11 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         timestamp: m.created_at,
         toolCalls: m.tool_calls as ToolCall[] | undefined,
         pendingAction: m.metadata?.pendingAction,
+        files: m.metadata?.files,
       }));
 
+      // Track all loaded message IDs to prevent realtime duplicates
+      loadedMessages.forEach(m => localMessageIds.current.add(m.id));
       setMessages(loadedMessages);
     } catch (error) {
       console.error("Error loading session messages:", error);
@@ -153,19 +181,70 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     }
   }, [user, onError]);
 
-  const sendMessage = useCallback(async (content: string, targetSessionId?: string) => {
-    if (!content.trim() || isLoading) return;
+  // Upload files to storage and return their metadata
+  const uploadFiles = useCallback(async (files: File[]): Promise<ChatFile[]> => {
+    if (!user || files.length === 0) return [];
+    
+    setIsUploading(true);
+    const uploadedFiles: ChatFile[] = [];
+
+    try {
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from('chat-attachments')
+          .upload(fileName, file);
+
+        if (error) {
+          console.error('File upload error:', error);
+          continue;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('chat-attachments')
+          .getPublicUrl(data.path);
+
+        uploadedFiles.push({
+          id: crypto.randomUUID(),
+          name: file.name,
+          url: publicUrl,
+          type: file.type,
+          size: file.size,
+        });
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+    } finally {
+      setIsUploading(false);
+    }
+
+    return uploadedFiles;
+  }, [user]);
+
+  const sendMessage = useCallback(async (content: string, targetSessionId?: string, files?: File[]) => {
+    if ((!content.trim() && (!files || files.length === 0)) || isLoading) return;
 
     const effectiveSessionId = targetSessionId || sessionId;
     const userMessageId = crypto.randomUUID();
+
+    // Upload files first if provided
+    let uploadedFiles: ChatFile[] = [];
+    if (files && files.length > 0) {
+      uploadedFiles = await uploadFiles(files);
+    }
 
     const userMessage: ChatMessage = {
       id: userMessageId,
       role: "user",
       content: content.trim(),
       timestamp: new Date().toISOString(),
+      files: uploadedFiles.length > 0 ? uploadedFiles : undefined,
     };
 
+    // Track this message ID to prevent realtime duplicate
+    localMessageIds.current.add(userMessageId);
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setIsStreaming(true);
@@ -174,9 +253,11 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
       // Persist user message to database
       if (user && effectiveSessionId) {
         const insertData = {
+          id: userMessageId, // Use the same ID we generated
           session_id: effectiveSessionId,
           role: "user",
           content: content.trim(),
+          metadata: uploadedFiles.length > 0 ? { files: uploadedFiles } : null,
         };
         await supabase.from("chat_messages_v2").insert(insertData as any);
 
@@ -195,6 +276,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
       const messagesToSend = [...messages, userMessage].map(m => ({
         role: m.role,
         content: m.content,
+        files: m.files,
       }));
 
       const response = await fetch(CHAT_URL, {
@@ -218,6 +300,9 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
 
       const contentType = response.headers.get("content-type") || "";
       const assistantMessageId = crypto.randomUUID();
+      
+      // Track assistant message ID
+      localMessageIds.current.add(assistantMessageId);
 
       // Handle JSON response (non-streaming with tool execution)
       if (contentType.includes("application/json")) {
@@ -276,6 +361,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         // Persist assistant message to database
         if (user && effectiveSessionId) {
           const insertData = {
+            id: assistantMessageId, // Use the same ID
             session_id: effectiveSessionId,
             role: "assistant",
             content: assistantMessage.content,
@@ -401,6 +487,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         // Persist to database
         if (user && effectiveSessionId) {
           const insertData = {
+            id: assistantMessageId, // Use the same ID
             session_id: effectiveSessionId,
             role: "assistant",
             content: assistantContent,
@@ -423,19 +510,22 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         triggerSummarization(effectiveSessionId, currentMessageCount);
       }
     }
-  }, [messages, isLoading, sessionId, user, onError, triggerSummarization]);
+  }, [messages, isLoading, sessionId, user, onError, triggerSummarization, uploadFiles]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
+    localMessageIds.current.clear();
   }, []);
 
   return {
     messages,
     isLoading,
     isStreaming,
+    isUploading,
     sendMessage,
     clearMessages,
     setMessages,
     loadSessionMessages,
+    uploadFiles,
   };
 }
