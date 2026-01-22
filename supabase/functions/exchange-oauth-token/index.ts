@@ -148,9 +148,33 @@ serve(async (req) => {
     }
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error(`❌ Token exchange failed (${tokenResponse.status}):`, errorText);
-      throw new Error(`Token exchange failed: ${tokenResponse.status} ${errorText}`);
+      const providerStatus = tokenResponse.status;
+      const providerText = await tokenResponse.text();
+      let providerBody: unknown = providerText;
+
+      try {
+        providerBody = JSON.parse(providerText);
+      } catch {
+        // Keep raw text if not JSON
+      }
+
+      console.error(`❌ Token exchange failed (${providerStatus}):`, providerText);
+
+      // IMPORTANT: return 200 so the frontend can always display debug info.
+      // The caller should check `success === true`.
+      return new Response(
+        JSON.stringify({
+          success: false,
+          stage: "token_exchange",
+          credentialType,
+          provider_status: providerStatus,
+          provider_body: providerBody,
+          redirect_uri: getRedirectUri(),
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
     
     console.log(`✓ Token exchange successful`);
@@ -300,7 +324,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        success: true
+        success: true,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -308,13 +332,14 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("OAuth token exchange error:", error);
+    // IMPORTANT: return 200 so the frontend can always display debug info.
     return new Response(
       JSON.stringify({
         success: false,
+        stage: "internal_error",
         error: error instanceof Error ? error.message : "Unknown error",
       }),
       {
-        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
