@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { code, credentialType, userId, bundleType, scopes, correlationId } = await req.json();
+    const { code, credentialType, userId, bundleType, scopes, correlationId, codeVerifier } = await req.json();
 
     // Use client-provided correlation ID or generate one server-side
     const corrId = correlationId || `srv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
@@ -132,13 +132,19 @@ serve(async (req) => {
         }).toString(),
       });
     } else if (credentialType === "calendlyApi") {
-      // Calendly uses form-urlencoded
+      // Calendly requires PKCE
+      if (!codeVerifier) {
+        console.error(`[${corrId}] Missing code_verifier for Calendly PKCE flow`);
+        throw new Error("Missing code_verifier for Calendly - PKCE is required");
+      }
+      
       const params = new URLSearchParams({
         code,
         client_id: clientId,
         client_secret: clientSecret,
         redirect_uri: getRedirectUri(),
         grant_type: "authorization_code",
+        code_verifier: codeVerifier,
       });
 
       tokenResponse = await fetch(tokenUrl, {
