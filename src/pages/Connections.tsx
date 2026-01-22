@@ -31,11 +31,18 @@ interface UserCredential {
   connected_at: string;
 }
 
-const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string }> = {
-  "google-drive": { provider: "google", credentialType: "googleOAuth2Api" },
-  "gmail": { provider: "google", credentialType: "googleOAuth2Api" },
-  "google-calendar": { provider: "google", credentialType: "googleOAuth2Api" },
-  "google-sheets": { provider: "google", credentialType: "googleOAuth2Api" },
+// OAuth mapping with bundle types for Google services
+const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string; bundleType?: string }> = {
+  // Google Workspace (email_workspace bundle)
+  "google-drive": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
+  "gmail": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
+  "google-calendar": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
+  "google-sheets": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
+  // Google Ads & Marketing (ads_marketing bundle)
+  "google-ads": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "ads_marketing" },
+  // Google Analytics (analytics_reporting bundle)
+  "google-analytics": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "analytics_reporting" },
+  // Other providers
   "notion": { provider: "notion", credentialType: "notionApi" },
   "slack": { provider: "slack", credentialType: "slackOAuth2Api" },
   "microsoft-teams": { provider: "microsoft", credentialType: "microsoftOAuth2Api" },
@@ -110,10 +117,8 @@ const Connections = () => {
 
     setConnectingId(integration.id);
 
-    let bundleType: string | undefined;
-    if (mapping.provider === "google") {
-      bundleType = "email_workspace";
-    }
+    // Use the bundle type from the mapping if available
+    const bundleType = mapping.bundleType;
 
     const oauthUrl = getOAuthUrl(mapping.provider, bundleType);
     

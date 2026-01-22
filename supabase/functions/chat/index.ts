@@ -37,6 +37,16 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "notes_search", description: "Search notes by query", parameters: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } } },
   { type: "function", function: { name: "notes_create", description: "Create a new note. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string" }, content: { type: "string" } }, required: ["title"] } } },
   { type: "function", function: { name: "search_knowledge_base", description: "Search the organization's knowledge base documents for relevant information using semantic search", parameters: { type: "object", properties: { query: { type: "string", description: "The search query" } }, required: ["query"] } } },
+  // Google Ads tools
+  { type: "function", function: { name: "google_ads_list_campaigns", description: "List Google Ads campaigns with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID (optional, uses first accessible account if not provided)" }, limit: { type: "number", description: "Maximum campaigns to return" } } } } },
+  { type: "function", function: { name: "google_ads_get_campaign_performance", description: "Get detailed performance metrics for a specific Google Ads campaign", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string", description: "YYYY-MM-DD format" }, endDate: { type: "string", description: "YYYY-MM-DD format" } }, required: ["customerId", "campaignId"] } } },
+  { type: "function", function: { name: "google_ads_get_spend_summary", description: "Get Google Ads spend summary including impressions, clicks, conversions, and costs", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string", description: "YYYY-MM-DD format" }, endDate: { type: "string", description: "YYYY-MM-DD format" } } } } },
+  // Google Analytics tools
+  { type: "function", function: { name: "google_analytics_list_properties", description: "List available Google Analytics properties", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "google_analytics_get_traffic", description: "Get website traffic overview with sessions, users, and pageviews", parameters: { type: "object", properties: { propertyId: { type: "string", description: "GA4 property ID (optional, uses first property if not provided)" }, startDate: { type: "string", description: "YYYY-MM-DD format" }, endDate: { type: "string", description: "YYYY-MM-DD format" } } } } },
+  { type: "function", function: { name: "google_analytics_get_sources", description: "Get traffic sources breakdown showing where visitors come from", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "google_analytics_get_top_pages", description: "Get top pages by pageviews", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } } } } },
+  { type: "function", function: { name: "google_analytics_get_geo", description: "Get geographic breakdown of visitors by country", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } } } } },
 ];
 
 // Tools that require user confirmation before execution
@@ -199,6 +209,16 @@ const TOOL_CREDENTIAL_MAP: Record<string, string> = {
   shopify_list_products: "shopify",
   shopify_get_analytics: "shopify",
   shopify_create_product: "shopify",
+  // Google Ads tools
+  google_ads_list_campaigns: "google",
+  google_ads_get_campaign_performance: "google",
+  google_ads_get_spend_summary: "google",
+  // Google Analytics tools
+  google_analytics_list_properties: "google",
+  google_analytics_get_traffic: "google",
+  google_analytics_get_sources: "google",
+  google_analytics_get_top_pages: "google",
+  google_analytics_get_geo: "google",
   // Internal tools don't need credentials
   notes_list: "internal",
   notes_search: "internal",
@@ -614,11 +634,82 @@ async function executeTool(
       case "onedrive_search_files": {
         const response = await fetch(`${supabaseUrl}/functions/v1/microsoft-integration`, {
           method: "POST",
-          headers: {
-            Authorization: authHeader,
-            "Content-Type": "application/json",
-          },
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "search_files", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Google Ads tools
+      case "google_ads_list_campaigns": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_campaigns", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "google_ads_get_campaign_performance": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_campaign_performance", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "google_ads_get_spend_summary": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-ads-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_spend_summary", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Google Analytics tools
+      case "google_analytics_list_properties": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_properties", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "google_analytics_get_traffic": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_traffic", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "google_analytics_get_sources": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_sources", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "google_analytics_get_top_pages": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_top_pages", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "google_analytics_get_geo": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_geo", params: args }),
         });
         return await response.json();
       }
