@@ -11,8 +11,17 @@ const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 const MAX_MESSAGES_PER_MINUTE = 20;
 const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
 
-// Tool definitions for the AI (Google tools removed)
+// Tool definitions for the AI
 const TOOL_DEFINITIONS = [
+  // Gmail tools
+  { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" }, labelId: { type: "string" } } } } },
+  { type: "function", function: { name: "gmail_read_email", description: "Read a specific email by message ID", parameters: { type: "object", properties: { messageId: { type: "string" } }, required: ["messageId"] } } },
+  { type: "function", function: { name: "gmail_send_email", description: "Send an email via Gmail. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
+  { type: "function", function: { name: "gmail_search", description: "Search Gmail messages", parameters: { type: "object", properties: { query: { type: "string" }, maxResults: { type: "number" } }, required: ["query"] } } },
+  // Google Calendar tools
+  { type: "function", function: { name: "gcal_list_events", description: "List upcoming Google Calendar events", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
+  { type: "function", function: { name: "gcal_create_event", description: "Create a Google Calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { summary: { type: "string" }, start: { type: "string" }, end: { type: "string" }, description: { type: "string" } }, required: ["summary", "start", "end"] } } },
+  // Outlook tools
   { type: "function", function: { name: "outlook_list_emails", description: "List recent emails from Outlook inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" } } } } },
   { type: "function", function: { name: "outlook_send_email", description: "Send an email via Outlook. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
   { type: "function", function: { name: "outlook_list_calendar", description: "List upcoming Outlook calendar events", parameters: { type: "object", properties: { startDateTime: { type: "string" }, endDateTime: { type: "string" }, maxResults: { type: "number" } } } } },
@@ -39,6 +48,8 @@ const TOOL_DEFINITIONS = [
 
 // Tools that require user confirmation before execution
 const WRITE_TOOLS = [
+  "gmail_send_email",
+  "gcal_create_event",
   "outlook_send_email",
   "outlook_create_event",
   "notes_create",
@@ -50,6 +61,8 @@ const WRITE_TOOLS = [
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
 
 You have access to the following capabilities:
+- Read and send emails via Gmail (use gmail_list_emails, gmail_read_email, gmail_send_email, gmail_search)
+- View and create Google Calendar events (use gcal_list_events, gcal_create_event)
 - Read and send emails via Outlook (use outlook_list_emails, outlook_send_email)
 - View and create Outlook calendar events (use outlook_list_calendar, outlook_create_event)
 - Browse and search OneDrive files (use onedrive_list_files, onedrive_search_files)
@@ -170,18 +183,28 @@ async function checkRateLimits(
   return { allowed: true };
 }
 
-// Tool to credential type mapping (Google removed)
+// Tool to credential type mapping
 const TOOL_CREDENTIAL_MAP: Record<string, string> = {
+  // Google tools
+  gmail_list_emails: "googleOAuth2Api",
+  gmail_read_email: "googleOAuth2Api",
+  gmail_send_email: "googleOAuth2Api",
+  gmail_search: "googleOAuth2Api",
+  gcal_list_events: "googleOAuth2Api",
+  gcal_create_event: "googleOAuth2Api",
+  // Microsoft tools
   outlook_list_emails: "microsoft",
   outlook_send_email: "microsoft",
   outlook_list_calendar: "microsoft",
   outlook_create_event: "microsoft",
   onedrive_list_files: "microsoft",
   onedrive_search_files: "microsoft",
+  // Stripe tools
   stripe_get_balance: "stripe",
   stripe_list_payments: "stripe",
   stripe_list_customers: "stripe",
   stripe_create_customer: "stripe",
+  // Shopify tools
   shopify_list_orders: "shopify",
   shopify_list_products: "shopify",
   shopify_get_analytics: "shopify",
@@ -280,6 +303,80 @@ async function executeTool(
 
   try {
     switch (toolName) {
+      // Gmail tools
+      case "gmail_list_emails": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "list", params: { max_results: args.maxResults, query: args.query, label_id: args.labelId } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_read_email": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "read", params: { message_id: args.messageId } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_send_email": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "send", params: { to: args.to, subject: args.subject, body: args.body } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_search": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "search", params: { query: args.query, max_results: args.maxResults } }),
+        });
+        return await response.json();
+      }
+
+      // Google Calendar tools
+      case "gcal_list_events": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "google_list", params: { timeMin: args.timeMin, timeMax: args.timeMax, maxResults: args.maxResults } }),
+        });
+        return await response.json();
+      }
+
+      case "gcal_create_event": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/calendar-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "google_create", params: { summary: args.summary, start: args.start, end: args.end, description: args.description } }),
+        });
+        return await response.json();
+      }
+
       // Stripe tools
       case "stripe_get_balance": {
         const response = await fetch(`${supabaseUrl}/functions/v1/stripe-integration`, {
