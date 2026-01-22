@@ -7,7 +7,16 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
+// Generate a short unique correlation ID for tracking OAuth attempts
+function generateCorrelationId(): string {
+  return `oauth-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Track which authorization codes have already been processed to prevent duplicate exchanges
+const processedCodes = new Set<string>();
+
 interface DebugInfo {
+  correlationId: string;
   timestamp: string;
   request: {
     credentialType: string;
@@ -82,7 +91,13 @@ export default function OAuthCallback() {
   }, [searchParams, user]);
 
   const handleCallback = async () => {
+    // Generate a unique correlation ID for this OAuth attempt
+    const correlationId = generateCorrelationId();
+    
+    console.log(`[OAuth:${correlationId}] Starting callback handler`);
+
     if (!user) {
+      console.error(`[OAuth:${correlationId}] No user found - aborting`);
       setStatus('error');
       setMessage('You must be logged in to connect integrations');
       return;
@@ -94,6 +109,13 @@ export default function OAuthCallback() {
       const error = searchParams.get('error');
       const errorDescription = searchParams.get('error_description');
 
+      console.log(`[OAuth:${correlationId}] Params received`, { 
+        hasCode: !!code, 
+        codePrefix: code?.slice(0, 10),
+        hasState: !!stateParam, 
+        error 
+      });
+
       if (error) {
         throw new Error(`OAuth error: ${error}${errorDescription ? ` - ${errorDescription}` : ''}`);
       }
@@ -102,13 +124,23 @@ export default function OAuthCallback() {
         throw new Error('Missing authorization code');
       }
 
+      // Dedupe: Check if this code has already been processed
+      if (processedCodes.has(code)) {
+        console.warn(`[OAuth:${correlationId}] Code already processed - ignoring duplicate`);
+        return;
+      }
+      
+      // Mark code as processed immediately to prevent race conditions
+      processedCodes.add(code);
+      console.log(`[OAuth:${correlationId}] Code marked as processing (first attempt)`);
+
       // Decode state
       let state: { provider?: string; bundleType?: string; returnTo?: string } = {};
       if (stateParam) {
         try {
           state = JSON.parse(atob(decodeURIComponent(stateParam)));
         } catch (e) {
-          console.warn('Failed to parse state:', e);
+          console.warn(`[OAuth:${correlationId}] Failed to parse state:`, e);
         }
       }
 
@@ -117,6 +149,8 @@ export default function OAuthCallback() {
       if (!provider) {
         throw new Error('Missing provider in state');
       }
+
+      console.log(`[OAuth:${correlationId}] Provider: ${provider}, BundleType: ${bundleType || 'none'}`);
 
       // Map provider to credential type
       const credentialTypeMap: Record<string, string> = {
@@ -139,7 +173,11 @@ export default function OAuthCallback() {
       // Get scopes from OAuth config for proper credential storage
       const scopesForProvider = getScopesForProvider(provider, bundleType);
       
-      console.log(`[OAuth] Exchanging code for ${credentialType}`, { bundleType, scopesForProvider });
+      console.log(`[OAuth:${correlationId}] Invoking exchange-oauth-token`, { 
+        credentialType, 
+        bundleType, 
+        scopeCount: scopesForProvider.split(' ').length 
+      });
 
       // Initialize debug info
       const debugRequest = {
@@ -156,11 +194,18 @@ export default function OAuthCallback() {
           userId: user.id,
           bundleType: bundleType || undefined,
           scopes: scopesForProvider,
+          correlationId, // Pass correlation ID to backend for end-to-end tracing
         }
+      });
+
+      console.log(`[OAuth:${correlationId}] Exchange response received`, { 
+        success: data?.success, 
+        hasError: !!exchangeError 
       });
 
       // Capture debug info
       setDebugInfo({
+        correlationId,
         timestamp: new Date().toISOString(),
         request: debugRequest,
         response: {
@@ -177,6 +222,7 @@ export default function OAuthCallback() {
       // Treat `{ success: false }` as an error and surface provider payload.
       const typedData = data as any;
       if (typedData?.success === false) {
+        console.error(`[OAuth:${correlationId}] Exchange failed:`, typedData);
         throw new Error(extractOAuthProviderError(typedData) || 'OAuth token exchange failed');
       }
 
@@ -184,6 +230,7 @@ export default function OAuthCallback() {
         throw new Error(typedData.error);
       }
 
+      console.log(`[OAuth:${correlationId}] ✅ Exchange successful`);
       setStatus('success');
       setMessage('Connection successful! Redirecting...');
 
@@ -193,7 +240,7 @@ export default function OAuthCallback() {
       }, 2000);
 
     } catch (error) {
-      console.error('OAuth callback error:', error);
+      console.error(`[OAuth:${correlationId}] Callback error:`, error);
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Authentication failed');
       // Auto-open debug panel on error
@@ -243,6 +290,10 @@ export default function OAuthCallback() {
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-2">
               <div className="bg-muted/50 rounded-lg p-4 text-left text-xs font-mono overflow-x-auto max-h-64 overflow-y-auto">
+                <div className="mb-2">
+                  <span className="text-muted-foreground">Correlation ID:</span>{' '}
+                  <span className="text-primary font-semibold">{debugInfo.correlationId}</span>
+                </div>
                 <div className="mb-2">
                   <span className="text-muted-foreground">Timestamp:</span>{' '}
                   <span>{debugInfo.timestamp}</span>
