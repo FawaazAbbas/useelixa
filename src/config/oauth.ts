@@ -34,12 +34,14 @@ export function getOAuthUrl(provider: string, bundleType?: string): string | nul
       const scopes = getGoogleScopes(bundleType);
       return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${OAUTH_CLIENT_IDS.GOOGLE}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&access_type=offline&prompt=consent&state=${encodedState}`;
     }
+    case 'microsoft': {
+      const scopes = getMicrosoftScopes(bundleType);
+      return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${OAUTH_CLIENT_IDS.MICROSOFT}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${encodedState}`;
+    }
     case 'notion':
       return `https://api.notion.com/v1/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.NOTION}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&owner=user&state=${encodedState}`;
     case 'slack':
       return `https://slack.com/oauth/v2/authorize?client_id=${OAUTH_CLIENT_IDS.SLACK}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=channels:read,chat:write,users:read&state=${encodedState}`;
-    case 'microsoft':
-      return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${OAUTH_CLIENT_IDS.MICROSOFT}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent('openid profile email offline_access https://graph.microsoft.com/.default')}&state=${encodedState}`;
     case 'calendly':
       return `https://auth.calendly.com/oauth/authorize?client_id=${OAUTH_CLIENT_IDS.CALENDLY}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&state=${encodedState}`;
     case 'mailchimp':
@@ -70,5 +72,20 @@ function getGoogleScopes(bundleType?: string): string {
       return `${baseScopes} https://www.googleapis.com/auth/androidpublisher`;
     default:
       return baseScopes;
+  }
+}
+
+function getMicrosoftScopes(bundleType?: string): string {
+  const baseScopes = 'openid email profile offline_access';
+  
+  switch (bundleType) {
+    case 'email_calendar':
+      return `${baseScopes} Mail.Read Mail.Send Calendars.ReadWrite`;
+    case 'files':
+      return `${baseScopes} Files.Read Files.ReadWrite`;
+    case 'full':
+      return `${baseScopes} Mail.Read Mail.Send Calendars.ReadWrite Files.Read Files.ReadWrite User.Read`;
+    default:
+      return `${baseScopes} Mail.Read Mail.Send Calendars.ReadWrite Files.Read User.Read`;
   }
 }

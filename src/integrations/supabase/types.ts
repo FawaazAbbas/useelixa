@@ -604,6 +604,56 @@ export type Database = {
           },
         ]
       }
+      org_settings: {
+        Row: {
+          ai_allowed_tools: string[]
+          ai_auto_approve_read: boolean
+          ai_auto_approve_write: boolean
+          ai_response_style: string
+          ai_restricted_tools: string[]
+          created_at: string
+          id: string
+          max_ai_calls_per_day: number | null
+          org_id: string
+          require_approval_for_external: boolean
+          updated_at: string
+        }
+        Insert: {
+          ai_allowed_tools?: string[]
+          ai_auto_approve_read?: boolean
+          ai_auto_approve_write?: boolean
+          ai_response_style?: string
+          ai_restricted_tools?: string[]
+          created_at?: string
+          id?: string
+          max_ai_calls_per_day?: number | null
+          org_id: string
+          require_approval_for_external?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ai_allowed_tools?: string[]
+          ai_auto_approve_read?: boolean
+          ai_auto_approve_write?: boolean
+          ai_response_style?: string
+          ai_restricted_tools?: string[]
+          created_at?: string
+          id?: string
+          max_ai_calls_per_day?: number | null
+          org_id?: string
+          require_approval_for_external?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_settings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orgs: {
         Row: {
           created_at: string
