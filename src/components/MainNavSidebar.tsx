@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Users, Bell } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +20,6 @@ const navItems = [
   { icon: FileText, label: "Notes", path: "/notes" },
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Plug, label: "Connections", path: "/connections" },
-  { icon: Users, label: "Team", path: "/team" },
   { icon: Activity, label: "Logs", path: "/logs" },
 ];
 
