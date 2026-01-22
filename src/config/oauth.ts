@@ -121,6 +121,11 @@ function getGoogleScopes(bundleType?: string): string {
     case "calendar_only":
       return `${baseScopes} https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
     case "gmail_calendar":
+      return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
+    case "google_ads":
+      return `${baseScopes} https://www.googleapis.com/auth/adwords`;
+    case "google_analytics":
+      return `${baseScopes} https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit`;
     default:
       return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
   }
