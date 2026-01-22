@@ -239,6 +239,153 @@ serve(async (req) => {
         break;
       }
 
+      case "reply": {
+        const messageId = params?.messageId;
+        const body = params?.body;
+        if (!messageId || !body) throw new Error("messageId and body are required");
+
+        // First, get the original message to extract headers
+        const origResponse = await fetch(`${GMAIL_API_BASE}/messages/${messageId}?format=metadata&metadataHeaders=From&metadataHeaders=To&metadataHeaders=Cc&metadataHeaders=Subject&metadataHeaders=Message-ID&metadataHeaders=References`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!origResponse.ok) {
+          throw new Error(`Failed to get original message: ${origResponse.status}`);
+        }
+
+        const origMessage = await origResponse.json();
+        const headers = origMessage.payload?.headers || [];
+        const from = headers.find((h: any) => h.name === "From")?.value || "";
+        const to = headers.find((h: any) => h.name === "To")?.value || "";
+        const cc = headers.find((h: any) => h.name === "Cc")?.value || "";
+        const subject = headers.find((h: any) => h.name === "Subject")?.value || "";
+        const messageIdHeader = headers.find((h: any) => h.name === "Message-ID")?.value || "";
+        const references = headers.find((h: any) => h.name === "References")?.value || "";
+
+        // Build reply-to address
+        const replyTo = params?.replyAll ? [from, ...(to.split(",").map((e: string) => e.trim()))] : [from];
+        const replyToStr = replyTo.filter((e: string, i: number, arr: string[]) => arr.indexOf(e) === i).join(", ");
+
+        // Build RFC 2822 reply message
+        const messageParts = [
+          `To: ${replyToStr}`,
+          `Subject: ${subject.startsWith("Re:") ? subject : `Re: ${subject}`}`,
+          `In-Reply-To: ${messageIdHeader}`,
+          `References: ${references} ${messageIdHeader}`.trim(),
+        ];
+        if (params?.replyAll && cc) messageParts.push(`Cc: ${cc}`);
+        messageParts.push("Content-Type: text/plain; charset=utf-8");
+        messageParts.push("");
+        messageParts.push(body);
+
+        const rawMessage = messageParts.join("\r\n");
+        const encodedMessage = btoa(unescape(encodeURIComponent(rawMessage)))
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+
+        const sendResponse = await fetch(`${GMAIL_API_BASE}/messages/send`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ raw: encodedMessage, threadId: origMessage.threadId }),
+        });
+
+        if (!sendResponse.ok) {
+          const error = await sendResponse.text();
+          console.error("[Gmail] Reply error:", error);
+          throw new Error(`Failed to send reply: ${sendResponse.status}`);
+        }
+
+        const sentReply = await sendResponse.json();
+        result = {
+          success: true,
+          messageId: sentReply.id,
+          threadId: sentReply.threadId,
+        };
+        break;
+      }
+
+      case "modifyLabels": {
+        const messageId = params?.messageId;
+        if (!messageId) throw new Error("messageId is required");
+
+        const response = await fetch(`${GMAIL_API_BASE}/messages/${messageId}/modify`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            addLabelIds: params?.addLabels || [],
+            removeLabelIds: params?.removeLabels || [],
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[Gmail] Modify labels error:", error);
+          throw new Error(`Failed to modify labels: ${response.status}`);
+        }
+
+        const modified = await response.json();
+        result = {
+          success: true,
+          id: modified.id,
+          labelIds: modified.labelIds,
+        };
+        break;
+      }
+
+      case "trash": {
+        const messageId = params?.messageId;
+        if (!messageId) throw new Error("messageId is required");
+
+        const response = await fetch(`${GMAIL_API_BASE}/messages/${messageId}/trash`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to trash message: ${response.status}`);
+        }
+
+        result = { success: true, id: messageId };
+        break;
+      }
+
+      case "markRead": {
+        const messageId = params?.messageId;
+        const read = params?.read;
+        if (!messageId || read === undefined) throw new Error("messageId and read are required");
+
+        const response = await fetch(`${GMAIL_API_BASE}/messages/${messageId}/modify`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            addLabelIds: read ? [] : ["UNREAD"],
+            removeLabelIds: read ? ["UNREAD"] : [],
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to modify read status: ${response.status}`);
+        }
+
+        const modified = await response.json();
+        result = {
+          success: true,
+          id: modified.id,
+          isUnread: modified.labelIds?.includes("UNREAD"),
+        };
+        break;
+      }
+
       default:
         throw new Error(`Unknown action: ${action}`);
     }

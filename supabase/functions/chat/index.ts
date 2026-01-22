@@ -13,11 +13,16 @@ const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
 
 // Tool definitions for the AI
 const TOOL_DEFINITIONS = [
-  // Gmail tools
-  { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox", parameters: { type: "object", properties: { maxResults: { type: "number" }, query: { type: "string" }, labelId: { type: "string" } } } } },
-  { type: "function", function: { name: "gmail_read_email", description: "Read a specific email by message ID", parameters: { type: "object", properties: { messageId: { type: "string" } }, required: ["messageId"] } } },
-  { type: "function", function: { name: "gmail_send_email", description: "Send an email via Gmail. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string" }, subject: { type: "string" }, body: { type: "string" } }, required: ["to", "subject", "body"] } } },
-  { type: "function", function: { name: "gmail_search", description: "Search Gmail messages", parameters: { type: "object", properties: { query: { type: "string" }, maxResults: { type: "number" } }, required: ["query"] } } },
+  // Gmail tools - Full capabilities
+  { type: "function", function: { name: "gmail_list_emails", description: "List recent emails from Gmail inbox. Can filter by label (INBOX, SENT, DRAFTS, SPAM, TRASH, STARRED, UNREAD, etc.)", parameters: { type: "object", properties: { maxResults: { type: "number", description: "Max emails to return (default 10)" }, query: { type: "string", description: "Gmail search query (e.g., 'from:john is:unread')" }, labelIds: { type: "array", items: { type: "string" }, description: "Filter by labels like INBOX, SENT, DRAFTS, STARRED, UNREAD" } } } } },
+  { type: "function", function: { name: "gmail_read_email", description: "Read a specific email by message ID. Returns full content including body, attachments info, and headers", parameters: { type: "object", properties: { messageId: { type: "string", description: "The Gmail message ID" } }, required: ["messageId"] } } },
+  { type: "function", function: { name: "gmail_send_email", description: "Send a new email via Gmail. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { to: { type: "string", description: "Recipient email address" }, subject: { type: "string", description: "Email subject line" }, body: { type: "string", description: "Email body content" }, cc: { type: "string", description: "CC recipients (comma-separated)" }, bcc: { type: "string", description: "BCC recipients (comma-separated)" } }, required: ["to", "subject", "body"] } } },
+  { type: "function", function: { name: "gmail_reply", description: "Reply to an existing email thread. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { messageId: { type: "string", description: "Original message ID to reply to" }, body: { type: "string", description: "Reply body content" }, replyAll: { type: "boolean", description: "Reply to all recipients if true" } }, required: ["messageId", "body"] } } },
+  { type: "function", function: { name: "gmail_search", description: "Search Gmail messages using Gmail search syntax (from:, to:, subject:, is:unread, has:attachment, after:, before:, etc.)", parameters: { type: "object", properties: { query: { type: "string", description: "Gmail search query" }, maxResults: { type: "number", description: "Max results (default 10)" } }, required: ["query"] } } },
+  { type: "function", function: { name: "gmail_get_labels", description: "Get all Gmail labels including custom labels", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "gmail_modify_labels", description: "Add or remove labels from an email. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { messageId: { type: "string", description: "The Gmail message ID" }, addLabels: { type: "array", items: { type: "string" }, description: "Labels to add (e.g., STARRED, UNREAD)" }, removeLabels: { type: "array", items: { type: "string" }, description: "Labels to remove" } }, required: ["messageId"] } } },
+  { type: "function", function: { name: "gmail_trash", description: "Move an email to trash. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { messageId: { type: "string", description: "The Gmail message ID to trash" } }, required: ["messageId"] } } },
+  { type: "function", function: { name: "gmail_mark_read", description: "Mark an email as read or unread", parameters: { type: "object", properties: { messageId: { type: "string", description: "The Gmail message ID" }, read: { type: "boolean", description: "True to mark as read, false for unread" } }, required: ["messageId", "read"] } } },
   // Google Calendar tools
   { type: "function", function: { name: "gcal_list_events", description: "List upcoming Google Calendar events", parameters: { type: "object", properties: { timeMin: { type: "string" }, timeMax: { type: "string" }, maxResults: { type: "number" } } } } },
   { type: "function", function: { name: "gcal_create_event", description: "Create a Google Calendar event. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { summary: { type: "string" }, start: { type: "string" }, end: { type: "string" }, description: { type: "string" } }, required: ["summary", "start", "end"] } } },
@@ -49,6 +54,9 @@ const TOOL_DEFINITIONS = [
 // Tools that require user confirmation before execution
 const WRITE_TOOLS = [
   "gmail_send_email",
+  "gmail_reply",
+  "gmail_modify_labels",
+  "gmail_trash",
   "gcal_create_event",
   "outlook_send_email",
   "outlook_create_event",
@@ -61,21 +69,45 @@ const WRITE_TOOLS = [
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
 
 You have access to the following capabilities:
-- Read and send emails via Gmail (use gmail_list_emails, gmail_read_email, gmail_send_email, gmail_search)
-- View and create Google Calendar events (use gcal_list_events, gcal_create_event)
-- Read and send emails via Outlook (use outlook_list_emails, outlook_send_email)
-- View and create Outlook calendar events (use outlook_list_calendar, outlook_create_event)
-- Browse and search OneDrive files (use onedrive_list_files, onedrive_search_files)
-- Manage local calendar events (use local_calendar_list, local_calendar_create)
-- Manage tasks (use create_task, list_tasks)
-- Access Stripe data (use stripe_get_balance, stripe_list_payments, stripe_list_customers, stripe_create_customer)
-- Access Shopify data (use shopify_list_orders, shopify_list_products, shopify_get_analytics, shopify_create_product)
-- Manage notes (use notes_list, notes_search, notes_create)
-- Search knowledge base documents (use search_knowledge_base)
 
-When using tools that modify data (sending emails, creating events, creating notes, creating customers, creating products), always clearly explain what you're about to do and ask for confirmation.
+**Gmail (Full Access):**
+- List emails: gmail_list_emails (filter by labels like INBOX, SENT, DRAFTS, STARRED, UNREAD)
+- Read full email content: gmail_read_email
+- Send new emails: gmail_send_email (with CC/BCC support)
+- Reply to emails: gmail_reply (supports reply-all)
+- Search emails: gmail_search (Gmail search syntax: from:, to:, subject:, is:unread, has:attachment, etc.)
+- Get all labels: gmail_get_labels
+- Modify labels: gmail_modify_labels (star, archive, mark unread, etc.)
+- Delete emails: gmail_trash
+- Mark read/unread: gmail_mark_read
 
-Be helpful, concise, and proactive. If you notice opportunities to help the user be more productive, suggest them.
+**Google Calendar:**
+- View events: gcal_list_events
+- Create events: gcal_create_event
+
+**Outlook & OneDrive:**
+- Read and send Outlook emails: outlook_list_emails, outlook_send_email
+- Manage Outlook calendar: outlook_list_calendar, outlook_create_event
+- Browse OneDrive: onedrive_list_files, onedrive_search_files
+
+**Local Calendar:**
+- View events: local_calendar_list
+- Create events: local_calendar_create
+
+**Tasks:**
+- Create and list tasks: create_task, list_tasks
+
+**Business Tools:**
+- Stripe: stripe_get_balance, stripe_list_payments, stripe_list_customers, stripe_create_customer
+- Shopify: shopify_list_orders, shopify_list_products, shopify_get_analytics, shopify_create_product
+
+**Notes & Knowledge:**
+- Manage notes: notes_list, notes_search, notes_create
+- Search documents: search_knowledge_base
+
+When using tools that modify data, always clearly explain what you're about to do and ask for confirmation.
+
+Be helpful, concise, and proactive.
 
 Current date/time: ${new Date().toISOString()}`;
 
@@ -185,11 +217,16 @@ async function checkRateLimits(
 
 // Tool to credential type mapping
 const TOOL_CREDENTIAL_MAP: Record<string, string> = {
-  // Google tools
+  // Google tools - Full Gmail
   gmail_list_emails: "googleOAuth2Api",
   gmail_read_email: "googleOAuth2Api",
   gmail_send_email: "googleOAuth2Api",
+  gmail_reply: "googleOAuth2Api",
   gmail_search: "googleOAuth2Api",
+  gmail_get_labels: "googleOAuth2Api",
+  gmail_modify_labels: "googleOAuth2Api",
+  gmail_trash: "googleOAuth2Api",
+  gmail_mark_read: "googleOAuth2Api",
   gcal_list_events: "googleOAuth2Api",
   gcal_create_event: "googleOAuth2Api",
   // Microsoft tools
@@ -311,7 +348,7 @@ async function executeTool(
             Authorization: authHeader,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ action: "list", params: { max_results: args.maxResults, query: args.query, label_id: args.labelId } }),
+          body: JSON.stringify({ action: "list", params: { maxResults: args.maxResults, query: args.query, labelIds: args.labelIds } }),
         });
         return await response.json();
       }
@@ -323,7 +360,7 @@ async function executeTool(
             Authorization: authHeader,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ action: "read", params: { message_id: args.messageId } }),
+          body: JSON.stringify({ action: "read", params: { messageId: args.messageId } }),
         });
         return await response.json();
       }
@@ -335,7 +372,7 @@ async function executeTool(
             Authorization: authHeader,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ action: "send", params: { to: args.to, subject: args.subject, body: args.body } }),
+          body: JSON.stringify({ action: "send", params: { to: args.to, subject: args.subject, body: args.body, cc: args.cc, bcc: args.bcc } }),
         });
         return await response.json();
       }
@@ -347,7 +384,67 @@ async function executeTool(
             Authorization: authHeader,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ action: "search", params: { query: args.query, max_results: args.maxResults } }),
+          body: JSON.stringify({ action: "search", params: { query: args.query, maxResults: args.maxResults } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_reply": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "reply", params: { messageId: args.messageId, body: args.body, replyAll: args.replyAll } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_get_labels": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "labels", params: {} }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_modify_labels": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "modifyLabels", params: { messageId: args.messageId, addLabels: args.addLabels, removeLabels: args.removeLabels } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_trash": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "trash", params: { messageId: args.messageId } }),
+        });
+        return await response.json();
+      }
+
+      case "gmail_mark_read": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/gmail-integration`, {
+          method: "POST",
+          headers: {
+            Authorization: authHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action: "markRead", params: { messageId: args.messageId, read: args.read } }),
         });
         return await response.json();
       }
