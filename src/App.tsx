@@ -26,7 +26,6 @@ import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
-import Email from "./pages/Email";
 import Notifications from "./pages/Notifications";
 import Analytics from "./pages/Analytics";
 import { MobileRedirect } from "./components/MobileRedirect";
@@ -61,6 +60,7 @@ const AppContent = () => {
           <Route path="/waitlist" element={<Navigate to="/auth" replace />} />
           <Route path="/referral" element={<Navigate to="/tool-library" replace />} />
           <Route path="/pitch-deck" element={<Navigate to="/tool-library" replace />} />
+          <Route path="/email" element={<Navigate to="/workspace" replace />} />
           
           <Route path="/auth" element={<Auth />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
@@ -80,7 +80,6 @@ const AppContent = () => {
           <Route path="/notes" element={<Notes />} />
           <Route path="/logs" element={<Logs />} />
           <Route path="/connections" element={<Connections />} />
-          <Route path="/email" element={<Email />} />
           <Route path="/team" element={<Team />} />
           <Route path="/billing" element={<Billing />} />
           <Route path="/analytics" element={<Analytics />} />

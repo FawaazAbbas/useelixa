@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Plus, RefreshCw } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -18,11 +17,7 @@ const Calendar = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [localEvents, setLocalEvents] = useState<CalendarEvent[]>([]);
-  const [googleEvents, setGoogleEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncingGoogle, setSyncingGoogle] = useState(false);
-  const [googleConnected, setGoogleConnected] = useState(false);
-  const [googleAccount, setGoogleAccount] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   
@@ -35,7 +30,6 @@ const Calendar = () => {
   useEffect(() => {
     if (user) {
       fetchLocalEvents();
-      syncGoogleCalendar();
     }
   }, [user]);
 
@@ -53,55 +47,18 @@ const Calendar = () => {
     setLoading(false);
   };
 
-  const syncGoogleCalendar = async () => {
-    setSyncingGoogle(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("google-calendar-sync", {
-        body: { action: "list_events" },
-      });
-
-      if (error) throw error;
-
-      if (data.connected) {
-        setGoogleConnected(true);
-        setGoogleAccount(data.account);
-        setGoogleEvents(data.events?.map((e: any) => ({ ...e, source: "google" as const })) || []);
-      } else {
-        setGoogleConnected(false);
-        setGoogleEvents([]);
-      }
-    } catch (error) {
-      console.error("Error syncing Google Calendar:", error);
-    } finally {
-      setSyncingGoogle(false);
-    }
-  };
-
-  const allEvents = [...localEvents, ...googleEvents];
-
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
     setDetailSheetOpen(true);
   };
 
   const handleEditEvent = (event: CalendarEvent) => {
-    if (event.source === "google") {
-      if (event.htmlLink) {
-        window.open(event.htmlLink, "_blank");
-      }
-      return;
-    }
     setDetailSheetOpen(false);
     setEditingEvent(event);
     setFormDialogOpen(true);
   };
 
   const handleDeleteEvent = async (event: CalendarEvent) => {
-    if (event.source === "google") {
-      toast({ title: "Cannot delete Google events", description: "Manage this event in Google Calendar", variant: "destructive" });
-      return;
-    }
-
     const { error } = await supabase.from("calendar_events").delete().eq("id", event.id);
     if (error) {
       toast({ title: "Error deleting event", description: error.message, variant: "destructive" });
@@ -190,20 +147,6 @@ const Calendar = () => {
 
   const headerActions = (
     <div className="flex items-center gap-2">
-      {googleConnected && (
-        <Badge variant="outline" className="text-green-600 border-green-500/30 hidden sm:inline-flex">
-          Google Connected
-        </Badge>
-      )}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={syncGoogleCalendar}
-        disabled={syncingGoogle}
-      >
-        <RefreshCw className={`h-4 w-4 mr-2 ${syncingGoogle ? "animate-spin" : ""}`} />
-        <span className="hidden sm:inline">Sync</span>
-      </Button>
       <Button onClick={openNewEventDialog}>
         <Plus className="h-4 w-4 mr-2" />
         <span className="hidden sm:inline">Add Event</span>
@@ -215,7 +158,7 @@ const Calendar = () => {
     <PageLayout
       title="Calendar"
       icon={CalendarIcon}
-      badge={`${allEvents.length} events`}
+      badge={`${localEvents.length} events`}
       actions={headerActions}
       fullWidth
       noPadding
@@ -227,19 +170,13 @@ const Calendar = () => {
       ) : (
         <div className="flex-1 p-4 h-[calc(100vh-120px)]">
           <CalendarGrid
-            events={allEvents}
+            events={localEvents}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             onEventClick={handleEventClick}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-          
-          {googleConnected && googleAccount && (
-            <div className="text-xs text-muted-foreground text-center mt-2">
-              Synced with {googleAccount}
-            </div>
-          )}
         </div>
       )}
 

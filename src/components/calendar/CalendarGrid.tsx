@@ -26,7 +26,7 @@ export interface CalendarEvent {
   end_time: string;
   all_day: boolean;
   color: string;
-  source?: "local" | "google";
+  source?: "local";
   htmlLink?: string;
 }
 
@@ -224,7 +224,7 @@ const MonthView = ({
                     key={event.id}
                     className="text-xs px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
                     style={{
-                      backgroundColor: event.source === "google" ? "#4285f4" : event.color,
+                      backgroundColor: event.color,
                       color: "white",
                     }}
                     onClick={(e) => {
@@ -327,7 +327,7 @@ const WeekView = ({
                   key={event.id}
                   className="text-xs px-1.5 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
                   style={{
-                    backgroundColor: event.source === "google" ? "#4285f4" : event.color,
+                    backgroundColor: event.color,
                     color: "white",
                   }}
                   onClick={() => onEventClick(event)}
@@ -360,7 +360,7 @@ const WeekView = ({
                         key={event.id}
                         className="absolute inset-x-0.5 top-0.5 text-xs px-1 py-0.5 rounded truncate cursor-pointer hover:opacity-80"
                         style={{
-                          backgroundColor: event.source === "google" ? "#4285f4" : event.color,
+                          backgroundColor: event.color,
                           color: "white",
                         }}
                         onClick={() => onEventClick(event)}
@@ -418,7 +418,7 @@ const DayView = ({
                 key={event.id}
                 className="text-sm px-2 py-1 rounded cursor-pointer hover:opacity-80"
                 style={{
-                  backgroundColor: event.source === "google" ? "#4285f4" : event.color,
+                  backgroundColor: event.color,
                   color: "white",
                 }}
                 onClick={() => onEventClick(event)}
@@ -445,7 +445,7 @@ const DayView = ({
                     key={event.id}
                     className="text-sm px-2 py-1 rounded mb-1 cursor-pointer hover:opacity-80"
                     style={{
-                      backgroundColor: event.source === "google" ? "#4285f4" : event.color,
+                      backgroundColor: event.color,
                       color: "white",
                     }}
                     onClick={() => onEventClick(event)}

@@ -19,7 +19,6 @@ interface ConnectedService {
 }
 
 const SERVICE_ICONS: Record<string, string> = {
-  googleOAuth2Api: "/logos/GoogleDriveLogo.png",
   notionApi: "/logos/NotionLogo.svg",
   slackOAuth2Api: "/logos/SlackLogo.svg",
   calendlyApi: "/logos/calendar.svg",
@@ -29,7 +28,6 @@ const SERVICE_ICONS: Record<string, string> = {
 };
 
 const SERVICE_NAMES: Record<string, string> = {
-  googleOAuth2Api: "Google",
   notionApi: "Notion",
   slackOAuth2Api: "Slack",
   calendlyApi: "Calendly",
@@ -80,7 +78,7 @@ export function ConnectedServicesIndicator({ userId }: Props) {
         const credType = cred.credential_type;
         const isExpired = cred.expires_at && new Date(cred.expires_at) < new Date();
 
-        // Use bundle type or credential type as key to handle multiple Google connections
+        // Use bundle type or credential type as key
         const key = cred.bundle_type ? `${credType}_${cred.bundle_type}` : credType;
 
         if (!serviceMap.has(key)) {
@@ -134,7 +132,7 @@ export function ConnectedServicesIndicator({ userId }: Props) {
           <span className="text-xs">
             {connectedCount} connected
             {expiredCount > 0 && (
-              <span className="text-yellow-500 ml-1">({expiredCount} expired)</span>
+              <span className="text-warning ml-1">({expiredCount} expired)</span>
             )}
           </span>
           <ChevronDown
@@ -166,9 +164,9 @@ export function ConnectedServicesIndicator({ userId }: Props) {
                 )}
               </div>
               {service.status === "connected" ? (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-primary" />
               ) : (
-                <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
+                <Badge variant="outline" className="text-warning border-warning text-xs">
                   Expired
                 </Badge>
               )}
