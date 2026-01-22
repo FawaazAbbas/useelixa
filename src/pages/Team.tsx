@@ -42,6 +42,7 @@ import {
 import { useTeam, type TeamMember } from "@/hooks/useTeam";
 import { useAuth } from "@/hooks/useAuth";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
+import { PendingInvitationsCard } from "@/components/team/PendingInvitationsCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -280,7 +281,11 @@ const Team = () => {
       badge={organization?.plan ? `${organization.plan} Plan` : undefined}
       actions={isAdmin ? <InviteMemberDialog onSuccess={refetch} /> : undefined}
     >
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Pending Invitations */}
+        <PendingInvitationsCard orgId={organization?.id} isAdmin={isAdmin} />
+        
+        {/* Team Members */}
         <Card>
           <CardHeader>
             <CardTitle>Team Members</CardTitle>

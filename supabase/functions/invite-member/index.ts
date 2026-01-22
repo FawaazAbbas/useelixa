@@ -39,7 +39,7 @@ serve(async (req) => {
       );
     }
 
-    const { email, role } = await req.json();
+    const { email, role, resend } = await req.json();
 
     if (!email || !email.includes("@")) {
       return new Response(
@@ -48,7 +48,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[InviteMember] User ${user.id} inviting ${email} as ${role}`);
+    console.log(`[InviteMember] User ${user.id} ${resend ? 'resending' : 'inviting'} ${email} as ${role}`);
 
     // Get the user's organization and check if they're admin
     const { data: orgMember, error: orgError } = await supabase
@@ -131,6 +131,30 @@ serve(async (req) => {
       );
     }
 
+    // Track pending invitation in database
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    
+    if (resend) {
+      // Update existing invitation
+      await serviceSupabase
+        .from("pending_invitations")
+        .update({ expires_at: expiresAt, created_at: new Date().toISOString() })
+        .eq("org_id", orgMember.org_id)
+        .eq("email", email);
+    } else {
+      // Create new pending invitation record
+      await serviceSupabase
+        .from("pending_invitations")
+        .upsert({
+          org_id: orgMember.org_id,
+          email: email,
+          role: role || "member",
+          invited_by: user.id,
+          status: "pending",
+          expires_at: expiresAt,
+        }, { onConflict: 'org_id,email' });
+    }
+
     // Pre-create the org membership (will be fully activated when user signs up)
     if (inviteData?.user?.id) {
       await serviceSupabase
@@ -145,7 +169,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Invitation sent to ${email}`,
+        message: resend ? `Invitation resent to ${email}` : `Invitation sent to ${email}`,
         type: "invited"
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
