@@ -41,6 +41,7 @@ const Tasks = () => {
     scheduled_at: "",
     ai_tools_allowed: [] as string[],
     ai_context: "",
+    schedule: "",
   });
 
   useEffect(() => {
@@ -104,6 +105,7 @@ const Tasks = () => {
         ? new Date(formData.scheduled_at).toISOString() : null,
       ai_tools_allowed: formData.assigned_to === "ai" ? formData.ai_tools_allowed : [],
       ai_context: formData.assigned_to === "ai" && formData.ai_context ? formData.ai_context : null,
+      schedule: formData.assigned_to === "ai" && formData.schedule ? formData.schedule : null,
     };
 
     if (editingTask) {
@@ -148,6 +150,7 @@ const Tasks = () => {
       scheduled_at: task.scheduled_at ? task.scheduled_at.slice(0, 16) : "",
       ai_tools_allowed: task.ai_tools_allowed || [],
       ai_context: task.ai_context || "",
+      schedule: (task as any).schedule || "",
     });
     setDialogOpen(true);
   };
@@ -182,7 +185,7 @@ const Tasks = () => {
   const resetForm = () => {
     setFormData({ 
       title: "", description: "", status: "todo", priority: "medium", due_date: "",
-      assigned_to: "user", scheduled_at: "", ai_tools_allowed: [], ai_context: "",
+      assigned_to: "user", scheduled_at: "", ai_tools_allowed: [], ai_context: "", schedule: "",
     });
     setEditingTask(null);
     setDialogOpen(false);
