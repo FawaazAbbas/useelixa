@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Bug } from 'lucide-react';
@@ -19,6 +19,29 @@ interface DebugInfo {
     data?: unknown;
     error?: string;
   };
+}
+
+function extractOAuthProviderError(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const p = payload as Record<string, unknown>;
+  const providerBody = p.provider_body as any;
+  const providerStatus = p.provider_status;
+  const stage = p.stage;
+
+  const providerError =
+    providerBody && typeof providerBody === 'object'
+      ? [providerBody.error, providerBody.error_description].filter(Boolean).join(': ')
+      : null;
+
+  if (providerError) {
+    return `${providerError}${providerStatus ? ` (status ${providerStatus})` : ''}${stage ? ` [${stage}]` : ''}`;
+  }
+
+  if (typeof p.error === 'string' && p.error.trim().length > 0) {
+    return `${p.error}${stage ? ` [${stage}]` : ''}`;
+  }
+
+  return null;
 }
 
 // Helper to get scopes for credential storage
@@ -55,9 +78,12 @@ export default function OAuthCallback() {
   const [message, setMessage] = useState('Completing authentication...');
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [debugOpen, setDebugOpen] = useState(false);
+  const hasStartedRef = useRef(false);
 
   useEffect(() => {
-    if (user) {
+    // Guard against duplicate exchanges (React strict mode, user hydration, param changes)
+    if (user && !hasStartedRef.current) {
+      hasStartedRef.current = true;
       handleCallback();
     }
   }, [searchParams, user]);
@@ -154,8 +180,15 @@ export default function OAuthCallback() {
         throw exchangeError;
       }
 
-      if (data?.error) {
-        throw new Error(data.error);
+      // Our backend function returns 200 even on failure for better debugging.
+      // Treat `{ success: false }` as an error and surface provider payload.
+      const typedData = data as any;
+      if (typedData?.success === false) {
+        throw new Error(extractOAuthProviderError(typedData) || 'OAuth token exchange failed');
+      }
+
+      if (typedData?.error) {
+        throw new Error(typedData.error);
       }
 
       setStatus('success');
