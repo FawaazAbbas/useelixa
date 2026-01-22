@@ -8,7 +8,7 @@ export const OAUTH_CLIENT_IDS = {
   NOTION: import.meta.env.VITE_NOTION_CLIENT_ID || "2bad872b-594c-8087-a5e1-00374ca27750",
   SLACK: "8186913077078.8224803663382",
   MICROSOFT: import.meta.env.VITE_MICROSOFT_CLIENT_ID || "9ebd49b8-d209-4881-94f6-ad7d587b9962",
-  CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "",
+  CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "Nnj-dmLFXc9lRSx6m7I5g2xEv33H4AEUCeQJA6rW-fI",
   MAILCHIMP: import.meta.env.VITE_MAILCHIMP_CLIENT_ID || "334313964170",
   SHOPIFY: import.meta.env.VITE_SHOPIFY_CLIENT_ID || "44ad1408b7b236bb6dfe4d8ee9efff5d",
   META: "your-meta-client-id",
