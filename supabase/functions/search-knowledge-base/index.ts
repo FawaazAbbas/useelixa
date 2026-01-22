@@ -84,17 +84,20 @@ serve(async (req) => {
           const queryEmbedding = embeddingData.data?.[0]?.embedding;
 
           if (queryEmbedding) {
-            // Try semantic search using the match_documents function
+            // Use service role for RPC call to bypass RLS
             const serviceSupabase = createClient(
               Deno.env.get("SUPABASE_URL")!,
               Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
             );
 
+            // Format embedding as a string for the RPC call
+            const embeddingString = `[${queryEmbedding.join(",")}]`;
+
             const { data: semanticResults, error: rpcError } = await serviceSupabase.rpc(
               "match_documents",
               {
-                query_embedding: queryEmbedding,
-                match_threshold: 0.7,
+                query_embedding: embeddingString,
+                match_threshold: 0.5,
                 match_count: limit,
                 p_workspace_id: workspaceId,
               }
@@ -115,6 +118,8 @@ serve(async (req) => {
                 }),
                 { headers: { ...corsHeaders, "Content-Type": "application/json" } }
               );
+            } else if (rpcError) {
+              console.log("[SearchKnowledgeBase] RPC error, falling back to text search:", rpcError.message);
             }
           }
         }
