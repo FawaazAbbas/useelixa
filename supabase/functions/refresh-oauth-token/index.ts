@@ -63,11 +63,26 @@ serve(async (req) => {
     // Get OAuth configuration
     const tokenUrl = getTokenUrl(credentialType);
     const secretNames = getSecretNames(credentialType);
-    const clientId = Deno.env.get(secretNames.clientIdKey);
-    const clientSecret = Deno.env.get(secretNames.clientSecretKey);
+    // Defensive: secrets often get copied with trailing newlines/spaces.
+    // That will make Google return `unauthorized_client` / `invalid_client`.
+    const clientId = Deno.env.get(secretNames.clientIdKey)?.trim();
+    const clientSecret = Deno.env.get(secretNames.clientSecretKey)?.trim();
 
     if (!clientId || !clientSecret) {
       throw new Error(`OAuth credentials not configured for ${credentialType}`);
+    }
+
+    // Safe diagnostics (do NOT log secrets): detect hidden whitespace / formatting issues
+    const rawClientId = Deno.env.get(secretNames.clientIdKey);
+    const rawClientSecret = Deno.env.get(secretNames.clientSecretKey);
+    const hasClientIdWhitespace = rawClientId ? rawClientId !== rawClientId.trim() : false;
+    const hasClientSecretWhitespace = rawClientSecret ? rawClientSecret !== rawClientSecret.trim() : false;
+    if (hasClientIdWhitespace || hasClientSecretWhitespace) {
+      console.warn(`⚠️ OAuth secrets contain leading/trailing whitespace`, {
+        credentialType,
+        hasClientIdWhitespace,
+        hasClientSecretWhitespace,
+      });
     }
 
     // Refresh the token
