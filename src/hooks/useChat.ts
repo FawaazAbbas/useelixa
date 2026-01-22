@@ -224,8 +224,17 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         const data = await response.json();
         
         let pendingAction: PendingAction | undefined;
-        
-        if (data.requiresConfirmation) {
+
+        if (data.pending_action) {
+          const pending = data.pending_action;
+          pendingAction = {
+            id: pending.id || crypto.randomUUID(),
+            toolName: pending.name,
+            displayName: pending.display_name || pending.name?.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()),
+            parameters: pending.parameters || {},
+            status: pending.status || "pending",
+          };
+        } else if (data.requiresConfirmation) {
           // Fetch the actual pending action from database
           const { data: pendingActionData } = await supabase
             .from("pending_actions")
@@ -251,6 +260,15 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
           content: data.content || data.error || "I encountered an issue.",
           timestamp: new Date().toISOString(),
           pendingAction,
+          toolCalls: Array.isArray(data.tool_calls)
+            ? data.tool_calls.map((toolCall: any, index: number) => ({
+                id: toolCall.id || `${assistantMessageId}-tool-${index}`,
+                name: toolCall.name || "",
+                arguments: toolCall.arguments || {},
+                result: toolCall.result,
+                status: toolCall.result?.error ? "failed" : "completed",
+              }))
+            : undefined,
         };
 
         setMessages(prev => [...prev, assistantMessage]);
@@ -261,7 +279,11 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
             session_id: effectiveSessionId,
             role: "assistant",
             content: assistantMessage.content,
-            metadata: pendingAction ? { pendingAction } : null,
+            metadata: pendingAction
+              ? { pendingAction }
+              : assistantMessage.toolCalls
+                ? { toolCalls: assistantMessage.toolCalls }
+                : null,
           };
           await supabase.from("chat_messages_v2").insert(insertData as any);
         }

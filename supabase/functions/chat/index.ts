@@ -955,14 +955,54 @@ serve(async (req) => {
         }
 
         if (WRITE_TOOLS.includes(toolName)) {
+          if (!userId || !sessionId) {
+            return new Response(
+              JSON.stringify({ error: "User session is required to perform this action." }),
+              { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+
+          const scopeCheck = await verifyToolScope(serviceSupabase, userId, toolName);
+          if (!scopeCheck.allowed) {
+            return new Response(
+              JSON.stringify({ error: scopeCheck.error }),
+              { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+
+          const toolDisplayName = toolName.replace(/_/g, " ");
+          const { data: pendingAction, error: pendingActionError } = await serviceSupabase
+            .from("pending_actions")
+            .insert({
+              user_id: userId,
+              org_id: orgId,
+              session_id: sessionId,
+              tool_name: toolName,
+              tool_display_name: toolDisplayName,
+              parameters: toolArgs,
+              status: "pending",
+            })
+            .select("id")
+            .single();
+
+          if (pendingActionError || !pendingAction) {
+            console.error("[Chat] Failed to create pending action:", pendingActionError);
+            return new Response(
+              JSON.stringify({ error: "Failed to create pending action." }),
+              { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+
           return new Response(
             JSON.stringify({
               content: assistantMessage.content || "",
               pending_action: {
+                id: pendingAction.id,
                 name: toolName,
-                display_name: toolName.replace(/_/g, " "),
+                display_name: toolDisplayName,
                 parameters: toolArgs,
                 tool_call_id: toolCall.id,
+                status: "pending",
               },
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
