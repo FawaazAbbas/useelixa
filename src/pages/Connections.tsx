@@ -5,10 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { MainNavSidebar } from "@/components/MainNavSidebar";
+import { PageLayout, PageEmptyState, SectionHeader, CardGrid } from "@/components/PageLayout";
 import { getOAuthUrl } from "@/config/oauth";
 import { toast } from "sonner";
 
@@ -32,7 +31,6 @@ interface UserCredential {
   connected_at: string;
 }
 
-// Map integration slugs to OAuth providers and credential types
 const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string }> = {
   "google-drive": { provider: "google", credentialType: "googleOAuth2Api" },
   "gmail": { provider: "google", credentialType: "googleOAuth2Api" },
@@ -66,25 +64,21 @@ const Connections = () => {
   const fetchData = async () => {
     setLoading(true);
     
-    // Fetch integrations
-    const { data: integrationsData, error: integrationsError } = await supabase
+    const { data: integrationsData } = await supabase
       .from("integrations")
       .select("*")
       .eq("status", "live")
       .order("display_order");
 
-    if (!integrationsError && integrationsData) {
-      setIntegrations(integrationsData);
-    }
+    if (integrationsData) setIntegrations(integrationsData);
 
-    // Fetch user credentials if logged in
     if (user) {
-      const { data: credentialsData, error: credentialsError } = await supabase
+      const { data: credentialsData } = await supabase
         .from("user_credentials")
         .select("id, credential_type, account_email, scopes, created_at")
         .eq("user_id", user.id);
 
-      if (!credentialsError && credentialsData) {
+      if (credentialsData) {
         setCredentials(credentialsData.map(c => ({
           ...c,
           scopes: c.scopes || null,
@@ -92,7 +86,6 @@ const Connections = () => {
         })));
       }
     }
-
     setLoading(false);
   };
 
@@ -117,13 +110,9 @@ const Connections = () => {
 
     setConnectingId(integration.id);
 
-    // Determine bundle type for Google integrations
     let bundleType: string | undefined;
     if (mapping.provider === "google") {
-      if (integration.slug === "gmail") bundleType = "email_workspace";
-      else if (integration.slug === "google-drive") bundleType = "email_workspace";
-      else if (integration.slug === "google-calendar") bundleType = "email_workspace";
-      else if (integration.slug === "google-sheets") bundleType = "email_workspace";
+      bundleType = "email_workspace";
     }
 
     const oauthUrl = getOAuthUrl(mapping.provider, bundleType);
@@ -134,7 +123,6 @@ const Connections = () => {
       return;
     }
 
-    // Redirect to OAuth provider
     window.location.href = oauthUrl;
   };
 
@@ -165,209 +153,164 @@ const Connections = () => {
   const categories = [...new Set(integrations.map(i => i.category))].sort();
   
   const filtered = integrations.filter(i => {
-    const matchesSearch = !searchQuery || 
-      i.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCat = !selectedCategory || i.category === selectedCategory;
     return matchesSearch && matchesCat;
   });
 
-  // Separate connected and available integrations
   const connectedIntegrations = filtered.filter(i => getCredentialForIntegration(i));
   const availableIntegrations = filtered.filter(i => !getCredentialForIntegration(i));
 
   return (
-    <div className="flex h-screen bg-background">
-      <MainNavSidebar />
-      <div className="flex-1 overflow-auto">
-        <div className="border-b bg-card/80 sticky top-0 z-20 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Plug className="h-6 w-6 text-primary" />
-            <span className="font-bold text-2xl">Connections</span>
-          </div>
+    <PageLayout
+      title="Connections"
+      icon={Plug}
+      badge={connectedIntegrations.length > 0 ? `${connectedIntegrations.length} connected` : undefined}
+      fullWidth
+    >
+      {/* Search and filters */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search integrations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
-
-        <div className="p-6 max-w-7xl mx-auto">
-          {/* Search and filters */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search integrations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(null)}
-              >
-                All
-              </Button>
-              {categories.map(cat => (
-                <Button
-                  key={cat}
-                  variant={selectedCategory === cat ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {cat}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <>
-              {/* Connected integrations */}
-              {connectedIntegrations.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                    Connected ({connectedIntegrations.length})
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {connectedIntegrations.map(integration => {
-                      const credential = getCredentialForIntegration(integration);
-                      return (
-                        <Card key={integration.id} className="border-primary/30 bg-primary/5">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start gap-3">
-                              <img
-                                src={integration.logo_url}
-                                alt={integration.name}
-                                className="h-10 w-10 rounded object-contain bg-muted p-1"
-                                onError={(e) => { (e.target as HTMLImageElement).src = "/elixa-logo.png"; }}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <CardTitle className="text-base flex items-center gap-2">
-                                  {integration.name}
-                                  <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                                </CardTitle>
-                                <Badge variant="outline" className="text-xs mt-1">{integration.category}</Badge>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            {credential?.account_email && (
-                              <p className="text-xs text-muted-foreground mb-1 truncate">
-                                {credential.account_email}
-                              </p>
-                            )}
-                            {credential?.scopes && credential.scopes.length > 0 && (
-                              <div className="mb-3">
-                                <p className="text-[10px] text-muted-foreground mb-1">Permissions:</p>
-                                <div className="flex flex-wrap gap-1">
-                                  {credential.scopes.slice(0, 3).map((scope, idx) => (
-                                    <Badge key={idx} variant="secondary" className="text-[9px] px-1.5 py-0">
-                                      {scope.split('/').pop()?.replace('.readonly', ' (read)') || scope}
-                                    </Badge>
-                                  ))}
-                                  {credential.scopes.length > 3 && (
-                                    <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                                      +{credential.scopes.length - 3} more
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full"
-                              onClick={() => handleDisconnect(integration)}
-                              disabled={disconnectingId === integration.id}
-                            >
-                              {disconnectingId === integration.id ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Disconnecting...
-                                </>
-                              ) : (
-                                "Disconnect"
-                              )}
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Available integrations */}
-              <div>
-                <h2 className="text-lg font-semibold mb-4">
-                  Available Integrations ({availableIntegrations.length})
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {availableIntegrations.map(integration => {
-                    const hasOAuth = !!INTEGRATION_OAUTH_MAP[integration.slug];
-                    return (
-                      <Card key={integration.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start gap-3">
-                            <img
-                              src={integration.logo_url}
-                              alt={integration.name}
-                              className="h-10 w-10 rounded object-contain bg-muted p-1"
-                              onError={(e) => { (e.target as HTMLImageElement).src = "/elixa-logo.png"; }}
-                            />
-                            <div className="flex-1">
-                              <CardTitle className="text-base">{integration.name}</CardTitle>
-                              <Badge variant="outline" className="text-xs mt-1">{integration.category}</Badge>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <CardDescription className="line-clamp-2 text-xs mb-3">
-                            {integration.description || `Connect ${integration.name}`}
-                          </CardDescription>
-                          <Button
-                            variant={hasOAuth ? "default" : "outline"}
-                            size="sm"
-                            className="w-full"
-                            onClick={() => hasOAuth && handleConnect(integration)}
-                            disabled={!hasOAuth || connectingId === integration.id}
-                          >
-                            {connectingId === integration.id ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Connecting...
-                              </>
-                            ) : hasOAuth ? (
-                              <>
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Connect
-                              </>
-                            ) : (
-                              "Coming Soon"
-                            )}
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {filtered.length === 0 && (
-                <div className="text-center py-12">
-                  <Plug className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No integrations found</p>
-                </div>
-              )}
-            </>
-          )}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedCategory === null ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory(null)}
+          >
+            All
+          </Button>
+          {categories.map(cat => (
+            <Button
+              key={cat}
+              variant={selectedCategory === cat ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedCategory(cat)}
+            >
+              {cat}
+            </Button>
+          ))}
         </div>
       </div>
-    </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <>
+          {connectedIntegrations.length > 0 && (
+            <div className="mb-10">
+              <SectionHeader title="Connected" count={connectedIntegrations.length} icon={CheckCircle2} />
+              <CardGrid columns={4}>
+                {connectedIntegrations.map(integration => {
+                  const credential = getCredentialForIntegration(integration);
+                  return (
+                    <Card key={integration.id} className="border-primary/20 bg-primary/5">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={integration.logo_url}
+                            alt={integration.name}
+                            className="h-10 w-10 rounded-lg object-contain bg-background p-1.5 border"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/elixa-logo.png"; }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-sm flex items-center gap-2">
+                              {integration.name}
+                              <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                            </CardTitle>
+                            <Badge variant="secondary" className="text-[10px] mt-1">{integration.category}</Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        {credential?.account_email && (
+                          <p className="text-xs text-muted-foreground mb-3 truncate">
+                            {credential.account_email}
+                          </p>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => handleDisconnect(integration)}
+                          disabled={disconnectingId === integration.id}
+                        >
+                          {disconnectingId === integration.id ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Disconnecting...</>
+                          ) : "Disconnect"}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </CardGrid>
+            </div>
+          )}
+
+          <div>
+            <SectionHeader title="Available" count={availableIntegrations.length} />
+            <CardGrid columns={4}>
+              {availableIntegrations.map(integration => {
+                const hasOAuth = !!INTEGRATION_OAUTH_MAP[integration.slug];
+                return (
+                  <Card key={integration.id} className="hover:shadow-md transition-all hover:border-primary/30">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start gap-3">
+                        <img
+                          src={integration.logo_url}
+                          alt={integration.name}
+                          className="h-10 w-10 rounded-lg object-contain bg-muted p-1.5"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/elixa-logo.png"; }}
+                        />
+                        <div className="flex-1">
+                          <CardTitle className="text-sm">{integration.name}</CardTitle>
+                          <Badge variant="outline" className="text-[10px] mt-1">{integration.category}</Badge>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <CardDescription className="line-clamp-2 text-xs mb-3 min-h-[2.5rem]">
+                        {integration.description || `Connect ${integration.name}`}
+                      </CardDescription>
+                      <Button
+                        variant={hasOAuth ? "default" : "secondary"}
+                        size="sm"
+                        className="w-full"
+                        onClick={() => hasOAuth && handleConnect(integration)}
+                        disabled={!hasOAuth || connectingId === integration.id}
+                      >
+                        {connectingId === integration.id ? (
+                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Connecting...</>
+                        ) : hasOAuth ? (
+                          <><ExternalLink className="h-4 w-4 mr-2" />Connect</>
+                        ) : "Coming Soon"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </CardGrid>
+          </div>
+
+          {filtered.length === 0 && (
+            <PageEmptyState
+              icon={Plug}
+              title="No integrations found"
+              description="Try adjusting your search or filters."
+            />
+          )}
+        </>
+      )}
+    </PageLayout>
   );
 };
 

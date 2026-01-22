@@ -32,12 +32,9 @@ const Chat = () => {
 
   const { messages, isLoading, isStreaming, sendMessage, clearMessages, setMessages, loadSessionMessages } = useChat({
     sessionId: activeSessionId || "",
-    onError: (error) => {
-      toast.error(error.message);
-    },
+    onError: (error) => toast.error(error.message),
   });
 
-  // Load sessions from database
   useEffect(() => {
     const loadSessions = async () => {
       if (!user) return;
@@ -52,14 +49,10 @@ const Chat = () => {
         if (error) throw error;
         
         setSessions(data || []);
-        
-        // Set active session to first one or create new
         if (data && data.length > 0) {
           setActiveSessionId(data[0].id);
         } else {
-          // Create a new session
-          const newId = crypto.randomUUID();
-          setActiveSessionId(newId);
+          setActiveSessionId(crypto.randomUUID());
         }
       } catch (error) {
         console.error("Error loading sessions:", error);
@@ -71,7 +64,6 @@ const Chat = () => {
     loadSessions();
   }, [user]);
 
-  // Load messages when session changes
   useEffect(() => {
     if (activeSessionId && !loadingSessions) {
       const existingSession = sessions.find(s => s.id === activeSessionId);
@@ -83,7 +75,6 @@ const Chat = () => {
     }
   }, [activeSessionId, loadingSessions]);
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -91,7 +82,6 @@ const Chat = () => {
     }
   }, [input]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -104,11 +94,7 @@ const Chat = () => {
     if (user) {
       const { error } = await supabase
         .from("chat_sessions_v2")
-        .insert({
-          id: sessionId,
-          user_id: user.id,
-          title: title.slice(0, 100),
-        });
+        .insert({ id: sessionId, user_id: user.id, title: title.slice(0, 100) });
 
       if (!error) {
         setSessions(prev => [{
@@ -127,7 +113,6 @@ const Chat = () => {
     
     let sessionId = activeSessionId;
     
-    // Create session on first message if needed
     if (!sessionId || !sessions.find(s => s.id === sessionId)) {
       sessionId = await createSession(input.slice(0, 50) + (input.length > 50 ? "..." : ""));
       setActiveSessionId(sessionId);
@@ -145,8 +130,7 @@ const Chat = () => {
   };
 
   const handleNewChat = () => {
-    const newId = crypto.randomUUID();
-    setActiveSessionId(newId);
+    setActiveSessionId(crypto.randomUUID());
     clearMessages();
     setInput("");
     setSidebarOpen(false);
@@ -160,21 +144,12 @@ const Chat = () => {
 
   const handleDeleteSession = async (sessionId: string) => {
     if (user) {
-      await supabase
-        .from("chat_sessions_v2")
-        .delete()
-        .eq("id", sessionId)
-        .eq("user_id", user.id);
+      await supabase.from("chat_sessions_v2").delete().eq("id", sessionId).eq("user_id", user.id);
     }
-    
     setSessions(prev => prev.filter(s => s.id !== sessionId));
-    
-    if (sessionId === activeSessionId) {
-      handleNewChat();
-    }
+    if (sessionId === activeSessionId) handleNewChat();
   };
 
-  // Group sessions by date
   const groupedSessions = sessions.reduce((groups, session) => {
     const date = new Date(session.updated_at);
     const today = new Date();
@@ -184,15 +159,10 @@ const Chat = () => {
     weekAgo.setDate(weekAgo.getDate() - 7);
 
     let group: string;
-    if (date.toDateString() === today.toDateString()) {
-      group = "Today";
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      group = "Yesterday";
-    } else if (date > weekAgo) {
-      group = "This Week";
-    } else {
-      group = "Older";
-    }
+    if (date.toDateString() === today.toDateString()) group = "Today";
+    else if (date.toDateString() === yesterday.toDateString()) group = "Yesterday";
+    else if (date > weekAgo) group = "This Week";
+    else group = "Older";
 
     if (!groups[group]) groups[group] = [];
     groups[group].push(session);
@@ -200,9 +170,9 @@ const Chat = () => {
   }, {} as Record<string, ChatSession[]>);
 
   const SessionList = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-card/50">
       <div className="p-4 border-b">
-        <Button onClick={handleNewChat} className="w-full" variant="outline">
+        <Button onClick={handleNewChat} className="w-full" variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           New Chat
         </Button>
@@ -211,27 +181,24 @@ const Chat = () => {
         <div className="p-2 space-y-4">
           {Object.entries(groupedSessions).map(([group, groupSessions]) => (
             <div key={group}>
-              <p className="text-xs font-medium text-muted-foreground px-3 py-1">{group}</p>
-              <div className="space-y-1">
+              <p className="text-xs font-medium text-muted-foreground px-3 py-1 uppercase tracking-wide">{group}</p>
+              <div className="space-y-0.5">
                 {groupSessions.map(session => (
                   <div
                     key={session.id}
                     className={cn(
-                      "group flex items-center gap-2 p-3 rounded-lg cursor-pointer hover:bg-accent transition-colors",
-                      session.id === activeSessionId && "bg-accent"
+                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                      session.id === activeSessionId ? "bg-primary/10 text-primary" : "hover:bg-muted"
                     )}
                     onClick={() => handleSelectSession(session.id)}
                   >
-                    <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                    <MessageSquare className="h-4 w-4 flex-shrink-0 opacity-60" />
                     <span className="flex-1 truncate text-sm">{session.title}</span>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteSession(session.id);
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteSession(session.id); }}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -241,9 +208,7 @@ const Chat = () => {
             </div>
           ))}
           {sessions.length === 0 && !loadingSessions && (
-            <p className="text-sm text-muted-foreground text-center py-8">
-              No chat history yet
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-8">No chat history yet</p>
           )}
           {loadingSessions && (
             <div className="flex justify-center py-8">
@@ -259,15 +224,12 @@ const Chat = () => {
     <div className="flex h-screen bg-background">
       <MainNavSidebar />
       
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex w-64 border-r flex-col bg-card">
+      <div className="hidden md:flex w-72 border-r flex-col">
         <SessionList />
       </div>
 
-      {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <div className="border-b bg-card/80 px-4 py-3 flex items-center gap-3">
+        <header className="flex-shrink-0 h-16 border-b bg-card/80 backdrop-blur-sm px-4 flex items-center gap-3">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
@@ -275,26 +237,26 @@ const Chat = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
-              <SheetHeader className="sr-only">
-                <SheetTitle>Chat Sessions</SheetTitle>
-              </SheetHeader>
+              <SheetHeader className="sr-only"><SheetTitle>Chat Sessions</SheetTitle></SheetHeader>
               <SessionList />
             </SheetContent>
           </Sheet>
-          <Bot className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">Elixa AI</span>
-        </div>
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Bot className="h-5 w-5 text-primary" />
+          </div>
+          <span className="font-semibold text-lg">Elixa AI</span>
+        </header>
 
-        {/* Messages area */}
         <ScrollArea ref={scrollRef} className="flex-1 p-4">
           <div className="max-w-3xl mx-auto space-y-6">
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-                <Bot className="h-16 w-16 text-primary mb-4" />
+              <div className="flex flex-col items-center justify-center min-h-[50vh] text-center py-12">
+                <div className="p-4 bg-primary/10 rounded-full mb-4">
+                  <Bot className="h-10 w-10 text-primary" />
+                </div>
                 <h2 className="text-2xl font-semibold mb-2">Welcome to Elixa AI</h2>
                 <p className="text-muted-foreground max-w-md">
                   I'm your intelligent assistant. I can help you manage emails, calendar events, tasks, notes, and connect with your Stripe and Shopify data.
-                  What would you like to do today?
                 </p>
               </div>
             ) : (
@@ -308,10 +270,10 @@ const Chat = () => {
             )}
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex items-start gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                  <Bot className="h-5 w-5 text-primary-foreground" />
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Bot className="h-5 w-5 text-primary" />
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground py-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Thinking...</span>
                 </div>
@@ -320,17 +282,16 @@ const Chat = () => {
           </div>
         </ScrollArea>
 
-        {/* Input area */}
-        <div className="border-t bg-card p-4">
+        <div className="border-t bg-card/80 backdrop-blur-sm p-4">
           <div className="max-w-3xl mx-auto">
-            <div className="flex gap-2 items-end">
+            <div className="flex gap-3 items-end">
               <Textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message..."
-                className="min-h-[44px] max-h-[200px] resize-none"
+                className="min-h-[48px] max-h-[200px] resize-none rounded-xl"
                 rows={1}
                 disabled={isLoading}
               />
@@ -338,13 +299,9 @@ const Chat = () => {
                 onClick={handleSend}
                 disabled={!input.trim() || isLoading}
                 size="icon"
-                className="h-11 w-11 flex-shrink-0"
+                className="h-12 w-12 rounded-xl flex-shrink-0"
               >
-                {isLoading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Send className="h-5 w-5" />
-                )}
+                {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2 text-center">
@@ -369,17 +326,17 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
   return (
     <div className={cn("flex items-start gap-3", isUser && "flex-row-reverse")}>
       <div className={cn(
-        "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0",
-        isUser ? "bg-secondary" : "bg-primary"
+        "h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0",
+        isUser ? "bg-secondary" : "bg-primary/10"
       )}>
         {isUser ? (
           <User className="h-5 w-5 text-secondary-foreground" />
         ) : (
-          <Bot className="h-5 w-5 text-primary-foreground" />
+          <Bot className="h-5 w-5 text-primary" />
         )}
       </div>
       <div className={cn(
-        "flex-1 rounded-2xl px-4 py-3 max-w-[80%]",
+        "flex-1 rounded-2xl px-4 py-3 max-w-[85%]",
         isUser ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
       )}>
         {isUser ? (
@@ -395,7 +352,6 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
           <span className="inline-block w-1.5 h-5 ml-0.5 bg-current animate-pulse" />
         )}
         
-        {/* Pending Action Approval Buttons */}
         {message.pendingAction && !actionResolved && (
           <PendingActionButtons
             action={message.pendingAction}

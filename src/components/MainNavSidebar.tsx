@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, Bot, FileText, Users, CreditCard, Mail } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Users, Mail, Bell } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { NotificationBell } from "@/components/notifications";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { icon: MessageSquare, label: "AI Chat", path: "/chat" },
@@ -26,106 +26,101 @@ const navItems = [
 ];
 
 export const MainNavSidebar = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Mock user for demo - Liam Baduss
-  const mockUser = { email: "Liam@badusstechnologies.com", name: "Liam Baduss" };
-  const displayUser = user || mockUser;
+  const displayUser = user || { email: "demo@elixa.ai" };
 
   const handleSignOut = async () => {
-    if (user) {
-      const { signOut } = useAuth();
-      await signOut();
-    }
+    if (user) await signOut();
     navigate("/talent-pool");
   };
 
   const getUserInitials = () => {
-    if (!displayUser?.email) return "L";
-    return "L"; // Liam's initial
+    if (!displayUser?.email) return "U";
+    return displayUser.email.charAt(0).toUpperCase();
   };
 
   return (
-    <div className="h-screen w-20 bg-background border-r border-border flex flex-col items-center py-6 gap-6">
+    <div className="h-screen w-[72px] bg-card border-r flex flex-col items-center py-4 gap-2 flex-shrink-0">
       {/* Logo */}
-      <div className="h-10 w-auto flex-shrink-0 transition-all duration-300 hover:scale-110 hover:rotate-6 cursor-pointer">
-        <img src="/elixa-logo.png" alt="ELIXA" className="w-full h-full object-contain drop-shadow-lg hover:drop-shadow-2xl transition-all duration-300" />
+      <div className="h-10 w-10 mb-4 flex items-center justify-center">
+        <img 
+          src="/elixa-logo.png" 
+          alt="ELIXA" 
+          className="w-8 h-8 object-contain" 
+        />
       </div>
 
-      {/* Navigation Items */}
-      <nav className="flex flex-col gap-2 flex-1" style={{ position: 'relative', zIndex: 50 }}>
+      {/* Navigation */}
+      <nav className="flex flex-col gap-1 flex-1 w-full px-2">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
-            className="group relative p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105"
-            activeClassName="bg-accent active"
-            style={{ position: 'relative', zIndex: 50 }}
+            className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            activeClassName="bg-primary/10 text-primary"
           >
-            <item.icon className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
-            <span 
-              className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-lg border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 ease-out whitespace-nowrap" 
-              style={{ zIndex: 999999, position: 'absolute' }}
-            >
+            <item.icon className="w-5 h-5" />
+            <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
               {item.label}
             </span>
           </NavLink>
         ))}
       </nav>
 
-      {/* Notifications + Settings */}
-      <div className="flex flex-col items-center gap-2" style={{ position: 'relative', zIndex: 50 }}>
-        <div className="w-12 h-px bg-border mb-2" />
-        <NotificationBell />
+      {/* Bottom section */}
+      <div className="flex flex-col items-center gap-1 w-full px-2 pt-2 border-t">
+        <NavLink
+          to="/notifications"
+          className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          activeClassName="bg-primary/10 text-primary"
+        >
+          <Bell className="w-5 h-5" />
+          <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Notifications
+          </span>
+        </NavLink>
+        
         <NavLink
           to="/settings"
-          className="group relative p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105"
-          activeClassName="bg-accent active"
-          style={{ position: 'relative', zIndex: 50 }}
+          className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          activeClassName="bg-primary/10 text-primary"
         >
-          <SettingsIcon className="w-6 h-6 text-muted-foreground group-hover:text-primary group-[.active]:text-white transition-colors duration-200" />
-          <span 
-            className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-popover text-popover-foreground text-sm rounded-md shadow-lg border border-border opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 ease-out whitespace-nowrap" 
-            style={{ zIndex: 999999, position: 'absolute' }}
-          >
+          <SettingsIcon className="w-5 h-5" />
+          <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Settings
           </span>
         </NavLink>
-      </div>
 
-      {/* User Profile */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="p-2 rounded-lg hover:bg-accent/50 transition-all duration-200 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {getUserInitials()}
-              </AvatarFallback>
-            </Avatar>
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56" style={{ zIndex: 999999 }}>
-          <DropdownMenuLabel>
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Liam Baduss</p>
-              <p className="text-xs leading-none text-muted-foreground truncate">
-                Liam@badusstechnologies.com
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => navigate("/settings")}>
-            <SettingsIcon className="mr-2 h-4 w-4" />
-            Settings
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-            <LogOut className="mr-2 h-4 w-4" />
-            {user ? "Sign Out" : "Exit Demo"}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        {/* User */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="mt-2 p-1.5 rounded-lg hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" side="right" className="w-56 z-50">
+            <DropdownMenuLabel>
+              <p className="text-xs text-muted-foreground truncate">{displayUser.email}</p>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <SettingsIcon className="mr-2 h-4 w-4" />
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <LogOut className="mr-2 h-4 w-4" />
+              {user ? "Sign Out" : "Exit Demo"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 };

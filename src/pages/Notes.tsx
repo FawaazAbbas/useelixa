@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotes, type Note } from "@/hooks/useNotes";
 import { NotesList } from "@/components/notes/NotesList";
 import { NoteEditor } from "@/components/notes/NoteEditor";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 
 const Notes = () => {
   const { notes, loading, saving, createNote, updateNote, deleteNote } = useNotes();
@@ -41,82 +41,91 @@ const Notes = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 flex h-screen bg-background">
-      {/* Sidebar */}
-      <div className="w-72 border-r flex flex-col">
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <h1 className="font-semibold">Notes</h1>
+  const Sidebar = () => (
+    <>
+      <div className="p-4 border-b bg-card">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-md">
+              <FileText className="h-4 w-4 text-primary" />
             </div>
-            <Button size="sm" onClick={handleCreateNote}>
-              <Plus className="h-4 w-4 mr-1" />
-              New
-            </Button>
+            <h2 className="font-semibold">Notes</h2>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search notes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+          <Button size="sm" onClick={handleCreateNote}>
+            <Plus className="h-4 w-4 mr-1" />
+            New
+          </Button>
         </div>
-        <ScrollArea className="flex-1 p-2">
-          {filteredNotes.length > 0 ? (
-            <NotesList
-              notes={filteredNotes}
-              selectedId={selectedNote?.id || null}
-              onSelect={handleSelectNote}
-              onDelete={handleDeleteNote}
-            />
-          ) : notes.length > 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Search className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm">No notes match your search</p>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm">No notes yet</p>
-              <p className="text-xs mt-1">Click "New" to create one</p>
-            </div>
-          )}
-        </ScrollArea>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {selectedNote ? (
-          <NoteEditor
-            key={selectedNote.id}
-            note={selectedNote}
-            onUpdate={updateNote}
-            saving={saving}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search notes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
           />
+        </div>
+      </div>
+      <ScrollArea className="flex-1 p-2">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : filteredNotes.length > 0 ? (
+          <NotesList
+            notes={filteredNotes}
+            selectedId={selectedNote?.id || null}
+            onSelect={handleSelectNote}
+            onDelete={handleDeleteNote}
+          />
+        ) : notes.length > 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No notes match your search</p>
+          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <FileText className="h-12 w-12 mx-auto mb-3" />
-              <p className="font-medium">Select a note to view</p>
-              <p className="text-sm mt-1">Or create a new one</p>
-            </div>
+          <div className="text-center py-8 text-muted-foreground">
+            <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No notes yet</p>
+            <p className="text-xs mt-1">Click "New" to create one</p>
           </div>
         )}
-      </div>
-    </div>
+      </ScrollArea>
+    </>
+  );
+
+  return (
+    <PageLayout
+      title="Notes"
+      icon={FileText}
+      badge={notes.length || undefined}
+      sidebar={<Sidebar />}
+      noPadding
+      fullWidth
+    >
+      {selectedNote ? (
+        <NoteEditor
+          key={selectedNote.id}
+          note={selectedNote}
+          onUpdate={updateNote}
+          saving={saving}
+        />
+      ) : (
+        <div className="flex-1 flex items-center justify-center h-full">
+          <PageEmptyState
+            icon={FileText}
+            title="Select a note"
+            description="Choose a note from the sidebar or create a new one"
+            action={
+              <Button onClick={handleCreateNote} variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Note
+              </Button>
+            }
+          />
+        </div>
+      )}
+    </PageLayout>
   );
 };
 
