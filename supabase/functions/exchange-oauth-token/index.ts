@@ -62,6 +62,23 @@ serve(async (req) => {
           grant_type: "authorization_code",
         }),
       });
+    } else if (credentialType === "googleOAuth2Api") {
+      // Google uses form-urlencoded
+      const params = new URLSearchParams({
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: getRedirectUri(),
+        grant_type: "authorization_code",
+      });
+
+      tokenResponse = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: params.toString(),
+      });
     } else if (credentialType === "microsoftOAuth2Api") {
       // Microsoft requires form-urlencoded
       const params = new URLSearchParams({
@@ -164,6 +181,22 @@ serve(async (req) => {
 
     let accountEmail = null;
     let actualGrantedScopes = scopes;
+    
+    // For Google, fetch user info to get email
+    if (credentialType === "googleOAuth2Api" && tokens.access_token) {
+      try {
+        const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
+        });
+        if (userInfoResponse.ok) {
+          const userInfo = await userInfoResponse.json();
+          accountEmail = userInfo.email;
+          console.log(`✓ Google user email: ${accountEmail}`);
+        }
+      } catch (e) {
+        console.warn("Failed to fetch Google user info:", e);
+      }
+    }
     
     console.log(`📝 Credential storage data:`, { 
       credentialType, 
@@ -293,6 +326,7 @@ serve(async (req) => {
 
 function getTokenUrl(credentialType: string): string {
   const urls: Record<string, string> = {
+    googleOAuth2Api: "https://oauth2.googleapis.com/token",
     notionApi: "https://api.notion.com/v1/oauth/token",
     slackOAuth2Api: "https://slack.com/api/oauth.v2.access",
     quickbooksApi: "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
@@ -312,6 +346,7 @@ function getTokenUrl(credentialType: string): string {
 
 function getSecretNames(credentialType: string): { clientIdKey: string; clientSecretKey: string } {
   const mappings: Record<string, { clientIdKey: string; clientSecretKey: string }> = {
+    googleOAuth2Api: { clientIdKey: 'GOOGLE_OAUTH_CLIENT_ID', clientSecretKey: 'GOOGLE_OAUTH_CLIENT_SECRET' },
     notionApi: { clientIdKey: 'NOTION_OAUTH_CLIENT_ID', clientSecretKey: 'NOTION_OAUTH_CLIENT_SECRET' },
     microsoftOAuth2Api: { clientIdKey: 'MICROSOFT_OAUTH_APPLICATION_ID', clientSecretKey: 'MICROSOFT_OAUTH_CLIENT_SECRET' },
     calendlyApi: { clientIdKey: 'CALENDLY_OAUTH_CLIENT_ID', clientSecretKey: 'CALENDLY_OAUTH_CLIENT_SECRET' },

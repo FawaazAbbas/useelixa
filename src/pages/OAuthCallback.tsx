@@ -48,6 +48,18 @@ function extractOAuthProviderError(payload: unknown): string | null {
 function getScopesForProvider(provider: string, bundleType?: string): string {
   if (provider === 'slack') return 'channels:read,chat:write,users:read';
   if (provider === 'microsoft') return 'openid profile email offline_access https://graph.microsoft.com/.default';
+  if (provider === 'google') {
+    const baseScopes = 'openid email profile';
+    switch (bundleType) {
+      case 'gmail_only':
+        return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send`;
+      case 'calendar_only':
+        return `${baseScopes} https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
+      case 'gmail_calendar':
+      default:
+        return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
+    }
+  }
   return '';
 }
 
@@ -108,6 +120,7 @@ export default function OAuthCallback() {
 
       // Map provider to credential type
       const credentialTypeMap: Record<string, string> = {
+        google: 'googleOAuth2Api',
         notion: 'notionApi',
         slack: 'slackOAuth2Api',
         microsoft: 'microsoftOAuth2Api',

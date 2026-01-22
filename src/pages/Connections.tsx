@@ -31,8 +31,11 @@ interface UserCredential {
   connected_at: string;
 }
 
-// OAuth mapping - excluding Google services
+// OAuth mapping - including Google services
 const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string; bundleType?: string }> = {
+  // Google services - all use the same credential with gmail_calendar bundle
+  "gmail": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "gmail_calendar" },
+  "google-calendar": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "gmail_calendar" },
   // Other providers
   "notion": { provider: "notion", credentialType: "notionApi" },
   "slack": { provider: "slack", credentialType: "slackOAuth2Api" },

@@ -4,6 +4,7 @@
  */
 
 export const OAUTH_CLIENT_IDS = {
+  GOOGLE: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
   NOTION: import.meta.env.VITE_NOTION_CLIENT_ID || '2bad872b-594c-8087-a5e1-00374ca27750',
   SLACK: '8186913077078.8224803663382',
   MICROSOFT: import.meta.env.VITE_MICROSOFT_CLIENT_ID || '9ebd49b8-d209-4881-94f6-ad7d587b9962',
@@ -29,6 +30,15 @@ export function getOAuthUrl(provider: string, bundleType?: string): string | nul
   const encodedState = encodeURIComponent(btoa(state));
 
   switch (provider) {
+    case 'google': {
+      const clientId = OAUTH_CLIENT_IDS.GOOGLE;
+      if (!clientId) {
+        console.error('Google OAuth Client ID not configured. Set VITE_GOOGLE_CLIENT_ID environment variable.');
+        return null;
+      }
+      const scopes = getGoogleScopes(bundleType);
+      return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&access_type=offline&prompt=consent&state=${encodedState}`;
+    }
     case 'microsoft': {
       const scopes = getMicrosoftScopes(bundleType);
       return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${OAUTH_CLIENT_IDS.MICROSOFT}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${encodedState}`;
@@ -46,6 +56,20 @@ export function getOAuthUrl(provider: string, bundleType?: string): string | nul
       return null;
     default:
       return null;
+  }
+}
+
+function getGoogleScopes(bundleType?: string): string {
+  const baseScopes = 'openid email profile';
+  
+  switch (bundleType) {
+    case 'gmail_only':
+      return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send`;
+    case 'calendar_only':
+      return `${baseScopes} https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
+    case 'gmail_calendar':
+    default:
+      return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
   }
 }
 
