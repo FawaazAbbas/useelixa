@@ -699,39 +699,51 @@ export type Database = {
       }
       tasks: {
         Row: {
+          ai_context: string | null
+          ai_tools_allowed: string[] | null
           assigned_to: string | null
           created_at: string
           description: string | null
           due_date: string | null
           id: string
+          last_run_at: string | null
           position: number | null
           priority: string | null
+          scheduled_at: string | null
           status: string
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_context?: string | null
+          ai_tools_allowed?: string[] | null
           assigned_to?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           id?: string
+          last_run_at?: string | null
           position?: number | null
           priority?: string | null
+          scheduled_at?: string | null
           status?: string
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_context?: string | null
+          ai_tools_allowed?: string[] | null
           assigned_to?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
           id?: string
+          last_run_at?: string | null
           position?: number | null
           priority?: string | null
+          scheduled_at?: string | null
           status?: string
           title?: string
           updated_at?: string
