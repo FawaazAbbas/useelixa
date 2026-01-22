@@ -73,29 +73,36 @@ serve(async (req) => {
         // Truncate content for embedding (max ~8000 tokens worth)
         const contentForEmbedding = extractedContent.slice(0, 30000);
         
-        const embeddingResponse = await fetch(
-          "https://ai.gateway.lovable.dev/v1/embeddings",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "text-embedding-3-small",
-              input: contentForEmbedding,
-            }),
-          }
-        );
+        const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+        
+        if (LOVABLE_API_KEY) {
+          const embeddingResponse = await fetch(
+            "https://ai.gateway.lovable.dev/v1/embeddings",
+            {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "text-embedding-3-small",
+                input: contentForEmbedding,
+              }),
+            }
+          );
 
-        if (embeddingResponse.ok) {
-          const embeddingData = await embeddingResponse.json();
-          embedding = embeddingData?.data?.[0]?.embedding;
-          
-          if (embedding) {
-            console.log(`Generated embedding with ${embedding.length} dimensions`);
+          if (embeddingResponse.ok) {
+            const embeddingData = await embeddingResponse.json();
+            embedding = embeddingData?.data?.[0]?.embedding;
+            
+            if (embedding) {
+              console.log(`Generated embedding with ${embedding.length} dimensions`);
+            }
+          } else {
+            console.error('Embedding generation failed:', await embeddingResponse.text());
           }
         } else {
-          console.error('Embedding generation failed:', await embeddingResponse.text());
+          console.log('LOVABLE_API_KEY not available, skipping embedding generation');
         }
       } catch (embeddingError) {
         console.error('Error generating embedding:', embeddingError);

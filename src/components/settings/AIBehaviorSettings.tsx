@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Bot, Shield, Sparkles, Clock, Save, RefreshCw } from "lucide-react";
+import { Bot, Shield, Sparkles, Clock, Save, RefreshCw, Pause, Play, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -27,18 +29,20 @@ interface OrgSettings {
   ai_restricted_tools: string[];
   require_approval_for_external: boolean;
   max_ai_calls_per_day: number | null;
+  ai_paused?: boolean;
+  auto_approved_tools?: string[];
 }
 
 const AI_TOOLS = [
-  { id: "search_knowledge_base", name: "Search Knowledge Base", description: "Search uploaded documents" },
-  { id: "list_calendar_events", name: "Calendar Access", description: "View calendar events" },
-  { id: "create_note", name: "Create Notes", description: "Create and save notes" },
-  { id: "create_subtask", name: "Create Subtasks", description: "Break tasks into subtasks" },
-  { id: "gmail_list", name: "Gmail - List Emails", description: "View email inbox" },
-  { id: "gmail_send", name: "Gmail - Send Emails", description: "Send emails (requires approval)" },
-  { id: "calendar_create", name: "Calendar - Create Events", description: "Create calendar events" },
-  { id: "stripe_list", name: "Stripe - View Data", description: "View payments and customers" },
-  { id: "shopify_list", name: "Shopify - View Data", description: "View orders and products" },
+  { id: "search_knowledge_base", name: "Search Knowledge Base", description: "Search uploaded documents", isWrite: false },
+  { id: "list_calendar_events", name: "Calendar Access", description: "View calendar events", isWrite: false },
+  { id: "create_note", name: "Create Notes", description: "Create and save notes", isWrite: true },
+  { id: "create_subtask", name: "Create Subtasks", description: "Break tasks into subtasks", isWrite: true },
+  { id: "gmail_list", name: "Gmail - List Emails", description: "View email inbox", isWrite: false },
+  { id: "gmail_send", name: "Gmail - Send Emails", description: "Send emails", isWrite: true },
+  { id: "calendar_create", name: "Calendar - Create Events", description: "Create calendar events", isWrite: true },
+  { id: "stripe_list", name: "Stripe - View Data", description: "View payments and customers", isWrite: false },
+  { id: "shopify_list", name: "Shopify - View Data", description: "View orders and products", isWrite: false },
 ];
 
 export const AIBehaviorSettings = () => {
@@ -56,6 +60,8 @@ export const AIBehaviorSettings = () => {
     ai_allowed_tools: ["search_knowledge_base", "list_calendar_events", "create_note", "create_subtask"],
     require_approval_for_external: true,
     max_ai_calls_per_day: 100,
+    ai_paused: false,
+    auto_approved_tools: [] as string[],
   });
 
   useEffect(() => {
@@ -99,6 +105,8 @@ export const AIBehaviorSettings = () => {
           ai_allowed_tools: orgSettings.ai_allowed_tools || [],
           require_approval_for_external: orgSettings.require_approval_for_external,
           max_ai_calls_per_day: orgSettings.max_ai_calls_per_day || 100,
+          ai_paused: orgSettings.ai_paused || false,
+          auto_approved_tools: orgSettings.auto_approved_tools || [],
         });
       }
     } catch (error) {
@@ -121,6 +129,8 @@ export const AIBehaviorSettings = () => {
         ai_allowed_tools: formData.ai_allowed_tools,
         require_approval_for_external: formData.require_approval_for_external,
         max_ai_calls_per_day: formData.max_ai_calls_per_day,
+        ai_paused: formData.ai_paused,
+        auto_approved_tools: formData.auto_approved_tools,
         updated_at: new Date().toISOString(),
       };
 
@@ -160,6 +170,15 @@ export const AIBehaviorSettings = () => {
     }));
   };
 
+  const handleAutoApproveToggle = (toolId: string, checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      auto_approved_tools: checked
+        ? [...prev.auto_approved_tools, toolId]
+        : prev.auto_approved_tools.filter((t) => t !== toolId),
+    }));
+  };
+
   if (loading) {
     return (
       <Card>
@@ -186,6 +205,51 @@ export const AIBehaviorSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* AI Pause Toggle */}
+      <Card className={formData.ai_paused ? "border-destructive/50" : ""}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {formData.ai_paused ? (
+              <Pause className="h-5 w-5 text-destructive" />
+            ) : (
+              <Play className="h-5 w-5 text-green-500" />
+            )}
+            AI Status
+            {formData.ai_paused && (
+              <Badge variant="destructive" className="ml-2">Paused</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Temporarily disable AI assistant for your organization
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {formData.ai_paused && (
+            <Alert className="mb-4">
+              <Pause className="h-4 w-4" />
+              <AlertDescription>
+                AI assistant is currently paused. Users will see a message that AI is temporarily unavailable.
+              </AlertDescription>
+            </Alert>
+          )}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Pause AI Assistant</Label>
+              <p className="text-sm text-muted-foreground">
+                When paused, the AI will not process any requests
+              </p>
+            </div>
+            <Switch
+              checked={formData.ai_paused}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({ ...prev, ai_paused: checked }))
+              }
+              disabled={!isAdmin}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Auto-Approval Settings */}
       <Card>
         <CardHeader>
@@ -315,6 +379,46 @@ export const AIBehaviorSettings = () => {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Auto-Approved Tools (Skip Confirmation) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            Auto-Approved Tools
+          </CardTitle>
+          <CardDescription>
+            These tools will execute immediately without asking for confirmation
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3">
+            {AI_TOOLS.filter(t => t.isWrite).map((tool) => (
+              <div
+                key={`auto-${tool.id}`}
+                className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+              >
+                <Checkbox
+                  id={`auto-${tool.id}`}
+                  checked={formData.auto_approved_tools.includes(tool.id)}
+                  onCheckedChange={(checked) => handleAutoApproveToggle(tool.id, checked as boolean)}
+                  disabled={!isAdmin}
+                />
+                <div className="flex-1">
+                  <Label htmlFor={`auto-${tool.id}`} className="font-medium cursor-pointer">
+                    {tool.name}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">{tool.description}</p>
+                </div>
+                <Badge variant="outline" className="text-xs">Write</Badge>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            ⚠️ Use with caution: Auto-approved tools will execute without human review.
+          </p>
         </CardContent>
       </Card>
 

@@ -112,27 +112,43 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          mentions: string[] | null
           metadata: Json | null
+          parent_message_id: string | null
           role: string
           session_id: string
+          thread_count: number | null
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
+          mentions?: string[] | null
           metadata?: Json | null
+          parent_message_id?: string | null
           role: string
           session_id: string
+          thread_count?: number | null
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
+          mentions?: string[] | null
           metadata?: Json | null
+          parent_message_id?: string | null
           role?: string
           session_id?: string
+          thread_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chat_messages_v2_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages_v2"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chat_messages_v2_session_id_fkey"
             columns: ["session_id"]
@@ -609,8 +625,10 @@ export type Database = {
           ai_allowed_tools: string[]
           ai_auto_approve_read: boolean
           ai_auto_approve_write: boolean
+          ai_paused: boolean | null
           ai_response_style: string
           ai_restricted_tools: string[]
+          auto_approved_tools: string[] | null
           created_at: string
           id: string
           max_ai_calls_per_day: number | null
@@ -622,8 +640,10 @@ export type Database = {
           ai_allowed_tools?: string[]
           ai_auto_approve_read?: boolean
           ai_auto_approve_write?: boolean
+          ai_paused?: boolean | null
           ai_response_style?: string
           ai_restricted_tools?: string[]
+          auto_approved_tools?: string[] | null
           created_at?: string
           id?: string
           max_ai_calls_per_day?: number | null
@@ -635,8 +655,10 @@ export type Database = {
           ai_allowed_tools?: string[]
           ai_auto_approve_read?: boolean
           ai_auto_approve_write?: boolean
+          ai_paused?: boolean | null
           ai_response_style?: string
           ai_restricted_tools?: string[]
+          auto_approved_tools?: string[] | null
           created_at?: string
           id?: string
           max_ai_calls_per_day?: number | null
@@ -1255,9 +1277,9 @@ export type Database = {
       }
       match_documents: {
         Args: {
-          match_count: number
-          match_threshold: number
-          p_workspace_id: string
+          match_count?: number
+          match_threshold?: number
+          p_workspace_id?: string
           query_embedding: string
         }
         Returns: {
