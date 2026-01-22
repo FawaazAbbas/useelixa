@@ -16,7 +16,13 @@ export const OAUTH_CLIENT_IDS = {
   TYPEFORM: 'your-typeform-client-id',
 } as const;
 
-const REDIRECT_URI = `${window.location.origin}/oauth/callback`;
+// IMPORTANT:
+// The redirect URI used in the initial authorization request MUST exactly match the
+// redirect URI used during token exchange on the backend.
+// Our backend constructs the redirect URI from the canonical SITE_URL.
+// Using window.location.origin here breaks OAuth when running on preview domains.
+const CANONICAL_SITE_URL = 'https://workspace.elixa.app';
+const REDIRECT_URI = `${CANONICAL_SITE_URL}/oauth/callback`;
 
 /**
  * Get OAuth URL for a provider
