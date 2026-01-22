@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Shield, Eye, Edit, RefreshCw, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
@@ -25,15 +24,6 @@ interface ToolScope {
 }
 
 const TOOL_SCOPES: Record<string, ToolScope[]> = {
-  googleOAuth2Api: [
-    { id: "gmail.readonly", name: "Read emails", description: "View email messages and threads", type: "read" },
-    { id: "gmail.send", name: "Send emails", description: "Send emails on your behalf", type: "write" },
-    { id: "gmail.modify", name: "Modify emails", description: "Read, send, delete, and manage labels", type: "write" },
-    { id: "calendar.readonly", name: "Read calendar", description: "View calendar events", type: "read" },
-    { id: "calendar.events", name: "Manage calendar", description: "Create and edit calendar events", type: "write" },
-    { id: "drive.readonly", name: "Read files", description: "View files in Google Drive", type: "read" },
-    { id: "drive.file", name: "Manage files", description: "Create, edit, and delete files", type: "write" },
-  ],
   microsoftOAuth2Api: [
     { id: "Mail.Read", name: "Read emails", description: "View Outlook emails", type: "read" },
     { id: "Mail.Send", name: "Send emails", description: "Send Outlook emails", type: "write" },
@@ -55,7 +45,6 @@ const TOOL_SCOPES: Record<string, ToolScope[]> = {
 };
 
 const CREDENTIAL_LABELS: Record<string, string> = {
-  googleOAuth2Api: "Google",
   microsoftOAuth2Api: "Microsoft 365",
   notionOAuth2Api: "Notion",
   slackOAuth2Api: "Slack",
@@ -207,9 +196,9 @@ export const ToolScopeSettings = () => {
                             >
                               <div className="flex items-center gap-3">
                                 {scope.type === "read" ? (
-                                  <Eye className="h-4 w-4 text-blue-500" />
+                                  <Eye className="h-4 w-4 text-primary" />
                                 ) : (
-                                  <Edit className="h-4 w-4 text-amber-500" />
+                                  <Edit className="h-4 w-4 text-warning" />
                                 )}
                                 <div>
                                   <div className="flex items-center gap-2">
@@ -226,7 +215,7 @@ export const ToolScopeSettings = () => {
                               </div>
                               <div className="flex items-center gap-2">
                                 {granted ? (
-                                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                                  <Badge className="bg-primary/10 text-primary border-primary/20">
                                     Granted
                                   </Badge>
                                 ) : (

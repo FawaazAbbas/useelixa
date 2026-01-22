@@ -31,17 +31,8 @@ interface UserCredential {
   connected_at: string;
 }
 
-// OAuth mapping with bundle types for Google services
+// OAuth mapping - excluding Google services
 const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string; bundleType?: string }> = {
-  // Google Workspace (email_workspace bundle)
-  "google-drive": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
-  "gmail": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
-  "google-calendar": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
-  "google-sheets": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "email_workspace" },
-  // Google Ads & Marketing (ads_marketing bundle)
-  "google-ads": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "ads_marketing" },
-  // Google Analytics (analytics_reporting bundle)
-  "google-analytics": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "analytics_reporting" },
   // Other providers
   "notion": { provider: "notion", credentialType: "notionApi" },
   "slack": { provider: "slack", credentialType: "slackOAuth2Api" },
@@ -126,20 +117,6 @@ const Connections = () => {
       toast.error(`OAuth URL not available for ${integration.name}`);
       setConnectingId(null);
       return;
-    }
-
-    // Debug: surface which client_id is actually being used (helps diagnose "deleted_client")
-    try {
-      const url = new URL(oauthUrl);
-      const clientId = url.searchParams.get("client_id");
-      if (mapping.provider === "google") {
-        console.log("[Connections] Google OAuth client_id:", clientId);
-        toast.message("Opening Google OAuth", {
-          description: clientId ? `client_id: ${clientId}` : "client_id missing",
-        });
-      }
-    } catch {
-      // ignore
     }
 
     window.location.href = oauthUrl;

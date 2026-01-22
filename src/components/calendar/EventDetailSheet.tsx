@@ -1,8 +1,7 @@
-import { ExternalLink, Edit2, Trash2, Clock, CalendarDays } from "lucide-react";
+import { Edit2, Trash2, Clock, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { CalendarEvent } from "./CalendarGrid";
 
@@ -23,7 +22,6 @@ export const EventDetailSheet = ({
 }: EventDetailSheetProps) => {
   if (!event) return null;
 
-  const isGoogleEvent = event.source === "google";
   const startDate = new Date(event.start_time);
   const endDate = new Date(event.end_time);
 
@@ -34,15 +32,10 @@ export const EventDetailSheet = ({
           <div className="flex items-start gap-3">
             <div
               className="w-3 h-3 rounded-full mt-1.5 flex-shrink-0"
-              style={{ backgroundColor: isGoogleEvent ? "#4285f4" : event.color }}
+              style={{ backgroundColor: event.color }}
             />
             <div className="flex-1">
               <SheetTitle className="text-left">{event.title}</SheetTitle>
-              {isGoogleEvent && (
-                <Badge variant="outline" className="mt-1 text-xs">
-                  Google Calendar
-                </Badge>
-              )}
             </div>
           </div>
         </SheetHeader>
@@ -92,37 +85,20 @@ export const EventDetailSheet = ({
 
           {/* Actions */}
           <div className="flex gap-2">
-            {isGoogleEvent ? (
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  if (event.htmlLink) {
-                    window.open(event.htmlLink, "_blank");
-                  }
-                }}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open in Google
-              </Button>
-            ) : (
-              <>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => onEdit(event)}
-                >
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => onDelete(event)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </>
-            )}
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => onEdit(event)}
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => onDelete(event)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </SheetContent>
