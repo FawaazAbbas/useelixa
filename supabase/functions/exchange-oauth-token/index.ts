@@ -13,17 +13,21 @@ serve(async (req) => {
   }
 
   try {
-    const { code, credentialType, userId, bundleType, scopes } = await req.json();
+    const { code, credentialType, userId, bundleType, scopes, correlationId } = await req.json();
+
+    // Use client-provided correlation ID or generate one server-side
+    const corrId = correlationId || `srv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
     if (!code || !credentialType || !userId) {
-      console.error("Missing parameters:", { code: !!code, credentialType, userId: !!userId });
+      console.error(`[${corrId}] Missing parameters:`, { code: !!code, credentialType, userId: !!userId });
       throw new Error("Missing required parameters");
     }
 
-    console.log(`🔐 Exchanging OAuth code for ${credentialType}`, { 
+    console.log(`[${corrId}] 🔐 Exchanging OAuth code for ${credentialType}`, { 
       userId,
       bundleType: bundleType || 'null',
       scopes: scopes || 'null',
+      codePrefix: code?.slice(0, 10),
       redirectUri: getRedirectUri(),
       siteUrl: Deno.env.get("SITE_URL")
     });
@@ -35,14 +39,14 @@ serve(async (req) => {
     const clientSecret = Deno.env.get(secretNames.clientSecretKey);
 
     if (!clientId || !clientSecret) {
-      console.error(`Missing OAuth config for ${credentialType}:`, { 
+      console.error(`[${corrId}] Missing OAuth config for ${credentialType}:`, { 
         hasClientId: !!clientId, 
         hasClientSecret: !!clientSecret 
       });
       throw new Error(`OAuth credentials not configured for ${credentialType}`);
     }
     
-    console.log(`✓ OAuth config found for ${credentialType}`);
+    console.log(`[${corrId}] ✓ OAuth config found for ${credentialType}`);
 
     // Exchange authorization code for access token
     let tokenResponse;
@@ -158,11 +162,12 @@ serve(async (req) => {
         // Keep raw text if not JSON
       }
 
-      console.error(`❌ Token exchange failed (${providerStatus}):`, providerText);
+      console.error(`[${corrId}] ❌ Token exchange failed (${providerStatus}):`, providerText);
 
       return new Response(
         JSON.stringify({
           success: false,
+          correlationId: corrId,
           stage: "token_exchange",
           credentialType,
           provider_status: providerStatus,
@@ -175,7 +180,7 @@ serve(async (req) => {
       );
     }
     
-    console.log(`✓ Token exchange successful`);
+    console.log(`[${corrId}] ✓ Token exchange successful`);
 
     const tokens = await tokenResponse.json();
 
@@ -191,14 +196,14 @@ serve(async (req) => {
         if (userInfoResponse.ok) {
           const userInfo = await userInfoResponse.json();
           accountEmail = userInfo.email;
-          console.log(`✓ Google user email: ${accountEmail}`);
+          console.log(`[${corrId}] ✓ Google user email: ${accountEmail}`);
         }
       } catch (e) {
-        console.warn("Failed to fetch Google user info:", e);
+        console.warn(`[${corrId}] Failed to fetch Google user info:`, e);
       }
     }
     
-    console.log(`📝 Credential storage data:`, { 
+    console.log(`[${corrId}] 📝 Credential storage data:`, { 
       credentialType, 
       bundleType: bundleType || 'null', 
       accountEmail: accountEmail || 'null',
@@ -228,12 +233,12 @@ serve(async (req) => {
         isEncrypted = true;
         accessTokenToStore = null;
         refreshTokenToStore = null;
-        console.log(`✓ Tokens encrypted successfully`);
+        console.log(`[${corrId}] ✓ Tokens encrypted successfully`);
       } catch (encryptError) {
-        console.error("⚠️ Encryption failed, storing plaintext:", encryptError);
+        console.error(`[${corrId}] ⚠️ Encryption failed, storing plaintext:`, encryptError);
       }
     } else {
-      console.warn("⚠️ Encryption not available, storing tokens in plaintext");
+      console.warn(`[${corrId}] ⚠️ Encryption not available, storing tokens in plaintext`);
     }
 
     const credentialData = {
@@ -254,7 +259,7 @@ serve(async (req) => {
       token_type: tokens.token_type || "Bearer",
     };
 
-    console.log(`🔍 Checking for existing credential...`);
+    console.log(`[${corrId}] 🔍 Checking for existing credential...`);
     
     const query = supabaseClient
       .from('user_credentials')
@@ -277,33 +282,34 @@ serve(async (req) => {
     const { data: existing } = await query.maybeSingle();
 
     if (existing) {
-      console.log(`📝 Updating existing credential (id: ${existing.id})...`);
+      console.log(`[${corrId}] 📝 Updating existing credential (id: ${existing.id})...`);
       const { error: updateError } = await supabaseClient
         .from("user_credentials")
         .update(credentialData)
         .eq('id', existing.id);
 
       if (updateError) {
-        console.error("❌ Error updating credentials:", updateError);
+        console.error(`[${corrId}] ❌ Error updating credentials:`, updateError);
         throw updateError;
       }
-      console.log(`✅ Updated ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
+      console.log(`[${corrId}] ✅ Updated ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
     } else {
-      console.log(`📝 Inserting new credential...`);
+      console.log(`[${corrId}] 📝 Inserting new credential...`);
       const { error: insertError } = await supabaseClient
         .from("user_credentials")
         .insert(credentialData);
 
       if (insertError) {
-        console.error("❌ Error inserting credentials:", insertError);
+        console.error(`[${corrId}] ❌ Error inserting credentials:`, insertError);
         throw insertError;
       }
-      console.log(`✅ Inserted new ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
+      console.log(`[${corrId}] ✅ Inserted new ${credentialType} credential${bundleType ? ` (bundle: ${bundleType})` : ''}${accountEmail ? ` for ${accountEmail}` : ''}`);
     }
 
     return new Response(
       JSON.stringify({
         success: true,
+        correlationId: corrId,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
