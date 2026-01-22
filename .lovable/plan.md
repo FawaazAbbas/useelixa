@@ -1,32 +1,129 @@
 
+# Shopify OAuth Integration Plan
 
-## Fix: Calendly OAuth Client ID Not Available
+## Challenge Overview
 
-### Problem
-The `VITE_CALENDLY_CLIENT_ID` environment variable isn't available to the frontend because Vite injects `VITE_*` variables at build time. The secret was added, but the running app bundle doesn't have access to it until a rebuild occurs.
+Shopify OAuth is fundamentally different from other providers (Google, Microsoft, Notion, etc.). While most OAuth providers use centralized authorization endpoints, Shopify requires:
 
-### Solution
-Since OAuth Client IDs are **public identifiers** (not secrets), we can safely hardcode the Calendly Client ID directly in the code — the same pattern already used for Slack, Mailchimp, and Shopify.
+1. **Shop-specific authorization URL**: `https://{shop}.myshopify.com/admin/oauth/authorize`
+2. **Shop-specific token exchange URL**: `https://{shop}.myshopify.com/admin/oauth/access_token`
 
-### Changes Required
+This means we need to collect the user's Shopify store domain before initiating the OAuth flow.
 
-**File: `src/config/oauth.ts`**
+## Current State
 
-Update line 11 from:
-```typescript
-CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "",
+- Backend secrets already configured: `SHOPIFY_OAUTH_CLIENT_ID`, `SHOPIFY_OAUTH_CLIENT_SECRET`
+- Frontend fallback Client ID: `44ad1408b7b236bb6dfe4d8ee9efff5d`
+- Frontend currently returns `null` for Shopify OAuth URL (intentionally disabled)
+
+## Implementation Plan
+
+### 1. Create Shop Domain Input Dialog
+
+Create a new dialog component that prompts users to enter their Shopify store domain before connecting.
+
+**File**: `src/components/connections/ShopifyConnectDialog.tsx`
+
+The dialog will:
+- Show an input field for the store domain
+- Accept formats: `my-store` or `my-store.myshopify.com`
+- Validate the domain format
+- Construct and redirect to the proper Shopify authorization URL
+
+### 2. Update OAuth Configuration
+
+**File**: `src/config/oauth.ts`
+
+- Add a new function `getShopifyOAuthUrl(shopDomain: string)` that:
+  - Normalizes the shop domain (adds `.myshopify.com` if needed)
+  - Constructs the authorization URL with proper scopes
+  - Returns the complete OAuth URL
+
+- Define appropriate scopes for Shopify (e.g., `read_products,read_orders,read_customers`)
+
+### 3. Update Connections Page
+
+**File**: `src/pages/Connections.tsx`
+
+- Show the Shopify Connect Dialog when user clicks "Connect" for Shopify
+- Pass the shop domain to the OAuth flow via the state parameter
+
+### 4. Update OAuth Callback
+
+**File**: `src/pages/OAuthCallback.tsx`
+
+- Extract shop domain from state parameter for Shopify
+- Pass shop domain to the exchange function
+
+### 5. Update Token Exchange Edge Function
+
+**File**: `supabase/functions/exchange-oauth-token/index.ts`
+
+- Add Shopify-specific handling
+- Use the shop domain to construct the correct token endpoint URL
+- Use form-urlencoded format (as per Shopify docs)
+- Store the shop domain alongside the credential for future API calls
+
+### 6. Update Token Refresh Edge Function
+
+**File**: `supabase/functions/refresh-oauth-token/index.ts`
+
+- Add Shopify-specific handling (note: Shopify offline access tokens don't expire by default, but may need rotation support)
+
+---
+
+## Technical Details
+
+### Shopify Authorization URL Format
+```text
+https://{shop}.myshopify.com/admin/oauth/authorize
+  ?client_id={api_key}
+  &scope={scopes}
+  &redirect_uri={redirect_uri}
+  &state={nonce}
 ```
 
-To:
-```typescript
-CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "Nnj-dmLFXc9lRSx6m7I5g2xEv33H4AEUCeQJA6rW-fI",
+### Shopify Token Exchange
+```text
+POST https://{shop}.myshopify.com/admin/oauth/access_token
+Content-Type: application/x-www-form-urlencoded
+
+client_id={api_key}
+client_secret={api_secret}
+code={authorization_code}
 ```
 
-### Why This Is Safe
-- OAuth Client IDs are designed to be public and are visible in authorization URLs
-- The Client Secret (stored securely in backend secrets as `CALENDLY_OAUTH_CLIENT_SECRET`) remains protected
-- This matches the existing pattern for Notion, Microsoft, Mailchimp, and Shopify
+### Recommended Scopes
+For the AI assistant integration, typical scopes include:
+- `read_products` - View products
+- `read_orders` - View orders  
+- `read_customers` - View customers
+- `read_inventory` - View inventory levels
+- `read_analytics` - View analytics (if available)
 
-### Result
-After this change, clicking "Connect" on Calendly will immediately work without requiring a rebuild or environment variable configuration.
+### Database Changes
+The existing `user_credentials` table can store the shop domain in the `account_email` or a new `metadata` column. The shop domain is needed for:
+- Future API calls to the Shopify Admin API
+- Constructing the correct API endpoint URLs
 
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `src/components/connections/ShopifyConnectDialog.tsx` | Create |
+| `src/config/oauth.ts` | Modify |
+| `src/pages/Connections.tsx` | Modify |
+| `src/pages/OAuthCallback.tsx` | Modify |
+| `supabase/functions/exchange-oauth-token/index.ts` | Modify |
+| `supabase/functions/refresh-oauth-token/index.ts` | Modify |
+
+---
+
+## Edge Cases
+
+1. **Invalid shop domain**: Validate format before redirecting
+2. **Store not found**: Handle Shopify 404 errors gracefully
+3. **App not installed**: User must install the app via OAuth first
+4. **Expired tokens**: Shopify offline tokens typically don't expire, but may need rotation for security
