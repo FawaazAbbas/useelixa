@@ -136,7 +136,7 @@ export default function OAuthCallback() {
       console.log(`[OAuth:${correlationId}] Code marked as processing (first attempt)`);
 
       // Decode state
-      let state: { provider?: string; bundleType?: string; returnTo?: string } = {};
+      let state: { provider?: string; bundleType?: string; returnTo?: string; shopDomain?: string } = {};
       if (stateParam) {
         try {
           state = JSON.parse(atob(decodeURIComponent(stateParam)));
@@ -145,7 +145,7 @@ export default function OAuthCallback() {
         }
       }
 
-      const { provider, bundleType, returnTo } = state;
+      const { provider, bundleType, returnTo, shopDomain } = state;
 
       if (!provider) {
         throw new Error('Missing provider in state');
@@ -161,7 +161,7 @@ export default function OAuthCallback() {
         microsoft: 'microsoftOAuth2Api',
         calendly: 'calendlyApi',
         mailchimp: 'mailchimpOAuth2Api',
-        shopify: 'shopifyOAuth2Api',
+        shopify: 'shopifyApi',
       };
 
       const credentialType = credentialTypeMap[provider];
@@ -200,6 +200,7 @@ export default function OAuthCallback() {
           scopes: scopesForProvider,
           correlationId, // Pass correlation ID to backend for end-to-end tracing
           codeVerifier, // PKCE code verifier for providers that require it
+          shopDomain, // Shopify-specific: pass shop domain for token exchange
         }
       });
 

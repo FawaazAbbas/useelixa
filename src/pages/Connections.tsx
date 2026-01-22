@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageLayout, PageEmptyState, SectionHeader, CardGrid } from "@/components/PageLayout";
 import { getOAuthUrl } from "@/config/oauth";
 import { toast } from "sonner";
+import { ShopifyConnectDialog } from "@/components/connections/ShopifyConnectDialog";
 
 interface Integration {
   id: string;
@@ -57,6 +58,7 @@ const Connections = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
+  const [shopifyDialogOpen, setShopifyDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -106,6 +108,12 @@ const Connections = () => {
     const mapping = INTEGRATION_OAUTH_MAP[integration.slug];
     if (!mapping) {
       toast.error(`OAuth not configured for ${integration.name}`);
+      return;
+    }
+
+    // Special handling for Shopify - show domain input dialog
+    if (mapping.provider === "shopify") {
+      setShopifyDialogOpen(true);
       return;
     }
 
@@ -307,6 +315,12 @@ const Connections = () => {
               description="Try adjusting your search or filters."
             />
           )}
+
+          {/* Shopify Connect Dialog */}
+          <ShopifyConnectDialog 
+            open={shopifyDialogOpen} 
+            onOpenChange={setShopifyDialogOpen} 
+          />
         </>
       )}
     </PageLayout>
