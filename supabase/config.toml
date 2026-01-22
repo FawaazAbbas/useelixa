@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.conversation-memory]
 verify_jwt = false
+
+[functions.microsoft-integration]
+verify_jwt = false

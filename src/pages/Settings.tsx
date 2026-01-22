@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, Key, Plug, Building2, Upload } from "lucide-react";
+import { ArrowLeft, User, Lock, Key, Plug, Building2, Upload, Bot, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
 import { McpAccessSettings } from "@/components/settings/McpAccessSettings";
 import { ConnectedToolsSettings } from "@/components/settings/ConnectedToolsSettings";
+import { AIBehaviorSettings } from "@/components/settings/AIBehaviorSettings";
+import { ToolScopeSettings } from "@/components/settings/ToolScopeSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -191,7 +193,7 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
-            <TabsList className="w-full grid grid-cols-5 h-auto">
+            <TabsList className="w-full grid grid-cols-4 md:grid-cols-7 h-auto">
               <TabsTrigger value="profile" className="text-xs md:text-sm py-3 touch-manipulation">
                 <User className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Profile
@@ -200,15 +202,23 @@ const Settings = () => {
                 <Building2 className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Org
               </TabsTrigger>
-              <TabsTrigger value="security" className="text-xs md:text-sm py-3 touch-manipulation">
+              <TabsTrigger value="ai" className="text-xs md:text-sm py-3 touch-manipulation">
+                <Bot className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                AI
+              </TabsTrigger>
+              <TabsTrigger value="scopes" className="text-xs md:text-sm py-3 touch-manipulation">
+                <Shield className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                Scopes
+              </TabsTrigger>
+              <TabsTrigger value="security" className="text-xs md:text-sm py-3 touch-manipulation hidden md:flex">
                 <Lock className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Security
               </TabsTrigger>
-              <TabsTrigger value="tools" className="text-xs md:text-sm py-3 touch-manipulation">
+              <TabsTrigger value="tools" className="text-xs md:text-sm py-3 touch-manipulation hidden md:flex">
                 <Plug className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Tools
               </TabsTrigger>
-              <TabsTrigger value="mcp" className="text-xs md:text-sm py-3 touch-manipulation">
+              <TabsTrigger value="mcp" className="text-xs md:text-sm py-3 touch-manipulation hidden md:flex">
                 <Key className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 MCP
               </TabsTrigger>
@@ -363,6 +373,14 @@ const Settings = () => {
 
             <TabsContent value="tools">
               <ConnectedToolsSettings />
+            </TabsContent>
+
+            <TabsContent value="ai">
+              <AIBehaviorSettings />
+            </TabsContent>
+
+            <TabsContent value="scopes">
+              <ToolScopeSettings />
             </TabsContent>
 
             <TabsContent value="mcp">
