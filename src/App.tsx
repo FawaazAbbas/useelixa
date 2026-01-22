@@ -85,15 +85,7 @@ const AppContent = () => {
               </div>
             }
           />
-          <Route path="/tasks" element={
-            <div className="flex h-screen overflow-hidden">
-              <div className="hidden md:block">
-                <MainNavSidebar />
-              </div>
-              <Tasks />
-              <MobileBottomNav />
-            </div>
-          } />
+          <Route path="/tasks" element={<Tasks />} />
           <Route path="/calendar" element={
             <div className="flex h-screen overflow-hidden">
               <div className="hidden md:block">
