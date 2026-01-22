@@ -62,3 +62,9 @@ verify_jwt = false
 
 [functions.scheduled-task-runner]
 verify_jwt = false
+
+[functions.google-ads-integration]
+verify_jwt = false
+
+[functions.google-analytics-integration]
+verify_jwt = false
