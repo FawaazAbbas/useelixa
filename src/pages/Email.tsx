@@ -44,14 +44,14 @@ const Email = () => {
       if (!user) return;
       
       try {
-        // Use raw query to avoid type recursion issues
-        const result = await (supabase as any)
+        const { data, error } = await supabase
           .from("user_credentials")
           .select("id")
           .eq("user_id", user.id)
-          .eq("provider", "google");
+          .eq("credential_type", "google")
+          .maybeSingle();
         
-        setIsConnected(!result.error && result.data && result.data.length > 0);
+        setIsConnected(!error && !!data);
       } catch {
         setIsConnected(false);
       }
