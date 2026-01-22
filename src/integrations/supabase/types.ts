@@ -757,8 +757,11 @@ export type Database = {
           due_date: string | null
           id: string
           last_run_at: string | null
+          last_scheduled_run: string | null
+          next_scheduled_run: string | null
           position: number | null
           priority: string | null
+          schedule: string | null
           scheduled_at: string | null
           status: string
           title: string
@@ -774,8 +777,11 @@ export type Database = {
           due_date?: string | null
           id?: string
           last_run_at?: string | null
+          last_scheduled_run?: string | null
+          next_scheduled_run?: string | null
           position?: number | null
           priority?: string | null
+          schedule?: string | null
           scheduled_at?: string | null
           status?: string
           title: string
@@ -791,8 +797,11 @@ export type Database = {
           due_date?: string | null
           id?: string
           last_run_at?: string | null
+          last_scheduled_run?: string | null
+          next_scheduled_run?: string | null
           position?: number | null
           priority?: string | null
+          schedule?: string | null
           scheduled_at?: string | null
           status?: string
           title?: string

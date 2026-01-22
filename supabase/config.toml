@@ -59,3 +59,6 @@ verify_jwt = false
 
 [functions.microsoft-integration]
 verify_jwt = false
+
+[functions.scheduled-task-runner]
+verify_jwt = false
