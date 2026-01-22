@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link2, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+import { Link2, CheckCircle2, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +49,6 @@ export function ConnectedServicesIndicator({ userId }: Props) {
   useEffect(() => {
     fetchConnectedServices();
     
-    // Re-fetch when returning to this component (e.g., after OAuth callback)
     const handleFocus = () => fetchConnectedServices();
     window.addEventListener('focus', handleFocus);
     
@@ -78,7 +77,6 @@ export function ConnectedServicesIndicator({ userId }: Props) {
         const credType = cred.credential_type;
         const isExpired = cred.expires_at && new Date(cred.expires_at) < new Date();
 
-        // Use bundle type or credential type as key
         const key = cred.bundle_type ? `${credType}_${cred.bundle_type}` : credType;
 
         if (!serviceMap.has(key)) {
