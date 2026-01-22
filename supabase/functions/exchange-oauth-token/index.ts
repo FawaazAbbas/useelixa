@@ -132,16 +132,18 @@ serve(async (req) => {
         }).toString(),
       });
     } else if (credentialType === "calendlyApi") {
-      // Calendly requires PKCE
+      // Calendly requires PKCE and Basic Auth for client authentication
       if (!codeVerifier) {
         console.error(`[${corrId}] Missing code_verifier for Calendly PKCE flow`);
         throw new Error("Missing code_verifier for Calendly - PKCE is required");
       }
       
+      // Calendly requires Basic Auth header instead of client_id/client_secret in body
+      const basicAuth = btoa(`${clientId}:${clientSecret}`);
+      console.log(`[${corrId}] Using Basic Auth header for Calendly token exchange`);
+      
       const params = new URLSearchParams({
         code,
-        client_id: clientId,
-        client_secret: clientSecret,
         redirect_uri: getRedirectUri(),
         grant_type: "authorization_code",
         code_verifier: codeVerifier,
@@ -150,6 +152,7 @@ serve(async (req) => {
       tokenResponse = await fetch(tokenUrl, {
         method: "POST",
         headers: {
+          "Authorization": `Basic ${basicAuth}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
         body: params.toString(),
