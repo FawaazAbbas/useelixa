@@ -163,6 +163,7 @@ export type Database = {
           created_at: string
           id: string
           is_pinned: boolean
+          selected_model: string | null
           title: string
           updated_at: string
           user_id: string
@@ -172,6 +173,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_pinned?: boolean
+          selected_model?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -181,6 +183,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_pinned?: boolean
+          selected_model?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -307,6 +310,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      credit_packages: {
+        Row: {
+          created_at: string | null
+          credits: number
+          id: string
+          name: string
+          popular: boolean | null
+          price_cents: number
+        }
+        Insert: {
+          created_at?: string | null
+          credits: number
+          id?: string
+          name: string
+          popular?: boolean | null
+          price_cents: number
+        }
+        Update: {
+          created_at?: string | null
+          credits?: number
+          id?: string
+          name?: string
+          popular?: boolean | null
+          price_cents?: number
+        }
+        Relationships: []
       }
       email_templates: {
         Row: {
@@ -1026,6 +1056,8 @@ export type Database = {
         Row: {
           ai_calls: number | null
           created_at: string | null
+          credits_purchased: number | null
+          credits_used: number | null
           documents_uploaded: number | null
           id: string
           month: string
@@ -1037,6 +1069,8 @@ export type Database = {
         Insert: {
           ai_calls?: number | null
           created_at?: string | null
+          credits_purchased?: number | null
+          credits_used?: number | null
           documents_uploaded?: number | null
           id?: string
           month: string
@@ -1048,6 +1082,8 @@ export type Database = {
         Update: {
           ai_calls?: number | null
           created_at?: string | null
+          credits_purchased?: number | null
+          credits_used?: number | null
           documents_uploaded?: number | null
           id?: string
           month?: string

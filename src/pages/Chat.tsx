@@ -18,12 +18,15 @@ import { PendingActionButtons } from "@/components/chat/PendingActionButtons";
 import { ChatDeleteDialog } from "@/components/chat/ChatDeleteDialog";
 import { ChatActionsMenu } from "@/components/chat/ChatActionsMenu";
 import { ChatAnalysisDialog } from "@/components/chat/ChatAnalysisDialog";
+import { ModelSelector, AI_MODELS } from "@/components/chat/ModelSelector";
+import { CreditPurchaseDialog } from "@/components/chat/CreditPurchaseDialog";
 
 interface ChatSession {
   id: string;
   title: string;
   updated_at: string;
   is_pinned: boolean;
+  selected_model?: string;
 }
 
 const Chat = () => {
@@ -37,6 +40,8 @@ const Chat = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<ChatSession | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState(AI_MODELS.find(m => m.default)?.id || "google/gemini-2.5-flash");
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,16 +93,24 @@ const Chat = () => {
       try {
         const { data, error } = await supabase
           .from("chat_sessions_v2")
-          .select("id, title, updated_at, is_pinned")
+          .select("id, title, updated_at, is_pinned, selected_model")
           .eq("user_id", user.id)
           .order("is_pinned", { ascending: false })
           .order("updated_at", { ascending: false });
 
         if (error) throw error;
         
-        setSessions((data || []).map(d => ({ ...d, is_pinned: d.is_pinned ?? false })));
+        setSessions((data || []).map(d => ({ 
+          ...d, 
+          is_pinned: d.is_pinned ?? false,
+          selected_model: d.selected_model ?? undefined 
+        })));
         if (data && data.length > 0) {
           setActiveSessionId(data[0].id);
+          // Restore model selection from session
+          if (data[0].selected_model) {
+            setSelectedModel(data[0].selected_model);
+          }
         } else {
           setActiveSessionId(crypto.randomUUID());
         }
@@ -116,6 +129,10 @@ const Chat = () => {
       const existingSession = sessions.find(s => s.id === activeSessionId);
       if (existingSession) {
         loadSessionMessages(activeSessionId);
+        // Restore model from session
+        if (existingSession.selected_model) {
+          setSelectedModel(existingSession.selected_model);
+        }
       } else {
         clearMessages();
       }
@@ -190,6 +207,19 @@ const Chat = () => {
     }
   };
 
+  const handleModelChange = useCallback(async (modelId: string) => {
+    setSelectedModel(modelId);
+    
+    // Persist to session if exists
+    if (activeSessionId && user) {
+      await supabase
+        .from("chat_sessions_v2")
+        .update({ selected_model: modelId })
+        .eq("id", activeSessionId)
+        .eq("user_id", user.id);
+    }
+  }, [activeSessionId, user]);
+
   const handleSend = useCallback(async () => {
     if ((!input.trim() && selectedFiles.length === 0) || isLoading) return;
     
@@ -201,10 +231,16 @@ const Chat = () => {
       setActiveSessionId(sessionId);
     }
     
-    sendMessage(input, sessionId, selectedFiles.length > 0 ? selectedFiles : undefined);
+    const result = await sendMessage(input, sessionId, selectedFiles.length > 0 ? selectedFiles : undefined, selectedModel);
+    
+    // Check for insufficient credits error
+    if (result && typeof result === 'object' && 'error' in result && result.error === "insufficient_credits") {
+      setCreditDialogOpen(true);
+    }
+    
     setInput("");
     setSelectedFiles([]);
-  }, [input, isLoading, sendMessage, activeSessionId, sessions, selectedFiles]);
+  }, [input, isLoading, sendMessage, activeSessionId, sessions, selectedFiles, selectedModel]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -442,12 +478,13 @@ const Chat = () => {
           <div className="p-1 bg-muted rounded-full flex-shrink-0">
             <img src={ElixaResponded} alt="Elixa" className="h-8 w-8 rounded-full object-cover border-2 border-muted" />
           </div>
-          <span className="font-semibold text-lg flex-1 truncate max-w-[200px]">Elixa AI</span>
-          {currentSession && (
-            <span className="text-sm text-muted-foreground truncate max-w-[150px] hidden sm:block">
-              {currentSession.title}
-            </span>
-          )}
+          <div className="flex-1" />
+          
+          <ModelSelector
+            selectedModel={selectedModel}
+            onModelChange={handleModelChange}
+            className="hidden sm:flex"
+          />
           
           {currentSession && (
             <ChatActionsMenu
@@ -628,6 +665,11 @@ const Chat = () => {
         onOpenChange={setAnalysisOpen}
         messages={messages}
         sessionTitle={currentSession?.title || "Chat"}
+      />
+
+      <CreditPurchaseDialog
+        open={creditDialogOpen}
+        onOpenChange={setCreditDialogOpen}
       />
     </div>
   );
