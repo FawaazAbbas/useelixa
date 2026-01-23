@@ -223,7 +223,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     return uploadedFiles;
   }, [user]);
 
-  const sendMessage = useCallback(async (content: string, targetSessionId?: string, files?: File[]) => {
+  const sendMessage = useCallback(async (content: string, targetSessionId?: string, files?: File[], model?: string): Promise<{ error?: string } | void> => {
     if ((!content.trim() && (!files || files.length === 0)) || isLoading) return;
 
     const effectiveSessionId = targetSessionId || sessionId;
@@ -296,11 +296,20 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         body: JSON.stringify({
           messages: messagesToSend,
           sessionId: effectiveSessionId,
+          model: model || "google/gemini-2.5-flash",
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // Handle insufficient credits error specially
+        if (response.status === 402) {
+          setIsLoading(false);
+          setIsStreaming(false);
+          return { error: "insufficient_credits", ...errorData };
+        }
+        
         throw new Error(errorData.error || `Request failed: ${response.status}`);
       }
 

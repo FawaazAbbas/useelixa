@@ -11,6 +11,20 @@ const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
 const MAX_MESSAGES_PER_MINUTE = 20;
 const MONTHLY_AI_CALL_LIMIT = 1000; // Default limit per org
 
+// Model credit costs for billing
+const MODEL_CREDITS: Record<string, number> = {
+  "google/gemini-2.5-flash-lite": 1,
+  "google/gemini-2.5-flash": 2,
+  "openai/gpt-5-nano": 2,
+  "openai/gpt-5-mini": 4,
+  "google/gemini-2.5-pro": 5,
+  "openai/gpt-5": 8,
+  "openai/gpt-5.2": 10,
+};
+
+const VALID_MODELS = Object.keys(MODEL_CREDITS);
+const DEFAULT_MODEL = "google/gemini-2.5-flash";
+
 // Tool definitions for the AI
 const TOOL_DEFINITIONS = [
   // File tools
@@ -1664,11 +1678,15 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, sessionId } = await req.json();
+    const { messages, sessionId, model } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       throw new Error("Messages array is required");
     }
+
+    // Validate and set model
+    const selectedModel = VALID_MODELS.includes(model) ? model : DEFAULT_MODEL;
+    const creditCost = MODEL_CREDITS[selectedModel];
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -1713,6 +1731,31 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
+      // Check credit balance before proceeding
+      const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
+      const { data: usage } = await serviceSupabase
+        .from("usage_stats")
+        .select("credits_purchased, credits_used")
+        .eq("org_id", orgId)
+        .eq("month", currentMonth)
+        .maybeSingle();
+
+      const creditsUsed = usage?.credits_used ?? 0;
+      const creditsPurchased = usage?.credits_purchased ?? 1000; // Default 1000 free credits
+      const availableCredits = creditsPurchased - creditsUsed;
+
+      if (availableCredits < creditCost) {
+        console.log(`[Chat] Insufficient credits: ${availableCredits} available, ${creditCost} required`);
+        return new Response(
+          JSON.stringify({
+            error: "Insufficient credits",
+            required: creditCost,
+            available: availableCredits,
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     let memoryContext = "";
@@ -1734,7 +1777,7 @@ serve(async (req) => {
       })),
     ];
 
-    console.log(`[Chat] Calling AI gateway with ${formattedMessages.length} messages`);
+    console.log(`[Chat] Calling AI gateway with ${formattedMessages.length} messages, model: ${selectedModel}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -1743,7 +1786,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: selectedModel,
         messages: formattedMessages,
         tools: TOOL_DEFINITIONS,
         tool_choice: "auto",
@@ -1761,6 +1804,25 @@ serve(async (req) => {
 
     if (orgId) {
       await incrementUsage(serviceSupabase, orgId, "ai_calls");
+      
+      // Deduct credits for this AI call
+      const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
+      
+      // First get current credits_used, then increment
+      const { data: currentUsage } = await serviceSupabase
+        .from("usage_stats")
+        .select("credits_used")
+        .eq("org_id", orgId)
+        .eq("month", currentMonth)
+        .maybeSingle();
+      
+      const newCreditsUsed = (currentUsage?.credits_used ?? 0) + creditCost;
+      
+      await serviceSupabase
+        .from("usage_stats")
+        .update({ credits_used: newCreditsUsed })
+        .eq("org_id", orgId)
+        .eq("month", currentMonth);
     }
 
     if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
@@ -1884,7 +1946,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: selectedModel,
           messages: followUpMessages,
         }),
       });
