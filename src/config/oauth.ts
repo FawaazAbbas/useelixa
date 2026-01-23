@@ -116,18 +116,16 @@ function getGoogleScopes(bundleType?: string): string {
   const baseScopes = "openid email profile";
 
   switch (bundleType) {
-    case "gmail_only":
-      return `${baseScopes} https://mail.google.com/`;
-    case "calendar_only":
+    case "gmail":
+      return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send`;
+    case "google_calendar":
       return `${baseScopes} https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
-    case "gmail_calendar":
-      return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
     case "google_ads":
       return `${baseScopes} https://www.googleapis.com/auth/adwords`;
     case "google_analytics":
       return `${baseScopes} https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit`;
     default:
-      return `${baseScopes} https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events`;
+      return baseScopes;
   }
 }
 
@@ -135,13 +133,13 @@ function getMicrosoftScopes(bundleType?: string): string {
   const baseScopes = "openid email profile offline_access";
 
   switch (bundleType) {
-    case "email_calendar":
-      return `${baseScopes} Mail.Read Mail.Send Calendars.ReadWrite`;
-    case "files":
-      return `${baseScopes} Files.Read Files.ReadWrite`;
-    case "full":
-      return `${baseScopes} Mail.Read Mail.Send Calendars.ReadWrite Files.Read Files.ReadWrite User.Read`;
+    case "outlook":
+      return `${baseScopes} Mail.Read Mail.Send User.Read`;
+    case "teams":
+      return `${baseScopes} Calendars.ReadWrite User.Read`;
+    case "onedrive":
+      return `${baseScopes} Files.Read Files.ReadWrite User.Read`;
     default:
-      return `${baseScopes} Mail.Read Mail.Send Calendars.ReadWrite Files.Read User.Read`;
+      return baseScopes;
   }
 }
