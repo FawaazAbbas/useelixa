@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ interface ChatSession {
   id: string;
   title: string;
   updated_at: string;
+  is_pinned: boolean;
 }
 
 const Chat = () => {
@@ -87,13 +88,14 @@ const Chat = () => {
       try {
         const { data, error } = await supabase
           .from("chat_sessions_v2")
-          .select("id, title, updated_at")
+          .select("id, title, updated_at, is_pinned")
           .eq("user_id", user.id)
+          .order("is_pinned", { ascending: false })
           .order("updated_at", { ascending: false });
 
         if (error) throw error;
         
-        setSessions(data || []);
+        setSessions((data || []).map(d => ({ ...d, is_pinned: d.is_pinned ?? false })));
         if (data && data.length > 0) {
           setActiveSessionId(data[0].id);
         } else {
@@ -146,11 +148,39 @@ const Chat = () => {
           id: sessionId,
           title: title.slice(0, 100),
           updated_at: new Date().toISOString(),
+          is_pinned: false,
         }, ...prev]);
       }
     }
     
     return sessionId;
+  };
+
+  const handleTogglePin = async (session: ChatSession, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!user) return;
+
+    const newPinnedState = !session.is_pinned;
+    
+    const { error } = await supabase
+      .from("chat_sessions_v2")
+      .update({ is_pinned: newPinnedState })
+      .eq("id", session.id)
+      .eq("user_id", user.id);
+
+    if (!error) {
+      setSessions(prev => {
+        const updated = prev.map(s => 
+          s.id === session.id ? { ...s, is_pinned: newPinnedState } : s
+        );
+        // Re-sort: pinned first, then by updated_at
+        return updated.sort((a, b) => {
+          if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        });
+      });
+      toast.success(newPinnedState ? "Chat pinned" : "Chat unpinned");
+    }
   };
 
   const handleSend = useCallback(async () => {
@@ -250,7 +280,11 @@ const Chat = () => {
     toast.success("Chat exported");
   };
 
-  const groupedSessions = sessions.reduce((groups, session) => {
+  // Separate pinned and unpinned sessions
+  const pinnedSessions = sessions.filter(s => s.is_pinned);
+  const unpinnedSessions = sessions.filter(s => !s.is_pinned);
+
+  const groupedSessions = unpinnedSessions.reduce((groups, session) => {
     const date = new Date(session.updated_at);
     const today = new Date();
     const yesterday = new Date(today);
@@ -281,6 +315,50 @@ const Chat = () => {
       </div>
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-4">
+          {/* Pinned chats section */}
+          {pinnedSessions.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground px-3 py-1 uppercase tracking-wide flex items-center gap-1">
+                <Pin className="h-3 w-3" /> Pinned
+              </p>
+              <div className="space-y-0.5">
+                {pinnedSessions.map(session => (
+                  <div
+                    key={session.id}
+                    className={cn(
+                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                      session.id === activeSessionId ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                    )}
+                    onClick={() => handleSelectSession(session.id)}
+                  >
+                    <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
+                    <span className="flex-1 truncate text-sm">{session.title}</span>
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => handleTogglePin(session, e)}
+                        title="Unpin"
+                      >
+                        <PinOff className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => handleDeleteClick(session, e)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Regular chats grouped by date */}
           {Object.entries(groupedSessions).map(([group, groupSessions]) => (
             <div key={group}>
               <p className="text-xs font-medium text-muted-foreground px-3 py-1 uppercase tracking-wide">{group}</p>
@@ -296,14 +374,25 @@ const Chat = () => {
                   >
                     <MessageSquare className="h-4 w-4 flex-shrink-0 opacity-60" />
                     <span className="flex-1 truncate text-sm">{session.title}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                      onClick={(e) => handleDeleteClick(session, e)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <div className="flex items-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => handleTogglePin(session, e)}
+                        title="Pin"
+                      >
+                        <Pin className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => handleDeleteClick(session, e)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -343,7 +432,9 @@ const Chat = () => {
               <SessionList />
             </SheetContent>
           </Sheet>
-          <img src={ElixaResponded} alt="Elixa" className="h-9 w-9 rounded-full object-cover border-2 border-border" />
+          <div className="p-1 bg-muted rounded-full">
+            <img src={ElixaResponded} alt="Elixa" className="h-8 w-8 rounded-full object-cover border-2 border-muted" />
+          </div>
           <span className="font-semibold text-lg flex-1">Elixa AI</span>
           
           {currentSession && (
@@ -372,16 +463,57 @@ const Chat = () => {
                 </p>
               </div>
             ) : (
-              messages.map((message, index) => (
-                <MessageBubble 
-                  key={message.id} 
-                  message={message} 
-                  isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"}
-                  onDelete={() => handleDeleteMessage(message.id)}
-                  onRetry={message.role === "assistant" ? () => handleRetry(index) : undefined}
-                  isLoading={isLoading}
-                />
-              ))
+              messages.map((message, index) => {
+                // Check if we should show a time divider
+                const showTimeDivider = index > 0 && (() => {
+                  const prevMessage = messages[index - 1];
+                  const prevTime = new Date(prevMessage.timestamp);
+                  const currentTime = new Date(message.timestamp);
+                  const diffMinutes = (currentTime.getTime() - prevTime.getTime()) / (1000 * 60);
+                  return diffMinutes > 30; // Show divider if more than 30 minutes apart
+                })();
+
+                const formatDividerTime = (timestamp: string) => {
+                  const date = new Date(timestamp);
+                  const today = new Date();
+                  const yesterday = new Date(today);
+                  yesterday.setDate(yesterday.getDate() - 1);
+
+                  if (date.toDateString() === today.toDateString()) {
+                    return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                  } else if (date.toDateString() === yesterday.toDateString()) {
+                    return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                  } else {
+                    return date.toLocaleDateString([], { 
+                      month: 'short', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    });
+                  }
+                };
+
+                return (
+                  <div key={message.id}>
+                    {showTimeDivider && (
+                      <div className="flex items-center gap-4 my-6">
+                        <div className="flex-1 h-px bg-border" />
+                        <span className="text-xs text-muted-foreground px-2">
+                          {formatDividerTime(message.timestamp)}
+                        </span>
+                        <div className="flex-1 h-px bg-border" />
+                      </div>
+                    )}
+                    <MessageBubble 
+                      message={message} 
+                      isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"}
+                      onDelete={() => handleDeleteMessage(message.id)}
+                      onRetry={message.role === "assistant" ? () => handleRetry(index) : undefined}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                );
+              })
             )}
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex items-start gap-3">
@@ -551,12 +683,13 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
         {/* Timestamp and actions */}
         <div className={cn(
           "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
-          isUser ? "justify-end" : "justify-start"
+          isUser ? "flex-row-reverse" : "justify-start"
         )}>
-          <span>{formatTime(message.timestamp)}</span>
-          
           {/* Action buttons - show on hover */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className={cn(
+            "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
+            isUser && "flex-row-reverse"
+          )}>
             <Button
               variant="ghost"
               size="icon"
@@ -594,6 +727,8 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
               <Trash2 className="h-3 w-3" />
             </Button>
           </div>
+          
+          <span>{formatTime(message.timestamp)}</span>
         </div>
         
         {/* File attachments */}

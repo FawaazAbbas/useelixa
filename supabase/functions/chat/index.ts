@@ -115,6 +115,81 @@ const WRITE_TOOLS = [
   "gads_add_keyword",
 ];
 
+/**
+ * Generate a smart, descriptive chat title based on the conversation
+ */
+async function generateSmartTitle(
+  serviceSupabase: any,
+  sessionId: string,
+  userMessage: string,
+  assistantResponse: string,
+  LOVABLE_API_KEY: string
+): Promise<void> {
+  try {
+    // Check if this session already has a descriptive title (not just the first message)
+    const { data: session } = await serviceSupabase
+      .from("chat_sessions_v2")
+      .select("title, created_at")
+      .eq("id", sessionId)
+      .single();
+
+    if (!session) return;
+
+    // Only generate a new title if the current title looks like a raw first message
+    // (i.e., longer than 50 chars or matches the user message pattern)
+    const currentTitle = session.title;
+    const shouldGenerateTitle = 
+      currentTitle.length > 40 || 
+      currentTitle.includes("...") ||
+      currentTitle.toLowerCase().startsWith("hi") ||
+      currentTitle.toLowerCase().startsWith("hello") ||
+      currentTitle.toLowerCase().startsWith("hey");
+
+    if (!shouldGenerateTitle) return;
+
+    console.log(`[Chat] Generating smart title for session ${sessionId}`);
+
+    const titleResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          {
+            role: "system",
+            content: "Generate a concise, descriptive title (max 40 characters) for this conversation. Focus on the main topic or intent. No quotes, no prefixes like 'Title:', just the title itself."
+          },
+          {
+            role: "user",
+            content: `User: ${userMessage.slice(0, 500)}\n\nAssistant: ${assistantResponse.slice(0, 500)}`
+          }
+        ],
+        max_tokens: 30,
+      }),
+    });
+
+    if (titleResponse.ok) {
+      const titleData = await titleResponse.json();
+      const newTitle = titleData.choices?.[0]?.message?.content?.trim().slice(0, 50);
+      
+      if (newTitle && newTitle.length > 3) {
+        await serviceSupabase
+          .from("chat_sessions_v2")
+          .update({ title: newTitle })
+          .eq("id", sessionId);
+        
+        console.log(`[Chat] Updated session title to: ${newTitle}`);
+      }
+    }
+  } catch (error) {
+    console.error("[Chat] Error generating smart title:", error);
+    // Non-critical error, don't throw
+  }
+}
+
 const SYSTEM_PROMPT = `You are Elixa, an intelligent AI assistant for the Elixa workspace platform. You help users manage their work, communications, and schedule.
 
 You have access to the following capabilities:
@@ -1720,6 +1795,13 @@ serve(async (req) => {
         await incrementUsage(serviceSupabase, orgId, "ai_calls");
       }
 
+      // Generate smart title in background
+      const lastUserMsg = messages.filter((m: any) => m.role === "user").pop();
+      if (sessionId && lastUserMsg?.content && finalMessage?.content) {
+        generateSmartTitle(serviceSupabase, sessionId, lastUserMsg.content, finalMessage.content, LOVABLE_API_KEY)
+          .catch(err => console.error("[Chat] Smart title error:", err));
+      }
+
       return new Response(
         JSON.stringify({
           content: finalMessage?.content || "I processed that request.",
@@ -1731,6 +1813,13 @@ serve(async (req) => {
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Generate smart title for non-tool responses
+    const lastUserMsg = messages.filter((m: any) => m.role === "user").pop();
+    if (sessionId && lastUserMsg?.content && assistantMessage?.content) {
+      generateSmartTitle(serviceSupabase, sessionId, lastUserMsg.content, assistantMessage.content, LOVABLE_API_KEY)
+        .catch(err => console.error("[Chat] Smart title error:", err));
     }
 
     return new Response(
