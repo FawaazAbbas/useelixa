@@ -90,6 +90,14 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_traffic_sources", description: "Get traffic sources breakdown. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_realtime", description: "Get realtime active users. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
+  // Google Sheets tools
+  { type: "function", function: { name: "sheets_list", description: "List Google Sheets spreadsheets accessible to the user", parameters: { type: "object", properties: { maxResults: { type: "number", description: "Max results (default 20)" }, query: { type: "string", description: "Search query to filter by name" } } } } },
+  { type: "function", function: { name: "sheets_get", description: "Get spreadsheet metadata including list of sheets/tabs", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID from the URL" } }, required: ["spreadsheetId"] } } },
+  { type: "function", function: { name: "sheets_read", description: "Read data from a specific range in a spreadsheet", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "A1 notation range (e.g., 'Sheet1!A1:D10' or just 'Sheet1')" } }, required: ["spreadsheetId"] } } },
+  { type: "function", function: { name: "sheets_update", description: "Update data in a specific range. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "A1 notation range (e.g., 'Sheet1!A1:D10')" }, values: { type: "array", description: "2D array of values to write", items: { type: "array", items: { type: "string" } } } }, required: ["spreadsheetId", "range", "values"] } } },
+  { type: "function", function: { name: "sheets_append", description: "Append rows to the end of a sheet. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "The sheet name or range to append to (e.g., 'Sheet1')" }, values: { type: "array", description: "2D array of row values to append", items: { type: "array", items: { type: "string" } } } }, required: ["spreadsheetId", "range", "values"] } } },
+  { type: "function", function: { name: "sheets_clear", description: "Clear data in a specific range. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "A1 notation range to clear" } }, required: ["spreadsheetId", "range"] } } },
+  { type: "function", function: { name: "sheets_create", description: "Create a new spreadsheet. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string", description: "Title of the new spreadsheet" } }, required: ["title"] } } },
 ];
 
 // Tools that require user confirmation before execution
@@ -114,6 +122,10 @@ const WRITE_TOOLS = [
   "gads_update_ad_status",
   "gads_update_keyword_status",
   "gads_add_keyword",
+  "sheets_update",
+  "sheets_append",
+  "sheets_clear",
+  "sheets_create",
 ];
 
 /**
@@ -289,6 +301,15 @@ You can also CREATE files for users:
 - Get top pages: ga_get_top_pages
 - Get traffic sources: ga_get_traffic_sources
 - Get realtime users: ga_get_realtime
+
+**Google Sheets:**
+- List spreadsheets: sheets_list (search by name)
+- Get spreadsheet info: sheets_get (get sheet names and metadata)
+- Read data: sheets_read (read data from a range like 'Sheet1!A1:D10')
+- Update data: sheets_update (overwrite data in a range - REQUIRES CONFIRMATION)
+- Append rows: sheets_append (add rows to end of sheet - REQUIRES CONFIRMATION)
+- Clear data: sheets_clear (clear a range - REQUIRES CONFIRMATION)
+- Create spreadsheet: sheets_create (create new spreadsheet - REQUIRES CONFIRMATION)
 
 ## CRITICAL EMAIL BEHAVIOR
 
@@ -606,6 +627,14 @@ const TOOL_CREDENTIAL_MAP: Record<string, string> = {
   shopify_list_products: "shopify",
   shopify_get_analytics: "shopify",
   shopify_create_product: "shopify",
+  // Google Sheets tools
+  sheets_list: "googleOAuth2Api",
+  sheets_get: "googleOAuth2Api",
+  sheets_read: "googleOAuth2Api",
+  sheets_update: "googleOAuth2Api",
+  sheets_append: "googleOAuth2Api",
+  sheets_clear: "googleOAuth2Api",
+  sheets_create: "googleOAuth2Api",
   // Internal tools don't need credentials
   notes_list: "internal",
   notes_search: "internal",
@@ -1485,6 +1514,70 @@ async function executeTool(
           method: "POST",
           headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "get_realtime", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Google Sheets tools
+      case "sheets_list": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "sheets_get": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "sheets_read": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "read", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "sheets_update": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "sheets_append": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "append", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "sheets_clear": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "clear", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "sheets_create": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-sheets-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create", params: args }),
         });
         return await response.json();
       }

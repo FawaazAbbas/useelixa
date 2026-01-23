@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.google-ads-integration]
 verify_jwt = false
+
+[functions.google-sheets-integration]
+verify_jwt = false
