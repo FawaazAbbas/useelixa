@@ -323,13 +323,13 @@ const Chat = () => {
         </header>
 
         <ScrollArea ref={scrollRef} className="flex-1 p-4">
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="space-y-6 px-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center min-h-[50vh] text-center py-12">
                 <img 
                   src={ElixaResponded} 
                   alt="Elixa" 
-                  className="h-20 w-20 rounded-full object-cover mb-4 border-2 border-border"
+                  className="h-20 w-20 rounded-full object-cover mb-4 border-2 border-muted bg-muted"
                 />
                 <h2 className="text-2xl font-semibold mb-2">Welcome to Elixa AI</h2>
                 <p className="text-muted-foreground max-w-md">
@@ -350,7 +350,7 @@ const Chat = () => {
                 <img 
                   src={ElixaThinking} 
                   alt="Elixa thinking" 
-                  className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-border"
+                  className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-muted bg-muted"
                 />
                 <div className="flex items-center gap-2 text-muted-foreground py-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -362,7 +362,7 @@ const Chat = () => {
         </ScrollArea>
 
         <div className="border-t bg-card/80 backdrop-blur-sm p-4">
-          <div className="max-w-3xl mx-auto">
+          <div className="w-full px-4">
             {/* File previews */}
             {selectedFiles.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-3">
@@ -461,25 +461,25 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
   const [actionResolved, setActionResolved] = useState(false);
 
   return (
-    <div className={cn("flex items-start gap-3", isUser && "flex-row-reverse")}>
+    <div className={cn("flex items-start gap-3 w-full", isUser && "flex-row-reverse")}>
       {isUser ? (
-        <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-          <User className="h-5 w-5 text-secondary-foreground" />
+        <div className="h-9 w-9 rounded-full bg-muted border-2 border-muted flex items-center justify-center flex-shrink-0">
+          <User className="h-5 w-5 text-muted-foreground" />
         </div>
       ) : (
         <img 
           src={isStreaming ? ElixaThinking : ElixaResponded} 
           alt={isStreaming ? "Elixa thinking" : "Elixa"} 
-          className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-border"
+          className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-muted bg-muted"
         />
       )}
       <div className={cn(
-        "flex-1 max-w-[85%]",
-        isUser && "ml-auto"
+        "max-w-[85%]",
+        isUser ? "ml-auto" : "mr-auto"
       )}>
         <div className={cn(
           "rounded-2xl px-4 py-3",
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted"
+          isUser ? "bg-muted text-foreground" : "bg-muted"
         )}>
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
