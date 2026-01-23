@@ -130,9 +130,16 @@ const Chat = () => {
   }, [input]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    // Use setTimeout to ensure DOM is updated before scrolling
+    const timer = setTimeout(() => {
+      if (scrollRef.current) {
+        const scrollContainer = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollContainer) {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }
+      }
+    }, 50);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   const createSession = async (title: string): Promise<string> => {
@@ -432,10 +439,15 @@ const Chat = () => {
               <SessionList />
             </SheetContent>
           </Sheet>
-          <div className="p-1 bg-muted rounded-full">
+          <div className="p-1 bg-muted rounded-full flex-shrink-0">
             <img src={ElixaResponded} alt="Elixa" className="h-8 w-8 rounded-full object-cover border-2 border-muted" />
           </div>
-          <span className="font-semibold text-lg flex-1">Elixa AI</span>
+          <span className="font-semibold text-lg flex-1 truncate max-w-[200px]">Elixa AI</span>
+          {currentSession && (
+            <span className="text-sm text-muted-foreground truncate max-w-[150px] hidden sm:block">
+              {currentSession.title}
+            </span>
+          )}
           
           {currentSession && (
             <ChatActionsMenu
@@ -683,13 +695,12 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
         {/* Timestamp and actions */}
         <div className={cn(
           "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
-          isUser ? "flex-row-reverse" : "justify-start"
+          isUser ? "justify-start" : "justify-start"
         )}>
+          <span>{formatTime(message.timestamp)}</span>
+          
           {/* Action buttons - show on hover */}
-          <div className={cn(
-            "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
-            isUser && "flex-row-reverse"
-          )}>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
@@ -727,8 +738,6 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
               <Trash2 className="h-3 w-3" />
             </Button>
           </div>
-          
-          <span>{formatTime(message.timestamp)}</span>
         </div>
         
         {/* File attachments */}
