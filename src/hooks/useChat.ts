@@ -523,6 +523,21 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     localMessageIds.current.clear();
   }, []);
 
+  // Delete a single message from state and database
+  const deleteMessage = useCallback(async (messageId: string) => {
+    try {
+      // Delete from database
+      await supabase.from("chat_messages_v2").delete().eq("id", messageId);
+      
+      // Remove from local state
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      localMessageIds.current.delete(messageId);
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      throw error;
+    }
+  }, []);
+
   return {
     messages,
     isLoading,
@@ -533,5 +548,6 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     setMessages,
     loadSessionMessages,
     uploadFiles,
+    deleteMessage,
   };
 }

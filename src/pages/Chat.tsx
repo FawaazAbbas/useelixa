@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
@@ -40,10 +40,45 @@ const Chat = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages } = useChat({
+  const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages, deleteMessage } = useChat({
     sessionId: activeSessionId || "",
     onError: (error) => toast.error(error.message),
   });
+
+  const handleRetry = useCallback(async (messageIndex: number) => {
+    // Find the user message before this assistant message
+    const assistantMessage = messages[messageIndex];
+    if (assistantMessage.role !== "assistant") return;
+
+    // Find the preceding user message
+    let userMessageIndex = messageIndex - 1;
+    while (userMessageIndex >= 0 && messages[userMessageIndex].role !== "user") {
+      userMessageIndex--;
+    }
+    
+    if (userMessageIndex < 0) return;
+    
+    const userMessage = messages[userMessageIndex];
+    
+    try {
+      // Delete the assistant message
+      await deleteMessage(assistantMessage.id);
+      
+      // Resend the user's message
+      sendMessage(userMessage.content, activeSessionId || undefined, undefined);
+    } catch (error) {
+      toast.error("Failed to retry");
+    }
+  }, [messages, deleteMessage, sendMessage, activeSessionId]);
+
+  const handleDeleteMessage = useCallback(async (messageId: string) => {
+    try {
+      await deleteMessage(messageId);
+      toast.success("Message deleted");
+    } catch {
+      toast.error("Failed to delete message");
+    }
+  }, [deleteMessage]);
 
   useEffect(() => {
     const loadSessions = async () => {
@@ -337,11 +372,14 @@ const Chat = () => {
                 </p>
               </div>
             ) : (
-              messages.map((message) => (
+              messages.map((message, index) => (
                 <MessageBubble 
                   key={message.id} 
                   message={message} 
-                  isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"} 
+                  isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"}
+                  onDelete={() => handleDeleteMessage(message.id)}
+                  onRetry={message.role === "assistant" ? () => handleRetry(index) : undefined}
+                  isLoading={isLoading}
                 />
               ))
             )}
@@ -454,14 +492,29 @@ const Chat = () => {
 interface MessageBubbleProps {
   message: ChatMessage;
   isStreaming?: boolean;
+  onDelete?: () => void;
+  onRetry?: () => void;
+  isLoading?: boolean;
 }
 
-const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
+const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: MessageBubbleProps) => {
   const isUser = message.role === "user";
   const [actionResolved, setActionResolved] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [message.content]);
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
-    <div className={cn("flex items-start gap-3 w-full", isUser && "flex-row-reverse")}>
+    <div className={cn("group flex items-start gap-3 w-full", isUser && "flex-row-reverse")}>
       {isUser ? (
         <div className="h-9 w-9 rounded-full bg-muted border-2 border-muted flex items-center justify-center flex-shrink-0">
           <User className="h-5 w-5 text-muted-foreground" />
@@ -493,6 +546,54 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
           {isStreaming && (
             <span className="inline-block w-1.5 h-5 ml-0.5 bg-current animate-pulse" />
           )}
+        </div>
+        
+        {/* Timestamp and actions */}
+        <div className={cn(
+          "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
+          isUser ? "justify-end" : "justify-start"
+        )}>
+          <span>{formatTime(message.timestamp)}</span>
+          
+          {/* Action buttons - show on hover */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={handleCopy}
+              title="Copy message"
+            >
+              {copied ? (
+                <Check className="h-3 w-3 text-primary" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+            </Button>
+            
+            {!isUser && onRetry && !isStreaming && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={onRetry}
+                disabled={isLoading}
+                title="Regenerate response"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 hover:text-destructive"
+              onClick={onDelete}
+              title="Delete message"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
         
         {/* File attachments */}
