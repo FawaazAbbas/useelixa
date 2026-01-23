@@ -27,24 +27,25 @@ interface Integration {
 interface UserCredential {
   id: string;
   credential_type: string;
+  bundle_type: string | null;
   account_email: string | null;
   scopes: string[] | null;
   connected_at: string;
 }
 
-// OAuth mapping - including Google services
+// OAuth mapping - including Google services (each Google service is independent)
 const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string; bundleType?: string }> = {
-  // Google services - each has its own bundle type for appropriate scopes
-  "gmail": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "gmail_calendar" },
-  "google-calendar": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "gmail_calendar" },
+  // Google services - each has its own unique bundle type for independent connections
+  "gmail": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "gmail" },
+  "google-calendar": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_calendar" },
   "google-ads": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_ads" },
   "google-analytics": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_analytics" },
   // Other providers
   "notion": { provider: "notion", credentialType: "notionApi" },
   "slack": { provider: "slack", credentialType: "slackOAuth2Api" },
-  "microsoft-teams": { provider: "microsoft", credentialType: "microsoftOAuth2Api" },
-  "outlook": { provider: "microsoft", credentialType: "microsoftOAuth2Api" },
-  "onedrive": { provider: "microsoft", credentialType: "microsoftOAuth2Api" },
+  "microsoft-teams": { provider: "microsoft", credentialType: "microsoftOAuth2Api", bundleType: "teams" },
+  "outlook": { provider: "microsoft", credentialType: "microsoftOAuth2Api", bundleType: "outlook" },
+  "onedrive": { provider: "microsoft", credentialType: "microsoftOAuth2Api", bundleType: "onedrive" },
   "calendly": { provider: "calendly", credentialType: "calendlyApi" },
   "mailchimp": { provider: "mailchimp", credentialType: "mailchimpOAuth2Api" },
   "shopify": { provider: "shopify", credentialType: "shopifyApi" },
@@ -77,15 +78,16 @@ const Connections = () => {
 
     if (integrationsData) setIntegrations(integrationsData);
 
-    if (user) {
+  if (user) {
       const { data: credentialsData } = await supabase
         .from("user_credentials")
-        .select("id, credential_type, account_email, scopes, created_at")
+        .select("id, credential_type, bundle_type, account_email, scopes, created_at")
         .eq("user_id", user.id);
 
       if (credentialsData) {
         setCredentials(credentialsData.map(c => ({
           ...c,
+          bundle_type: c.bundle_type || null,
           scopes: c.scopes || null,
           connected_at: c.created_at
         })));
@@ -97,7 +99,17 @@ const Connections = () => {
   const getCredentialForIntegration = (integration: Integration): UserCredential | undefined => {
     const mapping = INTEGRATION_OAUTH_MAP[integration.slug];
     if (!mapping) return undefined;
-    return credentials.find(c => c.credential_type === mapping.credentialType);
+    
+    // Match by both credential_type AND bundle_type for services that use bundles
+    return credentials.find(c => {
+      if (c.credential_type !== mapping.credentialType) return false;
+      // If the mapping has a bundleType, the credential must match it
+      if (mapping.bundleType) {
+        return c.bundle_type === mapping.bundleType;
+      }
+      // For services without bundleType, just match credential_type
+      return true;
+    });
   };
 
   const handleConnect = async (integration: Integration) => {

@@ -21,10 +21,11 @@ interface ConnectedService {
 const SERVICE_ICONS: Record<string, string> = {
   notionApi: "/logos/NotionLogo.svg",
   slackOAuth2Api: "/logos/SlackLogo.svg",
-  calendlyApi: "/logos/calendar.svg",
+  calendlyApi: "/logos/CalendlyLogo.png",
   microsoftOAuth2Api: "/logos/TeamsLogo.svg",
   hubspotOAuth2Api: "/logos/HubSpotLogo.svg",
   mailchimpOAuth2Api: "/logos/MailchimpLogo.svg",
+  googleOAuth2Api: "/logos/GoogleDriveLogo.png",
 };
 
 const SERVICE_NAMES: Record<string, string> = {
@@ -34,6 +35,18 @@ const SERVICE_NAMES: Record<string, string> = {
   microsoftOAuth2Api: "Microsoft",
   hubspotOAuth2Api: "HubSpot",
   mailchimpOAuth2Api: "Mailchimp",
+  googleOAuth2Api: "Google",
+};
+
+// Bundle-specific names and icons for Google/Microsoft services
+const BUNDLE_CONFIG: Record<string, { name: string; icon: string }> = {
+  gmail: { name: "Gmail", icon: "/logos/GoogleDriveLogo.png" },
+  google_calendar: { name: "Google Calendar", icon: "/logos/CalendlyLogo.png" },
+  google_ads: { name: "Google Ads", icon: "/logos/GoogleDriveLogo.png" },
+  google_analytics: { name: "Google Analytics", icon: "/logos/GoogleDriveLogo.png" },
+  outlook: { name: "Outlook", icon: "/logos/TeamsLogo.svg" },
+  teams: { name: "Microsoft Teams", icon: "/logos/TeamsLogo.svg" },
+  onedrive: { name: "OneDrive", icon: "/logos/TeamsLogo.svg" },
 };
 
 interface Props {
@@ -75,17 +88,22 @@ export function ConnectedServicesIndicator({ userId }: Props) {
 
       for (const cred of credentials || []) {
         const credType = cred.credential_type;
+        const bundleType = cred.bundle_type;
         const isExpired = cred.expires_at && new Date(cred.expires_at) < new Date();
 
-        const key = cred.bundle_type ? `${credType}_${cred.bundle_type}` : credType;
+        // Create unique key using bundle_type if available
+        const key = bundleType ? `${credType}_${bundleType}` : credType;
 
         if (!serviceMap.has(key)) {
+          // Use bundle-specific config if available
+          const bundleConfig = bundleType ? BUNDLE_CONFIG[bundleType] : null;
+          
           serviceMap.set(key, {
-            name: SERVICE_NAMES[credType] || credType,
+            name: bundleConfig?.name || SERVICE_NAMES[credType] || credType,
             credentialType: credType,
             accountEmail: cred.account_email || undefined,
             status: isExpired ? "expired" : "connected",
-            icon: SERVICE_ICONS[credType],
+            icon: bundleConfig?.icon || SERVICE_ICONS[credType],
           });
         }
       }
