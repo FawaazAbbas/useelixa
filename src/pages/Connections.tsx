@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plug, Search, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
+import { Plug, Search, CheckCircle2, Loader2, ExternalLink, Plus, User } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,20 +96,23 @@ const Connections = () => {
     setLoading(false);
   };
 
-  const getCredentialForIntegration = (integration: Integration): UserCredential | undefined => {
+  // Get ALL credentials for an integration (supports multiple accounts)
+  const getCredentialsForIntegration = (integration: Integration): UserCredential[] => {
     const mapping = INTEGRATION_OAUTH_MAP[integration.slug];
-    if (!mapping) return undefined;
+    if (!mapping) return [];
     
-    // Match by both credential_type AND bundle_type for services that use bundles
-    return credentials.find(c => {
+    return credentials.filter(c => {
       if (c.credential_type !== mapping.credentialType) return false;
-      // If the mapping has a bundleType, the credential must match it
       if (mapping.bundleType) {
         return c.bundle_type === mapping.bundleType;
       }
-      // For services without bundleType, just match credential_type
       return true;
     });
+  };
+
+  // Check if integration has at least one connected account
+  const isIntegrationConnected = (integration: Integration): boolean => {
+    return getCredentialsForIntegration(integration).length > 0;
   };
 
   const handleConnect = async (integration: Integration) => {
@@ -147,11 +150,8 @@ const Connections = () => {
     window.location.href = oauthUrl;
   };
 
-  const handleDisconnect = async (integration: Integration) => {
-    const credential = getCredentialForIntegration(integration);
-    if (!credential) return;
-
-    setDisconnectingId(integration.id);
+  const handleDisconnect = async (credential: UserCredential, integrationName: string) => {
+    setDisconnectingId(credential.id);
 
     try {
       const { error } = await supabase
@@ -161,11 +161,12 @@ const Connections = () => {
 
       if (error) throw error;
 
-      toast.success(`Disconnected from ${integration.name}`);
+      const accountLabel = credential.account_email || integrationName;
+      toast.success(`Disconnected ${accountLabel}`);
       setCredentials(prev => prev.filter(c => c.id !== credential.id));
     } catch (error) {
       console.error("Error disconnecting:", error);
-      toast.error(`Failed to disconnect from ${integration.name}`);
+      toast.error(`Failed to disconnect account`);
     } finally {
       setDisconnectingId(null);
     }
@@ -179,8 +180,8 @@ const Connections = () => {
     return matchesSearch && matchesCat;
   });
 
-  const connectedIntegrations = filtered.filter(i => getCredentialForIntegration(i));
-  const availableIntegrations = filtered.filter(i => !getCredentialForIntegration(i));
+  const connectedIntegrations = filtered.filter(i => isIntegrationConnected(i));
+  const availableIntegrations = filtered.filter(i => !isIntegrationConnected(i));
 
   return (
     <PageLayout
@@ -232,7 +233,9 @@ const Connections = () => {
               <SectionHeader title="Connected" count={connectedIntegrations.length} icon={CheckCircle2} />
               <CardGrid columns={4}>
                 {connectedIntegrations.map(integration => {
-                  const credential = getCredentialForIntegration(integration);
+                  const integrationCredentials = getCredentialsForIntegration(integration);
+                  const accountCount = integrationCredentials.length;
+                  
                   return (
                     <Card key={integration.id} className="border-primary/20 bg-primary/5">
                       <CardHeader className="pb-3">
@@ -248,26 +251,57 @@ const Connections = () => {
                               {integration.name}
                               <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
                             </CardTitle>
-                            <Badge variant="secondary" className="text-[10px] mt-1">{integration.category}</Badge>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="secondary" className="text-[10px]">{integration.category}</Badge>
+                              {accountCount > 1 && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  <User className="h-3 w-3 mr-1" />
+                                  {accountCount} accounts
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </CardHeader>
-                      <CardContent className="pt-0">
-                        {credential?.account_email && (
-                          <p className="text-xs text-muted-foreground mb-3 truncate">
-                            {credential.account_email}
-                          </p>
-                        )}
+                      <CardContent className="pt-0 space-y-3">
+                        {/* List all connected accounts */}
+                        <div className="space-y-2">
+                          {integrationCredentials.map((credential) => (
+                            <div 
+                              key={credential.id} 
+                              className="flex items-center justify-between gap-2 p-2 rounded-md bg-background/50 border border-border/50"
+                            >
+                              <p className="text-xs text-muted-foreground truncate flex-1">
+                                {credential.account_email || "Connected account"}
+                              </p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDisconnect(credential, integration.name)}
+                                disabled={disconnectingId === credential.id}
+                              >
+                                {disconnectingId === credential.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : "Remove"}
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {/* Add another account button */}
                         <Button
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => handleDisconnect(integration)}
-                          disabled={disconnectingId === integration.id}
+                          onClick={() => handleConnect(integration)}
+                          disabled={connectingId === integration.id}
                         >
-                          {disconnectingId === integration.id ? (
-                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Disconnecting...</>
-                          ) : "Disconnect"}
+                          {connectingId === integration.id ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Connecting...</>
+                          ) : (
+                            <><Plus className="h-4 w-4 mr-2" />Add another account</>
+                          )}
                         </Button>
                       </CardContent>
                     </Card>
