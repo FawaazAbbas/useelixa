@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, Bot, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon } from "lucide-react";
+import ElixaThinking from "@/assets/Elixa-Thinking.png";
+import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -306,9 +308,7 @@ const Chat = () => {
               <SessionList />
             </SheetContent>
           </Sheet>
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Bot className="h-5 w-5 text-primary" />
-          </div>
+          <img src={ElixaResponded} alt="Elixa" className="h-9 w-9 rounded-full object-cover" />
           <span className="font-semibold text-lg flex-1">Elixa AI</span>
           
           {currentSession && (
@@ -326,9 +326,11 @@ const Chat = () => {
           <div className="max-w-3xl mx-auto space-y-6">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center min-h-[50vh] text-center py-12">
-                <div className="p-4 bg-primary/10 rounded-full mb-4">
-                  <Bot className="h-10 w-10 text-primary" />
-                </div>
+                <img 
+                  src={ElixaResponded} 
+                  alt="Elixa" 
+                  className="h-20 w-20 rounded-full object-cover mb-4"
+                />
                 <h2 className="text-2xl font-semibold mb-2">Welcome to Elixa AI</h2>
                 <p className="text-muted-foreground max-w-md">
                   I'm your intelligent assistant. I can help you manage emails, calendar events, tasks, notes, and connect with your Stripe and Shopify data. You can also share files with me!
@@ -345,9 +347,11 @@ const Chat = () => {
             )}
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex items-start gap-3">
-                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="h-5 w-5 text-primary" />
-                </div>
+                <img 
+                  src={ElixaThinking} 
+                  alt="Elixa thinking" 
+                  className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                />
                 <div className="flex items-center gap-2 text-muted-foreground py-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>{isUploading ? "Uploading files..." : "Thinking..."}</span>
@@ -458,16 +462,17 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
 
   return (
     <div className={cn("flex items-start gap-3", isUser && "flex-row-reverse")}>
-      <div className={cn(
-        "h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0",
-        isUser ? "bg-secondary" : "bg-primary/10"
-      )}>
-        {isUser ? (
+      {isUser ? (
+        <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
           <User className="h-5 w-5 text-secondary-foreground" />
-        ) : (
-          <Bot className="h-5 w-5 text-primary" />
-        )}
-      </div>
+        </div>
+      ) : (
+        <img 
+          src={isStreaming ? ElixaThinking : ElixaResponded} 
+          alt={isStreaming ? "Elixa thinking" : "Elixa"} 
+          className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+        />
+      )}
       <div className={cn(
         "flex-1 max-w-[85%]",
         isUser && "ml-auto"
