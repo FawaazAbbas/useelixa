@@ -124,6 +124,8 @@ function getGoogleScopes(bundleType?: string): string {
       return `${baseScopes} https://www.googleapis.com/auth/adwords`;
     case "google_analytics":
       return `${baseScopes} https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit`;
+    case "google_sheets":
+      return `${baseScopes} https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly`;
     default:
       return baseScopes;
   }

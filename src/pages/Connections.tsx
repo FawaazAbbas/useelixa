@@ -40,6 +40,7 @@ const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: 
   "google-calendar": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_calendar" },
   "google-ads": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_ads" },
   "google-analytics": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_analytics" },
+  "google-sheets": { provider: "google", credentialType: "googleOAuth2Api", bundleType: "google_sheets" },
   // Other providers
   "notion": { provider: "notion", credentialType: "notionApi" },
   "slack": { provider: "slack", credentialType: "slackOAuth2Api" },
