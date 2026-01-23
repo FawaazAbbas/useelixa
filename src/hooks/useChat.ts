@@ -54,6 +54,19 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
   
   // Track message IDs we've added locally to prevent realtime duplicates
   const localMessageIds = useRef<Set<string>>(new Set());
+  
+  // AbortController for stopping generation
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Stop generation function
+  const stopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    setIsStreaming(false);
+  }, []);
 
   // Trigger conversation summarization when threshold is reached
   const triggerSummarization = useCallback(async (targetSessionId: string, messageCount: number) => {
@@ -285,6 +298,10 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         })),
       }));
 
+      // Create abort controller for this request
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const response = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
@@ -298,6 +315,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
           sessionId: effectiveSessionId,
           model: model || "google/gemini-2.5-flash",
         }),
+        signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -513,9 +531,15 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
       }
 
     } catch (error) {
+      // Don't show error if request was aborted
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request was aborted by user');
+        return;
+      }
       console.error("Chat error:", error);
       onError?.(error instanceof Error ? error : new Error("Unknown error"));
     } finally {
+      abortControllerRef.current = null;
       setIsLoading(false);
       setIsStreaming(false);
 
@@ -547,6 +571,40 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     }
   }, []);
 
+  // Edit and resend a message - deletes all messages after the edited one
+  const editAndResendMessage = useCallback(async (
+    messageId: string, 
+    newContent: string,
+    targetSessionId?: string,
+    model?: string
+  ): Promise<void> => {
+    const messageIndex = messages.findIndex(m => m.id === messageId);
+    if (messageIndex === -1) return;
+
+    const message = messages[messageIndex];
+    if (message.role !== 'user') return;
+
+    // Get all messages that come after this one (to delete)
+    const messagesToDelete = messages.slice(messageIndex);
+    
+    try {
+      // Delete subsequent messages from database
+      for (const msg of messagesToDelete) {
+        await supabase.from("chat_messages_v2").delete().eq("id", msg.id);
+        localMessageIds.current.delete(msg.id);
+      }
+
+      // Update local state - remove all messages from this point
+      setMessages(prev => prev.slice(0, messageIndex));
+
+      // Send the edited message
+      await sendMessage(newContent, targetSessionId, undefined, model);
+    } catch (error) {
+      console.error("Error editing message:", error);
+      throw error;
+    }
+  }, [messages, sendMessage]);
+
   return {
     messages,
     isLoading,
@@ -558,5 +616,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     loadSessionMessages,
     uploadFiles,
     deleteMessage,
+    stopGeneration,
+    editAndResendMessage,
   };
 }
