@@ -308,7 +308,7 @@ const Chat = () => {
               <SessionList />
             </SheetContent>
           </Sheet>
-          <img src={ElixaResponded} alt="Elixa" className="h-9 w-9 rounded-full object-cover" />
+          <img src={ElixaResponded} alt="Elixa" className="h-9 w-9 rounded-full object-cover border-2 border-border" />
           <span className="font-semibold text-lg flex-1">Elixa AI</span>
           
           {currentSession && (
@@ -329,7 +329,7 @@ const Chat = () => {
                 <img 
                   src={ElixaResponded} 
                   alt="Elixa" 
-                  className="h-20 w-20 rounded-full object-cover mb-4"
+                  className="h-20 w-20 rounded-full object-cover mb-4 border-2 border-border"
                 />
                 <h2 className="text-2xl font-semibold mb-2">Welcome to Elixa AI</h2>
                 <p className="text-muted-foreground max-w-md">
@@ -350,7 +350,7 @@ const Chat = () => {
                 <img 
                   src={ElixaThinking} 
                   alt="Elixa thinking" 
-                  className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+                  className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-border"
                 />
                 <div className="flex items-center gap-2 text-muted-foreground py-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -470,7 +470,7 @@ const MessageBubble = ({ message, isStreaming }: MessageBubbleProps) => {
         <img 
           src={isStreaming ? ElixaThinking : ElixaResponded} 
           alt={isStreaming ? "Elixa thinking" : "Elixa"} 
-          className="h-9 w-9 rounded-full object-cover flex-shrink-0"
+          className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-border"
         />
       )}
       <div className={cn(
