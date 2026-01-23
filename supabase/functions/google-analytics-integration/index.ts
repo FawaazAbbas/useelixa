@@ -150,6 +150,9 @@ serve(async (req) => {
           rows: data.rows || [],
           rowCount: data.rowCount,
           metadata: data.metadata,
+          _hint: (data.rows || []).length === 0 
+            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+            : undefined,
         };
         break;
       }
@@ -194,6 +197,9 @@ serve(async (req) => {
           metricHeaders: data.metricHeaders,
           rows: data.rows || [],
           rowCount: data.rowCount,
+          _hint: (data.rows || []).length === 0 
+            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+            : undefined,
         };
         break;
       }
@@ -247,6 +253,9 @@ serve(async (req) => {
           metricHeaders: data.metricHeaders,
           rows: data.rows || [],
           rowCount: data.rowCount,
+          _hint: (data.rows || []).length === 0 
+            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+            : undefined,
         };
         break;
       }
@@ -291,6 +300,9 @@ serve(async (req) => {
           metricHeaders: data.metricHeaders,
           rows: data.rows || [],
           rowCount: data.rowCount,
+          _hint: (data.rows || []).length === 0 
+            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+            : undefined,
         };
         break;
       }
@@ -339,6 +351,9 @@ serve(async (req) => {
           metricHeaders: data.metricHeaders,
           rows: data.rows || [],
           rowCount: data.rowCount,
+          _hint: (data.rows || []).length === 0 
+            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+            : undefined,
         };
         break;
       }
@@ -375,6 +390,9 @@ serve(async (req) => {
           metricHeaders: data.metricHeaders,
           rows: data.rows || [],
           rowCount: data.rowCount,
+          _hint: (data.rows || []).length === 0 
+            ? "No realtime data found. This could mean no users are currently active on the property, or the connected account lacks access."
+            : undefined,
         };
         break;
       }
@@ -418,6 +436,9 @@ serve(async (req) => {
           metricHeaders: data.metricHeaders,
           rows: data.rows || [],
           rowCount: data.rowCount,
+          _hint: (data.rows || []).length === 0 
+            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+            : undefined,
         };
         break;
       }
