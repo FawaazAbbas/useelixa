@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,13 @@ import { ChatSearch } from "@/components/chat/ChatSearch";
 import { CodeBlock } from "@/components/chat/CodeBlock";
 import { EditableMessage, EditButton } from "@/components/chat/EditableMessage";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { VoiceButton } from "@/components/chat/VoiceButton";
+import { SuggestedPrompts } from "@/components/chat/SuggestedPrompts";
+import { MessageFeedback } from "@/components/chat/MessageFeedback";
+import { ShareChatDialog } from "@/components/chat/ShareChatDialog";
+import { ChatFolders, ChatFolder } from "@/components/chat/ChatFolders";
+import { useChatFolders } from "@/hooks/useChatFolders";
+import { GeneratedImage } from "@/components/chat/GeneratedImage";
 
 interface ChatSession {
   id: string;
@@ -32,6 +39,7 @@ interface ChatSession {
   updated_at: string;
   is_pinned: boolean;
   selected_model?: string;
+  folder_id?: string | null;
 }
 
 const Chat = () => {
@@ -49,9 +57,13 @@ const Chat = () => {
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Chat folders hook
+  const { folders, setFolders, expandedFolders, toggleFolder, moveSessionToFolder } = useChatFolders(user?.id);
 
   const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages, deleteMessage, stopGeneration, editAndResendMessage } = useChat({
     sessionId: activeSessionId || "",
@@ -101,7 +113,7 @@ const Chat = () => {
       try {
         const { data, error } = await supabase
           .from("chat_sessions_v2")
-          .select("id, title, updated_at, is_pinned, selected_model")
+          .select("id, title, updated_at, is_pinned, selected_model, folder_id")
           .eq("user_id", user.id)
           .order("is_pinned", { ascending: false })
           .order("updated_at", { ascending: false });
@@ -111,7 +123,8 @@ const Chat = () => {
         setSessions((data || []).map(d => ({ 
           ...d, 
           is_pinned: d.is_pinned ?? false,
-          selected_model: d.selected_model ?? undefined 
+          selected_model: d.selected_model ?? undefined,
+          folder_id: d.folder_id ?? null
         })));
         if (data && data.length > 0) {
           setActiveSessionId(data[0].id);
@@ -538,13 +551,24 @@ const Chat = () => {
           />
           
           {currentSession && (
-            <ChatActionsMenu
-              sessionTitle={currentSession.title}
-              messages={messages}
-              onDelete={() => handleDeleteClick(currentSession)}
-              onExport={handleExportChat}
-              onAnalyze={() => setAnalysisOpen(true)}
-            />
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setShareDialogOpen(true)}
+                title="Share chat"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <ChatActionsMenu
+                sessionTitle={currentSession.title}
+                messages={messages}
+                onDelete={() => handleDeleteClick(currentSession)}
+                onExport={handleExportChat}
+                onAnalyze={() => setAnalysisOpen(true)}
+              />
+            </>
           )}
         </header>
 
@@ -691,6 +715,13 @@ const Chat = () => {
               >
                 <Paperclip className="h-5 w-5" />
               </Button>
+              
+              {/* Voice button */}
+              <VoiceButton
+                disabled={isLoading}
+                onTranscript={(text) => setInput(prev => prev + " " + text)}
+              />
+              
               <Textarea
                 ref={textareaRef}
                 value={input}
@@ -710,6 +741,20 @@ const Chat = () => {
                 {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               </Button>
             </div>
+            
+            {/* Suggested prompts - show after last assistant message */}
+            {messages.length > 0 && !isLoading && messages[messages.length - 1]?.role === "assistant" && (
+              <SuggestedPrompts
+                lastAssistantMessage={messages[messages.length - 1]?.content || ""}
+                lastUserMessage={messages.length >= 2 ? messages[messages.length - 2]?.content || "" : ""}
+                onSelectPrompt={(prompt) => {
+                  setInput(prompt);
+                  textareaRef.current?.focus();
+                }}
+                isLoading={isLoading}
+              />
+            )}
+            
             <p className="text-xs text-muted-foreground mt-2 text-center">
               Press Enter to send, Shift+Enter for new line • Max 5 files, 10MB each
             </p>
@@ -735,6 +780,15 @@ const Chat = () => {
         open={creditDialogOpen}
         onOpenChange={setCreditDialogOpen}
       />
+
+      {currentSession && (
+        <ShareChatDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          sessionId={currentSession.id}
+          sessionTitle={currentSession.title}
+        />
+      )}
     </div>
   );
 };
@@ -877,6 +931,11 @@ const MessageBubble = ({
               {/* Edit button for user messages */}
               {isUser && onStartEdit && !isLoading && (
                 <EditButton onClick={onStartEdit} />
+              )}
+              
+              {/* Feedback buttons for assistant messages */}
+              {!isUser && !isStreaming && (
+                <MessageFeedback messageId={message.id} />
               )}
               
               {!isUser && onRetry && !isStreaming && (
