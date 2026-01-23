@@ -142,6 +142,9 @@ const WRITE_TOOLS = [
   "sheets_create",
 ];
 
+// Model for lightweight tasks (title generation) - always use cheapest
+const LITE_MODEL = "google/gemini-2.5-flash-lite";
+
 /**
  * Generate a smart, descriptive chat title based on the conversation
  */
@@ -358,12 +361,14 @@ Current date/time: ${new Date().toISOString()}`;
 
 /**
  * Analyze a file using vision or text extraction
+ * Uses the user's selected model for consistency
  */
 async function analyzeFile(
   fileUrl: string,
   fileType: string,
   analysisType: string = "describe",
-  LOVABLE_API_KEY: string
+  LOVABLE_API_KEY: string,
+  selectedModel: string = DEFAULT_MODEL
 ): Promise<{ analysis: string; error?: string }> {
   try {
     console.log(`[Chat] Analyzing file: ${fileUrl}, type: ${fileType}, analysis: ${analysisType}`);
@@ -383,7 +388,7 @@ async function analyzeFile(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: selectedModel,
           messages: [
             {
               role: "user",
@@ -423,7 +428,7 @@ async function analyzeFile(
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: selectedModel,
             messages: [{ role: "user", content: prompt }],
           }),
         });
@@ -735,12 +740,13 @@ async function executeTool(
   supabase: any, 
   userId: string,
   authHeader: string,
-  serviceSupabase: any
+  serviceSupabase: any,
+  selectedModel: string = DEFAULT_MODEL
 ): Promise<any> {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
   
-  console.log(`[Chat] Executing tool: ${toolName}`, args);
+  console.log(`[Chat] Executing tool: ${toolName} with model: ${selectedModel}`, args);
 
   try {
     switch (toolName) {
@@ -750,7 +756,8 @@ async function executeTool(
           args.fileUrl,
           args.fileType,
           args.analysisType || "describe",
-          LOVABLE_API_KEY
+          LOVABLE_API_KEY,
+          selectedModel
         );
         return result;
       }
@@ -1911,7 +1918,8 @@ serve(async (req) => {
           supabase,
           userId!,
           authHeader!,
-          serviceSupabase
+          serviceSupabase,
+          selectedModel
         );
 
         if (orgId) {
