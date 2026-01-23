@@ -107,6 +107,36 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+          sort_order: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages_v2: {
         Row: {
           content: string
@@ -161,6 +191,7 @@ export type Database = {
       chat_sessions_v2: {
         Row: {
           created_at: string
+          folder_id: string | null
           id: string
           is_pinned: boolean
           selected_model: string | null
@@ -171,6 +202,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          folder_id?: string | null
           id?: string
           is_pinned?: boolean
           selected_model?: string | null
@@ -181,6 +213,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          folder_id?: string | null
           id?: string
           is_pinned?: boolean
           selected_model?: string | null
@@ -190,6 +223,13 @@ export type Database = {
           workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "chat_sessions_v2_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "chat_folders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chat_sessions_v2_workspace_id_fkey"
             columns: ["workspace_id"]
@@ -474,6 +514,41 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_feedback: {
+        Row: {
+          created_at: string
+          feedback_text: string | null
+          id: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          message_id: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_text?: string | null
+          id?: string
+          message_id?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages_v2"
             referencedColumns: ["id"]
           },
         ]
@@ -846,6 +921,47 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_chats: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_public: boolean | null
+          session_id: string
+          share_token: string
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          session_id: string
+          share_token?: string
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_public?: boolean | null
+          session_id?: string
+          share_token?: string
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_chats_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           ai_context: string | null
@@ -1161,6 +1277,36 @@ export type Database = {
           token_type?: string | null
           updated_at?: string
           usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_memories: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          memory_key: string
+          memory_value: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          memory_key: string
+          memory_value: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          memory_key?: string
+          memory_value?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

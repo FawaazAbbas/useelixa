@@ -27,6 +27,7 @@ import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Notifications from "./pages/Notifications";
+import SharedChat from "./pages/SharedChat";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -69,6 +70,9 @@ const AppContent = () => {
 
           {/* Chat route - main AI interface */}
           <Route path="/chat" element={<Chat />} />
+          
+          {/* Shared chat - public view */}
+          <Route path="/shared/:shareToken" element={<SharedChat />} />
 
           {/* App routes with main navigation */}
           {/* App routes - all use PageLayout internally */}

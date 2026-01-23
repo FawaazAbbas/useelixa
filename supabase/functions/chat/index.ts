@@ -112,8 +112,15 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "sheets_append", description: "Append rows to the end of a sheet. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "The sheet name or range to append to (e.g., 'Sheet1')" }, values: { type: "array", description: "2D array of row values to append", items: { type: "array", items: { type: "string" } } } }, required: ["spreadsheetId", "range", "values"] } } },
   { type: "function", function: { name: "sheets_clear", description: "Clear data in a specific range. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "A1 notation range to clear" } }, required: ["spreadsheetId", "range"] } } },
   { type: "function", function: { name: "sheets_create", description: "Create a new spreadsheet. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string", description: "Title of the new spreadsheet" } }, required: ["title"] } } },
+  // Image Generation
+  { type: "function", function: { name: "generate_image", description: "Generate an AI image based on a text prompt. Returns a downloadable image URL.", parameters: { type: "object", properties: { prompt: { type: "string", description: "Detailed description of the image to generate" }, style: { type: "string", enum: ["realistic", "artistic", "cartoon", "abstract"], description: "Style of the image (optional)" } }, required: ["prompt"] } } },
+  // Memory/Personalization tools
+  { type: "function", function: { name: "remember_fact", description: "Store a fact or preference about the user for future conversations. Use this when users share personal preferences, facts about themselves, or request you remember something.", parameters: { type: "object", properties: { key: { type: "string", description: "Short identifier for the memory (e.g., 'preferred_language', 'name', 'timezone')" }, value: { type: "string", description: "The value to remember" }, category: { type: "string", enum: ["preference", "fact", "context"], description: "Category of the memory" } }, required: ["key", "value"] } } },
+  { type: "function", function: { name: "recall_memories", description: "Retrieve stored memories/facts about the user", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "forget_memory", description: "Delete a stored memory by its key", parameters: { type: "object", properties: { key: { type: "string", description: "The memory key to forget" } }, required: ["key"] } } },
+  // Suggested follow-ups (internal tool)
+  { type: "function", function: { name: "suggest_followups", description: "Generate contextual follow-up question suggestions for the user. Use this after providing helpful responses.", parameters: { type: "object", properties: { context: { type: "string", description: "Brief context of the current conversation" } }, required: ["context"] } } },
 ];
-
 // Tools that require user confirmation before execution
 const WRITE_TOOLS = [
   "gmail_send_email",
@@ -328,6 +335,14 @@ You can also CREATE files for users:
 - Clear data: sheets_clear (clear a range - REQUIRES CONFIRMATION)
 - Create spreadsheet: sheets_create (create new spreadsheet - REQUIRES CONFIRMATION)
 
+**Image Generation:**
+- Generate images from prompts: generate_image (creates AI art based on descriptions)
+
+**Memory & Personalization:**
+- Save user preferences: remember_fact (store facts/preferences the user shares)
+- Recall memories: recall_memories (retrieve stored information about the user)
+- Forget information: forget_memory (remove stored memory by key)
+
 ## CRITICAL EMAIL BEHAVIOR
 
 When a user asks you to send an email:
@@ -347,6 +362,23 @@ When a user shares a file:
 When a user asks you to create a file:
 1. Use create_file with appropriate filename and content
 2. The file will be saved and a download link provided to the user
+
+## IMAGE GENERATION
+
+When a user asks you to create, generate, or draw an image:
+1. Use generate_image with a detailed, descriptive prompt
+2. Include style, mood, colors, and composition details in your prompt
+3. The image will be generated and displayed to the user
+
+## MEMORY BEHAVIOR
+
+When a user shares personal information or preferences:
+1. Use remember_fact to store important details (name, preferences, timezone, etc.)
+2. Categories: "preference" for likes/dislikes, "fact" for personal info, "context" for project-specific
+
+When responding to users:
+1. Check recall_memories at the start to personalize your responses
+2. Reference relevant stored information naturally
 
 ## TOOL CONFIRMATION FLOW
 
@@ -664,6 +696,12 @@ const TOOL_CREDENTIAL_MAP: Record<string, string> = {
   search_knowledge: "internal",
   local_calendar_list: "internal",
   local_calendar_create: "internal",
+  // New Phase 2-3 tools
+  generate_image: "internal",
+  remember_fact: "internal",
+  recall_memories: "internal",
+  forget_memory: "internal",
+  suggest_followups: "internal",
 };
 
 // Helper to verify user has required scopes for a tool
@@ -1601,6 +1639,168 @@ async function executeTool(
           body: JSON.stringify({ action: "create", params: args }),
         });
         return await response.json();
+      }
+
+      // Image Generation
+      case "generate_image": {
+        try {
+          const imagePrompt = args.style 
+            ? `${args.style} style: ${args.prompt}`
+            : args.prompt;
+
+          console.log(`[Chat] Generating image with prompt: ${imagePrompt}`);
+
+          const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash-image-preview",
+              messages: [
+                {
+                  role: "user",
+                  content: imagePrompt,
+                },
+              ],
+              modalities: ["image", "text"],
+            }),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("[Chat] Image generation error:", errorText);
+            return { error: `Failed to generate image: ${response.status}` };
+          }
+
+          const data = await response.json();
+          const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+          if (!imageData) {
+            return { error: "No image was generated" };
+          }
+
+          // Upload to storage for persistence
+          const imageBytes = Uint8Array.from(atob(imageData.replace("data:image/png;base64,", "")), c => c.charCodeAt(0));
+          const imagePath = `${userId}/generated/${Date.now()}-generated.png`;
+
+          const { data: uploadData, error: uploadError } = await serviceSupabase.storage
+            .from("chat-attachments")
+            .upload(imagePath, imageBytes, {
+              contentType: "image/png",
+              upsert: false,
+            });
+
+          if (uploadError) {
+            console.error("[Chat] Image upload error:", uploadError);
+            // Return base64 if upload fails
+            return { 
+              success: true, 
+              imageUrl: imageData,
+              prompt: args.prompt,
+              isBase64: true
+            };
+          }
+
+          const { data: { publicUrl } } = serviceSupabase.storage
+            .from("chat-attachments")
+            .getPublicUrl(uploadData.path);
+
+          return { 
+            success: true, 
+            imageUrl: publicUrl,
+            prompt: args.prompt
+          };
+        } catch (error) {
+          console.error("[Chat] Image generation error:", error);
+          return { error: error instanceof Error ? error.message : "Image generation failed" };
+        }
+      }
+
+      // Memory tools
+      case "remember_fact": {
+        try {
+          const { data, error } = await serviceSupabase
+            .from("user_memories")
+            .upsert({
+              user_id: userId,
+              memory_key: args.key,
+              memory_value: args.value,
+              category: args.category || "preference",
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: "user_id,memory_key"
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+          return { 
+            success: true, 
+            message: `I'll remember that ${args.key}: ${args.value}`,
+            memory: data
+          };
+        } catch (error) {
+          console.error("[Chat] Memory save error:", error);
+          return { error: "Failed to save memory" };
+        }
+      }
+
+      case "recall_memories": {
+        try {
+          const { data, error } = await serviceSupabase
+            .from("user_memories")
+            .select("memory_key, memory_value, category")
+            .eq("user_id", userId)
+            .order("updated_at", { ascending: false })
+            .limit(20);
+
+          if (error) throw error;
+
+          if (!data || data.length === 0) {
+            return { memories: [], message: "No stored memories found." };
+          }
+
+          return { 
+            memories: data,
+            message: `Found ${data.length} stored memories.`
+          };
+        } catch (error) {
+          console.error("[Chat] Memory recall error:", error);
+          return { error: "Failed to recall memories" };
+        }
+      }
+
+      case "forget_memory": {
+        try {
+          const { error } = await serviceSupabase
+            .from("user_memories")
+            .delete()
+            .eq("user_id", userId)
+            .eq("memory_key", args.key);
+
+          if (error) throw error;
+          return { 
+            success: true, 
+            message: `I've forgotten the memory "${args.key}"`
+          };
+        } catch (error) {
+          console.error("[Chat] Memory delete error:", error);
+          return { error: "Failed to delete memory" };
+        }
+      }
+
+      case "suggest_followups": {
+        // This is handled internally - just acknowledge
+        return { 
+          success: true,
+          suggestions: [
+            "Tell me more about this",
+            "What should I do next?",
+            "Can you explain further?"
+          ]
+        };
       }
 
       default:
