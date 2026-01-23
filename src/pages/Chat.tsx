@@ -695,7 +695,7 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
         {/* Timestamp and actions */}
         <div className={cn(
           "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
-          isUser ? "justify-start" : "justify-start"
+          isUser ? "flex-row-reverse justify-start" : "justify-start"
         )}>
           <span>{formatTime(message.timestamp)}</span>
           
