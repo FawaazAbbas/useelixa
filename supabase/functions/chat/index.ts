@@ -82,13 +82,14 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "gads_update_keyword_status", description: "Enable, pause, or remove a keyword. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, criterionId: { type: "string", description: "Keyword criterion ID" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "adGroupId", "criterionId", "status"] } } },
   { type: "function", function: { name: "gads_add_keyword", description: "Add a new keyword to an ad group. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, keywordText: { type: "string", description: "Keyword text" }, matchType: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"], description: "Match type (default: BROAD)" } }, required: ["customerId", "adGroupId", "keywordText"] } } },
   // Google Analytics tools
-  { type: "function", function: { name: "ga_list_properties", description: "List Google Analytics properties", parameters: { type: "object", properties: { accountId: { type: "string", description: "Optional account ID filter" } } } } },
-  { type: "function", function: { name: "ga_get_traffic", description: "Get website traffic data (pageviews, sessions, users)", parameters: { type: "object", properties: { propertyId: { type: "string", description: "GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
-  { type: "function", function: { name: "ga_get_user_behavior", description: "Get user behavior data (engagement, bounce rate, session duration)", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
-  { type: "function", function: { name: "ga_get_conversions", description: "Get conversion and event data", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, eventFilter: { type: "string" } }, required: ["propertyId"] } } },
-  { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
-  { type: "function", function: { name: "ga_get_traffic_sources", description: "Get traffic sources breakdown", parameters: { type: "object", properties: { propertyId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
-  { type: "function", function: { name: "ga_get_realtime", description: "Get realtime active users", parameters: { type: "object", properties: { propertyId: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_list_accounts", description: "List all Google Analytics accounts accessible by the connected Google account. Use this first to discover available accounts, then use ga_list_properties to find property IDs.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "ga_list_properties", description: "List Google Analytics 4 properties. Returns NUMERIC property IDs (e.g., 266890436) which are used for all other GA tools. IMPORTANT: Property ID is numeric and different from Measurement ID (G-XXXXXX which is used in tracking code).", parameters: { type: "object", properties: { accountId: { type: "string", description: "Optional: Filter by account ID to show properties for a specific account" } } } } },
+  { type: "function", function: { name: "ga_get_traffic", description: "Get website traffic data (pageviews, sessions, users). The propertyId MUST be numeric (e.g., 266890436), NOT a Measurement ID (G-XXXXXX).", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID (e.g., 266890436)" }, startDate: { type: "string", description: "Start date (YYYY-MM-DD or relative like '30daysAgo')" }, endDate: { type: "string", description: "End date (YYYY-MM-DD or 'today')" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_user_behavior", description: "Get user behavior data (engagement, bounce rate, session duration). Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_conversions", description: "Get conversion and event data. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, eventFilter: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_traffic_sources", description: "Get traffic sources breakdown. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_realtime", description: "Get realtime active users. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
 ];
 
 // Tools that require user confirmation before execution
@@ -279,7 +280,9 @@ You can also CREATE files for users:
 - Add new keyword: gads_add_keyword
 
 **Google Analytics:**
-- List properties: ga_list_properties
+- List accounts: ga_list_accounts (start here to discover available accounts)
+- List properties: ga_list_properties (get NUMERIC property IDs like 266890436)
+- IMPORTANT: Property ID is a numeric ID (e.g., 266890436), NOT the Measurement ID (G-XXXXXX)
 - Get website traffic: ga_get_traffic
 - Get user behavior: ga_get_user_behavior
 - Get conversions: ga_get_conversions
@@ -1414,6 +1417,15 @@ async function executeTool(
       }
 
       // Google Analytics tools
+      case "ga_list_accounts": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_accounts", params: {} }),
+        });
+        return await response.json();
+      }
+
       case "ga_list_properties": {
         const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
           method: "POST",
