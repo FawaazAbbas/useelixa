@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,11 @@ import { ChatActionsMenu } from "@/components/chat/ChatActionsMenu";
 import { ChatAnalysisDialog } from "@/components/chat/ChatAnalysisDialog";
 import { ModelSelector, AI_MODELS } from "@/components/chat/ModelSelector";
 import { CreditPurchaseDialog } from "@/components/chat/CreditPurchaseDialog";
+import { StopButton } from "@/components/chat/StopButton";
+import { ChatSearch } from "@/components/chat/ChatSearch";
+import { CodeBlock } from "@/components/chat/CodeBlock";
+import { EditableMessage, EditButton } from "@/components/chat/EditableMessage";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 
 interface ChatSession {
   id: string;
@@ -42,14 +47,17 @@ const Chat = () => {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [selectedModel, setSelectedModel] = useState(AI_MODELS.find(m => m.default)?.id || "google/gemini-2.5-flash");
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages, deleteMessage } = useChat({
+  const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages, deleteMessage, stopGeneration, editAndResendMessage } = useChat({
     sessionId: activeSessionId || "",
     onError: (error) => toast.error(error.message),
   });
+
 
   const handleRetry = useCallback(async (messageIndex: number) => {
     // Find the user message before this assistant message
@@ -249,13 +257,37 @@ const Chat = () => {
     }
   };
 
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     setActiveSessionId(crypto.randomUUID());
     clearMessages();
     setInput("");
     setSelectedFiles([]);
     setSidebarOpen(false);
-  };
+    setSearchOpen(false);
+    setEditingMessageId(null);
+  }, [clearMessages]);
+
+  // Handle edit and resend
+  const handleEditMessage = useCallback(async (messageId: string, newContent: string) => {
+    try {
+      await editAndResendMessage(messageId, newContent, activeSessionId || undefined, selectedModel);
+      setEditingMessageId(null);
+    } catch (error) {
+      toast.error("Failed to edit message");
+    }
+  }, [editAndResendMessage, activeSessionId, selectedModel]);
+
+  // Keyboard shortcuts - must be after handleNewChat is defined
+  useKeyboardShortcuts({
+    onNewChat: handleNewChat,
+    onSearch: () => setSearchOpen(prev => !prev),
+    onFocusInput: () => textareaRef.current?.focus(),
+    onEscape: () => {
+      if (searchOpen) setSearchOpen(false);
+      else if (editingMessageId) setEditingMessageId(null);
+      else if (isStreaming) stopGeneration();
+    },
+  });
 
   const handleSelectSession = (sessionId: string) => {
     if (sessionId === activeSessionId) return;
@@ -350,12 +382,31 @@ const Chat = () => {
 
   const SessionList = () => (
     <div className="flex flex-col h-full bg-card/50">
-      <div className="p-4 border-b">
+      <div className="p-4 border-b space-y-2">
         <Button onClick={handleNewChat} className="w-full" variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           New Chat
         </Button>
+        <Button 
+          onClick={() => setSearchOpen(true)} 
+          className="w-full justify-start" 
+          variant="ghost" 
+          size="sm"
+        >
+          <Search className="h-4 w-4 mr-2" />
+          Search chats
+          <span className="ml-auto text-xs text-muted-foreground">⌘K</span>
+        </Button>
       </div>
+      
+      {/* Search Panel */}
+      {searchOpen && user && (
+        <ChatSearch
+          userId={user.id}
+          onSelectSession={handleSelectSession}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-4">
           {/* Pinned chats section */}
@@ -558,12 +609,18 @@ const Chat = () => {
                       isStreaming={isStreaming && message === messages[messages.length - 1] && message.role === "assistant"}
                       onDelete={() => handleDeleteMessage(message.id)}
                       onRetry={message.role === "assistant" ? () => handleRetry(index) : undefined}
+                      onEdit={message.role === "user" ? (newContent) => handleEditMessage(message.id, newContent) : undefined}
+                      isEditing={editingMessageId === message.id}
+                      onStartEdit={() => setEditingMessageId(message.id)}
+                      onCancelEdit={() => setEditingMessageId(null)}
                       isLoading={isLoading}
                     />
                   </div>
                 );
               })
             )}
+            
+            {/* Loading indicator or Stop button */}
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex items-start gap-3">
                 <img 
@@ -575,6 +632,13 @@ const Chat = () => {
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>{isUploading ? "Uploading files..." : "Thinking..."}</span>
                 </div>
+              </div>
+            )}
+            
+            {/* Stop generation button */}
+            {isStreaming && (
+              <div className="flex justify-center py-2">
+                <StopButton onStop={stopGeneration} />
               </div>
             )}
           </div>
@@ -632,7 +696,7 @@ const Chat = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message..."
+                placeholder="Type your message... (⌘/ to focus)"
                 className="min-h-[48px] max-h-[200px] resize-none rounded-xl"
                 rows={1}
                 disabled={isLoading}
@@ -680,10 +744,24 @@ interface MessageBubbleProps {
   isStreaming?: boolean;
   onDelete?: () => void;
   onRetry?: () => void;
+  onEdit?: (newContent: string) => void;
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onCancelEdit?: () => void;
   isLoading?: boolean;
 }
 
-const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: MessageBubbleProps) => {
+const MessageBubble = ({ 
+  message, 
+  isStreaming, 
+  onDelete, 
+  onRetry, 
+  onEdit,
+  isEditing,
+  onStartEdit,
+  onCancelEdit,
+  isLoading 
+}: MessageBubbleProps) => {
   const isUser = message.role === "user";
   const [actionResolved, setActionResolved] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -697,6 +775,32 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Custom components for ReactMarkdown to render code blocks with syntax highlighting
+  const markdownComponents = {
+    code({ className, children, ...props }: { className?: string; children?: React.ReactNode }) {
+      const match = /language-(\w+)/.exec(className || '');
+      const codeContent = String(children).replace(/\n$/, '');
+      
+      // Check if this is a code block (has language) or inline code
+      const isBlock = match || codeContent.includes('\n');
+      
+      if (isBlock) {
+        return (
+          <CodeBlock language={match?.[1] || 'text'}>
+            {codeContent}
+          </CodeBlock>
+        );
+      }
+      
+      // Inline code
+      return (
+        <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+          {children}
+        </code>
+      );
+    }
   };
 
   return (
@@ -716,71 +820,90 @@ const MessageBubble = ({ message, isStreaming, onDelete, onRetry, isLoading }: M
         "max-w-[85%]",
         isUser ? "ml-auto" : "mr-auto"
       )}>
-        <div className={cn(
-          "rounded-2xl px-4 py-3",
-          isUser ? "bg-muted text-foreground" : "bg-muted"
-        )}>
-          {isUser ? (
-            <p className="whitespace-pre-wrap">{message.content}</p>
-          ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {message.content || " "}
-              </ReactMarkdown>
-            </div>
-          )}
-          {isStreaming && (
-            <span className="inline-block w-1.5 h-5 ml-0.5 bg-current animate-pulse" />
-          )}
-        </div>
+        {/* Message content or edit form */}
+        {isEditing && onEdit && onCancelEdit ? (
+          <EditableMessage
+            content={message.content}
+            onSave={onEdit}
+            onCancel={onCancelEdit}
+          />
+        ) : (
+          <div className={cn(
+            "rounded-2xl px-4 py-3",
+            isUser ? "bg-muted text-foreground" : "bg-muted"
+          )}>
+            {isUser ? (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            ) : (
+              <div className="prose prose-sm dark:prose-invert max-w-none [&_pre]:p-0 [&_pre]:m-0 [&_pre]:bg-transparent">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]}
+                  components={markdownComponents}
+                >
+                  {message.content || " "}
+                </ReactMarkdown>
+              </div>
+            )}
+            {isStreaming && (
+              <span className="inline-block w-1.5 h-5 ml-0.5 bg-current animate-pulse" />
+            )}
+          </div>
+        )}
         
         {/* Timestamp and actions */}
-        <div className={cn(
-          "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
-          isUser ? "flex-row-reverse justify-start" : "justify-start"
-        )}>
-          <span>{formatTime(message.timestamp)}</span>
-          
-          {/* Action buttons - show on hover */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={handleCopy}
-              title="Copy message"
-            >
-              {copied ? (
-                <Check className="h-3 w-3 text-primary" />
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
-            </Button>
+        {!isEditing && (
+          <div className={cn(
+            "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
+            isUser ? "flex-row-reverse justify-start" : "justify-start"
+          )}>
+            <span>{formatTime(message.timestamp)}</span>
             
-            {!isUser && onRetry && !isStreaming && (
+            {/* Action buttons - show on hover */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-6 w-6"
-                onClick={onRetry}
-                disabled={isLoading}
-                title="Regenerate response"
+                onClick={handleCopy}
+                title="Copy message"
               >
-                <RefreshCw className="h-3 w-3" />
+                {copied ? (
+                  <Check className="h-3 w-3 text-primary" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
               </Button>
-            )}
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 hover:text-destructive"
-              onClick={onDelete}
-              title="Delete message"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
+              
+              {/* Edit button for user messages */}
+              {isUser && onStartEdit && !isLoading && (
+                <EditButton onClick={onStartEdit} />
+              )}
+              
+              {!isUser && onRetry && !isStreaming && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={onRetry}
+                  disabled={isLoading}
+                  title="Regenerate response"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+              )}
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 hover:text-destructive"
+                onClick={onDelete}
+                title="Delete message"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
         
         {/* File attachments */}
         {message.files && message.files.length > 0 && (
