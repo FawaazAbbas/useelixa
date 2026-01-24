@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, GripVertical, Bot, Clock } from "lucide-react";
+import { Edit2, Trash2, GripVertical, Bot, Clock, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Task } from "./KanbanBoard";
@@ -25,7 +25,7 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
       className={cn(
         "cursor-grab active:cursor-grabbing transition-all",
         isDragging && "opacity-50 shadow-lg rotate-2 scale-105",
-        task.status === "done" && "opacity-60"
+        task.status === "completed" && "opacity-60"
       )}
     >
       <CardContent className="p-3">
@@ -36,10 +36,13 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
               <div className={cn("w-2 h-2 rounded-full flex-shrink-0", priorityColors[task.priority])} />
               <h4 className={cn(
                 "text-sm font-medium truncate",
-                task.status === "done" && "line-through"
+                task.status === "completed" && "line-through"
               )}>
                 {task.title}
               </h4>
+              {task.is_recurring && (
+                <RefreshCw className="h-3 w-3 text-teal-500" />
+              )}
               {task.assigned_to === "ai" && (
                 <Badge variant="outline" className="gap-1 text-xs px-1.5 py-0 h-5">
                   <Bot className="h-3 w-3" />

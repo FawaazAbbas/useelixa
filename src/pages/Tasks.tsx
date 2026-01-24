@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock } from "lucide-react";
+import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,10 +9,11 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { KanbanBoard, Task } from "@/components/tasks/KanbanBoard";
+import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 import { format } from "date-fns";
 
@@ -21,6 +22,14 @@ const AI_TOOLS = [
   { id: "create_note", label: "Create Notes", description: "Create notes with findings" },
   { id: "create_subtask", label: "Create Subtasks", description: "Break into smaller tasks" },
   { id: "list_calendar_events", label: "Check Calendar", description: "Get calendar context" },
+];
+
+const RECURRENCE_OPTIONS = [
+  { value: "daily", label: "Daily" },
+  { value: "weekdays", label: "Weekdays (Mon-Fri)" },
+  { value: "weekly", label: "Weekly" },
+  { value: "biweekly", label: "Every 2 weeks" },
+  { value: "monthly", label: "Monthly" },
 ];
 
 const Tasks = () => {
@@ -42,6 +51,8 @@ const Tasks = () => {
     ai_tools_allowed: [] as string[],
     ai_context: "",
     schedule: "",
+    is_recurring: false,
+    recurrence_pattern: "",
   });
 
   useEffect(() => {
@@ -80,7 +91,12 @@ const Tasks = () => {
     if (error) {
       toast({ title: "Error fetching tasks", description: error.message, variant: "destructive" });
     } else {
-      setTasks((data as Task[]) || []);
+      // Map legacy "done" status to "completed"
+      const mappedTasks = (data || []).map(task => ({
+        ...task,
+        status: task.status === "done" ? "completed" : task.status,
+      })) as Task[];
+      setTasks(mappedTasks);
     }
     setLoading(false);
   };
@@ -88,14 +104,20 @@ const Tasks = () => {
   const handleSubmit = async () => {
     if (!formData.title.trim() || !user) return;
 
+    // Determine status based on recurring setting
+    let finalStatus = formData.status;
+    if (formData.is_recurring && formData.status !== "recurring") {
+      finalStatus = "recurring";
+    }
+
     const maxPosition = tasks
-      .filter(t => t.status === formData.status)
+      .filter(t => t.status === finalStatus)
       .reduce((max, t) => Math.max(max, t.position), 0);
 
     const taskData = {
       title: formData.title,
       description: formData.description || null,
-      status: formData.status,
+      status: finalStatus,
       priority: formData.priority,
       due_date: formData.due_date || null,
       user_id: user.id,
@@ -106,6 +128,8 @@ const Tasks = () => {
       ai_tools_allowed: formData.assigned_to === "ai" ? formData.ai_tools_allowed : [],
       ai_context: formData.assigned_to === "ai" && formData.ai_context ? formData.ai_context : null,
       schedule: formData.assigned_to === "ai" && formData.schedule ? formData.schedule : null,
+      is_recurring: formData.is_recurring,
+      recurrence_pattern: formData.is_recurring ? formData.recurrence_pattern : null,
     };
 
     if (editingTask) {
@@ -151,6 +175,8 @@ const Tasks = () => {
       ai_tools_allowed: task.ai_tools_allowed || [],
       ai_context: task.ai_context || "",
       schedule: (task as any).schedule || "",
+      is_recurring: task.is_recurring || false,
+      recurrence_pattern: task.recurrence_pattern || "",
     });
     setDialogOpen(true);
   };
@@ -186,6 +212,7 @@ const Tasks = () => {
     setFormData({ 
       title: "", description: "", status: "todo", priority: "medium", due_date: "",
       assigned_to: "user", scheduled_at: "", ai_tools_allowed: [], ai_context: "", schedule: "",
+      is_recurring: false, recurrence_pattern: "",
     });
     setEditingTask(null);
     setDialogOpen(false);
@@ -254,9 +281,9 @@ const Tasks = () => {
                   <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v as Task["status"] })}>
                     <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="todo">To Do</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="done">Done</SelectItem>
+                      {columns.map(col => (
+                        <SelectItem key={col.id} value={col.id}>{col.title}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v as Task["priority"] })}>
@@ -273,6 +300,41 @@ const Tasks = () => {
                   value={formData.due_date}
                   onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                 />
+
+                {/* Recurring toggle */}
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <Label className="text-sm font-medium">Recurring task</Label>
+                      <p className="text-xs text-muted-foreground">Repeats on a schedule</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={formData.is_recurring}
+                    onCheckedChange={(checked) => setFormData({ 
+                      ...formData, 
+                      is_recurring: checked,
+                      status: checked ? "recurring" : formData.status === "recurring" ? "todo" : formData.status
+                    })}
+                  />
+                </div>
+
+                {formData.is_recurring && (
+                  <Select 
+                    value={formData.recurrence_pattern} 
+                    onValueChange={(v) => setFormData({ ...formData, recurrence_pattern: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RECURRENCE_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
 
                 <div className="space-y-3 pt-2">
                   <Label className="text-sm font-medium">Assign to</Label>
@@ -406,7 +468,12 @@ const Tasks = () => {
                     task.priority === "medium" ? "bg-warning" : "bg-muted-foreground"
                   }`} />
                   <div>
-                    <p className="font-medium">{task.title}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{task.title}</p>
+                      {task.is_recurring && (
+                        <RefreshCw className="h-3 w-3 text-teal-500" />
+                      )}
+                    </div>
                     {task.due_date && (
                       <p className="text-xs text-muted-foreground">
                         Due {format(new Date(task.due_date), "MMM d")}

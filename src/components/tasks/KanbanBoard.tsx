@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -11,8 +11,7 @@ import {
   DragEndEvent,
   DragOverEvent,
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { useState } from "react";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./KanbanColumn";
 import { TaskCard } from "./TaskCard";
 
@@ -20,7 +19,7 @@ export interface Task {
   id: string;
   title: string;
   description: string | null;
-  status: "todo" | "in_progress" | "done";
+  status: "ideas" | "todo" | "in_progress" | "recurring" | "upcoming" | "completed";
   priority: "low" | "medium" | "high";
   due_date: string | null;
   position: number;
@@ -30,6 +29,8 @@ export interface Task {
   ai_tools_allowed: string[] | null;
   ai_context: string | null;
   last_run_at: string | null;
+  is_recurring?: boolean;
+  recurrence_pattern?: string | null;
 }
 
 interface KanbanBoardProps {
@@ -39,10 +40,20 @@ interface KanbanBoardProps {
   onTaskDelete: (taskId: string) => void;
 }
 
-const columns: { id: Task["status"]; title: string }[] = [
-  { id: "todo", title: "To Do" },
-  { id: "in_progress", title: "In Progress" },
-  { id: "done", title: "Done" },
+export interface Column {
+  id: Task["status"];
+  title: string;
+  color: string;
+  description?: string;
+}
+
+export const columns: Column[] = [
+  { id: "ideas", title: "Ideas", color: "border-t-purple-500", description: "Brainstorm & capture" },
+  { id: "todo", title: "To Do", color: "border-t-blue-500", description: "Ready to start" },
+  { id: "in_progress", title: "In Progress", color: "border-t-yellow-500", description: "Currently working" },
+  { id: "recurring", title: "Recurring", color: "border-t-teal-500", description: "Repeating tasks" },
+  { id: "upcoming", title: "Upcoming", color: "border-t-orange-500", description: "Scheduled for later" },
+  { id: "completed", title: "Completed", color: "border-t-green-500", description: "Done & archived" },
 ];
 
 export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: KanbanBoardProps) {
@@ -61,13 +72,23 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: Kan
 
   const tasksByStatus = useMemo(() => {
     const grouped: Record<Task["status"], Task[]> = {
+      ideas: [],
       todo: [],
       in_progress: [],
-      done: [],
+      recurring: [],
+      upcoming: [],
+      completed: [],
     };
     
     tasks.forEach((task) => {
-      grouped[task.status].push(task);
+      // Handle legacy "done" status by mapping to "completed"
+      const status = task.status === "done" as any ? "completed" : task.status;
+      if (grouped[status]) {
+        grouped[status].push({ ...task, status });
+      } else {
+        // Fallback to todo if unknown status
+        grouped.todo.push({ ...task, status: "todo" });
+      }
     });
     
     // Sort by position within each column
@@ -95,9 +116,12 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: Kan
 
     // Check if dropping over a column
     const overColumn = columns.find((c) => c.id === overId);
-    if (overColumn && activeTask.status !== overColumn.id) {
-      const newPosition = tasksByStatus[overColumn.id].length;
-      onTaskMove(activeId, overColumn.id, newPosition);
+    if (overColumn) {
+      const currentStatus = activeTask.status === "done" as any ? "completed" : activeTask.status;
+      if (currentStatus !== overColumn.id) {
+        const newPosition = tasksByStatus[overColumn.id].length;
+        onTaskMove(activeId, overColumn.id, newPosition);
+      }
     }
   }
 
@@ -113,10 +137,12 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: Kan
     const activeTask = tasks.find((t) => t.id === activeId);
     if (!activeTask) return;
 
+    const activeStatus = activeTask.status === "done" as any ? "completed" : activeTask.status;
+
     // Check if dropping over a column directly
     const overColumn = columns.find((c) => c.id === overId);
     if (overColumn) {
-      if (activeTask.status !== overColumn.id) {
+      if (activeStatus !== overColumn.id) {
         const newPosition = tasksByStatus[overColumn.id].length;
         onTaskMove(activeId, overColumn.id, newPosition);
       }
@@ -127,20 +153,21 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: Kan
     const overTask = tasks.find((t) => t.id === overId);
     if (!overTask) return;
 
-    if (activeTask.status === overTask.status) {
+    const overStatus = overTask.status === "done" as any ? "completed" : overTask.status;
+
+    if (activeStatus === overStatus) {
       // Same column - reorder
-      const columnTasks = tasksByStatus[activeTask.status];
-      const activeIndex = columnTasks.findIndex((t) => t.id === activeId);
+      const columnTasks = tasksByStatus[activeStatus];
       const overIndex = columnTasks.findIndex((t) => t.id === overId);
       
-      if (activeIndex !== overIndex) {
-        onTaskMove(activeId, activeTask.status, overIndex);
+      if (overIndex !== -1) {
+        onTaskMove(activeId, activeStatus, overIndex);
       }
     } else {
       // Different column - move to new column at target position
-      const overColumnTasks = tasksByStatus[overTask.status];
+      const overColumnTasks = tasksByStatus[overStatus];
       const overIndex = overColumnTasks.findIndex((t) => t.id === overId);
-      onTaskMove(activeId, overTask.status, overIndex);
+      onTaskMove(activeId, overStatus, overIndex);
     }
   }
 
@@ -152,12 +179,14 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: Kan
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[500px]">
+      <div className="flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}
             id={column.id}
             title={column.title}
+            color={column.color}
+            description={column.description}
             tasks={tasksByStatus[column.id]}
             onTaskEdit={onTaskEdit}
             onTaskDelete={onTaskDelete}
