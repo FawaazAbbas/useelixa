@@ -40,8 +40,16 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Try Gmail-specific credentials first, then fallback to general Google OAuth
+    // Try Gmail-specific credentials first, then combined bundles, then fallback to general Google OAuth
     let creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api", "gmail");
+    if (!creds) {
+      // Try combined gmail_calendar bundle
+      creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api", "gmail_calendar");
+    }
+    if (!creds) {
+      // Try google_calendar bundle (may have gmail scope included)
+      creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api", "google_calendar");
+    }
     if (!creds) {
       // Fallback to generic Google OAuth without bundle type
       creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api", null);

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
 import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
+import { TaskStatsHeader } from "@/components/tasks/TaskStatsHeader";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 import { format } from "date-fns";
 
@@ -41,6 +42,7 @@ const Tasks = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "kanban" | "scheduled">("kanban");
+  const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -55,6 +57,16 @@ const Tasks = () => {
     is_recurring: false,
     recurrence_pattern: "",
   });
+
+  // Filter tasks based on search query
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery.trim()) return tasks;
+    const query = searchQuery.toLowerCase();
+    return tasks.filter(
+      t => t.title.toLowerCase().includes(query) || 
+           t.description?.toLowerCase().includes(query)
+    );
+  }, [tasks, searchQuery]);
 
   useEffect(() => {
     if (user) fetchTasks();
@@ -247,7 +259,16 @@ const Tasks = () => {
       badge={tasks.length}
       fullWidth
       actions={
-        <>
+        <div className="flex items-center gap-2">
+          <div className="relative hidden sm:block">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 w-48 h-9"
+            />
+          </div>
           <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "kanban" | "scheduled")}>
             <ToggleGroupItem value="kanban" aria-label="Kanban view" className="h-9 w-9">
               <LayoutGrid className="h-4 w-4" />
@@ -431,13 +452,22 @@ const Tasks = () => {
               </div>
             </DialogContent>
           </Dialog>
-        </>
+        </div>
       }
     >
+      {/* Stats Header */}
+      {!loading && tasks.length > 0 && <TaskStatsHeader tasks={tasks} />}
+
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
         </div>
+      ) : filteredTasks.length === 0 && tasks.length > 0 ? (
+        <PageEmptyState
+          icon={Search}
+          title="No tasks match your search"
+          description="Try adjusting your search query."
+        />
       ) : tasks.length === 0 ? (
         <PageEmptyState
           icon={CheckSquare}
@@ -447,12 +477,12 @@ const Tasks = () => {
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Task
-            </Button>
+          </Button>
           }
         />
       ) : viewMode === "kanban" ? (
         <KanbanBoard
-          tasks={tasks}
+          tasks={filteredTasks}
           onTaskMove={handleTaskMove}
           onTaskEdit={handleEdit}
           onTaskDelete={handleDelete}
@@ -461,7 +491,7 @@ const Tasks = () => {
         <ScheduledTasksPanel />
       ) : (
         <div className="space-y-2 max-w-3xl mx-auto">
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Card
               key={task.id}
               className="cursor-pointer hover:shadow-md transition-shadow"

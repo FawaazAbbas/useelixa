@@ -56,9 +56,9 @@ const NoteItem = memo(({
     {note.is_pinned && (
       <Pin className="absolute top-2 right-2 h-3 w-3 text-primary fill-primary" />
     )}
-    <div className="flex items-start gap-2.5">
+    <div className="flex items-start gap-2.5 min-w-0">
       <FileText className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <h3 className={cn(
           "font-medium text-sm truncate",
           !note.title && "text-muted-foreground italic"
