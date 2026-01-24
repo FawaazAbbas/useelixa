@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 const navItems = [
   { icon: MessageSquare, label: "AI Chat", path: "/chat" },
-  { icon: Mail, label: "Email", path: "/email" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
@@ -27,6 +26,12 @@ const navItems = [
   { icon: Plug, label: "Connections", path: "/connections" },
   { icon: Activity, label: "Logs", path: "/logs" },
   { icon: CreditCard, label: "Billing", path: "/billing" },
+];
+
+const comingSoonItems = [
+  { icon: Mail, label: "Emails", comingSoon: true },
+  { icon: Users, label: "AI Employees", comingSoon: true },
+  { icon: Table, label: "Lexi Sheets", comingSoon: true },
 ];
 
 export const MainNavSidebar = () => {
@@ -199,6 +204,21 @@ export const MainNavSidebar = () => {
             </span>
           </NavLink>
         ))}
+
+        {/* Coming Soon Items */}
+        <div className="mt-2 pt-2 border-t border-border/50">
+          {comingSoonItems.map((item) => (
+            <div
+              key={item.label}
+              className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground/50 hover:bg-muted/50 transition-colors cursor-not-allowed"
+            >
+              <item.icon className="w-5 h-5" />
+              <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                {item.label} <span className="text-muted-foreground">(Coming Soon)</span>
+              </span>
+            </div>
+          ))}
+        </div>
       </nav>
 
       {/* Bottom section */}
