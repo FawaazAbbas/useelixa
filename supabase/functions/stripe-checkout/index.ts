@@ -50,8 +50,8 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { type, planId, creditAmount } = await req.json();
-    logStep("Request payload", { type, planId, creditAmount });
+    const { type, planId, creditAmount, couponId, promoCode } = await req.json();
+    logStep("Request payload", { type, planId, creditAmount, couponId, promoCode });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
 
@@ -66,18 +66,30 @@ serve(async (req) => {
     const siteUrl = Deno.env.get("SITE_URL") || "https://workspace.elixa.app";
     let session: Stripe.Checkout.Session;
 
+    // Build discounts array if coupon or promo code provided
+    const discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined = 
+      couponId ? [{ coupon: couponId }] : 
+      promoCode ? [{ promotion_code: promoCode }] : 
+      undefined;
+
+    // Determine if we should show the promo code field
+    // Only show it if no discount is pre-applied
+    const allowPromotionCodes = !couponId && !promoCode;
+
     if (type === "subscription") {
       // Subscription checkout
       const priceId = PLAN_PRICES[planId];
       if (!priceId) throw new Error(`Invalid plan ID: ${planId}`);
 
-      logStep("Creating subscription session", { planId, priceId });
+      logStep("Creating subscription session", { planId, priceId, couponId, promoCode, allowPromotionCodes });
 
       session = await stripe.checkout.sessions.create({
         customer: customerId,
         customer_email: customerId ? undefined : user.email,
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
+        allow_promotion_codes: allowPromotionCodes,
+        discounts: discounts,
         success_url: `${siteUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${siteUrl}/billing?canceled=true`,
         metadata: {
@@ -95,7 +107,7 @@ serve(async (req) => {
       const pricePerCredit = 6;
       const totalPence = creditAmount * pricePerCredit;
 
-      logStep("Creating credit purchase session", { creditAmount, totalPence });
+      logStep("Creating credit purchase session", { creditAmount, totalPence, couponId, promoCode, allowPromotionCodes });
 
       session = await stripe.checkout.sessions.create({
         customer: customerId,
@@ -111,6 +123,8 @@ serve(async (req) => {
           },
         ],
         mode: "payment",
+        allow_promotion_codes: allowPromotionCodes,
+        discounts: discounts,
         success_url: `${siteUrl}/billing?credits=true&amount=${creditAmount}&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${siteUrl}/billing?canceled=true`,
         metadata: {
