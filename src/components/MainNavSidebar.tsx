@@ -1,7 +1,9 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const navItems = [
   { icon: MessageSquare, label: "AI Chat", path: "/chat" },
@@ -27,6 +30,59 @@ const navItems = [
 export const MainNavSidebar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [credits, setCredits] = useState<number | null>(null);
+  const [monthlyCredits, setMonthlyCredits] = useState<number>(1000);
+
+  useEffect(() => {
+    if (user) {
+      fetchCredits();
+    }
+  }, [user]);
+
+  const fetchCredits = async () => {
+    if (!user) return;
+
+    try {
+      // Get user's org
+      const { data: orgMember } = await supabase
+        .from("org_members")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!orgMember) return;
+
+      // Get org's monthly credits allocation
+      const { data: org } = await supabase
+        .from("orgs")
+        .select("monthly_credits, is_unlimited")
+        .eq("id", orgMember.org_id)
+        .single();
+
+      if (org?.is_unlimited) {
+        setCredits(-1); // -1 indicates unlimited
+        return;
+      }
+
+      setMonthlyCredits(org?.monthly_credits || 1000);
+
+      // Get current month's usage
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const { data: usage } = await supabase
+        .from("usage_stats")
+        .select("credits_used, credits_purchased")
+        .eq("org_id", orgMember.org_id)
+        .eq("month", currentMonth)
+        .single();
+
+      const used = usage?.credits_used || 0;
+      const purchased = usage?.credits_purchased || 0;
+      const remaining = (org?.monthly_credits || 1000) + purchased - used;
+      setCredits(Math.max(0, remaining));
+    } catch (error) {
+      console.error("Error fetching credits:", error);
+    }
+  };
 
   const displayUser = user || { email: "demo@elixa.ai" };
 
@@ -70,6 +126,33 @@ export const MainNavSidebar = () => {
 
       {/* Bottom section */}
       <div className="flex flex-col items-center gap-1 w-full px-2 pt-2 border-t">
+        {/* Credit Balance */}
+        {credits !== null && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate("/billing")}
+                className={cn(
+                  "group relative flex items-center justify-center h-10 w-full rounded-lg transition-colors",
+                  credits === -1 
+                    ? "text-primary hover:bg-primary/10" 
+                    : credits < 100 
+                      ? "text-destructive hover:bg-destructive/10" 
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Coins className="w-5 h-5" />
+                <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                  {credits === -1 ? "Unlimited" : `${credits.toLocaleString()} credits`}
+                </span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {credits === -1 ? "Unlimited credits" : `${credits.toLocaleString()} credits remaining`}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         <NavLink
           to="/notifications"
           className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
