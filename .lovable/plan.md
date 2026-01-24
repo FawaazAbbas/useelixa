@@ -1,173 +1,176 @@
 
 
-# Add Discount/Coupon Support to Payments
+# Switch Stripe from Test Mode to Live Mode
 
 ## Overview
-Add the ability to apply discount codes (coupons and promotion codes) to both subscription plans and credit purchases. This will allow you to give discounts to customers during checkout.
+Switch your payment system from Stripe's test environment to live/production mode so you can process real payments from customers.
 
 ---
 
-## How Stripe Discounts Work
+## Current Setup (Test Mode)
 
-Stripe uses a two-tier system:
-1. **Coupons** - The underlying discount definition (e.g., "20% off" or "£5 off")
-2. **Promotion Codes** - Customer-facing codes that map to coupons (e.g., "WELCOME20", "EARLYADOPTER")
+Your Stripe integration currently uses test mode with these **test mode** credentials and IDs:
 
-You can apply discounts in two ways:
-- **Directly pass a coupon ID** to the checkout session
-- **Enable promotion codes** so customers can enter codes at checkout
-
----
-
-## Proposed Solution
-
-### Option A: Enable Promotion Code Field (Simplest)
-Let customers enter promotion codes directly on the Stripe Checkout page. You create coupons and promotion codes in Stripe Dashboard, and customers enter them during checkout.
-
-### Option B: Apply Specific Coupon from App (More Control)
-Pass a coupon code from your app to the checkout session, allowing you to control which discounts apply programmatically.
-
-**Recommendation**: Implement both - enable the promotion code field by default, and add the ability to pass a specific coupon when needed.
+| Component | Current Test Mode Values |
+|-----------|--------------------------|
+| Secret Key | `STRIPE_SECRET_KEY` (test key starting with `sk_test_...`) |
+| Webhook Secret | `STRIPE_WEBHOOK_SECRET` (test webhook secret) |
+| Products | Already created in test mode (Starter, Pro, Unlimited, Credits) |
+| Price IDs | Test price IDs in `stripe-checkout` function |
 
 ---
 
-## Changes Required
+## What Needs to Change
 
-### 1. Update `stripe-checkout` Edge Function
+To go live, you need to:
 
-**File:** `supabase/functions/stripe-checkout/index.ts`
+1. **Create live mode products and prices** (or copy from test mode)
+2. **Update the Stripe secret key** to your live mode key
+3. **Create a new live webhook** and update the webhook secret
+4. **Update all product/price IDs** in your code to live mode IDs
 
-Add support for:
-- `allow_promotion_codes: true` - Shows a promo code field on Stripe Checkout
-- `discounts` array - Apply a specific coupon directly
-- Accept optional `couponId` or `promoCode` in the request body
+---
 
+## Step-by-Step Plan
+
+### Step 1: Create Live Mode Products in Stripe
+
+You'll need to recreate your products in live mode. I can help create them using the Stripe tools:
+
+| Product | Price | Type |
+|---------|-------|------|
+| Elixa Starter | £X.XX/month | Subscription |
+| Elixa Pro | £X.XX/month | Subscription |
+| Elixa Unlimited | £X.XX/month | Subscription |
+| Elixa Credits | Dynamic pricing | One-time |
+
+**Note:** I'll need you to confirm the prices you want for each plan before creating them.
+
+---
+
+### Step 2: Update Stripe Secret Key
+
+Your current `STRIPE_SECRET_KEY` is a test key. You need to replace it with your live secret key.
+
+**How to get your live key:**
+1. Go to [Stripe Dashboard API Keys](https://dashboard.stripe.com/apikeys)
+2. Make sure you're viewing **live mode** (toggle at the top)
+3. Copy your **Secret key** (starts with `sk_live_...`)
+
+I'll use a tool to prompt you to enter the new live secret key securely.
+
+---
+
+### Step 3: Create Live Webhook & Update Secret
+
+Your webhook endpoint needs to be registered in Stripe's live mode:
+
+**Webhook URL:** `https://okkybxipbxpoyzqmtosz.supabase.co/functions/v1/stripe-webhook`
+
+**Events to listen for:**
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.paid`
+
+**How to create:**
+1. Go to [Stripe Webhooks](https://dashboard.stripe.com/webhooks)
+2. Make sure you're in **live mode**
+3. Click "Add endpoint"
+4. Enter the webhook URL above
+5. Select the events listed above
+6. Copy the **Signing secret** (starts with `whsec_...`)
+
+I'll prompt you to enter the new webhook secret.
+
+---
+
+### Step 4: Update Product & Price IDs in Code
+
+After creating live products, update these files with the new IDs:
+
+**File: `supabase/functions/stripe-checkout/index.ts`**
 ```typescript
-// Request body adds optional discount parameters
-const { type, planId, creditAmount, couponId, promoCode } = await req.json();
+// Update with LIVE price IDs
+const PLAN_PRICES: Record<string, string> = {
+  starter: "price_LIVE_STARTER_ID",
+  pro: "price_LIVE_PRO_ID",
+  unlimited: "price_LIVE_UNLIMITED_ID",
+};
 
-// For subscription checkout - add discounts configuration
-session = await stripe.checkout.sessions.create({
-  // ... existing config
-  allow_promotion_codes: !couponId, // Only show field if no coupon pre-applied
-  discounts: couponId ? [{ coupon: couponId }] : 
-             promoCode ? [{ promotion_code: promoCode }] : undefined,
-});
-
-// Same for credit purchase checkout
+// Update credits product
+product: "prod_LIVE_CREDITS_ID",
 ```
 
-### 2. Update Billing Page to Support Coupons
-
-**File:** `src/pages/Billing.tsx`
-
-Add an optional input field for promo codes when upgrading:
-- Add state for promo code input
-- Show a collapsible "Have a promo code?" section
-- Pass the code to the checkout function
-
-### 3. Update Credit Purchase Dialog
-
-**File:** `src/components/chat/CreditPurchaseDialog.tsx`
-
-Add promo code support:
-- Add optional promo code input field
-- Pass promo code to checkout function
-- Show discount preview if validated
-
-### 4. Create Coupons in Stripe
-
-Use the Stripe tools to create some initial coupons:
-- Example: "WELCOME" - 20% off first subscription
-- Example: "CREDITS10" - 10% off credit purchases
-
----
-
-## Implementation Details
-
-### Updated Checkout Function Flow
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│                   stripe-checkout                        │
-├─────────────────────────────────────────────────────────┤
-│ Request: { type, planId, creditAmount, couponId? }      │
-│                                                          │
-│ 1. Authenticate user                                     │
-│ 2. Find/create Stripe customer                          │
-│ 3. Build checkout session:                              │
-│    - If couponId provided → apply via discounts[]       │
-│    - Else → enable allow_promotion_codes                │
-│ 4. Return checkout URL                                   │
-└─────────────────────────────────────────────────────────┘
+**File: `supabase/functions/stripe-webhook/index.ts`**
+```typescript
+// Update with LIVE product IDs
+const PRODUCT_TO_PLAN: Record<string, string> = {
+  "prod_LIVE_STARTER_ID": "starter",
+  "prod_LIVE_PRO_ID": "pro",
+  "prod_LIVE_UNLIMITED_ID": "unlimited",
+};
 ```
 
-### UI Components
-
-**Billing Page - Plan Upgrade:**
-```text
-┌─────────────────────────────────────────┐
-│  Pro Plan - £14.99/month                │
-│  ────────────────────────────           │
-│  [Have a promo code? ▼]                 │
-│  ┌─────────────────────────────────┐    │
-│  │ Enter code: [WELCOME20    ]     │    │
-│  └─────────────────────────────────┘    │
-│                                         │
-│  [Upgrade to Pro]                       │
-└─────────────────────────────────────────┘
-```
-
-**Credit Purchase Dialog:**
-```text
-┌─────────────────────────────────────────┐
-│  Buy Credits                            │
-│  ────────────────────────────           │
-│  Credits: [──────●──────] 500           │
-│  Price: £30.00                          │
-│                                         │
-│  [Have a promo code? ▼]                 │
-│  ┌─────────────────────────────────┐    │
-│  │ [CREDITS10    ]  [Apply]        │    │
-│  └─────────────────────────────────┘    │
-│                                         │
-│  [Purchase £30.00]                      │
-└─────────────────────────────────────────┘
+**File: `supabase/functions/check-subscription/index.ts`**
+```typescript
+// Same product ID updates
+const PRODUCT_TO_PLAN: Record<string, string> = {
+  "prod_LIVE_STARTER_ID": "starter",
+  "prod_LIVE_PRO_ID": "pro",
+  "prod_LIVE_UNLIMITED_ID": "unlimited",
+};
 ```
 
 ---
 
-## Files Modified
+## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `supabase/functions/stripe-checkout/index.ts` | Add `couponId` parameter, enable `allow_promotion_codes` |
-| `src/pages/Billing.tsx` | Add collapsible promo code input for plan upgrades |
-| `src/components/chat/CreditPurchaseDialog.tsx` | Add optional promo code field |
+| `supabase/functions/stripe-checkout/index.ts` | Update price IDs and credits product ID |
+| `supabase/functions/stripe-webhook/index.ts` | Update product ID mappings |
+| `supabase/functions/check-subscription/index.ts` | Update product ID mappings |
+
+## Secrets to Update
+
+| Secret | New Value |
+|--------|-----------|
+| `STRIPE_SECRET_KEY` | Your live secret key (`sk_live_...`) |
+| `STRIPE_WEBHOOK_SECRET` | Your live webhook signing secret (`whsec_...`) |
 
 ---
 
-## Creating Coupons
+## Implementation Order
 
-After implementation, you can create coupons via:
-
-1. **Stripe Dashboard** (recommended for one-off coupons)
-   - Go to Products > Coupons > New
-   - Set percentage or fixed amount off
-   - Create promotion codes customers can enter
-
-2. **Stripe API Tools** (for programmatic creation)
-   - Use the create_coupon tool to make coupons
-   - Example: 20% off, once, named "Welcome Discount"
+1. **First** - Confirm your subscription prices (I'll ask)
+2. **Second** - Create live mode products and prices in Stripe
+3. **Third** - You update the `STRIPE_SECRET_KEY` to live mode
+4. **Fourth** - You create the live webhook and update `STRIPE_WEBHOOK_SECRET`
+5. **Fifth** - I update all product/price IDs in the code
 
 ---
 
-## Summary
+## Important Considerations
 
-This implementation:
-- Enables the promo code field on Stripe Checkout by default
-- Allows passing specific coupon IDs for programmatic discounts
-- Adds UI elements for customers to enter promo codes before checkout
-- Works for both subscriptions and one-time credit purchases
-- You manage coupons and promotion codes in Stripe Dashboard
+- **Test thoroughly** before announcing to customers
+- **Existing test customers** won't carry over - live mode is a fresh start
+- **Refunds and disputes** are real in live mode
+- Consider starting with a **small test purchase** yourself to verify everything works
+
+---
+
+## Questions I Need Answered
+
+Before proceeding, please confirm:
+
+1. **What are your subscription prices?**
+   - Starter: £___/month
+   - Pro: £___/month  
+   - Unlimited: £___/month
+
+2. **What's the credit pricing?** (Currently 6p per credit - is this correct for live?)
+
+Once you confirm the prices, I'll create the live products and guide you through updating the secrets.
 
