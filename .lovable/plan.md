@@ -1,176 +1,300 @@
 
 
-# Switch Stripe from Test Mode to Live Mode
+# Elixa SOW Gap Analysis & Implementation Plan
 
-## Overview
-Switch your payment system from Stripe's test environment to live/production mode so you can process real payments from customers.
+## Executive Summary
 
----
-
-## Current Setup (Test Mode)
-
-Your Stripe integration currently uses test mode with these **test mode** credentials and IDs:
-
-| Component | Current Test Mode Values |
-|-----------|--------------------------|
-| Secret Key | `STRIPE_SECRET_KEY` (test key starting with `sk_test_...`) |
-| Webhook Secret | `STRIPE_WEBHOOK_SECRET` (test webhook secret) |
-| Products | Already created in test mode (Starter, Pro, Unlimited, Credits) |
-| Price IDs | Test price IDs in `stripe-checkout` function |
+After thoroughly analyzing the Scope of Work document and exploring the codebase, I've identified several gaps between what's specified and what's currently implemented. This plan outlines each missing feature and provides a detailed implementation approach.
 
 ---
 
-## What Needs to Change
+## Current State Overview
 
-To go live, you need to:
-
-1. **Create live mode products and prices** (or copy from test mode)
-2. **Update the Stripe secret key** to your live mode key
-3. **Create a new live webhook** and update the webhook secret
-4. **Update all product/price IDs** in your code to live mode IDs
-
----
-
-## Step-by-Step Plan
-
-### Step 1: Create Live Mode Products in Stripe
-
-You'll need to recreate your products in live mode. I can help create them using the Stripe tools:
-
-| Product | Price | Type |
-|---------|-------|------|
-| Elixa Starter | £X.XX/month | Subscription |
-| Elixa Pro | £X.XX/month | Subscription |
-| Elixa Unlimited | £X.XX/month | Subscription |
-| Elixa Credits | Dynamic pricing | One-time |
-
-**Note:** I'll need you to confirm the prices you want for each plan before creating them.
+**What's Already Implemented:**
+- Chat UI with AI Assistant (streaming, tool calls, pending actions)
+- Tasks with Kanban board
+- Notes with rich text editor
+- Gmail/Calendar/Stripe/Shopify/Notion integrations via OAuth
+- Knowledge Base with document upload and RAG search (pgvector)
+- Tool Usage Log (Logs page with analytics)
+- Connections management page
+- Multi-tenant RLS with org_id isolation
+- Billing/Team/Settings pages
+- Model selection and credit system
 
 ---
 
-### Step 2: Update Stripe Secret Key
+## Gap Analysis & Implementation Plan
 
-Your current `STRIPE_SECRET_KEY` is a test key. You need to replace it with your live secret key.
+### 1. Email Inbox Page (High Priority)
 
-**How to get your live key:**
-1. Go to [Stripe Dashboard API Keys](https://dashboard.stripe.com/apikeys)
-2. Make sure you're viewing **live mode** (toggle at the top)
-3. Copy your **Secret key** (starts with `sk_live_...`)
+**SOW Requirement:** "A built-in email view and controls linked to Gmail. Users can connect their Gmail account via OAuth, enabling the AI (and the user through the UI) to fetch recent emails, search the inbox"
 
-I'll use a tool to prompt you to enter the new live secret key securely.
+**Current State:** Gmail is only accessible via AI chat commands. No dedicated Email page exists.
 
----
+**Implementation:**
 
-### Step 3: Create Live Webhook & Update Secret
+Create `src/pages/Email.tsx` with:
+- Sidebar with folder navigation (Inbox, Sent, Drafts, Starred, Trash)
+- Email list view with sender, subject, snippet, date
+- Email detail panel (slide-out or split view)
+- Compose email dialog with recipients, subject, body fields
+- Search bar with Gmail query syntax support
+- Actions: Reply, Forward, Archive, Delete, Star, Mark Read/Unread
 
-Your webhook endpoint needs to be registered in Stripe's live mode:
+Integration approach:
+- Reuse existing `gmail-integration` edge function (already supports list, read, send, search, labels, reply, modifyLabels, trash, markRead)
+- Add real-time updates via Supabase channel subscription to tool_execution_log
+- Connect via `supabase.functions.invoke('gmail-integration', { body: { action: 'list', params: {...} } })`
 
-**Webhook URL:** `https://okkybxipbxpoyzqmtosz.supabase.co/functions/v1/stripe-webhook`
-
-**Events to listen for:**
-- `checkout.session.completed`
-- `customer.subscription.created`
-- `customer.subscription.updated`
-- `customer.subscription.deleted`
-- `invoice.paid`
-
-**How to create:**
-1. Go to [Stripe Webhooks](https://dashboard.stripe.com/webhooks)
-2. Make sure you're in **live mode**
-3. Click "Add endpoint"
-4. Enter the webhook URL above
-5. Select the events listed above
-6. Copy the **Signing secret** (starts with `whsec_...`)
-
-I'll prompt you to enter the new webhook secret.
-
----
-
-### Step 4: Update Product & Price IDs in Code
-
-After creating live products, update these files with the new IDs:
-
-**File: `supabase/functions/stripe-checkout/index.ts`**
-```typescript
-// Update with LIVE price IDs
-const PLAN_PRICES: Record<string, string> = {
-  starter: "price_LIVE_STARTER_ID",
-  pro: "price_LIVE_PRO_ID",
-  unlimited: "price_LIVE_UNLIMITED_ID",
-};
-
-// Update credits product
-product: "prod_LIVE_CREDITS_ID",
+```text
++------------------+  +------------------------+  +-------------------+
+|  Folder Nav      |  |   Email List           |  |  Email Detail     |
+|  - Inbox         |  |  [✓] From: John        |  |  From: John Doe   |
+|  - Sent          |  |      Subject: Meeting  |  |  Subject: ...     |
+|  - Drafts        |  |      Snippet...        |  |  [Full body]      |
+|  - Starred       |  |  [ ] From: Jane        |  |                   |
+|  - Trash         |  |      Subject: Invoice  |  |  [Reply] [Fwd]    |
++------------------+  +------------------------+  +-------------------+
 ```
 
-**File: `supabase/functions/stripe-webhook/index.ts`**
-```typescript
-// Update with LIVE product IDs
-const PRODUCT_TO_PLAN: Record<string, string> = {
-  "prod_LIVE_STARTER_ID": "starter",
-  "prod_LIVE_PRO_ID": "pro",
-  "prod_LIVE_UNLIMITED_ID": "unlimited",
-};
-```
+**Files to create:**
+- `src/pages/Email.tsx` - Main email page
+- `src/components/email/EmailList.tsx` - Email list component
+- `src/components/email/EmailDetail.tsx` - Email detail view
+- `src/components/email/EmailCompose.tsx` - Compose dialog
+- `src/components/email/EmailFolders.tsx` - Folder navigation
+- `src/hooks/useEmail.ts` - Email state management hook
 
-**File: `supabase/functions/check-subscription/index.ts`**
-```typescript
-// Same product ID updates
-const PRODUCT_TO_PLAN: Record<string, string> = {
-  "prod_LIVE_STARTER_ID": "starter",
-  "prod_LIVE_PRO_ID": "pro",
-  "prod_LIVE_UNLIMITED_ID": "unlimited",
-};
-```
+**Route addition:** Add `/email` route to `App.tsx`
 
 ---
 
-## Files to Modify
+### 2. Chat Threads Integration (Medium Priority)
 
-| File | Changes |
+**SOW Requirement:** "The chat supports threads, formatting, and mentions."
+
+**Current State:** `ThreadView.tsx` and `ThreadIndicator` components exist but are NOT integrated into Chat.tsx. The database has `parent_message_id` and `thread_count` columns ready.
+
+**Implementation:**
+
+Wire up the existing ThreadView component:
+
+1. **Update Chat.tsx:**
+   - Add state: `threadParentMessage`, `threadReplies`, `threadOpen`
+   - Add "Start Thread" button to each message's action menu
+   - Display `ThreadIndicator` below messages that have replies
+   - Handle opening/closing the ThreadView sheet
+
+2. **Update useChat.ts:**
+   - Add `loadThreadReplies(parentMessageId)` function
+   - Add `sendThreadReply(parentMessageId, content)` function
+   - Query messages with `parent_message_id` filter
+
+3. **Update message insertion:**
+   - When sending a thread reply, set `parent_message_id` in the insert
+   - Increment `thread_count` on parent message
+
+---
+
+### 3. AI Pause Toggle - Backend Enforcement (Medium Priority)
+
+**SOW Requirement:** "We might also allow an admin to 'pause' the AI assistant (stop it from responding) if they suspect misuse"
+
+**Current State:** 
+- UI toggle exists in `AIBehaviorSettings.tsx` with `ai_paused` field
+- `org_settings` table has `ai_paused` column
+- Backend `chat/index.ts` does NOT check this flag
+
+**Implementation:**
+
+Update `supabase/functions/chat/index.ts`:
+
+```typescript
+// After getting org membership, check if AI is paused
+const { data: orgSettings } = await serviceClient
+  .from('org_settings')
+  .select('ai_paused')
+  .eq('org_id', orgMember.org_id)
+  .single();
+
+if (orgSettings?.ai_paused) {
+  return new Response(
+    JSON.stringify({ 
+      error: "AI assistant is temporarily paused by your organization admin. Please try again later or contact your admin.",
+      code: "AI_PAUSED"
+    }),
+    { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+```
+
+Update Chat.tsx to handle this response gracefully with a user-friendly message.
+
+---
+
+### 4. Auto-Approval Whitelist - Backend Enforcement (Medium Priority)
+
+**SOW Requirement:** "If some actions become routine... we might allow users to whitelist certain actions for auto-approval"
+
+**Current State:**
+- UI exists in `AIBehaviorSettings.tsx` with `auto_approved_tools` array
+- `org_settings` table has `auto_approved_tools` column
+- Backend does NOT check this array before requiring confirmation
+
+**Implementation:**
+
+Update `supabase/functions/chat/index.ts`:
+
+```typescript
+// In the WRITE_TOOLS check section
+const isWriteTool = WRITE_TOOLS.includes(toolName);
+const autoApprovedTools = orgSettings?.auto_approved_tools || [];
+const isAutoApproved = autoApprovedTools.includes(toolName);
+
+if (isWriteTool && !isAutoApproved) {
+  // Create pending action (existing flow)
+} else {
+  // Execute immediately (skip pending action)
+}
+```
+
+This allows admins to mark trusted write tools (like `notes_create`) to skip confirmation.
+
+---
+
+### 5. Admin Audit Logs (Medium Priority)
+
+**SOW Requirement:** "Audit Logging and Monitoring... every tool use and action is logged... for investigating any incidents"
+
+**Current State:** 
+- `tool_execution_log` captures AI tool calls
+- NO logging for admin configuration changes (settings, roles, integrations)
+
+**Implementation:**
+
+1. **Create database table:**
+```sql
+CREATE TABLE admin_audit_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id uuid REFERENCES orgs(id) ON DELETE CASCADE,
+  user_id uuid REFERENCES auth.users(id),
+  action_type text NOT NULL, -- 'setting_change', 'role_change', 'integration_connect', etc.
+  entity_type text NOT NULL, -- 'org_settings', 'org_members', 'user_credentials'
+  entity_id text,
+  old_value jsonb,
+  new_value jsonb,
+  ip_address text,
+  user_agent text,
+  created_at timestamptz DEFAULT now()
+);
+-- Enable RLS
+ALTER TABLE admin_audit_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Org members can view audit logs" ON admin_audit_log
+  FOR SELECT USING (org_id IN (SELECT org_id FROM org_members WHERE user_id = auth.uid()));
+```
+
+2. **Create audit logging utility:**
+   - `src/utils/auditLog.ts` with `logAdminAction(action, entity, oldValue, newValue)` function
+
+3. **Add logging calls to:**
+   - `AIBehaviorSettings.tsx` - when saving settings
+   - `Team.tsx` - when updating roles, removing members
+   - `Connections.tsx` - when connecting/disconnecting integrations
+
+4. **Create Admin Audit Log viewer:**
+   - Add new tab "Audit Log" to Admin page or Settings
+   - Table view with filters (date, action type, user)
+   - Export to CSV functionality
+
+---
+
+### 6. Mentions Integration (Low Priority)
+
+**SOW Requirement:** "The chat supports threads, formatting, and mentions."
+
+**Current State:**
+- `MentionAutocomplete.tsx` and `useMentionAutocomplete` hook exist
+- `chat_messages_v2` has `mentions` column (string array)
+- NOT integrated into Chat.tsx input
+
+**Implementation:**
+
+1. **Update Chat.tsx:**
+   - Import and use `useMentionAutocomplete` hook
+   - Wrap textarea with `MentionPopover`
+   - Load team members from org_members
+   - Track mentions in state and save to database
+
+2. **Add mention notifications:**
+   - When a message is saved with mentions, create notifications for mentioned users
+   - Query: Check if user_id in mentions array, create notification
+
+---
+
+### 7. Microsoft Outlook/OneDrive Page (Future - Low Priority)
+
+**SOW Requirement:** Similar email functionality for Microsoft 365 users
+
+**Current State:** `microsoft-integration` edge function exists with full Outlook/OneDrive support, but no dedicated UI.
+
+**Implementation:** Similar to Email page but for Outlook users - can be added later as the Gmail Email page pattern is established.
+
+---
+
+## Implementation Phases
+
+### Phase 1: Core Missing Features (Immediate)
+1. **Email Inbox Page** - Most visible gap, high user value
+2. **AI Pause Backend Enforcement** - Security requirement
+3. **Auto-Approval Backend Enforcement** - Improves UX for power users
+
+### Phase 2: Enhanced Collaboration
+4. **Chat Threads Integration** - Wire up existing components
+5. **Mentions Integration** - Complete the collaboration features
+
+### Phase 3: Governance & Compliance
+6. **Admin Audit Logs** - Important for enterprise customers
+
+---
+
+## Technical Details
+
+### New Files Summary
+| File | Purpose |
 |------|---------|
-| `supabase/functions/stripe-checkout/index.ts` | Update price IDs and credits product ID |
-| `supabase/functions/stripe-webhook/index.ts` | Update product ID mappings |
-| `supabase/functions/check-subscription/index.ts` | Update product ID mappings |
+| `src/pages/Email.tsx` | Main email inbox page |
+| `src/components/email/EmailList.tsx` | Email list with search |
+| `src/components/email/EmailDetail.tsx` | Email reading pane |
+| `src/components/email/EmailCompose.tsx` | Compose/reply dialog |
+| `src/components/email/EmailFolders.tsx` | Folder navigation |
+| `src/hooks/useEmail.ts` | Email state management |
+| `src/utils/auditLog.ts` | Audit logging utility |
 
-## Secrets to Update
+### Database Changes
+| Table | Change |
+|-------|--------|
+| `admin_audit_log` | New table for admin action logging |
 
-| Secret | New Value |
-|--------|-----------|
-| `STRIPE_SECRET_KEY` | Your live secret key (`sk_live_...`) |
-| `STRIPE_WEBHOOK_SECRET` | Your live webhook signing secret (`whsec_...`) |
+### Edge Function Changes
+| Function | Change |
+|----------|--------|
+| `chat/index.ts` | Add `ai_paused` check and `auto_approved_tools` bypass |
 
----
-
-## Implementation Order
-
-1. **First** - Confirm your subscription prices (I'll ask)
-2. **Second** - Create live mode products and prices in Stripe
-3. **Third** - You update the `STRIPE_SECRET_KEY` to live mode
-4. **Fourth** - You create the live webhook and update `STRIPE_WEBHOOK_SECRET`
-5. **Fifth** - I update all product/price IDs in the code
-
----
-
-## Important Considerations
-
-- **Test thoroughly** before announcing to customers
-- **Existing test customers** won't carry over - live mode is a fresh start
-- **Refunds and disputes** are real in live mode
-- Consider starting with a **small test purchase** yourself to verify everything works
+### Route Changes
+| Route | Component |
+|-------|-----------|
+| `/email` | `Email.tsx` |
 
 ---
 
-## Questions I Need Answered
+## Questions for Clarification
 
-Before proceeding, please confirm:
+Before proceeding, I'd like to confirm:
 
-1. **What are your subscription prices?**
-   - Starter: £___/month
-   - Pro: £___/month  
-   - Unlimited: £___/month
+1. **Email Page Priority:** Should the Email page support multiple Gmail accounts (users who connected multiple Google accounts) or just the primary one?
 
-2. **What's the credit pricing?** (Currently 6p per credit - is this correct for live?)
+2. **Audit Log Retention:** How long should admin audit logs be retained? 90 days? 1 year? Forever?
 
-Once you confirm the prices, I'll create the live products and guide you through updating the secrets.
+3. **Phase Order:** Would you like me to start with Phase 1 (Email, AI Pause, Auto-Approval) or is there a specific feature you'd like prioritized?
 
