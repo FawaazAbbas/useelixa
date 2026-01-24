@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -35,16 +35,18 @@ export const MainNavSidebar = () => {
   const [credits, setCredits] = useState<number | null>(null);
   const [monthlyCredits, setMonthlyCredits] = useState<number>(1000);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const calculateCredits = useCallback((monthlyAlloc: number, purchased: number, used: number) => {
     return Math.max(0, monthlyAlloc + purchased - used);
   }, []);
 
-  // Fetch org membership and initial credits
+  // Fetch org membership, initial credits, and avatar
   useEffect(() => {
     if (user) {
       fetchOrgAndCredits();
+      fetchAvatar();
     }
     
     return () => {
@@ -54,6 +56,24 @@ export const MainNavSidebar = () => {
       }
     };
   }, [user]);
+
+  const fetchAvatar = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single();
+      
+      if (profile?.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+      }
+    } catch (error) {
+      console.error("Error fetching avatar:", error);
+    }
+  };
 
   // Subscribe to realtime changes when orgId is available
   useEffect(() => {
@@ -237,6 +257,7 @@ export const MainNavSidebar = () => {
           <DropdownMenuTrigger asChild>
             <button className="mt-2 p-1.5 rounded-lg hover:bg-muted transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
               <Avatar className="h-8 w-8">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt="User avatar" />}
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                   {getUserInitials()}
                 </AvatarFallback>
