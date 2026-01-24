@@ -65,7 +65,8 @@ const AppContent = () => {
           <Route path="/oauth/callback" element={<OAuthCallback />} />
 
           {/* Back-compat: old demo link */}
-          <Route path="/workspace/demo" element={<Navigate to="/workspace" replace />} />
+          <Route path="/workspace/demo" element={<Navigate to="/chat" replace />} />
+          <Route path="/workspace" element={<Navigate to="/chat" replace />} />
 
           {/* Chat route - main AI interface */}
           <Route path="/chat" element={<Chat />} />
@@ -73,9 +74,7 @@ const AppContent = () => {
           {/* Shared chat - public view */}
           <Route path="/shared/:shareToken" element={<SharedChat />} />
 
-          {/* App routes with main navigation */}
           {/* App routes - all use PageLayout internally */}
-          <Route path="/workspace" element={<Workspace />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/knowledge-base" element={<KnowledgeBase />} />
