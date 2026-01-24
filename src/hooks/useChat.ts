@@ -10,6 +10,7 @@ export interface ChatMessage {
   toolCalls?: ToolCall[];
   pendingAction?: PendingAction;
   files?: ChatFile[];
+  thread_count?: number;
 }
 
 export interface ChatFile {
@@ -183,6 +184,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
         toolCalls: m.tool_calls as ToolCall[] | undefined,
         pendingAction: m.metadata?.pendingAction,
         files: m.metadata?.files,
+        thread_count: m.thread_count || 0,
       }));
 
       // Track all loaded message IDs to prevent realtime duplicates
@@ -236,7 +238,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     return uploadedFiles;
   }, [user]);
 
-  const sendMessage = useCallback(async (content: string, targetSessionId?: string, files?: File[], model?: string): Promise<{ error?: string } | void> => {
+  const sendMessage = useCallback(async (content: string, targetSessionId?: string, files?: File[], model?: string): Promise<{ error?: string; message?: string } | void> => {
     if ((!content.trim() && (!files || files.length === 0)) || isLoading) return;
 
     const effectiveSessionId = targetSessionId || sessionId;
@@ -326,6 +328,13 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
           setIsLoading(false);
           setIsStreaming(false);
           return { error: "insufficient_credits", ...errorData };
+        }
+        
+        // Handle AI paused error
+        if (response.status === 503 && errorData.code === "AI_PAUSED") {
+          setIsLoading(false);
+          setIsStreaming(false);
+          return { error: "ai_paused", message: errorData.error };
         }
         
         throw new Error(errorData.error || `Request failed: ${response.status}`);
