@@ -1,70 +1,90 @@
 
+# Fix Stripe Payment Redirect Issue
 
-# Add Billing Navigation Access
+## Problem Analysis
 
-## Overview
-Add clear navigation paths to the Billing page so users can easily manage their subscription, view usage, and purchase credits without relying on contextual prompts.
+After a successful Stripe payment, the redirect flow is broken because:
 
-## Proposed Solution
-Add Billing access in **three locations** for comprehensive discoverability:
+1. **Current behavior**: The `stripe-checkout` and `stripe-portal` edge functions use `req.headers.get("origin")` to determine where to redirect after payment
+2. **Issue**: When testing from the preview URL, the origin header contains the preview URL which may:
+   - Redirect to an old version of the app
+   - Have stale state
+   - Cause infinite loading on the billing page
 
----
-
-## Changes
-
-### 1. Settings Page - Add Billing Tab
-Add a new "Billing" tab to the Settings page that redirects to the dedicated Billing page or embeds billing content.
-
-**File:** `src/pages/Settings.tsx`
-- Add `CreditCard` icon import from lucide-react
-- Add new `TabsTrigger` for "Billing" 
-- Add corresponding `TabsContent` with a quick summary and link to full Billing page
-
-### 2. Main Sidebar - Add Billing Link
-Add Billing to the main navigation sidebar for quick access.
-
-**File:** `src/components/MainNavSidebar.tsx`
-- Import `CreditCard` icon
-- Add Billing to `navItems` array with path `/billing`
-
-### 3. Mobile Navigation - Add to "More" Menu
-Include Billing in the mobile "More" sheet for mobile users.
-
-**File:** `src/components/MobileBottomNav.tsx`
-- Import `CreditCard` icon
-- Add Billing to `moreItems` array
-
-### 4. User Dropdown Menu - Add Billing Option
-Add Billing as a quick access option in the user avatar dropdown menu.
-
-**File:** `src/components/MainNavSidebar.tsx`
-- Add a new `DropdownMenuItem` for Billing between Settings and Sign Out
+3. **Expected behavior**: After payment, users should be redirected to the primary application URL (`https://workspace.elixa.app`) which is stable
 
 ---
 
-## Summary of Navigation Locations
+## Solution
 
-| Location | How to Access |
-|----------|---------------|
-| Main Sidebar | Click the Credit Card icon labeled "Billing" |
-| Settings Page | Click Settings → Billing tab |
-| Mobile "More" Menu | Tap "More" → "Billing" |
-| User Dropdown | Click avatar → "Billing" |
+Use the `SITE_URL` environment secret instead of the dynamic `origin` header for constructing Stripe redirect URLs. The `SITE_URL` secret is already configured as `https://workspace.elixa.app`.
+
+---
+
+## Changes Required
+
+### 1. Update `stripe-checkout` Edge Function
+
+**File:** `supabase/functions/stripe-checkout/index.ts`
+
+Replace the dynamic origin detection:
+```typescript
+// BEFORE (line 66)
+const origin = req.headers.get("origin") || "https://useelixa.lovable.app";
+
+// AFTER
+const siteUrl = Deno.env.get("SITE_URL") || "https://workspace.elixa.app";
+```
+
+Then update all URL references to use `siteUrl`:
+- `success_url` for subscriptions (line 81)
+- `cancel_url` for subscriptions (line 82)  
+- `success_url` for credits (line 114)
+- `cancel_url` for credits (line 115)
+
+### 2. Update `stripe-portal` Edge Function
+
+**File:** `supabase/functions/stripe-portal/index.ts`
+
+Apply the same fix:
+```typescript
+// BEFORE (line 54)
+const origin = req.headers.get("origin") || "https://useelixa.lovable.app";
+
+// AFTER
+const siteUrl = Deno.env.get("SITE_URL") || "https://workspace.elixa.app";
+```
+
+Update the `return_url` (line 57) to use `siteUrl`.
 
 ---
 
 ## Technical Details
 
+### Why Use SITE_URL Instead of Origin?
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| `origin` header | Works for any domain automatically | Unreliable for preview URLs; can redirect to stale versions |
+| `SITE_URL` secret | Consistent, predictable redirects | Requires secret to be set; always redirects to production |
+
+### Affected Functions
+
+| Function | Current Origin Source | New Origin Source |
+|----------|----------------------|-------------------|
+| `stripe-checkout` | `req.headers.get("origin")` | `Deno.env.get("SITE_URL")` |
+| `stripe-portal` | `req.headers.get("origin")` | `Deno.env.get("SITE_URL")` |
+| `check-subscription` | N/A (no redirects) | No changes needed |
+| `stripe-webhook` | N/A (no redirects) | No changes needed |
+
 ### Files Modified
-1. `src/components/MainNavSidebar.tsx` - Add nav item and dropdown menu item
-2. `src/components/MobileBottomNav.tsx` - Add to moreItems array
-3. `src/pages/Settings.tsx` - Add Billing tab with summary card
+1. `supabase/functions/stripe-checkout/index.ts`
+2. `supabase/functions/stripe-portal/index.ts`
 
-### Icon Used
-- `CreditCard` from lucide-react (consistent with Billing page)
+---
 
-### Implementation Order
-1. Update MainNavSidebar (sidebar + dropdown)
-2. Update MobileBottomNav
-3. Update Settings page
+## After Implementation
 
+- Payments completed from any URL (preview or published) will redirect to `https://workspace.elixa.app/billing`
+- The billing page will display success/error toasts based on URL parameters
+- Users won't get stuck in redirect loops or see old versions of the app
