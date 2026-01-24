@@ -558,6 +558,7 @@ export type Database = {
           content: string | null
           created_at: string | null
           id: string
+          is_pinned: boolean | null
           title: string
           updated_at: string | null
           user_id: string
@@ -567,6 +568,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           id?: string
+          is_pinned?: boolean | null
           title?: string
           updated_at?: string | null
           user_id: string
@@ -576,6 +578,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           id?: string
+          is_pinned?: boolean | null
           title?: string
           updated_at?: string | null
           user_id?: string
@@ -971,11 +974,13 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          is_recurring: boolean | null
           last_run_at: string | null
           last_scheduled_run: string | null
           next_scheduled_run: string | null
           position: number | null
           priority: string | null
+          recurrence_pattern: string | null
           schedule: string | null
           scheduled_at: string | null
           status: string
@@ -991,11 +996,13 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_recurring?: boolean | null
           last_run_at?: string | null
           last_scheduled_run?: string | null
           next_scheduled_run?: string | null
           position?: number | null
           priority?: string | null
+          recurrence_pattern?: string | null
           schedule?: string | null
           scheduled_at?: string | null
           status?: string
@@ -1011,11 +1018,13 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          is_recurring?: boolean | null
           last_run_at?: string | null
           last_scheduled_run?: string | null
           next_scheduled_run?: string | null
           position?: number | null
           priority?: string | null
+          recurrence_pattern?: string | null
           schedule?: string | null
           scheduled_at?: string | null
           status?: string

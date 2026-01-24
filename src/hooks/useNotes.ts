@@ -10,6 +10,7 @@ export interface Note {
   user_id: string;
   title: string;
   content: string;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +30,7 @@ export const useNotes = () => {
         .from("notes")
         .select("*")
         .eq("workspace_id", workspaceId)
+        .order("is_pinned", { ascending: false })
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
@@ -59,6 +61,7 @@ export const useNotes = () => {
           user_id: user.id,
           title,
           content,
+          is_pinned: false,
         })
         .select()
         .single();
@@ -74,7 +77,7 @@ export const useNotes = () => {
     }
   };
 
-  const updateNote = async (id: string, updates: Partial<Pick<Note, "title" | "content">>) => {
+  const updateNote = async (id: string, updates: Partial<Pick<Note, "title" | "content" | "is_pinned">>) => {
     setSaving(true);
     try {
       const { error } = await supabase
@@ -84,11 +87,16 @@ export const useNotes = () => {
 
       if (error) throw error;
 
-      setNotes((prev) =>
-        prev.map((note) =>
+      setNotes((prev) => {
+        const updated = prev.map((note) =>
           note.id === id ? { ...note, ...updates, updated_at: new Date().toISOString() } : note
-        )
-      );
+        );
+        // Re-sort: pinned first, then by updated_at
+        return updated.sort((a, b) => {
+          if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+        });
+      });
       return true;
     } catch (error) {
       console.error("Error updating note:", error);

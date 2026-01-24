@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { FileText, Plus, Search } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { FileText, Plus, Search, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +7,11 @@ import { useNotes, type Note } from "@/hooks/useNotes";
 import { NotesList } from "@/components/notes/NotesList";
 import { NoteEditor } from "@/components/notes/NoteEditor";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Notes = () => {
   const { notes, loading, saving, createNote, updateNote, deleteNote } = useNotes();
@@ -39,7 +44,40 @@ const Notes = () => {
     if (success && selectedNote?.id === id) {
       setSelectedNote(null);
     }
+    return success;
   };
+
+  // Keep selected note in sync with notes array
+  useEffect(() => {
+    if (selectedNote) {
+      const updated = notes.find(n => n.id === selectedNote.id);
+      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedNote)) {
+        setSelectedNote(updated);
+      }
+    }
+  }, [notes, selectedNote]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + N = New note
+      if ((e.metaKey || e.ctrlKey) && e.key === "n") {
+        e.preventDefault();
+        handleCreateNote();
+      }
+      // Cmd/Ctrl + F = Focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === "f" && !selectedNote) {
+        e.preventDefault();
+        document.getElementById("notes-search")?.focus();
+      }
+      // Escape = Deselect note
+      if (e.key === "Escape" && selectedNote) {
+        setSelectedNote(null);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedNote]);
 
   const Sidebar = () => (
     <>
@@ -51,14 +89,22 @@ const Notes = () => {
             </div>
             <h2 className="font-semibold">Notes</h2>
           </div>
-          <Button size="sm" onClick={handleCreateNote}>
-            <Plus className="h-4 w-4 mr-1" />
-            New
-          </Button>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" onClick={handleCreateNote}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  New
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>New note (⌘N)</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
+            id="notes-search"
             placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -87,10 +133,17 @@ const Notes = () => {
           <div className="text-center py-8 text-muted-foreground">
             <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No notes yet</p>
-            <p className="text-xs mt-1">Click "New" to create one</p>
+            <p className="text-xs mt-1">Press ⌘N to create one</p>
           </div>
         )}
       </ScrollArea>
+      {/* Keyboard shortcuts hint */}
+      <div className="p-3 border-t text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Keyboard className="h-3 w-3" />
+          <span>⌘N New • ⌘S Save • Esc Close</span>
+        </div>
+      </div>
     </>
   );
 
@@ -108,6 +161,7 @@ const Notes = () => {
           key={selectedNote.id}
           note={selectedNote}
           onUpdate={updateNote}
+          onDelete={handleDeleteNote}
           saving={saving}
         />
       ) : (
