@@ -1,9 +1,10 @@
-import { Search, X, Zap, BarChart3, BookOpen } from "lucide-react";
+import { Search, X, Zap, BarChart3, BookOpen, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { trackNavClick } from "@/utils/analytics";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TalentPoolNavbarProps {
   searchQuery?: string;
@@ -20,6 +21,7 @@ export const TalentPoolNavbar = ({
 }: TalentPoolNavbarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const isChartsPage = location.pathname === "/talent-pool/charts";
 
@@ -112,32 +114,86 @@ export const TalentPoolNavbar = ({
                   Discover
                 </Button>
               )}
-              <Button
-                onClick={() => {
-                  trackNavClick("Workspace");
-                  navigate("/workspace");
-                }}
-                size="sm"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-5 rounded-full gap-2 font-medium shadow-sm hover:shadow-md transition-all"
-              >
-                <Zap className="h-4 w-4" />
-                My Workspace
-              </Button>
+              {user ? (
+                <Button
+                  onClick={() => {
+                    trackNavClick("Workspace");
+                    navigate("/chat");
+                  }}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-5 rounded-full gap-2 font-medium shadow-sm hover:shadow-md transition-all"
+                >
+                  <Zap className="h-4 w-4" />
+                  My Workspace
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      trackNavClick("Sign In");
+                      navigate("/auth");
+                    }}
+                    className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
+                  >
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      trackNavClick("Sign Up");
+                      navigate("/auth");
+                    }}
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-5 rounded-full gap-2 font-medium shadow-sm hover:shadow-md transition-all"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
 
-            {/* Mobile: My Workspace button */}
-            <div className="sm:hidden shrink-0">
-              <Button
-                onClick={() => {
-                  trackNavClick("Workspace");
-                  navigate("/workspace");
-                }}
-                size="sm"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-full"
-              >
-                <Zap className="h-3.5 w-3.5" />
-                Workspace
-              </Button>
+            {/* Mobile: Auth buttons */}
+            <div className="sm:hidden shrink-0 flex items-center gap-2">
+              {user ? (
+                <Button
+                  onClick={() => {
+                    trackNavClick("Workspace");
+                    navigate("/chat");
+                  }}
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-full"
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  Workspace
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      trackNavClick("Sign In");
+                      navigate("/auth");
+                    }}
+                    className="text-muted-foreground hover:text-foreground h-9 px-3 rounded-full"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      trackNavClick("Sign Up");
+                      navigate("/auth");
+                    }}
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground h-9 px-3 gap-1.5 rounded-full"
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
