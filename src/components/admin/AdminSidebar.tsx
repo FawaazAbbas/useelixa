@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LayoutDashboard, LogOut, RefreshCw, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { LayoutDashboard, LogOut, RefreshCw, ChevronLeft, ChevronRight, FileText, History } from "lucide-react";
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -16,6 +16,7 @@ interface AdminSidebarProps {
 const navItems = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "blog", label: "Blog", icon: FileText },
+  { id: "audit", label: "Audit Log", icon: History },
 ];
 
 export const AdminSidebar = ({

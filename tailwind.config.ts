@@ -58,6 +58,9 @@ export default {
           messageAlt: "hsl(var(--chat-message-alt))",
           border: "hsl(var(--chat-border))",
         },
+        star: {
+          DEFAULT: "hsl(var(--star))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

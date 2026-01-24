@@ -28,6 +28,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Notifications from "./pages/Notifications";
 import SharedChat from "./pages/SharedChat";
+import Email from "./pages/Email";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -59,8 +60,6 @@ const AppContent = () => {
           <Route path="/signup" element={<Navigate to="/auth" replace />} />
           <Route path="/waitlist" element={<Navigate to="/auth" replace />} />
           <Route path="/referral" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/pitch-deck" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/email" element={<Navigate to="/workspace" replace />} />
           
           <Route path="/auth" element={<Auth />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
@@ -81,6 +80,7 @@ const AppContent = () => {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/knowledge-base" element={<KnowledgeBase />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/email" element={<Email />} />
           <Route path="/logs" element={<Logs />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/team" element={<Team />} />
