@@ -378,6 +378,39 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_pricing: {
+        Row: {
+          created_at: string | null
+          credit_increment: number
+          currency: string
+          id: string
+          max_credits: number
+          min_credits: number
+          price_per_credit_pence: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credit_increment?: number
+          currency?: string
+          id?: string
+          max_credits?: number
+          min_credits?: number
+          price_per_credit_pence?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credit_increment?: number
+          currency?: string
+          id?: string
+          max_credits?: number
+          min_credits?: number
+          price_per_credit_pence?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           body_html: string
@@ -789,22 +822,40 @@ export type Database = {
       }
       orgs: {
         Row: {
+          connector_limit: number | null
           created_at: string
+          has_premium_models: boolean | null
           id: string
+          is_unlimited: boolean | null
+          monthly_credits: number | null
           name: string
           plan: string
+          plan_started_at: string | null
+          trial_ends_at: string | null
         }
         Insert: {
+          connector_limit?: number | null
           created_at?: string
+          has_premium_models?: boolean | null
           id?: string
+          is_unlimited?: boolean | null
+          monthly_credits?: number | null
           name: string
           plan?: string
+          plan_started_at?: string | null
+          trial_ends_at?: string | null
         }
         Update: {
+          connector_limit?: number | null
           created_at?: string
+          has_premium_models?: boolean | null
           id?: string
+          is_unlimited?: boolean | null
+          monthly_credits?: number | null
           name?: string
           plan?: string
+          plan_started_at?: string | null
+          trial_ends_at?: string | null
         }
         Relationships: []
       }

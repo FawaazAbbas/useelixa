@@ -22,6 +22,14 @@ const MODEL_CREDITS: Record<string, number> = {
   "openai/gpt-5.2": 10,
 };
 
+// Premium models that require Pro/Unlimited tier
+const PREMIUM_MODELS = [
+  "openai/gpt-5-mini",
+  "google/gemini-2.5-pro",
+  "openai/gpt-5",
+  "openai/gpt-5.2",
+];
+
 const VALID_MODELS = Object.keys(MODEL_CREDITS);
 const DEFAULT_MODEL = "google/gemini-2.5-flash";
 
@@ -1930,6 +1938,30 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Fetch org tier info for model access and unlimited credits
+    let orgTier: { has_premium_models: boolean; is_unlimited: boolean; monthly_credits: number } | null = null;
+    if (orgId) {
+      const { data: org } = await serviceSupabase
+        .from("orgs")
+        .select("has_premium_models, is_unlimited, monthly_credits")
+        .eq("id", orgId)
+        .single();
+      orgTier = org || null;
+    }
+
+    // Check if user can use the selected model (premium model gating)
+    const isPremiumModel = PREMIUM_MODELS.includes(selectedModel);
+    if (isPremiumModel && orgTier && !orgTier.has_premium_models && !orgTier.is_unlimited) {
+      console.log(`[Chat] User tried to use premium model ${selectedModel} without access`);
+      return new Response(
+        JSON.stringify({
+          error: "This model requires a Pro or Unlimited plan",
+          code: "PREMIUM_MODEL_REQUIRED",
+        }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (userId && orgId) {
       const rateLimitResult = await checkRateLimits(serviceSupabase, userId, orgId);
       if (!rateLimitResult.allowed) {
@@ -1939,29 +1971,33 @@ serve(async (req) => {
         );
       }
 
-      // Check credit balance before proceeding
-      const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
-      const { data: usage } = await serviceSupabase
-        .from("usage_stats")
-        .select("credits_purchased, credits_used")
-        .eq("org_id", orgId)
-        .eq("month", currentMonth)
-        .maybeSingle();
+      // Skip credit check for unlimited users
+      if (!orgTier?.is_unlimited) {
+        // Check credit balance before proceeding
+        const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
+        const { data: usage } = await serviceSupabase
+          .from("usage_stats")
+          .select("credits_purchased, credits_used")
+          .eq("org_id", orgId)
+          .eq("month", currentMonth)
+          .maybeSingle();
 
-      const creditsUsed = usage?.credits_used ?? 0;
-      const creditsPurchased = usage?.credits_purchased ?? 1000; // Default 1000 free credits
-      const availableCredits = creditsPurchased - creditsUsed;
+        const creditsUsed = usage?.credits_used ?? 0;
+        const monthlyCredits = orgTier?.monthly_credits ?? 100;
+        const creditsPurchased = usage?.credits_purchased ?? 0;
+        const availableCredits = (monthlyCredits + creditsPurchased) - creditsUsed;
 
-      if (availableCredits < creditCost) {
-        console.log(`[Chat] Insufficient credits: ${availableCredits} available, ${creditCost} required`);
-        return new Response(
-          JSON.stringify({
-            error: "Insufficient credits",
-            required: creditCost,
-            available: availableCredits,
-          }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        if (availableCredits < creditCost) {
+          console.log(`[Chat] Insufficient credits: ${availableCredits} available, ${creditCost} required`);
+          return new Response(
+            JSON.stringify({
+              error: "Insufficient credits",
+              required: creditCost,
+              available: availableCredits,
+            }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
     }
 
@@ -2012,24 +2048,26 @@ serve(async (req) => {
     if (orgId) {
       await incrementUsage(serviceSupabase, orgId, "ai_calls");
       
-      // Deduct credits for this AI call
-      const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
-      
-      // First get current credits_used, then increment
-      const { data: currentUsage } = await serviceSupabase
-        .from("usage_stats")
-        .select("credits_used")
-        .eq("org_id", orgId)
-        .eq("month", currentMonth)
-        .maybeSingle();
-      
-      const newCreditsUsed = (currentUsage?.credits_used ?? 0) + creditCost;
-      
-      await serviceSupabase
-        .from("usage_stats")
-        .update({ credits_used: newCreditsUsed })
-        .eq("org_id", orgId)
-        .eq("month", currentMonth);
+      // Deduct credits for this AI call (skip for unlimited users)
+      if (!orgTier?.is_unlimited) {
+        const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
+        
+        // First get current credits_used, then increment
+        const { data: currentUsage } = await serviceSupabase
+          .from("usage_stats")
+          .select("credits_used")
+          .eq("org_id", orgId)
+          .eq("month", currentMonth)
+          .maybeSingle();
+        
+        const newCreditsUsed = (currentUsage?.credits_used ?? 0) + creditCost;
+        
+        await serviceSupabase
+          .from("usage_stats")
+          .update({ credits_used: newCreditsUsed })
+          .eq("org_id", orgId)
+          .eq("month", currentMonth);
+      }
     }
 
     if (assistantMessage?.tool_calls && assistantMessage.tool_calls.length > 0) {
