@@ -1,59 +1,66 @@
 
-# Fix Email Integration - Secret Name Mismatch
 
-## Problem Summary
+# Plan: Add Accessible Sign In/Sign Up Links for Users
 
-The Email page shows a 500 error because the Gmail integration edge function cannot refresh the expired OAuth token. The token refresh function uses incorrect environment variable names.
+## Current Problem
+The sign in/sign up page exists at `/auth`, but users can't easily find it because:
+- The landing page only shows "My Workspace" button (no "Sign In" or "Sign Up")
+- There's no visible authentication link in the main navigation
+- Users who want to create an account or log in have no clear path
 
-## Root Cause
+## Solution Overview
+Add clear, prominent Sign In and Sign Up buttons to the main landing page navbar so users can easily access authentication.
 
-**Secret naming mismatch in `gmail-integration/index.ts`:**
+---
 
-| Current Code (Wrong) | Configured Secret (Correct) |
-|---------------------|----------------------------|
-| `GOOGLE_OAUTH_CLIENT_ID` | `GOOGLEOAUTH2API_CLIENT_ID` |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | `GOOGLEOAUTH2API_CLIENT_SECRET` |
+## Implementation Steps
 
-The refresh function on lines 433-434 looks for secrets that don't exist, causing it to return null and fail the refresh.
+### 1. Update the Landing Page Navbar (TalentPoolNavbar.tsx)
 
-## Solution
+Add "Sign In" and "Sign Up" buttons to the navbar that:
+- Show for users who are **not logged in**
+- Hide when users **are logged in** (showing "My Workspace" instead)
+- Are visible on both desktop and mobile
 
-Update the `refreshGoogleToken` function in `supabase/functions/gmail-integration/index.ts` to use the correct secret names.
+**Changes:**
+- Import `useAuth` hook to check authentication status
+- Add conditional rendering:
+  - **Not logged in**: Show "Sign In" (outline style) + "Sign Up" (primary style) buttons
+  - **Logged in**: Show "My Workspace" button (current behavior)
 
-### Change Required
-
-**File:** `supabase/functions/gmail-integration/index.ts`
-
-**Lines 433-434:**
-
-```text
-Before:
-  const clientId = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID");
-  const clientSecret = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET");
-
-After:
-  const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
-  const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
+### 2. Desktop Layout
 ```
+[Logo] [Search...] [spacer] [Blog] [Charts] [Sign In] [Sign Up]
+```
+
+### 3. Mobile Layout
+```
+[Logo] [spacer] [Sign In] [Sign Up]
+```
+
+### 4. Button Styling
+- **Sign In**: Ghost/outline button for secondary action
+- **Sign Up**: Primary button (highlighted) for main call-to-action
+
+---
 
 ## Technical Details
 
-The flow after the fix:
+**File to modify:** `src/components/TalentPoolNavbar.tsx`
 
-```text
-1. User opens Email page
-2. gmail-integration is called with action: "list"
-3. Credentials fetched (bundle_type: "gmail_calendar") ✓
-4. Tokens decrypted successfully ✓
-5. Token expiry detected (expired Jan 23) ✓
-6. Refresh token used with CORRECT client ID/secret ✓ (fix)
-7. New access token saved
-8. Gmail API called successfully
-9. Emails displayed
-```
+**Changes:**
+1. Import `useAuth` from `@/hooks/useAuth`
+2. Get `user` from the hook
+3. Replace the "My Workspace" button section with conditional logic:
+   - If `user` exists → show "My Workspace"
+   - If no `user` → show "Sign In" + "Sign Up" buttons
+4. "Sign In" navigates to `/auth`
+5. "Sign Up" also navigates to `/auth` (the page has tabs for both)
 
-## Impact
+---
 
-- **Fix applies to:** Gmail list, read, send, reply, search, labels, trash, markRead actions
-- **No user action required:** Token will auto-refresh on next request
-- **Time to fix:** ~1 minute code change + edge function redeployment
+## Expected Outcome
+- New visitors will see clear "Sign In" and "Sign Up" buttons
+- Returning logged-in users will see "My Workspace" to access their dashboard
+- Authentication becomes discoverable and accessible
+
