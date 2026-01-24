@@ -30,8 +30,6 @@ const navItems: NavItem[] = [
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
-  { icon: Workflow, label: "Workflows", path: "/workflows" },
-  { icon: Users, label: "AI Employees", path: "/ai-employees" },
   { icon: Newspaper, label: "Digest", path: "/digest" },
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Plug, label: "Connections", path: "/connections" },
@@ -41,6 +39,7 @@ const navItems: NavItem[] = [
 
 const comingSoonItems = [
   { icon: Mail, label: "Emails", comingSoon: true },
+  { icon: Workflow, label: "Workflows", comingSoon: true },
   { icon: Users, label: "AI Employees", comingSoon: true },
   { icon: Table, label: "Lexi Sheets", comingSoon: true },
 ];
@@ -200,8 +199,8 @@ export const MainNavSidebar = () => {
         />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex flex-col gap-1 flex-1 w-full px-2">
+      {/* Navigation - scrollable */}
+      <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
