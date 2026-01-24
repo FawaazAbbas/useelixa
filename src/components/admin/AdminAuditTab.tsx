@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const ACTION_TYPE_LABELS: Record<AuditActionType, string> = {
   setting_change: "Setting Changed",
+  setting_created: "Setting Created",
   role_change: "Role Changed",
   member_removed: "Member Removed",
   member_invited: "Member Invited",
@@ -38,6 +39,7 @@ const ACTION_TYPE_LABELS: Record<AuditActionType, string> = {
 
 const ACTION_TYPE_COLORS: Record<AuditActionType, string> = {
   setting_change: "bg-primary/10 text-primary",
+  setting_created: "bg-emerald-500/10 text-emerald-600",
   role_change: "bg-amber-500/10 text-amber-600",
   member_removed: "bg-destructive/10 text-destructive",
   member_invited: "bg-emerald-500/10 text-emerald-600",

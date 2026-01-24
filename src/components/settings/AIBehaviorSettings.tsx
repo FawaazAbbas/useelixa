@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { logAdminAction } from "@/utils/auditLog";
 
 interface OrgSettings {
   id: string;
@@ -142,13 +143,50 @@ export const AIBehaviorSettings = () => {
           .eq("id", settings.id);
 
         if (error) throw error;
+
+        // Log admin action
+        const actionType = formData.ai_paused !== settings.ai_paused 
+          ? (formData.ai_paused ? "ai_paused" : "ai_resumed")
+          : "setting_change";
+
+        await logAdminAction({
+          actionType,
+          entityType: "org_settings",
+          entityId: settings.id,
+          oldValue: {
+            ai_paused: settings.ai_paused,
+            auto_approved_tools: settings.auto_approved_tools,
+            ai_response_style: settings.ai_response_style,
+            ai_allowed_tools: settings.ai_allowed_tools,
+          },
+          newValue: {
+            ai_paused: formData.ai_paused,
+            auto_approved_tools: formData.auto_approved_tools,
+            ai_response_style: formData.ai_response_style,
+            ai_allowed_tools: formData.ai_allowed_tools,
+          },
+        });
       } else {
         // Insert new
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from("org_settings")
-          .insert(updateData);
+          .insert(updateData)
+          .select()
+          .single();
 
         if (error) throw error;
+
+        // Log admin action for new settings
+        await logAdminAction({
+          actionType: "setting_created",
+          entityType: "org_settings",
+          entityId: inserted?.id,
+          newValue: {
+            ai_paused: formData.ai_paused,
+            auto_approved_tools: formData.auto_approved_tools,
+            ai_response_style: formData.ai_response_style,
+          },
+        });
       }
 
       toast.success("AI settings saved successfully");

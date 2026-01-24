@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
+import { logAdminAction } from "@/utils/auditLog";
 
 export interface TeamMember {
   user_id: string;
@@ -101,6 +102,10 @@ export const useTeam = () => {
       return false;
     }
 
+    // Find the member to get their current role
+    const member = members.find(m => m.user_id === userId);
+    const oldRole = member?.role;
+
     try {
       const { error } = await supabase
         .from("org_members")
@@ -109,6 +114,15 @@ export const useTeam = () => {
         .eq("user_id", userId);
 
       if (error) throw error;
+
+      // Log admin action
+      await logAdminAction({
+        actionType: "role_change",
+        entityType: "org_members",
+        entityId: userId,
+        oldValue: { role: oldRole, email: member?.email },
+        newValue: { role: newRole },
+      });
 
       setMembers(prev => 
         prev.map(m => m.user_id === userId ? { ...m, role: newRole } : m)
@@ -134,6 +148,9 @@ export const useTeam = () => {
       return false;
     }
 
+    // Find the member to log their details
+    const member = members.find(m => m.user_id === userId);
+
     try {
       const { error } = await supabase
         .from("org_members")
@@ -142,6 +159,18 @@ export const useTeam = () => {
         .eq("user_id", userId);
 
       if (error) throw error;
+
+      // Log admin action
+      await logAdminAction({
+        actionType: "member_removed",
+        entityType: "org_members",
+        entityId: userId,
+        oldValue: { 
+          email: member?.email, 
+          role: member?.role,
+          display_name: member?.display_name,
+        },
+      });
 
       setMembers(prev => prev.filter(m => m.user_id !== userId));
       toast.success("Member removed successfully");

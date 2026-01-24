@@ -12,6 +12,7 @@ import { PageLayout, PageEmptyState, SectionHeader, CardGrid } from "@/component
 import { getOAuthUrl } from "@/config/oauth";
 import { toast } from "sonner";
 import { ShopifyConnectDialog } from "@/components/connections/ShopifyConnectDialog";
+import { logAdminAction } from "@/utils/auditLog";
 
 interface Integration {
   id: string;
@@ -206,6 +207,19 @@ const Connections = () => {
       if (error) throw error;
 
       const accountLabel = credential.account_email || integrationName;
+      
+      // Log admin action for disconnect
+      await logAdminAction({
+        actionType: "integration_disconnect",
+        entityType: "user_credentials",
+        entityId: credential.id,
+        oldValue: { 
+          integration: integrationName, 
+          account_email: credential.account_email,
+          credential_type: credential.credential_type,
+        },
+      });
+
       toast.success(`Disconnected ${accountLabel}`);
       setCredentials(prev => prev.filter(c => c.id !== credential.id));
     } catch (error) {

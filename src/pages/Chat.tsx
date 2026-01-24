@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen, MessageCircle } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,11 @@ import { ShareChatDialog } from "@/components/chat/ShareChatDialog";
 import { ChatFolders, ChatFolder } from "@/components/chat/ChatFolders";
 import { useChatFolders } from "@/hooks/useChatFolders";
 import { GeneratedImage } from "@/components/chat/GeneratedImage";
+import { ThreadView, ThreadIndicator } from "@/components/chat/ThreadView";
+import { useMentionAutocomplete, MentionPopover } from "@/components/chat/MentionAutocomplete";
+import { fetchTeamMembers, parseMentions, notifyMentionedUsers, type TeamMember } from "@/utils/mentions";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface ChatSession {
   id: string;
@@ -62,13 +67,41 @@ const Chat = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Thread state
+  const [threadOpen, setThreadOpen] = useState(false);
+  const [threadParentMessage, setThreadParentMessage] = useState<ChatMessage | null>(null);
+  const [threadReplies, setThreadReplies] = useState<ChatMessage[]>([]);
+  const [threadLoading, setThreadLoading] = useState(false);
+
+  // Team members for mentions
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  
+  // AI Paused state
+  const [aiPausedError, setAiPausedError] = useState(false);
+
   // Chat folders hook
   const { folders, setFolders, expandedFolders, toggleFolder, moveSessionToFolder } = useChatFolders(user?.id);
 
-  const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages, deleteMessage, stopGeneration, editAndResendMessage } = useChat({
+  const { messages, isLoading, isStreaming, isUploading, sendMessage, clearMessages, setMessages, loadSessionMessages, deleteMessage, stopGeneration, editAndResendMessage, loadThreadReplies, sendThreadReply } = useChat({
     sessionId: activeSessionId || "",
     onError: (error) => toast.error(error.message),
   });
+
+  // Mentions autocomplete hook
+  const {
+    showMentions,
+    setShowMentions,
+    handleInputChange: handleMentionInputChange,
+    insertMention,
+    filteredMembers,
+  } = useMentionAutocomplete(teamMembers);
+
+  // Load team members for mentions
+  useEffect(() => {
+    if (user) {
+      fetchTeamMembers(user.id).then(setTeamMembers);
+    }
+  }, [user]);
 
 
   const handleRetry = useCallback(async (messageIndex: number) => {
@@ -244,6 +277,9 @@ const Chat = () => {
   const handleSend = useCallback(async () => {
     if ((!input.trim() && selectedFiles.length === 0) || isLoading) return;
     
+    // Reset AI paused error when user tries to send
+    setAiPausedError(false);
+    
     let sessionId = activeSessionId;
     
     if (!sessionId || !sessions.find(s => s.id === sessionId)) {
@@ -251,17 +287,58 @@ const Chat = () => {
       sessionId = await createSession(titleText.slice(0, 50) + (titleText.length > 50 ? "..." : ""));
       setActiveSessionId(sessionId);
     }
+
+    // Parse mentions from input
+    const mentionedUserIds = parseMentions(input, teamMembers);
     
     const result = await sendMessage(input, sessionId, selectedFiles.length > 0 ? selectedFiles : undefined, selectedModel);
     
     // Check for insufficient credits error
-    if (result && typeof result === 'object' && 'error' in result && result.error === "insufficient_credits") {
-      setCreditDialogOpen(true);
+    if (result && typeof result === 'object' && 'error' in result) {
+      if (result.error === "insufficient_credits") {
+        setCreditDialogOpen(true);
+      } else if (result.error === "ai_paused") {
+        setAiPausedError(true);
+        toast.error("AI Paused", {
+          description: "The AI assistant has been temporarily paused by your organization admin.",
+          duration: 5000,
+        });
+      }
+    } else if (mentionedUserIds.length > 0 && sessionId && user) {
+      // Notify mentioned users after successful send
+      await notifyMentionedUsers(mentionedUserIds, input, user.email || "", sessionId);
     }
     
     setInput("");
     setSelectedFiles([]);
-  }, [input, isLoading, sendMessage, activeSessionId, sessions, selectedFiles, selectedModel]);
+  }, [input, isLoading, sendMessage, activeSessionId, sessions, selectedFiles, selectedModel, teamMembers, user]);
+
+  // Thread handlers
+  const handleOpenThread = useCallback(async (message: ChatMessage) => {
+    setThreadParentMessage(message);
+    setThreadLoading(true);
+    setThreadOpen(true);
+    
+    const replies = await loadThreadReplies(message.id);
+    setThreadReplies(replies);
+    setThreadLoading(false);
+  }, [loadThreadReplies]);
+
+  const handleSendThreadReply = useCallback(async (content: string) => {
+    if (!threadParentMessage || !activeSessionId) return;
+    
+    const mentionedUserIds = parseMentions(content, teamMembers);
+    const reply = await sendThreadReply(threadParentMessage.id, activeSessionId, content, mentionedUserIds);
+    
+    if (reply) {
+      setThreadReplies(prev => [...prev, reply]);
+      
+      // Notify mentioned users
+      if (mentionedUserIds.length > 0 && user) {
+        await notifyMentionedUsers(mentionedUserIds, content, user.email || "", activeSessionId);
+      }
+    }
+  }, [threadParentMessage, activeSessionId, sendThreadReply, teamMembers, user]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -574,6 +651,17 @@ const Chat = () => {
 
         <ScrollArea ref={scrollRef} className="flex-1 p-4">
           <div className="space-y-6 px-4">
+            {/* AI Paused Banner */}
+            {aiPausedError && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>AI Paused</AlertTitle>
+                <AlertDescription>
+                  The AI assistant has been temporarily disabled by your organization administrator.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center min-h-[50vh] text-center py-12">
                 <img 
@@ -638,6 +726,8 @@ const Chat = () => {
                       onStartEdit={() => setEditingMessageId(message.id)}
                       onCancelEdit={() => setEditingMessageId(null)}
                       isLoading={isLoading}
+                      onOpenThread={() => handleOpenThread(message)}
+                      threadCount={(message as any).thread_count || 0}
                     />
                   </div>
                 );
@@ -722,16 +812,27 @@ const Chat = () => {
                 onTranscript={(text) => setInput(prev => prev + " " + text)}
               />
               
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your message... (⌘/ to focus)"
-                className="min-h-[48px] max-h-[200px] resize-none rounded-xl"
-                rows={1}
-                disabled={isLoading}
-              />
+              <MentionPopover
+                open={showMentions}
+                onOpenChange={setShowMentions}
+                members={filteredMembers}
+                onSelect={(member) => insertMention(member, input, setInput)}
+                position={{ top: 0, left: 0 }}
+              >
+                <Textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    handleMentionInputChange(e.target.value, e.target.selectionStart || 0, textareaRef.current);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type your message... (@ to mention, ⌘/ to focus)"
+                  className="min-h-[48px] max-h-[200px] resize-none rounded-xl"
+                  rows={1}
+                  disabled={isLoading}
+                />
+              </MentionPopover>
               <Button
                 onClick={handleSend}
                 disabled={(!input.trim() && selectedFiles.length === 0) || isLoading}
@@ -789,6 +890,16 @@ const Chat = () => {
           sessionTitle={currentSession.title}
         />
       )}
+
+      {/* Thread View */}
+      <ThreadView
+        open={threadOpen}
+        onOpenChange={setThreadOpen}
+        parentMessage={threadParentMessage}
+        replies={threadReplies}
+        onSendReply={handleSendThreadReply}
+        isLoading={threadLoading}
+      />
     </div>
   );
 };
@@ -803,6 +914,8 @@ interface MessageBubbleProps {
   onStartEdit?: () => void;
   onCancelEdit?: () => void;
   isLoading?: boolean;
+  onOpenThread?: () => void;
+  threadCount?: number;
 }
 
 const MessageBubble = ({ 
@@ -814,7 +927,9 @@ const MessageBubble = ({
   isEditing,
   onStartEdit,
   onCancelEdit,
-  isLoading 
+  isLoading,
+  onOpenThread,
+  threadCount = 0
 }: MessageBubbleProps) => {
   const isUser = message.role === "user";
   const [actionResolved, setActionResolved] = useState(false);
@@ -951,6 +1066,18 @@ const MessageBubble = ({
                 </Button>
               )}
               
+              {onOpenThread && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={onOpenThread}
+                  title="Reply in thread"
+                >
+                  <MessageCircle className="h-3 w-3" />
+                </Button>
+              )}
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -962,6 +1089,11 @@ const MessageBubble = ({
               </Button>
             </div>
           </div>
+        )}
+        
+        {/* Thread indicator */}
+        {threadCount > 0 && onOpenThread && (
+          <ThreadIndicator replyCount={threadCount} onClick={onOpenThread} />
         )}
         
         {/* File attachments */}

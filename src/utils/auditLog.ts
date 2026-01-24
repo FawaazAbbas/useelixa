@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AuditActionType = 
   | "setting_change"
+  | "setting_created"
   | "role_change"
   | "member_removed"
   | "member_invited"
