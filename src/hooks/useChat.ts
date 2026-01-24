@@ -605,6 +605,77 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     }
   }, [messages, sendMessage]);
 
+  // Load thread replies for a parent message
+  const loadThreadReplies = useCallback(async (parentMessageId: string): Promise<ChatMessage[]> => {
+    const { data, error } = await supabase
+      .from("chat_messages_v2")
+      .select("*")
+      .eq("parent_message_id", parentMessageId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error loading thread replies:", error);
+      return [];
+    }
+
+    return (data || []).map((msg) => ({
+      id: msg.id,
+      role: msg.role as "user" | "assistant",
+      content: msg.content,
+      timestamp: msg.created_at,
+    }));
+  }, []);
+
+  // Send a reply to a thread
+  const sendThreadReply = useCallback(async (
+    parentMessageId: string,
+    sessionId: string,
+    content: string,
+    mentions?: string[]
+  ): Promise<ChatMessage | null> => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return null;
+
+    // Insert the reply with parent_message_id
+    const { data: insertedMessage, error: insertError } = await supabase
+      .from("chat_messages_v2")
+      .insert({
+        session_id: sessionId,
+        role: "user",
+        content,
+        parent_message_id: parentMessageId,
+        mentions: mentions || [],
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Error sending thread reply:", insertError);
+      return null;
+    }
+
+    // Increment thread_count on parent message
+    const { data: parentData } = await supabase
+      .from("chat_messages_v2")
+      .select("thread_count")
+      .eq("id", parentMessageId)
+      .single();
+
+    if (parentData) {
+      await supabase
+        .from("chat_messages_v2")
+        .update({ thread_count: (parentData.thread_count || 0) + 1 })
+        .eq("id", parentMessageId);
+    }
+
+    return {
+      id: insertedMessage.id,
+      role: "user",
+      content: insertedMessage.content,
+      timestamp: insertedMessage.created_at,
+    };
+  }, []);
+
   return {
     messages,
     isLoading,
@@ -618,5 +689,7 @@ export function useChat({ sessionId, onError }: UseChatOptions) {
     deleteMessage,
     stopGeneration,
     editAndResendMessage,
+    loadThreadReplies,
+    sendThreadReply,
   };
 }
