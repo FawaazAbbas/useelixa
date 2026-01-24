@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { getCodeVerifier } from '@/config/oauth';
+import { logAdminAction } from '@/utils/auditLog';
 
 // Generate a short unique correlation ID for tracking OAuth attempts
 function generateCorrelationId(): string {
@@ -244,6 +245,17 @@ export default function OAuthCallback() {
       console.log(`[OAuth:${correlationId}] ✅ Exchange successful`);
       setStatus('success');
       setMessage('Connection successful! Redirecting...');
+
+      // Log successful integration connection to audit log
+      await logAdminAction({
+        actionType: "integration_connect",
+        entityType: "user_credentials",
+        newValue: { 
+          provider,
+          bundleType: bundleType || undefined,
+          credentialType,
+        },
+      });
 
       // Redirect back to connections page after 2 seconds
       setTimeout(() => {
