@@ -12,11 +12,11 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Product IDs for subscription plans
+// Product IDs for subscription plans (LIVE MODE)
 const PRODUCT_TO_PLAN: Record<string, string> = {
-  "prod_TqW6RM18o3Eyzd": "starter",
-  "prod_TqW6xtQM170Yg8": "pro",
-  "prod_TqW7nnxVAdzhpT": "unlimited",
+  "prod_Tqek332KZ0AVBr": "starter",
+  "prod_TqelSWxx4HFiS8": "pro",
+  "prod_TqelktwA0bb6o1": "unlimited",
 };
 
 // Plan limits

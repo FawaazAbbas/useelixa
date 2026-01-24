@@ -12,15 +12,15 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-CHECKOUT] ${step}${detailsStr}`);
 };
 
-// Price IDs for subscription plans
+// Price IDs for subscription plans (LIVE MODE)
 const PLAN_PRICES: Record<string, string> = {
-  starter: "price_1Ssp3rIiX8stjLLygn9mexTA",
-  pro: "price_1Ssp4WIiX8stjLLyWbexxo0X",
-  unlimited: "price_1Ssp4tIiX8stjLLyFWKJRRAp",
+  starter: "price_1SsxRTIiX8stjLLy68hnyhrD",
+  pro: "price_1SsxRoIiX8stjLLyJM3f97VL",
+  unlimited: "price_1SsxS6IiX8stjLLyndc2G85p",
 };
 
-// Credits product price ID (metered/dynamic)
-const CREDITS_PRICE_ID = "price_1SswmiIiX8stjLLymaaMgpOX";
+// Credits product ID (LIVE MODE)
+const CREDITS_PRODUCT_ID = "prod_Tqelsct2gcwdpM";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -116,7 +116,7 @@ serve(async (req) => {
           {
             price_data: {
               currency: "gbp",
-              product: "prod_Tqe4TL7sYKOF0l", // Elixa Credits product
+              product: CREDITS_PRODUCT_ID, // Elixa Credits product (LIVE)
               unit_amount: totalPence,
             },
             quantity: 1,
