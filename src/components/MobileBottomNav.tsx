@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, MoreHorizontal, Plug, BookOpen, Activity } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, MoreHorizontal, Plug, BookOpen, Activity, CreditCard } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +30,7 @@ export const MobileBottomNav = ({ hidden = false }: MobileBottomNavProps) => {
     { path: "/logs", icon: Activity, label: "Logs" },
     { path: "/connections", icon: Plug, label: "Connections" },
     { path: "/knowledge-base", icon: BookOpen, label: "Knowledge" },
+    { path: "/billing", icon: CreditCard, label: "Billing" },
   ];
 
   const isActive = (path: string) => location.pathname === path;

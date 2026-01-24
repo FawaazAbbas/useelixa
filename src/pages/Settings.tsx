@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, Key, Plug, Building2, Upload, Bot, Shield } from "lucide-react";
+import { ArrowLeft, User, Lock, Key, Plug, Building2, Upload, Bot, Shield, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,7 +193,7 @@ const Settings = () => {
           </div>
 
           <Tabs defaultValue="profile" className="space-y-4 md:space-y-6">
-            <TabsList className="w-full grid grid-cols-4 md:grid-cols-7 h-auto">
+            <TabsList className="w-full grid grid-cols-4 md:grid-cols-8 h-auto">
               <TabsTrigger value="profile" className="text-xs md:text-sm py-3 touch-manipulation">
                 <User className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Profile
@@ -202,11 +202,15 @@ const Settings = () => {
                 <Building2 className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Org
               </TabsTrigger>
+              <TabsTrigger value="billing" className="text-xs md:text-sm py-3 touch-manipulation">
+                <CreditCard className="h-4 w-4 mr-1.5 hidden sm:inline" />
+                Billing
+              </TabsTrigger>
               <TabsTrigger value="ai" className="text-xs md:text-sm py-3 touch-manipulation">
                 <Bot className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 AI
               </TabsTrigger>
-              <TabsTrigger value="scopes" className="text-xs md:text-sm py-3 touch-manipulation">
+              <TabsTrigger value="scopes" className="text-xs md:text-sm py-3 touch-manipulation hidden md:flex">
                 <Shield className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Scopes
               </TabsTrigger>
@@ -342,6 +346,31 @@ const Settings = () => {
                       {loading ? "Saving..." : "Update Organization"}
                     </Button>
                   )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="billing">
+              <Card className="shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Billing & Subscription
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your subscription, view usage, and purchase credits
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      View your current plan, usage statistics, and manage your subscription from the Billing page.
+                    </p>
+                    <Button onClick={() => navigate("/billing")} className="w-full sm:w-auto">
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Go to Billing
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

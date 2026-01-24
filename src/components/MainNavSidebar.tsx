@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell } from "lucide-react";
+import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,7 @@ const navItems = [
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Plug, label: "Connections", path: "/connections" },
   { icon: Activity, label: "Logs", path: "/logs" },
+  { icon: CreditCard, label: "Billing", path: "/billing" },
 ];
 
 export const MainNavSidebar = () => {
@@ -110,6 +111,10 @@ export const MainNavSidebar = () => {
             <DropdownMenuItem onClick={() => navigate("/settings")}>
               <SettingsIcon className="mr-2 h-4 w-4" />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/billing")}>
+              <CreditCard className="mr-2 h-4 w-4" />
+              Billing
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
