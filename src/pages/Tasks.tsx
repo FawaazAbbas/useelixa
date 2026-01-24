@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw } from "lucide-react";
+import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
+import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 import { format } from "date-fns";
 
@@ -39,7 +40,7 @@ const Tasks = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("kanban");
+  const [viewMode, setViewMode] = useState<"list" | "kanban" | "scheduled">("kanban");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -247,12 +248,15 @@ const Tasks = () => {
       fullWidth
       actions={
         <>
-          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "kanban")}>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as "list" | "kanban" | "scheduled")}>
             <ToggleGroupItem value="kanban" aria-label="Kanban view" className="h-9 w-9">
               <LayoutGrid className="h-4 w-4" />
             </ToggleGroupItem>
             <ToggleGroupItem value="list" aria-label="List view" className="h-9 w-9">
               <List className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="scheduled" aria-label="Scheduled view" className="h-9 w-9">
+              <CalendarClock className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -453,6 +457,8 @@ const Tasks = () => {
           onTaskEdit={handleEdit}
           onTaskDelete={handleDelete}
         />
+      ) : viewMode === "scheduled" ? (
+        <ScheduledTasksPanel />
       ) : (
         <div className="space-y-2 max-w-3xl mx-auto">
           {tasks.map((task) => (
@@ -465,13 +471,13 @@ const Tasks = () => {
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${
                     task.priority === "high" ? "bg-destructive" :
-                    task.priority === "medium" ? "bg-warning" : "bg-muted-foreground"
+                    task.priority === "medium" ? "bg-primary/60" : "bg-muted-foreground"
                   }`} />
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{task.title}</p>
                       {task.is_recurring && (
-                        <RefreshCw className="h-3 w-3 text-teal-500" />
+                        <RefreshCw className="h-3 w-3 text-primary" />
                       )}
                     </div>
                     {task.due_date && (

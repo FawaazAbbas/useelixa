@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Plus } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Calendar as CalendarIcon, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,7 +17,10 @@ const Calendar = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [localEvents, setLocalEvents] = useState<CalendarEvent[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   
@@ -27,11 +30,34 @@ const Calendar = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
+  // Check if user has Google Calendar connected
+  const checkGoogleCalendar = useCallback(async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from("user_credentials")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("credential_type", "googleOAuth2Api")
+      .eq("bundle_type", "google_calendar")
+      .maybeSingle();
+    
+    setHasGoogleCalendar(!!data);
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       fetchLocalEvents();
+      checkGoogleCalendar();
     }
-  }, [user]);
+  }, [user, checkGoogleCalendar]);
+
+  // Fetch Google Calendar events when connected
+  useEffect(() => {
+    if (hasGoogleCalendar) {
+      fetchGoogleEvents();
+    }
+  }, [hasGoogleCalendar]);
 
   const fetchLocalEvents = async () => {
     const { data, error } = await supabase
@@ -46,6 +72,53 @@ const Calendar = () => {
     }
     setLoading(false);
   };
+
+  const fetchGoogleEvents = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("calendar-integration", {
+        body: {
+          action: "list_google",
+          params: {
+            timeMin: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString(),
+            timeMax: new Date(new Date().getFullYear(), new Date().getMonth() + 3, 0).toISOString(),
+            maxResults: 100,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const events: CalendarEvent[] = (data?.events || []).map((e: any) => ({
+        id: e.id,
+        title: e.summary || "(No Title)",
+        description: e.description || null,
+        start_time: e.start?.dateTime || e.start?.date,
+        end_time: e.end?.dateTime || e.end?.date,
+        all_day: !!e.start?.date && !e.start?.dateTime,
+        color: "#4285f4", // Google blue
+        source: "google" as const,
+        user_id: user?.id || "",
+      }));
+
+      setGoogleEvents(events);
+    } catch (error) {
+      console.error("Error fetching Google events:", error);
+      // Don't show error toast - user may not have granted calendar scope
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleRefreshGoogle = () => {
+    if (hasGoogleCalendar) {
+      fetchGoogleEvents();
+    }
+  };
+
+  // Combine local and Google events
+  const allEvents = [...localEvents, ...googleEvents];
 
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
@@ -147,6 +220,17 @@ const Calendar = () => {
 
   const headerActions = (
     <div className="flex items-center gap-2">
+      {hasGoogleCalendar && (
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={handleRefreshGoogle}
+          disabled={syncing}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
+          <span className="hidden sm:inline">Sync</span>
+        </Button>
+      )}
       <Button onClick={openNewEventDialog}>
         <Plus className="h-4 w-4 mr-2" />
         <span className="hidden sm:inline">Add Event</span>
@@ -158,7 +242,7 @@ const Calendar = () => {
     <PageLayout
       title="Calendar"
       icon={CalendarIcon}
-      badge={`${localEvents.length} events`}
+      badge={`${allEvents.length} events`}
       actions={headerActions}
       fullWidth
       noPadding
@@ -170,7 +254,7 @@ const Calendar = () => {
       ) : (
         <div className="flex-1 p-4 h-[calc(100vh-120px)]">
           <CalendarGrid
-            events={localEvents}
+            events={allEvents}
             selectedDate={selectedDate}
             onSelectDate={setSelectedDate}
             onEventClick={handleEventClick}

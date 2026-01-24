@@ -21,12 +21,27 @@ export interface EmailLabel {
   type: string;
 }
 
-export interface GmailAccount {
+export interface EmailAccount {
   credential_id: string;
   account_email: string;
+  provider: "gmail" | "outlook";
 }
 
-type EmailFolder = "INBOX" | "SENT" | "DRAFT" | "STARRED" | "TRASH" | "SPAM" | "IMPORTANT";
+// Keep for backward compat
+export type GmailAccount = EmailAccount;
+
+export type EmailFolder = "INBOX" | "SENT" | "DRAFT" | "STARRED" | "TRASH" | "SPAM" | "IMPORTANT";
+
+// Folder name mapping for different providers
+const OUTLOOK_FOLDER_MAP: Record<EmailFolder, string> = {
+  INBOX: "Inbox",
+  SENT: "SentItems", 
+  DRAFT: "Drafts",
+  STARRED: "Inbox", // Outlook uses flags, not folders for starred
+  TRASH: "DeletedItems",
+  SPAM: "JunkEmail",
+  IMPORTANT: "Inbox", // Outlook doesn't have Important folder
+};
 
 interface UseEmailOptions {
   accountEmail?: string;
@@ -36,47 +51,65 @@ export const useEmail = (options: UseEmailOptions = {}) => {
   const [messages, setMessages] = useState<EmailMessage[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<EmailMessage | null>(null);
   const [labels, setLabels] = useState<EmailLabel[]>([]);
-  const [accounts, setAccounts] = useState<GmailAccount[]>([]);
+  const [accounts, setAccounts] = useState<EmailAccount[]>([]);
   const [currentAccount, setCurrentAccount] = useState<string | null>(options.accountEmail || null);
+  const [currentProvider, setCurrentProvider] = useState<"gmail" | "outlook">("gmail");
   const [currentFolder, setCurrentFolder] = useState<EmailFolder>("INBOX");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
 
-  // Load connected Gmail accounts
+  // Load connected email accounts (Gmail and Outlook)
   const loadAccounts = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: credentials, error } = await supabase
+      // Fetch Gmail accounts
+      const { data: gmailCredentials } = await supabase
         .from("user_credentials")
         .select("id, account_email")
         .eq("user_id", user.id)
         .eq("credential_type", "googleOAuth2Api");
 
-      if (error) throw error;
+      // Fetch Outlook accounts
+      const { data: outlookCredentials } = await supabase
+        .from("user_credentials")
+        .select("id, account_email")
+        .eq("user_id", user.id)
+        .eq("credential_type", "microsoftOAuth2Api");
 
-      const gmailAccounts: GmailAccount[] = (credentials || [])
-        .filter((c): c is { id: string; account_email: string } => !!c.account_email)
-        .map((c) => ({
-          credential_id: c.id,
-          account_email: c.account_email,
-        }));
+      const allAccounts: EmailAccount[] = [
+        ...(gmailCredentials || [])
+          .filter((c): c is { id: string; account_email: string } => !!c.account_email)
+          .map((c) => ({
+            credential_id: c.id,
+            account_email: c.account_email,
+            provider: "gmail" as const,
+          })),
+        ...(outlookCredentials || [])
+          .filter((c): c is { id: string; account_email: string } => !!c.account_email)
+          .map((c) => ({
+            credential_id: c.id,
+            account_email: c.account_email,
+            provider: "outlook" as const,
+          })),
+      ];
 
-      setAccounts(gmailAccounts);
+      setAccounts(allAccounts);
       
       // Set default account if not set
-      if (!currentAccount && gmailAccounts.length > 0) {
-        setCurrentAccount(gmailAccounts[0].account_email);
+      if (!currentAccount && allAccounts.length > 0) {
+        setCurrentAccount(allAccounts[0].account_email);
+        setCurrentProvider(allAccounts[0].provider);
       }
     } catch (error) {
       console.error("[useEmail] Failed to load accounts:", error);
     }
   }, [currentAccount]);
 
-  // Fetch emails from the Gmail integration
+  // Fetch emails from the integration (Gmail or Outlook)
   const fetchEmails = useCallback(async (folder: EmailFolder = currentFolder, query?: string) => {
     if (!currentAccount) {
       setMessages([]);
@@ -85,43 +118,77 @@ export const useEmail = (options: UseEmailOptions = {}) => {
 
     setIsLoading(true);
     try {
-      // Map folder to Gmail labelIds
-      const labelIds = folder === "STARRED" ? ["STARRED"] : 
-                       folder === "TRASH" ? ["TRASH"] :
-                       folder === "SPAM" ? ["SPAM"] :
-                       folder === "IMPORTANT" ? ["IMPORTANT"] :
-                       folder === "SENT" ? ["SENT"] :
-                       folder === "DRAFT" ? ["DRAFT"] :
-                       ["INBOX"];
-
-      const { data, error } = await supabase.functions.invoke("gmail-integration", {
-        body: {
-          action: "list",
-          params: {
-            labelIds,
-            maxResults: 25,
-            query: query || searchQuery,
-            accountEmail: currentAccount,
+      // Determine which function to call based on provider
+      const functionName = currentProvider === "outlook" ? "microsoft-integration" : "gmail-integration";
+      
+      if (currentProvider === "outlook") {
+        // Outlook API call
+        const { data, error } = await supabase.functions.invoke(functionName, {
+          body: {
+            action: "list_emails",
+            params: {
+              folder: OUTLOOK_FOLDER_MAP[folder],
+              top: 25,
+              filter: query ? `contains(subject,'${query}') or contains(from/emailAddress/address,'${query}')` : undefined,
+              accountEmail: currentAccount,
+            },
           },
-        },
-      });
+        });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
 
-      const emailMessages: EmailMessage[] = (data?.messages || []).map((msg: any) => ({
-        id: msg.id,
-        threadId: msg.threadId,
-        from: msg.from || "",
-        subject: msg.subject || "(No Subject)",
-        snippet: msg.snippet || "",
-        date: msg.date || "",
-        labelIds: msg.labelIds || [],
-        isUnread: msg.labelIds?.includes("UNREAD"),
-      }));
+        const emailMessages: EmailMessage[] = (data?.messages || []).map((msg: any) => ({
+          id: msg.id,
+          threadId: msg.conversationId || msg.id,
+          from: msg.from?.emailAddress?.address || "",
+          subject: msg.subject || "(No Subject)",
+          snippet: msg.bodyPreview || "",
+          date: msg.receivedDateTime || "",
+          labelIds: msg.isRead ? [] : ["UNREAD"],
+          isUnread: !msg.isRead,
+        }));
 
-      setMessages(emailMessages);
-      setNextPageToken(data?.nextPageToken || null);
+        setMessages(emailMessages);
+      } else {
+        // Gmail API call
+        const labelIds = folder === "STARRED" ? ["STARRED"] : 
+                         folder === "TRASH" ? ["TRASH"] :
+                         folder === "SPAM" ? ["SPAM"] :
+                         folder === "IMPORTANT" ? ["IMPORTANT"] :
+                         folder === "SENT" ? ["SENT"] :
+                         folder === "DRAFT" ? ["DRAFT"] :
+                         ["INBOX"];
+
+        const { data, error } = await supabase.functions.invoke(functionName, {
+          body: {
+            action: "list",
+            params: {
+              labelIds,
+              maxResults: 25,
+              query: query || searchQuery,
+              accountEmail: currentAccount,
+            },
+          },
+        });
+
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        const emailMessages: EmailMessage[] = (data?.messages || []).map((msg: any) => ({
+          id: msg.id,
+          threadId: msg.threadId,
+          from: msg.from || "",
+          subject: msg.subject || "(No Subject)",
+          snippet: msg.snippet || "",
+          date: msg.date || "",
+          labelIds: msg.labelIds || [],
+          isUnread: msg.labelIds?.includes("UNREAD"),
+        }));
+
+        setMessages(emailMessages);
+        setNextPageToken(data?.nextPageToken || null);
+      }
     } catch (error) {
       console.error("[useEmail] Fetch error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to load emails");
@@ -129,7 +196,7 @@ export const useEmail = (options: UseEmailOptions = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentAccount, currentFolder, searchQuery]);
+  }, [currentAccount, currentFolder, currentProvider, searchQuery]);
 
   // Read a specific email
   const readEmail = useCallback(async (messageId: string) => {
@@ -399,10 +466,14 @@ export const useEmail = (options: UseEmailOptions = {}) => {
 
   // Change account
   const changeAccount = useCallback((accountEmail: string) => {
+    const account = accounts.find(a => a.account_email === accountEmail);
     setCurrentAccount(accountEmail);
+    if (account) {
+      setCurrentProvider(account.provider);
+    }
     setSelectedMessage(null);
     setMessages([]);
-  }, []);
+  }, [accounts]);
 
   // Load accounts on mount
   useEffect(() => {
@@ -423,6 +494,7 @@ export const useEmail = (options: UseEmailOptions = {}) => {
     labels,
     accounts,
     currentAccount,
+    currentProvider,
     currentFolder,
     isLoading,
     isLoadingMessage,
