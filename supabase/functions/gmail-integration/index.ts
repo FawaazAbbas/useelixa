@@ -40,9 +40,14 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api");
+    // Try Gmail-specific credentials first, then fallback to general Google OAuth
+    let creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api", "gmail");
     if (!creds) {
-      throw new Error("Google account not connected. Please connect your Google account first.");
+      // Fallback to generic Google OAuth without bundle type
+      creds = await getDecryptedCredentials(serviceClient, user.id, "googleOAuth2Api", null);
+    }
+    if (!creds) {
+      throw new Error("Google account not connected. Please connect your Gmail account first.");
     }
 
     let accessToken = creds.access_token;

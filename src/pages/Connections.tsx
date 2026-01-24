@@ -249,7 +249,7 @@ const Connections = () => {
     <PageLayout
       title="Connections"
       icon={Plug}
-      badge={connectorLimit !== null 
+      badge={connectorLimit !== null && connectorLimit !== undefined
         ? `${connectedIntegrations.length}/${connectorLimit} connected`
         : connectedIntegrations.length > 0 
           ? `${connectedIntegrations.length} connected` 

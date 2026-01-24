@@ -418,7 +418,9 @@ const Billing = () => {
                     Connectors
                   </span>
                   <span className="font-medium">
-                    {orgData?.connector_limit === null ? "Unlimited" : `${orgData?.connector_limit} max`}
+                    {orgData?.connector_limit === null || orgData?.connector_limit === undefined 
+                      ? "Unlimited" 
+                      : `${orgData.connector_limit} max`}
                   </span>
                 </div>
 
