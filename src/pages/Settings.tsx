@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, Key, Plug, Building2, Upload, Bot, Shield, CreditCard } from "lucide-react";
+import { ArrowLeft, User, Lock, Building2, Upload, Bot, Shield, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
-import { McpAccessSettings } from "@/components/settings/McpAccessSettings";
-import { ConnectedToolsSettings } from "@/components/settings/ConnectedToolsSettings";
-import { AIBehaviorSettings } from "@/components/settings/AIBehaviorSettings";
 import { ToolScopeSettings } from "@/components/settings/ToolScopeSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -218,14 +215,6 @@ const Settings = () => {
                 <Lock className="h-4 w-4 mr-1.5 hidden sm:inline" />
                 Security
               </TabsTrigger>
-              <TabsTrigger value="tools" className="text-xs md:text-sm py-3 touch-manipulation hidden md:flex">
-                <Plug className="h-4 w-4 mr-1.5 hidden sm:inline" />
-                Tools
-              </TabsTrigger>
-              <TabsTrigger value="mcp" className="text-xs md:text-sm py-3 touch-manipulation hidden md:flex">
-                <Key className="h-4 w-4 mr-1.5 hidden sm:inline" />
-                MCP
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
@@ -400,20 +389,8 @@ const Settings = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="tools">
-              <ConnectedToolsSettings />
-            </TabsContent>
-
-            <TabsContent value="ai">
-              <AIBehaviorSettings />
-            </TabsContent>
-
             <TabsContent value="scopes">
               <ToolScopeSettings />
-            </TabsContent>
-
-            <TabsContent value="mcp">
-              <McpAccessSettings />
             </TabsContent>
           </Tabs>
         </div>
