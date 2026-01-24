@@ -64,6 +64,193 @@ export type Database = {
           },
         ]
       }
+      ai_employee_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          from_employee_id: string | null
+          id: string
+          initiated_by_user: string | null
+          message_type: string | null
+          metadata: Json | null
+          parent_task_id: string | null
+          to_employee_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          from_employee_id?: string | null
+          id?: string
+          initiated_by_user?: string | null
+          message_type?: string | null
+          metadata?: Json | null
+          parent_task_id?: string | null
+          to_employee_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          from_employee_id?: string | null
+          id?: string
+          initiated_by_user?: string | null
+          message_type?: string | null
+          metadata?: Json | null
+          parent_task_id?: string | null
+          to_employee_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_employee_messages_from_employee_id_fkey"
+            columns: ["from_employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employee_messages_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employee_messages_to_employee_id_fkey"
+            columns: ["to_employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_employee_tasks: {
+        Row: {
+          assigned_by_user: string | null
+          completed_at: string | null
+          created_at: string | null
+          delegated_by_employee_id: string | null
+          employee_id: string | null
+          id: string
+          original_task_id: string | null
+          priority: string | null
+          result: string | null
+          result_metadata: Json | null
+          started_at: string | null
+          status: string | null
+          task_description: string
+        }
+        Insert: {
+          assigned_by_user?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          delegated_by_employee_id?: string | null
+          employee_id?: string | null
+          id?: string
+          original_task_id?: string | null
+          priority?: string | null
+          result?: string | null
+          result_metadata?: Json | null
+          started_at?: string | null
+          status?: string | null
+          task_description: string
+        }
+        Update: {
+          assigned_by_user?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          delegated_by_employee_id?: string | null
+          employee_id?: string | null
+          id?: string
+          original_task_id?: string | null
+          priority?: string | null
+          result?: string | null
+          result_metadata?: Json | null
+          started_at?: string | null
+          status?: string | null
+          task_description?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_employee_tasks_delegated_by_employee_id_fkey"
+            columns: ["delegated_by_employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employee_tasks_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_employee_tasks_original_task_id_fkey"
+            columns: ["original_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_employees: {
+        Row: {
+          allowed_tools: string[] | null
+          avatar_url: string | null
+          can_delegate_to: string[] | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_template: boolean | null
+          name: string
+          org_id: string | null
+          role: string
+          system_prompt: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_tools?: string[] | null
+          avatar_url?: string | null
+          can_delegate_to?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          name: string
+          org_id?: string | null
+          role: string
+          system_prompt?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_tools?: string[] | null
+          avatar_url?: string | null
+          can_delegate_to?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          name?: string
+          org_id?: string | null
+          role?: string
+          system_prompt?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_employees_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_name: string
@@ -458,6 +645,87 @@ export type Database = {
           min_credits?: number
           price_per_credit_pence?: number
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      daily_digests: {
+        Row: {
+          content: Json
+          delivered_at: string | null
+          delivery_method: string | null
+          digest_date: string
+          generated_at: string | null
+          id: string
+          summary: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content: Json
+          delivered_at?: string | null
+          delivery_method?: string | null
+          digest_date: string
+          generated_at?: string | null
+          id?: string
+          summary?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: Json
+          delivered_at?: string | null
+          delivery_method?: string | null
+          digest_date?: string
+          generated_at?: string | null
+          id?: string
+          summary?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      digest_configs: {
+        Row: {
+          created_at: string | null
+          delivery_time: string | null
+          email_delivery: boolean | null
+          id: string
+          include_ai_suggestions: boolean | null
+          include_calendar: boolean | null
+          include_emails: boolean | null
+          include_metrics: boolean | null
+          include_tasks: boolean | null
+          is_enabled: boolean | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_time?: string | null
+          email_delivery?: boolean | null
+          id?: string
+          include_ai_suggestions?: boolean | null
+          include_calendar?: boolean | null
+          include_emails?: boolean | null
+          include_metrics?: boolean | null
+          include_tasks?: boolean | null
+          is_enabled?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_time?: string | null
+          email_delivery?: boolean | null
+          id?: string
+          include_ai_suggestions?: boolean | null
+          include_calendar?: boolean | null
+          include_emails?: boolean | null
+          include_metrics?: boolean | null
+          include_tasks?: boolean | null
+          is_enabled?: boolean | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1025,6 +1293,86 @@ export type Database = {
         }
         Relationships: []
       }
+      reasoning_traces: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          decision_summary: string | null
+          employee_id: string | null
+          id: string
+          message_id: string | null
+          model_used: string | null
+          reasoning_steps: Json
+          task_id: string | null
+          tools_considered: string[] | null
+          tools_used: string[] | null
+          total_tokens: number | null
+          user_id: string | null
+          workflow_execution_id: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          decision_summary?: string | null
+          employee_id?: string | null
+          id?: string
+          message_id?: string | null
+          model_used?: string | null
+          reasoning_steps?: Json
+          task_id?: string | null
+          tools_considered?: string[] | null
+          tools_used?: string[] | null
+          total_tokens?: number | null
+          user_id?: string | null
+          workflow_execution_id?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          decision_summary?: string | null
+          employee_id?: string | null
+          id?: string
+          message_id?: string | null
+          model_used?: string | null
+          reasoning_steps?: Json
+          task_id?: string | null
+          tools_considered?: string[] | null
+          tools_used?: string[] | null
+          total_tokens?: number | null
+          user_id?: string | null
+          workflow_execution_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reasoning_traces_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "ai_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reasoning_traces_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages_v2"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reasoning_traces_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reasoning_traces_workflow_execution_id_fkey"
+            columns: ["workflow_execution_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_executions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shared_chats: {
         Row: {
           created_at: string
@@ -1441,6 +1789,153 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      workflow_executions: {
+        Row: {
+          completed_at: string | null
+          current_step_id: string | null
+          error_message: string | null
+          id: string
+          started_at: string | null
+          status: string | null
+          step_results: Json | null
+          triggered_by: string | null
+          workflow_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          current_step_id?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          step_results?: Json | null
+          triggered_by?: string | null
+          workflow_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          current_step_id?: string | null
+          error_message?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          step_results?: Json | null
+          triggered_by?: string | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_executions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_steps: {
+        Row: {
+          condition_config: Json | null
+          created_at: string | null
+          id: string
+          on_failure_step_id: string | null
+          on_success_step_id: string | null
+          position_x: number | null
+          position_y: number | null
+          step_name: string | null
+          step_order: number
+          step_type: string
+          tool_name: string | null
+          tool_params: Json | null
+          workflow_id: string | null
+        }
+        Insert: {
+          condition_config?: Json | null
+          created_at?: string | null
+          id?: string
+          on_failure_step_id?: string | null
+          on_success_step_id?: string | null
+          position_x?: number | null
+          position_y?: number | null
+          step_name?: string | null
+          step_order: number
+          step_type: string
+          tool_name?: string | null
+          tool_params?: Json | null
+          workflow_id?: string | null
+        }
+        Update: {
+          condition_config?: Json | null
+          created_at?: string | null
+          id?: string
+          on_failure_step_id?: string | null
+          on_success_step_id?: string | null
+          position_x?: number | null
+          position_y?: number | null
+          step_name?: string | null
+          step_order?: number
+          step_type?: string
+          tool_name?: string | null
+          tool_params?: Json | null
+          workflow_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_steps_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          org_id: string | null
+          trigger_config: Json | null
+          trigger_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          org_id?: string | null
+          trigger_config?: Json | null
+          trigger_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          org_id?: string | null
+          trigger_config?: Json | null
+          trigger_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflows_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_documents: {
         Row: {

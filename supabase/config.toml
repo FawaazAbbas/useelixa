@@ -86,3 +86,12 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.execute-workflow]
+verify_jwt = false
+
+[functions.ai-employee-orchestrator]
+verify_jwt = false
+
+[functions.generate-daily-digest]
+verify_jwt = false

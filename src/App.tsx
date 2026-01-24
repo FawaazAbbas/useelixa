@@ -29,6 +29,9 @@ import BlogPost from "./pages/BlogPost";
 import Notifications from "./pages/Notifications";
 import SharedChat from "./pages/SharedChat";
 import Email from "./pages/Email";
+import Workflows from "./pages/Workflows";
+import AIEmployees from "./pages/AIEmployees";
+import Digest from "./pages/Digest";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -87,6 +90,9 @@ const AppContent = () => {
           <Route path="/analytics" element={<Logs />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/workflows" element={<Workflows />} />
+          <Route path="/ai-employees" element={<AIEmployees />} />
+          <Route path="/digest" element={<Digest />} />
           <Route path="/about" element={<About />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />

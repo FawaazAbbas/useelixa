@@ -1,4 +1,4 @@
-import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon } from "lucide-react";
+import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon, Workflow, Newspaper } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +30,9 @@ const navItems: NavItem[] = [
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
+  { icon: Workflow, label: "Workflows", path: "/workflows" },
+  { icon: Users, label: "AI Employees", path: "/ai-employees" },
+  { icon: Newspaper, label: "Digest", path: "/digest" },
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Plug, label: "Connections", path: "/connections" },
   { icon: Activity, label: "Logs", path: "/logs" },
