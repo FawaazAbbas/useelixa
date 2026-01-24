@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock, Settings, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +10,7 @@ import { PageLayout, CardGrid } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CreditPurchaseDialog } from "@/components/chat/CreditPurchaseDialog";
-
+import { toast } from "sonner";
 interface UsageStats {
   ai_calls: number;
   tool_executions: number;
@@ -91,11 +92,52 @@ const plans = [
 const Billing = () => {
   const { user } = useAuth();
   const { organization, loading } = useTeam();
+  const [searchParams] = useSearchParams();
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [orgData, setOrgData] = useState<OrgData | null>(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
+  const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
+  const [openingPortal, setOpeningPortal] = useState(false);
 
+  // Handle URL params from Stripe redirect
+  useEffect(() => {
+    const success = searchParams.get("success");
+    const credits = searchParams.get("credits");
+    const creditAmount = searchParams.get("amount");
+    const canceled = searchParams.get("canceled");
+
+    if (success === "true") {
+      toast.success("Subscription activated!", {
+        description: "Your plan has been upgraded successfully.",
+      });
+      // Refresh subscription status
+      checkSubscription();
+    } else if (credits === "true" && creditAmount) {
+      toast.success(`${parseInt(creditAmount).toLocaleString()} credits added!`, {
+        description: "Your credits are now available to use.",
+      });
+    } else if (canceled === "true") {
+      toast.info("Checkout canceled", {
+        description: "No charges were made.",
+      });
+    }
+
+    // Clean up URL params
+    if (success || credits || canceled) {
+      window.history.replaceState({}, "", "/billing");
+    }
+  }, [searchParams]);
+
+  const checkSubscription = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subscription");
+      if (error) throw error;
+      console.log("[Billing] Subscription check:", data);
+    } catch (error) {
+      console.error("[Billing] Failed to check subscription:", error);
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       if (!organization?.id) {
@@ -179,6 +221,48 @@ const Billing = () => {
     const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+  };
+
+  const handleUpgrade = async (planId: string) => {
+    if (planId === "trial") return;
+    
+    setUpgradingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { type: "subscription", planId },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("[Billing] Checkout error:", error);
+      toast.error("Failed to start checkout", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setUpgradingPlan(null);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-portal");
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("[Billing] Portal error:", error);
+      toast.error("Failed to open billing portal", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setOpeningPortal(false);
+    }
   };
 
   return (
@@ -274,13 +358,27 @@ const Billing = () => {
                   Storage used: {formatBytes(usageStats?.storage_bytes_used || 0)}
                 </div>
 
-                {/* Top Up Button */}
-                <div className="pt-4 border-t">
-                  <Button onClick={() => setCreditDialogOpen(true)} variant="outline" className="w-full sm:w-auto">
+                {/* Action Buttons */}
+                <div className="pt-4 border-t flex flex-wrap gap-2">
+                  <Button onClick={() => setCreditDialogOpen(true)} variant="outline">
                     <Coins className="h-4 w-4 mr-2" />
                     Top Up Credits
                     <span className="ml-2 text-muted-foreground">£0.06/credit</span>
                   </Button>
+                  {currentPlan !== "trial" && (
+                    <Button 
+                      onClick={handleManageSubscription} 
+                      variant="outline"
+                      disabled={openingPortal}
+                    >
+                      {openingPortal ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Settings className="h-4 w-4 mr-2" />
+                      )}
+                      Manage Subscription
+                    </Button>
+                  )}
                 </div>
               </>
             )}
@@ -336,10 +434,18 @@ const Billing = () => {
                     <Button
                       variant={isCurrent ? "outline" : plan.highlighted ? "default" : "secondary"}
                       className="w-full"
-                      disabled={isCurrent}
+                      disabled={isCurrent || plan.trial || upgradingPlan === plan.id}
+                      onClick={() => handleUpgrade(plan.id)}
                     >
-                      {isCurrent ? (
+                      {upgradingPlan === plan.id ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          Opening checkout...
+                        </>
+                      ) : isCurrent ? (
                         "Current Plan"
+                      ) : plan.trial ? (
+                        "Trial Only"
                       ) : (
                         <>
                           Upgrade <ArrowRight className="h-4 w-4 ml-1" />
