@@ -55,6 +55,12 @@ export function ShopifyConnectDialog({ open, onOpenChange }: ShopifyConnectDialo
   const handleConnect = () => {
     setError(null);
     
+    const clientId = OAUTH_CLIENT_IDS.SHOPIFY;
+    if (!clientId) {
+      setError("Shopify integration is not configured. Please contact support.");
+      return;
+    }
+    
     if (!shopInput.trim()) {
       setError("Please enter your Shopify store domain");
       return;
@@ -69,6 +75,9 @@ export function ShopifyConnectDialog({ open, onOpenChange }: ShopifyConnectDialo
 
     setConnecting(true);
 
+    // Store shop domain in sessionStorage for token exchange
+    sessionStorage.setItem('shopify_shop_domain', normalizedDomain);
+
     // Build state with shop domain included
     const state = JSON.stringify({
       provider: "shopify",
@@ -77,9 +86,12 @@ export function ShopifyConnectDialog({ open, onOpenChange }: ShopifyConnectDialo
     });
     const encodedState = encodeURIComponent(btoa(state));
 
-    // Build Shopify OAuth URL
-    const clientId = OAUTH_CLIENT_IDS.SHOPIFY;
-    const oauthUrl = `https://${normalizedDomain}/admin/oauth/authorize?client_id=${clientId}&scope=${encodeURIComponent(SHOPIFY_SCOPES)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${encodedState}`;
+    // Build Shopify OAuth URL - note: Shopify doesn't use response_type parameter
+    const oauthUrl = `https://${normalizedDomain}/admin/oauth/authorize?client_id=${clientId}&scope=${SHOPIFY_SCOPES}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${encodedState}`;
+
+    console.log('[Shopify OAuth] Redirecting to:', oauthUrl);
+    console.log('[Shopify OAuth] Client ID:', clientId);
+    console.log('[Shopify OAuth] Redirect URI:', REDIRECT_URI);
 
     // Redirect to Shopify
     window.location.href = oauthUrl;
