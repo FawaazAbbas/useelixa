@@ -1,329 +1,351 @@
 
+# Pricing System Implementation Plan
 
-# Chat Feature Gap Analysis: Elixa vs ChatGPT
+## Overview
 
-## Executive Summary
-
-After thoroughly analyzing the codebase, I've identified the current feature set and what's missing to make Elixa comparable to ChatGPT. The good news is your foundation is solid - you have streaming, tool calling, file uploads, and multi-model support. The gaps are primarily in UX polish, advanced capabilities, and power-user features.
-
----
-
-## Current Features (Already Implemented)
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Text chat with AI | ✅ Complete | Streaming, markdown support |
-| Model switching | ✅ Complete | 7 models with credit billing |
-| File uploads | ✅ Complete | Images, PDFs, docs (max 5, 10MB) |
-| Vision/Image analysis | ✅ Complete | Multimodal via analyze_file |
-| Tool calling | ✅ Complete | 60+ tools (Gmail, Calendar, Stripe, etc.) |
-| Human-in-the-loop | ✅ Complete | Approve/Deny for write actions |
-| Chat history | ✅ Complete | Sessions, pinning, grouping by date |
-| Copy/Delete/Retry messages | ✅ Complete | Hover actions |
-| Markdown rendering | ✅ Complete | With code blocks, lists, tables |
-| Export chat | ✅ Complete | Markdown export |
-| Real-time updates | ✅ Complete | Supabase realtime subscriptions |
-| Conversation memory | ✅ Partial | Summarization exists but limited |
-| Smart titles | ✅ Complete | Auto-generated after first exchange |
-| Voice infrastructure | ✅ Partial | RealtimeAudio.ts exists but not integrated |
+This plan implements your new 4-tier GBP pricing structure with a flexible slider-based credit top-up system at 2x markup over the highest GPT model cost.
 
 ---
 
-## Missing Features (Prioritized)
+## Pricing Summary
 
-### Priority 1: Core UX Gaps
+### Subscription Tiers
 
-#### 1.1 Search Chat History
-ChatGPT allows searching across all conversations. Currently missing.
+| Tier | Price | Monthly Credits | AI Models | Connectors |
+|------|-------|----------------|-----------|------------|
+| Free Trial (14 days) | £0 | 100 | Standard Elixa AI | 2 max |
+| Starter | £5.99/mo | 1,000 | Standard Elixa AI | Unlimited |
+| Pro | £14.99/mo | 5,000 | GPT + Gemini Premium | Unlimited |
+| Unlimited | £29.99/mo | Unlimited | GPT + Gemini Premium | Unlimited |
 
-**Implementation:**
-- Add search input to sidebar
-- Full-text search across `chat_messages_v2` 
-- Filter sessions by matching content
+### Credit Top-Up Pricing
 
-#### 1.2 Stop Generation Button
-No way to cancel a streaming response mid-generation.
+**Pricing Logic:**
+- GPT-5.2 (highest model) costs us approximately £0.03 per message
+- At 2x markup: **£0.06 per credit**
+- Credits sold in increments of 100 (minimum purchase: 100 credits)
 
-**Implementation:**
-- Add AbortController to useChat hook
-- Show "Stop generating" button during streaming
-- Clean abort handling for SSE stream
-
-#### 1.3 Edit & Resend Messages
-Users can't edit their previous messages and regenerate from that point.
-
-**Implementation:**
-- Add edit button to user messages
-- On edit: delete subsequent messages, resend edited content
-- Branch conversation from edit point
-
-#### 1.4 Code Block Enhancements
-- No syntax highlighting (just monospace)
-- No "Copy code" button on code blocks
-- No language label indicator
-
-**Implementation:**
-- Add `react-syntax-highlighter` or `prism-react-renderer`
-- Wrap code blocks with copy button and language badge
-- Theme matching dark/light mode
-
-#### 1.5 Keyboard Shortcuts
-ChatGPT has extensive keyboard navigation.
-
-**Implementation:**
-- `Cmd/Ctrl + K`: Quick search
-- `Cmd/Ctrl + Shift + N`: New chat
-- `Cmd/Ctrl + /`: Focus input
-- `Escape`: Cancel/close
-- Arrow keys for message navigation
+| Credits | Price | Per Credit |
+|---------|-------|------------|
+| 100 | £6 | £0.06 |
+| 200 | £12 | £0.06 |
+| 500 | £30 | £0.06 |
+| 1,000 | £60 | £0.06 |
+| 2,000 | £120 | £0.06 |
+| 5,000 | £300 | £0.06 |
 
 ---
 
-### Priority 2: Advanced Capabilities
+## Technical Changes
 
-#### 2.1 Voice Mode (Talk to AI)
-You have `RealtimeAudio.ts` infrastructure but it's not connected to the UI.
+### Phase 1: Database Schema Updates
 
-**Implementation:**
-- Add microphone button to ChatInput
-- Integrate existing RealtimeChat class
-- Show waveform during recording
-- Voice output for responses (optional)
-- Push-to-talk or voice-activated modes
+**1.1 Update `orgs` table - Add tier management columns:**
 
-#### 2.2 Canvas / Artifacts Mode
-ChatGPT shows code, documents in a side panel for editing.
-
-**Implementation:**
-- Create `ChatCanvas.tsx` side panel
-- Detect when AI generates code/documents
-- Show in editable canvas with syntax highlighting
-- Allow user edits that feed back to conversation
-
-#### 2.3 Image Generation
-ChatGPT can generate images via DALL-E.
-
-**Implementation:**
-- `google/gemini-2.5-flash-image` is available
-- Add `generate_image` tool to edge function
-- Display generated images inline in chat
-- Allow regeneration with different prompts
-
-#### 2.4 Web Browsing / Search
-ChatGPT can search the web in real-time.
-
-**Implementation:**
-- Add `web_search` tool using a search API
-- Parse and summarize search results
-- Display source links in responses
-
-#### 2.5 Memory / Personalization
-Persistent user preferences that carry across sessions.
-
-**Implementation:**
-- Create `user_memory` table for facts/preferences
-- AI can store ("Remember that I prefer concise answers")
-- AI retrieves relevant memories per conversation
-- User can view/edit/delete memories in settings
-
----
-
-### Priority 3: UX Polish
-
-#### 3.1 Suggested Follow-ups
-ChatGPT shows clickable follow-up questions.
-
-**Implementation:**
-- After AI response, show 2-3 suggested prompts
-- Based on conversation context
-- Clicking sends that message automatically
-
-#### 3.2 Message Reactions / Feedback
-Rating responses helps improve the experience.
-
-**Implementation:**
-- Thumbs up/down on AI messages
-- Store feedback in database
-- Optional: detailed feedback form
-
-#### 3.3 Chat Folders / Organization
-Group related conversations together.
-
-**Implementation:**
-- Create `chat_folders` table
-- Drag-drop sessions into folders
-- Collapse/expand folder groups in sidebar
-
-#### 3.4 Branching Conversations
-Fork a conversation at any point.
-
-**Implementation:**
-- "Branch from here" button on messages
-- Creates new session with messages up to that point
-- Tree visualization of conversation branches
-
-#### 3.5 Share / Collaborate
-Share conversations with others.
-
-**Implementation:**
-- Generate shareable link (public/team)
-- Read-only or collaborative modes
-- Expiring share links
-
----
-
-### Priority 4: Mobile & Accessibility
-
-#### 4.1 Mobile-Optimized Voice
-Push-to-talk with haptic feedback.
-
-#### 4.2 Swipe Gestures
-Swipe to delete, archive conversations.
-
-#### 4.3 Offline Mode
-Queue messages when offline, sync when connected.
-
-#### 4.4 Accessibility Improvements
-Screen reader support, keyboard navigation, high contrast.
-
----
-
-## Implementation Roadmap
-
-### Phase 1: Core UX (Immediate Impact)
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Stop Generation | 2 hours | High |
-| Search Chat History | 4 hours | High |
-| Code Block Enhancements | 3 hours | Medium |
-| Edit & Resend | 4 hours | High |
-| Keyboard Shortcuts | 2 hours | Medium |
-
-### Phase 2: Advanced Features (Week 2)
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Voice Mode (integrate existing) | 6 hours | Very High |
-| Suggested Follow-ups | 3 hours | High |
-| Image Generation | 4 hours | High |
-| Message Reactions | 2 hours | Medium |
-
-### Phase 3: Power User Features (Week 3)
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Canvas/Artifacts | 8 hours | High |
-| Persistent Memory | 6 hours | High |
-| Chat Folders | 4 hours | Medium |
-| Web Search Tool | 4 hours | High |
-
-### Phase 4: Polish & Collaboration (Week 4)
-| Feature | Effort | Impact |
-|---------|--------|--------|
-| Share Conversations | 6 hours | Medium |
-| Branching Conversations | 6 hours | Medium |
-| Mobile Optimizations | 4 hours | Medium |
-
----
-
-## Technical Implementation Details
-
-### Stop Generation
-```typescript
-// In useChat.ts
-const abortControllerRef = useRef<AbortController | null>(null);
-
-const stopGeneration = useCallback(() => {
-  abortControllerRef.current?.abort();
-  setIsLoading(false);
-  setIsStreaming(false);
-}, []);
-
-// In fetch call
-const controller = new AbortController();
-abortControllerRef.current = controller;
-const response = await fetch(CHAT_URL, { 
-  signal: controller.signal,
-  // ... 
-});
-```
-
-### Search Implementation
 ```sql
--- Enable full-text search on messages
-ALTER TABLE chat_messages_v2 ADD COLUMN search_vector tsvector;
-CREATE INDEX idx_messages_search ON chat_messages_v2 USING gin(search_vector);
+-- Add columns for subscription tier management
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS plan_started_at TIMESTAMPTZ DEFAULT now();
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMPTZ;
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS connector_limit INTEGER DEFAULT 2;
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS has_premium_models BOOLEAN DEFAULT false;
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS monthly_credits INTEGER DEFAULT 100;
+ALTER TABLE orgs ADD COLUMN IF NOT EXISTS is_unlimited BOOLEAN DEFAULT false;
 
--- Search function
-CREATE FUNCTION search_chat_messages(query text, user_id uuid)
-RETURNS TABLE(session_id uuid, message_id uuid, content text, highlight text)
-AS $$
-  SELECT session_id, id, content, 
-         ts_headline('english', content, plainto_tsquery(query))
-  FROM chat_messages_v2 cm
-  JOIN chat_sessions_v2 cs ON cm.session_id = cs.id
-  WHERE cs.user_id = user_id 
-    AND cm.search_vector @@ plainto_tsquery(query)
-  ORDER BY cm.created_at DESC
-  LIMIT 50;
-$$ LANGUAGE sql;
+-- Update existing orgs to be on trial with 14 day period
+UPDATE orgs 
+SET trial_ends_at = now() + interval '14 days',
+    plan = 'trial'
+WHERE plan = 'free';
 ```
 
-### Code Block Enhancement Component
-```typescript
-// New component: src/components/chat/CodeBlock.tsx
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+**1.2 Remove fixed credit_packages table and add dynamic pricing:**
 
-interface CodeBlockProps {
-  language: string;
-  code: string;
+```sql
+-- Clear old packages
+DELETE FROM credit_packages;
+
+-- Add dynamic pricing configuration
+CREATE TABLE IF NOT EXISTS credit_pricing (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  price_per_credit_pence INTEGER NOT NULL DEFAULT 6, -- £0.06 = 6p
+  min_credits INTEGER NOT NULL DEFAULT 100,
+  credit_increment INTEGER NOT NULL DEFAULT 100,
+  max_credits INTEGER NOT NULL DEFAULT 10000,
+  currency TEXT NOT NULL DEFAULT 'GBP',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Insert default pricing
+INSERT INTO credit_pricing (price_per_credit_pence, min_credits, credit_increment, max_credits, currency)
+VALUES (6, 100, 100, 10000, 'GBP');
+
+-- RLS for credit_pricing
+ALTER TABLE credit_pricing ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can read credit pricing" ON credit_pricing FOR SELECT USING (true);
+```
+
+---
+
+### Phase 2: Frontend - Credit Purchase Dialog
+
+**File: `src/components/chat/CreditPurchaseDialog.tsx`**
+
+Complete redesign with slider-based credit selection:
+
+Key changes:
+- Replace package cards with a slider component
+- Show dynamic pricing (amount × £0.06)
+- Display quick-select buttons for common amounts (100, 500, 1000, 2000)
+- GBP currency formatting throughout
+- Real-time price calculation as slider moves
+
+New UI structure:
+```text
+┌─────────────────────────────────────────────────────┐
+│ 💳 Buy Credits                                       │
+├─────────────────────────────────────────────────────┤
+│                                                      │
+│  How many credits do you need?                       │
+│                                                      │
+│  ○─────────────────●───────────────────────○        │
+│  100              500                      10,000    │
+│                                                      │
+│  Quick select: [100] [500] [1,000] [2,000]          │
+│                                                      │
+│  ┌───────────────────────────────────────────┐      │
+│  │  500 credits                              │      │
+│  │  £30.00                                   │      │
+│  │  £0.06 per credit                         │      │
+│  └───────────────────────────────────────────┘      │
+│                                                      │
+│  Current balance: 47 credits                         │
+│  After purchase: 547 credits                         │
+│                                                      │
+│              [Cancel]  [Purchase £30.00]             │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+### Phase 3: Billing Page Updates
+
+**File: `src/pages/Billing.tsx`**
+
+Update with new 4-tier structure:
+
+```typescript
+const plans = [
+  {
+    name: "Free Trial",
+    price: "£0",
+    description: "14-day trial to explore Elixa",
+    features: [
+      "100 AI credits",
+      "Standard Elixa AI only",
+      "2 connectors maximum",
+      "14-day access",
+    ],
+    limits: { credits: 100, connectors: 2, premiumModels: false },
+    trial: true,
+  },
+  {
+    name: "Starter",
+    price: "£5.99",
+    period: "/month",
+    description: "For individuals getting started",
+    features: [
+      "1,000 AI credits/month",
+      "Standard Elixa AI",
+      "Unlimited connectors",
+      "Email support",
+    ],
+    limits: { credits: 1000, connectors: Infinity, premiumModels: false },
+  },
+  {
+    name: "Pro",
+    price: "£14.99",
+    period: "/month",
+    description: "For power users",
+    features: [
+      "5,000 AI credits/month",
+      "Access to GPT & Gemini Pro",
+      "Unlimited connectors",
+      "Priority support",
+    ],
+    limits: { credits: 5000, connectors: Infinity, premiumModels: true },
+    highlighted: true,
+  },
+  {
+    name: "Unlimited",
+    price: "£29.99",
+    period: "/month",
+    description: "No limits, full power",
+    features: [
+      "Unlimited AI credits",
+      "Access to GPT & Gemini Pro",
+      "Unlimited connectors",
+      "Dedicated support",
+    ],
+    limits: { credits: Infinity, connectors: Infinity, premiumModels: true },
+  },
+];
+```
+
+Additional updates:
+- Add "Top Up Credits" button that opens the CreditPurchaseDialog
+- Show credit top-up rate (£0.06/credit) in the usage section
+- Display trial countdown for trial users
+
+---
+
+### Phase 4: Model Access Control
+
+**File: `src/components/chat/ModelSelector.tsx`**
+
+Add tier-based model gating:
+
+```typescript
+// Define model tiers
+const STANDARD_MODELS = [
+  "google/gemini-2.5-flash-lite",
+  "google/gemini-2.5-flash", 
+  "openai/gpt-5-nano",
+];
+
+const PREMIUM_MODELS = [
+  "openai/gpt-5-mini",
+  "google/gemini-2.5-pro",
+  "openai/gpt-5",
+  "openai/gpt-5.2",
+];
+```
+
+Changes:
+- Fetch `has_premium_models` flag from user's org
+- Show lock icon and "Upgrade to Pro" tooltip on premium models for non-premium users
+- Disable selection of premium models for Standard/Starter tier users
+
+---
+
+### Phase 5: Backend Enforcement
+
+**File: `supabase/functions/chat/index.ts`**
+
+Add validation for model access and unlimited credits:
+
+```typescript
+// Check if user can use the requested model
+async function validateModelAccess(
+  supabase: any, 
+  orgId: string, 
+  model: string
+): Promise<{ allowed: boolean; error?: string }> {
+  const { data: org } = await supabase
+    .from("orgs")
+    .select("has_premium_models, is_unlimited, plan")
+    .eq("id", orgId)
+    .single();
+
+  const isPremium = PREMIUM_MODELS.includes(model);
+  
+  if (isPremium && !org?.has_premium_models && !org?.is_unlimited) {
+    return { 
+      allowed: false, 
+      error: "This model requires a Pro or Unlimited plan" 
+    };
+  }
+  
+  return { allowed: true };
 }
 
-export const CodeBlock = ({ language, code }: CodeBlockProps) => {
-  const [copied, setCopied] = useState(false);
-  
-  return (
-    <div className="relative group rounded-lg overflow-hidden">
-      <div className="flex justify-between items-center px-4 py-2 bg-zinc-800">
-        <span className="text-xs text-zinc-400">{language}</span>
-        <Button size="sm" variant="ghost" onClick={copyCode}>
-          {copied ? <Check /> : <Copy />} Copy
-        </Button>
-      </div>
-      <SyntaxHighlighter language={language} style={oneDark}>
-        {code}
-      </SyntaxHighlighter>
-    </div>
-  );
-};
+// Skip credit deduction for unlimited users
+async function deductCredits(
+  supabase: any,
+  orgId: string, 
+  credits: number
+): Promise<boolean> {
+  const { data: org } = await supabase
+    .from("orgs")
+    .select("is_unlimited")
+    .eq("id", orgId)
+    .single();
+
+  if (org?.is_unlimited) {
+    return true; // No deduction needed
+  }
+
+  // Existing credit deduction logic...
+}
 ```
+
+---
+
+### Phase 6: Trial Banner Component
+
+**New file: `src/components/billing/TrialBanner.tsx`**
+
+Show countdown for trial users:
+
+```text
+┌────────────────────────────────────────────────────────┐
+│ ⏱️  You have 7 days left on your free trial           │
+│     Upgrade now to keep full access →  [Upgrade]       │
+└────────────────────────────────────────────────────────┘
+```
+
+Display in the main layout for trial users with logic:
+- Calculate days remaining from `trial_ends_at`
+- Show urgency styling when < 3 days remaining
+- Link to Billing page upgrade flow
+
+---
+
+### Phase 7: Connector Limit Enforcement
+
+**File: `src/pages/Connections.tsx`**
+
+Add connector limit validation:
+
+- Fetch `connector_limit` from org
+- Count current `org_integrations` 
+- Show "X/2 connectors used" for trial users
+- Disable additional connections when limit reached
+- Display "Upgrade to add more connectors" message
 
 ---
 
 ## Files to Create/Modify
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/components/chat/StopButton.tsx` | Create | Stop generation UI |
-| `src/components/chat/ChatSearch.tsx` | Create | Search sidebar component |
-| `src/components/chat/CodeBlock.tsx` | Create | Syntax-highlighted code |
-| `src/components/chat/VoiceButton.tsx` | Create | Voice input trigger |
-| `src/components/chat/SuggestedPrompts.tsx` | Create | Follow-up suggestions |
-| `src/components/chat/MessageFeedback.tsx` | Create | Thumbs up/down |
-| `src/hooks/useChat.ts` | Modify | Add abort, edit support |
-| `src/pages/Chat.tsx` | Modify | Integrate new components |
-| `supabase/functions/chat/index.ts` | Modify | Add web search, image gen |
-| Database migration | Create | Add search vectors, memories table |
+### New Files
+| File | Purpose |
+|------|---------|
+| `src/components/billing/TrialBanner.tsx` | Trial countdown banner |
+| `src/components/billing/CreditSlider.tsx` | Reusable slider for credit selection |
+
+### Modified Files
+| File | Changes |
+|------|---------|
+| `src/components/chat/CreditPurchaseDialog.tsx` | Replace packages with slider, GBP pricing |
+| `src/pages/Billing.tsx` | New 4-tier structure, GBP currency, top-up button |
+| `src/components/chat/ModelSelector.tsx` | Add premium model gating |
+| `src/pages/Connections.tsx` | Add connector limit enforcement |
+| `supabase/functions/chat/index.ts` | Model access validation, unlimited credits |
+| `src/components/PageLayout.tsx` | Add TrialBanner integration |
+
+### Database Migrations
+- Add columns to `orgs` table (trial_ends_at, connector_limit, has_premium_models, monthly_credits, is_unlimited)
+- Create `credit_pricing` table for dynamic pricing config
+- Update existing users to trial status
 
 ---
 
-## Recommended Starting Point
+## Implementation Order
 
-I suggest implementing **Phase 1 features first** as they provide the highest user impact with relatively low effort:
-
-1. **Stop Generation** - Quick win, users expect this
-2. **Search Chat History** - Essential for power users  
-3. **Code Block Enhancements** - Visual polish that feels premium
-4. **Edit & Resend** - Critical for iterating on prompts
-
-Would you like me to start implementing these features?
-
+1. **Database migration** - Add new columns and pricing table
+2. **CreditPurchaseDialog** - Slider-based top-up with GBP pricing
+3. **Billing page** - New 4-tier structure
+4. **ModelSelector** - Premium model gating
+5. **Chat edge function** - Backend model/credit validation
+6. **TrialBanner** - Trial countdown component
+7. **Connections page** - Connector limit enforcement
