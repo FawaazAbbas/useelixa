@@ -839,18 +839,6 @@ const Chat = () => {
               </Button>
             </div>
             
-            {/* Suggested prompts - show after last assistant message */}
-            {messages.length > 0 && !isLoading && messages[messages.length - 1]?.role === "assistant" && (
-              <SuggestedPrompts
-                lastAssistantMessage={messages[messages.length - 1]?.content || ""}
-                lastUserMessage={messages.length >= 2 ? messages[messages.length - 2]?.content || "" : ""}
-                onSelectPrompt={(prompt) => {
-                  setInput(prompt);
-                  textareaRef.current?.focus();
-                }}
-                isLoading={isLoading}
-              />
-            )}
             
             <p className="text-xs text-muted-foreground mt-2 text-center">
               Press Enter to send, Shift+Enter for new line • Max 5 files, 10MB each
