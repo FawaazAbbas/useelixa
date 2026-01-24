@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Coins, TrendingUp } from "lucide-react";
+import { CreditCard, Coins, TrendingUp, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,9 +8,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CreditSlider } from "@/components/billing/CreditSlider";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface CreditPricing {
   price_per_credit_pence: number;
@@ -37,6 +43,8 @@ export function CreditPurchaseDialog({
   const [loading, setLoading] = useState(true);
   const [selectedCredits, setSelectedCredits] = useState(500);
   const [purchasing, setPurchasing] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoOpen, setPromoOpen] = useState(false);
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -72,6 +80,9 @@ export function CreditPurchaseDialog({
 
     if (open) {
       fetchPricing();
+      // Reset promo code when dialog opens
+      setPromoCode("");
+      setPromoOpen(false);
     }
   }, [open, requiredCredits]);
 
@@ -88,8 +99,18 @@ export function CreditPurchaseDialog({
     setPurchasing(true);
 
     try {
+      const body: { type: string; creditAmount: number; promoCode?: string } = {
+        type: "credits",
+        creditAmount: selectedCredits,
+      };
+
+      // Only include promo code if user entered one
+      if (promoCode.trim()) {
+        body.promoCode = promoCode.trim();
+      }
+
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-        body: { type: "credits", creditAmount: selectedCredits },
+        body,
       });
 
       if (error) throw error;
@@ -140,6 +161,28 @@ export function CreditPurchaseDialog({
                 onChange={setSelectedCredits}
                 pricePerCredit={pricing.price_per_credit_pence}
               />
+
+              {/* Promo Code Section */}
+              <Collapsible open={promoOpen} onOpenChange={setPromoOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground p-0 h-auto">
+                    <Tag className="h-4 w-4" />
+                    Have a promo code?
+                    {promoOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3">
+                  <Input
+                    placeholder="Enter promo code"
+                    value={promoCode}
+                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                    className="uppercase"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Discount will be applied at checkout
+                  </p>
+                </CollapsibleContent>
+              </Collapsible>
 
               {/* Balance info */}
               <div className="flex items-center justify-between text-sm border-t pt-4">

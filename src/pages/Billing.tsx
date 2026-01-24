@@ -1,18 +1,25 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock, Settings, Loader2, AlertTriangle, X } from "lucide-react";
+import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock, Settings, Loader2, AlertTriangle, X, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
 import { useTeam } from "@/hooks/useTeam";
 import { PageLayout, CardGrid } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { CreditPurchaseDialog } from "@/components/chat/CreditPurchaseDialog";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 interface UsageStats {
   ai_calls: number;
   tool_executions: number;
@@ -103,6 +110,8 @@ const Billing = () => {
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const [openingPortal, setOpeningPortal] = useState(false);
   const [lowCreditDismissed, setLowCreditDismissed] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
+  const [promoOpenForPlan, setPromoOpenForPlan] = useState<string | null>(null);
 
   // Handle URL params from Stripe redirect
   useEffect(() => {
@@ -228,13 +237,23 @@ const Billing = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
-  const handleUpgrade = async (planId: string) => {
+  const handleUpgrade = async (planId: string, withPromoCode?: string) => {
     if (planId === "trial") return;
     
     setUpgradingPlan(planId);
     try {
+      const body: { type: string; planId: string; promoCode?: string } = {
+        type: "subscription",
+        planId,
+      };
+
+      // Include promo code if provided
+      if (withPromoCode?.trim()) {
+        body.promoCode = withPromoCode.trim();
+      }
+
       const { data, error } = await supabase.functions.invoke("stripe-checkout", {
-        body: { type: "subscription", planId },
+        body,
       });
 
       if (error) throw error;
@@ -248,6 +267,8 @@ const Billing = () => {
       });
     } finally {
       setUpgradingPlan(null);
+      setPromoCode("");
+      setPromoOpenForPlan(null);
     }
   };
 
@@ -479,11 +500,39 @@ const Billing = () => {
                         </li>
                       ))}
                     </ul>
+                    
+                    {/* Promo code section - only for non-current, non-trial plans */}
+                    {!isCurrent && !plan.trial && (
+                      <Collapsible 
+                        open={promoOpenForPlan === plan.id} 
+                        onOpenChange={(open) => {
+                          setPromoOpenForPlan(open ? plan.id : null);
+                          if (!open) setPromoCode("");
+                        }}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-foreground p-0 h-auto text-xs">
+                            <Tag className="h-3 w-3" />
+                            Promo code?
+                            {promoOpenForPlan === plan.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pt-2">
+                          <Input
+                            placeholder="Enter code"
+                            value={promoOpenForPlan === plan.id ? promoCode : ""}
+                            onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                            className="uppercase text-sm h-8"
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+                    
                     <Button
                       variant={isCurrent ? "outline" : plan.highlighted ? "default" : "secondary"}
                       className="w-full"
                       disabled={isCurrent || plan.trial || upgradingPlan === plan.id}
-                      onClick={() => handleUpgrade(plan.id)}
+                      onClick={() => handleUpgrade(plan.id, promoOpenForPlan === plan.id ? promoCode : undefined)}
                     >
                       {upgradingPlan === plan.id ? (
                         <>
