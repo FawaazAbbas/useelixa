@@ -40,11 +40,12 @@ All colors MUST be HSL.
 
     --radius: 0.625rem;
 
-    /* Success/Warning states */
+    /* Success/Warning/Star states */
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --star: 45 93% 47%;
 
     /* Chat interface colors */
     --chat-bg: 220 14% 96%;
@@ -98,6 +99,7 @@ All colors MUST be HSL.
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --star: 45 93% 47%;
 
     --chat-bg: 224 22% 8%;
     --chat-sidebar: 224 22% 6%;

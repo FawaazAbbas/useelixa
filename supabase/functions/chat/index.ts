@@ -1940,6 +1940,8 @@ serve(async (req) => {
 
     // Fetch org tier info for model access and unlimited credits
     let orgTier: { has_premium_models: boolean; is_unlimited: boolean; monthly_credits: number } | null = null;
+    let orgSettings: { ai_paused: boolean; auto_approved_tools: string[] } | null = null;
+    
     if (orgId) {
       const { data: org } = await serviceSupabase
         .from("orgs")
@@ -1947,6 +1949,26 @@ serve(async (req) => {
         .eq("id", orgId)
         .single();
       orgTier = org || null;
+
+      // Fetch org settings for AI pause and auto-approval
+      const { data: settings } = await serviceSupabase
+        .from("org_settings")
+        .select("ai_paused, auto_approved_tools")
+        .eq("org_id", orgId)
+        .single();
+      orgSettings = settings || null;
+    }
+
+    // Check if AI is paused for this organization
+    if (orgSettings?.ai_paused === true) {
+      console.log(`[Chat] AI is paused for org ${orgId}`);
+      return new Response(
+        JSON.stringify({
+          error: "AI assistant is temporarily paused by your organization admin. Please try again later or contact your admin.",
+          code: "AI_PAUSED",
+        }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Check if user can use the selected model (premium model gating)
@@ -2083,7 +2105,15 @@ serve(async (req) => {
           console.error("[Chat] Failed to parse tool arguments");
         }
 
-        if (WRITE_TOOLS.includes(toolName)) {
+        // Check if this is a write tool
+        const isWriteTool = WRITE_TOOLS.includes(toolName);
+        
+        // Check if this tool is auto-approved by the org
+        const autoApprovedTools = orgSettings?.auto_approved_tools || [];
+        const isAutoApproved = autoApprovedTools.includes(toolName);
+        
+        // Write tools that are NOT auto-approved require confirmation
+        if (isWriteTool && !isAutoApproved) {
           if (!userId || !sessionId) {
             return new Response(
               JSON.stringify({ error: "User session is required to perform this action." }),
@@ -2136,6 +2166,11 @@ serve(async (req) => {
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
+        }
+        
+        // Auto-approved write tools and read tools can execute immediately
+        if (isAutoApproved && isWriteTool) {
+          console.log(`[Chat] Auto-executing approved write tool: ${toolName}`);
         }
 
         if (userId) {

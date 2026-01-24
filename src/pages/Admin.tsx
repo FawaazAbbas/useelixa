@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminOverviewTab } from "@/components/admin/AdminOverviewTab";
 import { AdminBlogTab } from "@/components/admin/AdminBlogTab";
+import { AdminAuditTab } from "@/components/admin/AdminAuditTab";
 
 const Admin = () => {
   const { isAdmin, loading: adminLoading } = useAdminAuth();
@@ -82,6 +83,7 @@ const Admin = () => {
             <h1 className="text-xl font-semibold">
               {activeTab === "overview" && "Dashboard Overview"}
               {activeTab === "blog" && "Blog Management"}
+              {activeTab === "audit" && "Audit Log"}
             </h1>
           </div>
         </header>
@@ -89,6 +91,7 @@ const Admin = () => {
         <div className="p-6">
           {activeTab === "overview" && <AdminOverviewTab />}
           {activeTab === "blog" && <AdminBlogTab />}
+          {activeTab === "audit" && <AdminAuditTab />}
         </div>
       </main>
     </div>
