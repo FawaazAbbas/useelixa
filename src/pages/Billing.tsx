@@ -56,7 +56,7 @@ const plans = [
   {
     id: "starter",
     name: "Starter",
-    price: "£5.99",
+    price: "£4.99",
     period: "/month",
     description: "For individuals getting started",
     features: [

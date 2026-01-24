@@ -35,6 +35,7 @@ import { GeneratedImage } from "@/components/chat/GeneratedImage";
 import { ThreadView, ThreadIndicator } from "@/components/chat/ThreadView";
 import { useMentionAutocomplete, MentionPopover } from "@/components/chat/MentionAutocomplete";
 import { fetchTeamMembers, parseMentions, notifyMentionedUsers, type TeamMember } from "@/utils/mentions";
+import { ChatWelcome } from "@/components/chat/ChatWelcome";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -510,13 +511,13 @@ const Chat = () => {
                   <div
                     key={session.id}
                     className={cn(
-                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors min-w-0",
                       session.id === activeSessionId ? "bg-primary/10 text-primary" : "hover:bg-muted"
                     )}
                     onClick={() => handleSelectSession(session.id)}
                   >
                     <Pin className="h-4 w-4 flex-shrink-0 text-primary" />
-                    <span className="flex-1 truncate text-sm">{session.title}</span>
+                    <span className="flex-1 truncate text-sm min-w-0">{session.title}</span>
                     <div className="flex items-center gap-0.5">
                       <Button
                         variant="ghost"
@@ -551,13 +552,13 @@ const Chat = () => {
                   <div
                     key={session.id}
                     className={cn(
-                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors",
+                      "group flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors min-w-0",
                       session.id === activeSessionId ? "bg-primary/10 text-primary" : "hover:bg-muted"
                     )}
                     onClick={() => handleSelectSession(session.id)}
                   >
                     <MessageSquare className="h-4 w-4 flex-shrink-0 opacity-60" />
-                    <span className="flex-1 truncate text-sm">{session.title}</span>
+                    <span className="flex-1 truncate text-sm min-w-0">{session.title}</span>
                     <div className="flex items-center gap-0.5">
                       <Button
                         variant="ghost"
@@ -663,17 +664,12 @@ const Chat = () => {
             )}
             
             {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center min-h-[50vh] text-center py-12">
-                <img 
-                  src={ElixaResponded} 
-                  alt="Elixa" 
-                  className="h-20 w-20 rounded-full object-cover mb-4 border-2 border-muted bg-muted"
-                />
-                <h2 className="text-2xl font-semibold mb-2">Welcome to Elixa AI</h2>
-                <p className="text-muted-foreground max-w-md">
-                  I'm your intelligent assistant. I can help you manage emails, calendar events, tasks, notes, and connect with your Stripe and Shopify data. You can also share files with me!
-                </p>
-              </div>
+              <ChatWelcome 
+                onQuickAction={(prompt) => {
+                  setInput(prompt);
+                  textareaRef.current?.focus();
+                }}
+              />
             ) : (
               messages.map((message, index) => {
                 // Check if we should show a time divider

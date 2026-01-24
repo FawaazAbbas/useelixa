@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
+import { CalendarSidebar } from "@/components/calendar/CalendarSidebar";
 import {
   CalendarGrid,
   EventDetailSheet,
@@ -238,12 +239,22 @@ const Calendar = () => {
     </div>
   );
 
+  const calendarSidebarContent = (
+    <CalendarSidebar
+      selectedDate={selectedDate}
+      onSelectDate={(date) => date && setSelectedDate(date)}
+      hasGoogleCalendar={hasGoogleCalendar}
+      eventCount={allEvents.length}
+    />
+  );
+
   return (
     <PageLayout
       title="Calendar"
       icon={CalendarIcon}
       badge={`${allEvents.length} events`}
       actions={headerActions}
+      sidebar={calendarSidebarContent}
       fullWidth
       noPadding
     >
