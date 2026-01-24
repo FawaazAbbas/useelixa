@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock, Settings, Loader2 } from "lucide-react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock, Settings, Loader2, AlertTriangle, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTeam } from "@/hooks/useTeam";
 import { PageLayout, CardGrid } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -92,6 +94,7 @@ const plans = [
 const Billing = () => {
   const { user } = useAuth();
   const { organization, loading } = useTeam();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [orgData, setOrgData] = useState<OrgData | null>(null);
@@ -99,6 +102,7 @@ const Billing = () => {
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [lowCreditDismissed, setLowCreditDismissed] = useState(false);
 
   // Handle URL params from Stripe redirect
   useEffect(() => {
@@ -191,9 +195,7 @@ const Billing = () => {
   if (loading) {
     return (
       <PageLayout title="Billing" icon={CreditCard}>
-        <div className="flex items-center justify-center py-16">
-          <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
-        </div>
+        <BillingLoadingSkeleton />
       </PageLayout>
     );
   }
@@ -208,6 +210,9 @@ const Billing = () => {
   const totalAvailable = monthlyCredits + creditsPurchased;
   const creditsRemaining = Math.max(0, totalAvailable - creditsUsed);
   const creditUsagePercent = orgData?.is_unlimited ? 0 : Math.min((creditsUsed / totalAvailable) * 100, 100);
+
+  // Show low credit warning (after creditsRemaining is calculated)
+  const showLowCreditWarning = !loadingUsage && !orgData?.is_unlimited && creditsRemaining < 100 && !lowCreditDismissed;
 
   // Trial countdown
   const trialEndsAt = orgData?.trial_ends_at ? new Date(orgData.trial_ends_at) : null;
@@ -272,6 +277,51 @@ const Billing = () => {
       badge={currentPlanData.name}
     >
       <div className="max-w-5xl mx-auto space-y-6">
+        {/* Low Credit Warning Banner */}
+        {showLowCreditWarning && (
+          <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle className="flex items-center justify-between">
+              <span>Low Credit Balance</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 -mr-2"
+                onClick={() => setLowCreditDismissed(true)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </AlertTitle>
+            <AlertDescription className="mt-2">
+              <p className="mb-3">
+                You have only <strong>{creditsRemaining.toLocaleString()} credits</strong> remaining. 
+                Top up now to avoid interruptions to your AI workflows.
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={() => setCreditDialogOpen(true)}
+                  className="gap-1"
+                >
+                  <Coins className="h-4 w-4" />
+                  Top Up Credits
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleUpgrade("pro")}
+                  disabled={upgradingPlan === "pro"}
+                >
+                  {upgradingPlan === "pro" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "Upgrade Plan"
+                  )}
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Current Usage */}
         <Card>
           <CardHeader>
@@ -295,9 +345,7 @@ const Billing = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {loadingUsage ? (
-              <div className="flex justify-center py-4">
-                <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
-              </div>
+              <UsageLoadingSkeleton />
             ) : (
               <>
                 {/* AI Credits */}
@@ -482,5 +530,101 @@ const Billing = () => {
     </PageLayout>
   );
 };
+
+// Loading skeleton for the usage section
+const UsageLoadingSkeleton = () => (
+  <div className="space-y-6">
+    {/* Credits skeleton */}
+    <div className="space-y-2">
+      <div className="flex justify-between">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+      <Skeleton className="h-2 w-full" />
+    </div>
+    
+    {/* Premium models skeleton */}
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-4 w-48" />
+      <Skeleton className="h-5 w-20" />
+    </div>
+    
+    {/* Connectors skeleton */}
+    <div className="flex items-center justify-between">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-4 w-16" />
+    </div>
+    
+    {/* Storage skeleton */}
+    <Skeleton className="h-4 w-32" />
+    
+    {/* Buttons skeleton */}
+    <div className="pt-4 border-t flex gap-2">
+      <Skeleton className="h-10 w-40" />
+      <Skeleton className="h-10 w-44" />
+    </div>
+  </div>
+);
+
+// Full page loading skeleton
+const BillingLoadingSkeleton = () => (
+  <div className="max-w-5xl mx-auto space-y-6">
+    {/* Current Plan Card Skeleton */}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-48" />
+          </div>
+          <Skeleton className="h-8 w-24" />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <UsageLoadingSkeleton />
+      </CardContent>
+    </Card>
+    
+    {/* Plans Grid Skeleton */}
+    <div>
+      <Skeleton className="h-6 w-32 mb-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-8 w-20" />
+              <div className="space-y-1">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                {[1, 2, 3, 4].map((j) => (
+                  <div key={j} className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
+              </div>
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+    
+    {/* Billing History Skeleton */}
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-4 w-48" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-16 w-full" />
+      </CardContent>
+    </Card>
+  </div>
+);
 
 export default Billing;
