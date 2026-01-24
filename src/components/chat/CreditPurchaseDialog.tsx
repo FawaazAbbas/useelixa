@@ -87,12 +87,24 @@ export function CreditPurchaseDialog({
     
     setPurchasing(true);
 
-    // TODO: Integrate with Stripe checkout
-    toast.info("Stripe integration coming soon!", {
-      description: `You'll be able to purchase ${selectedCredits.toLocaleString()} credits for ${formatPrice(selectedCredits * pricing.price_per_credit_pence)}.`,
-    });
-    
-    setPurchasing(false);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-checkout", {
+        body: { type: "credits", creditAmount: selectedCredits },
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error("[CreditPurchase] Checkout error:", error);
+      toast.error("Failed to start checkout", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   const totalPrice = pricing ? selectedCredits * pricing.price_per_credit_pence : 0;
