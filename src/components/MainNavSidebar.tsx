@@ -2,7 +2,8 @@ import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Setting
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -32,14 +33,67 @@ export const MainNavSidebar = () => {
   const navigate = useNavigate();
   const [credits, setCredits] = useState<number | null>(null);
   const [monthlyCredits, setMonthlyCredits] = useState<number>(1000);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
+  const calculateCredits = useCallback((monthlyAlloc: number, purchased: number, used: number) => {
+    return Math.max(0, monthlyAlloc + purchased - used);
+  }, []);
+
+  // Fetch org membership and initial credits
   useEffect(() => {
     if (user) {
-      fetchCredits();
+      fetchOrgAndCredits();
     }
+    
+    return () => {
+      // Cleanup realtime subscription on unmount
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
   }, [user]);
 
-  const fetchCredits = async () => {
+  // Subscribe to realtime changes when orgId is available
+  useEffect(() => {
+    if (!orgId) return;
+
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    
+    // Subscribe to usage_stats changes for this org
+    const channel = supabase
+      .channel(`usage_stats_${orgId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'usage_stats',
+          filter: `org_id=eq.${orgId}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Usage stats changed:', payload);
+          const newData = payload.new as { credits_used?: number; credits_purchased?: number; month?: string };
+          
+          // Only update if it's the current month
+          if (newData && newData.month === currentMonth) {
+            const used = newData.credits_used || 0;
+            const purchased = newData.credits_purchased || 0;
+            const remaining = calculateCredits(monthlyCredits, purchased, used);
+            setCredits(remaining);
+          }
+        }
+      )
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orgId, monthlyCredits, calculateCredits]);
+
+  const fetchOrgAndCredits = async () => {
     if (!user) return;
 
     try {
@@ -51,6 +105,8 @@ export const MainNavSidebar = () => {
         .single();
 
       if (!orgMember) return;
+
+      setOrgId(orgMember.org_id);
 
       // Get org's monthly credits allocation
       const { data: org } = await supabase
@@ -64,7 +120,8 @@ export const MainNavSidebar = () => {
         return;
       }
 
-      setMonthlyCredits(org?.monthly_credits || 1000);
+      const monthlyAlloc = org?.monthly_credits || 1000;
+      setMonthlyCredits(monthlyAlloc);
 
       // Get current month's usage
       const currentMonth = new Date().toISOString().slice(0, 7);
@@ -77,8 +134,7 @@ export const MainNavSidebar = () => {
 
       const used = usage?.credits_used || 0;
       const purchased = usage?.credits_purchased || 0;
-      const remaining = (org?.monthly_credits || 1000) + purchased - used;
-      setCredits(Math.max(0, remaining));
+      setCredits(calculateCredits(monthlyAlloc, purchased, used));
     } catch (error) {
       console.error("Error fetching credits:", error);
     }
