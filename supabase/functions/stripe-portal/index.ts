@@ -51,10 +51,10 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const origin = req.headers.get("origin") || "https://useelixa.lovable.app";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://workspace.elixa.app";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/billing`,
+      return_url: `${siteUrl}/billing`,
     });
 
     logStep("Portal session created", { sessionId: portalSession.id, url: portalSession.url });
