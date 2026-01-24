@@ -63,7 +63,7 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    const origin = req.headers.get("origin") || "https://useelixa.lovable.app";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://workspace.elixa.app";
     let session: Stripe.Checkout.Session;
 
     if (type === "subscription") {
@@ -78,8 +78,8 @@ serve(async (req) => {
         customer_email: customerId ? undefined : user.email,
         line_items: [{ price: priceId, quantity: 1 }],
         mode: "subscription",
-        success_url: `${origin}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/billing?canceled=true`,
+        success_url: `${siteUrl}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}/billing?canceled=true`,
         metadata: {
           user_id: user.id,
           plan_id: planId,
@@ -111,8 +111,8 @@ serve(async (req) => {
           },
         ],
         mode: "payment",
-        success_url: `${origin}/billing?credits=true&amount=${creditAmount}&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${origin}/billing?canceled=true`,
+        success_url: `${siteUrl}/billing?credits=true&amount=${creditAmount}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}/billing?canceled=true`,
         metadata: {
           user_id: user.id,
           credit_amount: String(creditAmount),
