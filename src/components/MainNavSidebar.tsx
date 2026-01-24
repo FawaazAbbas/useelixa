@@ -1,4 +1,4 @@
-import { MessageSquare, CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table } from "lucide-react";
+import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -16,9 +16,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import ElixaRespondedIcon from "@/assets/Elixa-Responded.png";
 
-const navItems = [
-  { icon: MessageSquare, label: "AI Chat", path: "/chat" },
+type NavItem = {
+  icon?: LucideIcon;
+  customIcon?: string;
+  label: string;
+  path: string;
+};
+
+const navItems: NavItem[] = [
+  { customIcon: ElixaRespondedIcon, label: "AI Chat", path: "/chat" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
@@ -198,7 +206,13 @@ export const MainNavSidebar = () => {
             className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             activeClassName="bg-primary/10 text-primary"
           >
-            <item.icon className="w-5 h-5" />
+            {item.customIcon ? (
+              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                <img src={item.customIcon} alt={item.label} className="w-4 h-4 object-contain" />
+              </div>
+            ) : item.icon ? (
+              <item.icon className="w-5 h-5" />
+            ) : null}
             <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
               {item.label}
             </span>
