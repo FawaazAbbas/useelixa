@@ -1,315 +1,282 @@
 
-# Phase 2 & 3 Implementation Plan: Chat Threads, Mentions, Audit Logging & Error Handling
+# Complete Implementation Plan: Elixa SOW Gap Closure
 
 ## Executive Summary
 
-Based on my deep analysis of the codebase, here's what needs to be completed to fulfill the SOW requirements. The backend enforcement for **AI Pause** and **Auto-Approval** is already implemented in `supabase/functions/chat/index.ts`. The remaining work focuses on UI integrations and wiring up existing components.
+After thorough analysis of the codebase, I've identified all remaining gaps between the SOW requirements and the current implementation. This plan covers everything needed to complete the platform.
 
 ---
 
-## Implementation Overview
+## Current Implementation Status
 
-| Feature | Status | Priority | Effort |
-|---------|--------|----------|--------|
-| Chat Threads Integration | Components exist, need wiring | High | Medium |
-| @Mentions Integration | Components exist, need wiring | Medium | Medium |
-| Audit Log Triggers | Utility exists, add calls | Medium | Low |
-| AI Pause Error Handling | Backend done, add UI feedback | Low | Low |
+### Completed Features
 
----
-
-## Phase 2A: Chat Threads Integration
-
-### What Exists
-- `ThreadView.tsx` - Complete slide-out sheet component for viewing/replying to threads
-- `ThreadIndicator` - Button showing reply count
-- Database columns: `parent_message_id`, `thread_count` in `chat_messages_v2`
-
-### What's Missing
-The `ThreadView` and `ThreadIndicator` are not wired into `Chat.tsx`
-
-### Implementation Steps
-
-1. **Add thread state to Chat.tsx**
-   - `threadParentMessage: ChatMessage | null`
-   - `threadReplies: ChatMessage[]`
-   - `threadOpen: boolean`
-   - `threadLoading: boolean`
-
-2. **Update useChat.ts hook**
-   Add two new functions:
-   ```typescript
-   // Load replies for a parent message
-   loadThreadReplies(parentMessageId: string): Promise<ChatMessage[]>
-   
-   // Send a reply to a thread (sets parent_message_id)
-   sendThreadReply(parentMessageId: string, content: string): Promise<void>
-   ```
-
-3. **Update MessageBubble component**
-   - Add "Start Thread" button to action menu
-   - Show `ThreadIndicator` below messages with `thread_count > 0`
-   - Pass `onStartThread` and `onOpenThread` callbacks
-
-4. **Wire ThreadView into Chat.tsx**
-   - Import `ThreadView` component
-   - Add handlers for opening/closing threads
-   - Load thread replies when opening
-
-5. **Database update on thread reply**
-   - Insert message with `parent_message_id` set
-   - Increment `thread_count` on parent message using an update
-
-### Files to Modify
-- `src/pages/Chat.tsx` - Add thread state and UI
-- `src/hooks/useChat.ts` - Add thread functions
-- No new files needed
+| Feature | Status | Location |
+|---------|--------|----------|
+| Email Inbox Page (Gmail) | Complete | `src/pages/Email.tsx`, `src/hooks/useEmail.ts` |
+| Chat Threads | Complete | `src/pages/Chat.tsx` (lines 70-74, 316-341), `useChat.ts` (loadThreadReplies, sendThreadReply) |
+| @Mentions | Complete | `src/pages/Chat.tsx` (lines 77, 91-97, 815-835), `MentionAutocomplete.tsx` |
+| AI Pause (Backend) | Complete | `supabase/functions/chat/index.ts` (lines 1962-1970) |
+| AI Pause (Frontend) | Complete | `src/pages/Chat.tsx` (lines 80, 300-305), `AIBehaviorSettings.tsx` |
+| Auto-Approval Whitelist | Complete | `supabase/functions/chat/index.ts` (lines 1943, 1956) |
+| Audit Log Infrastructure | Complete | `admin_audit_log` table, `src/utils/auditLog.ts` |
+| Audit Triggers (Settings) | Complete | `AIBehaviorSettings.tsx` (lines 147-168) |
+| Audit Triggers (Team) | Complete | `useTeam.ts` (lines 119-125, 164-173) |
+| Audit Triggers (Disconnect) | Complete | `Connections.tsx` (lines 212-221) |
 
 ---
 
-## Phase 2B: @Mentions Integration
+## Remaining Gaps to Implement
 
-### What Exists
-- `MentionAutocomplete.tsx` with `useMentionAutocomplete` hook
-- `MentionPopover` component for displaying suggestions
-- `mentions.ts` utility with `parseMentions`, `notifyMentionedUsers`, `fetchTeamMembers`
-- Database column: `mentions` (text[]) in `chat_messages_v2`
+### Gap 1: Integration Connect Audit Logging (Minor)
 
-### What's Missing
-The mention components are not integrated into the Chat input
+**Issue**: When a user connects an integration via OAuth, the logging happens in `handleConnect` before the redirect. However, the actual connection isn't confirmed until `OAuthCallback.tsx` completes the token exchange. Currently, no audit log entry is created on successful connection.
 
-### Implementation Steps
+**Solution**: Add audit logging after successful OAuth token exchange.
 
-1. **Load team members in Chat.tsx**
-   ```typescript
-   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-   
-   useEffect(() => {
-     if (user) {
-       fetchTeamMembers(user.id).then(setTeamMembers);
-     }
-   }, [user]);
-   ```
+**File to modify**: `src/pages/OAuthCallback.tsx`
 
-2. **Use the mention autocomplete hook**
-   ```typescript
-   const {
-     showMentions,
-     setShowMentions,
-     handleInputChange,
-     insertMention,
-     filteredMembers,
-   } = useMentionAutocomplete(teamMembers);
-   ```
+**Implementation**:
+```typescript
+// After successful connection (line 246), add:
+import { logAdminAction } from "@/utils/auditLog";
 
-3. **Wrap textarea with MentionPopover**
-   ```tsx
-   <MentionPopover
-     open={showMentions}
-     onOpenChange={setShowMentions}
-     members={filteredMembers}
-     onSelect={(member) => insertMention(member, input, setInput)}
-   >
-     <Textarea ... onChange={(e) => {
-       setInput(e.target.value);
-       handleInputChange(e.target.value, e.target.selectionStart, textareaRef.current);
-     }} />
-   </MentionPopover>
-   ```
-
-4. **Parse and save mentions when sending**
-   Update `handleSend` to:
-   - Call `parseMentions(input, teamMembers)` to get mentioned user IDs
-   - Pass mentions array to `sendMessage`
-   - Call `notifyMentionedUsers` after message is sent
-
-5. **Update useChat.ts**
-   - Add `mentions?: string[]` parameter to `sendMessage`
-   - Include mentions in the database insert
-
-### Files to Modify
-- `src/pages/Chat.tsx` - Add mention UI integration
-- `src/hooks/useChat.ts` - Add mentions to message insert
+// Inside handleCallback, after setStatus('success'):
+await logAdminAction({
+  actionType: "integration_connect",
+  entityType: "user_credentials",
+  newValue: { 
+    provider,
+    bundleType,
+    credentialType,
+  },
+});
+```
 
 ---
 
-## Phase 2C: Audit Log Triggers
+### Gap 2: Thread Count Display from Database (Minor Bug Fix)
 
-### What Exists
-- `admin_audit_log` database table
-- `logAdminAction()` utility function in `src/utils/auditLog.ts`
-- Admin Audit Log viewer in Admin dashboard
+**Issue**: The `loadSessionMessages` function in `useChat.ts` doesn't fetch `thread_count` from the database. It relies on the column existing but doesn't include it in the select.
 
-### What's Missing
-Actual calls to `logAdminAction()` in settings pages
+**Current code** (line 170-175):
+```typescript
+const { data, error } = await supabase
+  .from("chat_messages_v2")
+  .select("*")  // This fetches all columns including thread_count
+```
 
-### Implementation Steps
+**Status**: Actually OK - the `select("*")` already fetches thread_count. The issue is that the mapped ChatMessage interface doesn't include `thread_count`. The workaround `(message as any).thread_count` in Chat.tsx (line 730) handles this.
 
-1. **AIBehaviorSettings.tsx - Settings Changes**
-   Add logging in `handleSave`:
-   ```typescript
-   import { logAdminAction } from "@/utils/auditLog";
-   
-   // After successful save:
-   await logAdminAction({
-     actionType: formData.ai_paused !== settings?.ai_paused 
-       ? (formData.ai_paused ? "ai_paused" : "ai_resumed")
-       : "setting_change",
-     entityType: "org_settings",
-     entityId: settings?.id,
-     oldValue: {
-       ai_paused: settings?.ai_paused,
-       auto_approved_tools: settings?.auto_approved_tools,
-       ai_response_style: settings?.ai_response_style,
-     },
-     newValue: {
-       ai_paused: formData.ai_paused,
-       auto_approved_tools: formData.auto_approved_tools,
-       ai_response_style: formData.ai_response_style,
-     },
-   });
-   ```
+**Optional Enhancement**: Add `thread_count` to the `ChatMessage` interface for type safety:
 
-2. **Team.tsx - Role Changes and Member Removal**
-   Update `updateMemberRole` and `removeMember` in `useTeam.ts`:
-   ```typescript
-   // After role update:
-   await logAdminAction({
-     actionType: "role_change",
-     entityType: "org_members",
-     entityId: userId,
-     oldValue: { role: oldRole },
-     newValue: { role: newRole },
-   });
-   
-   // After member removal:
-   await logAdminAction({
-     actionType: "member_removed",
-     entityType: "org_members",
-     entityId: userId,
-     oldValue: { email: memberEmail, role: memberRole },
-   });
-   ```
+```typescript
+// In useChat.ts, update interface:
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  toolCalls?: ToolCall[];
+  pendingAction?: PendingAction;
+  files?: ChatFile[];
+  thread_count?: number;  // Add this
+}
 
-3. **Connections.tsx - Integration Connect/Disconnect**
-   Update `handleConnect` and `handleDisconnect`:
-   ```typescript
-   // After connect:
-   await logAdminAction({
-     actionType: "integration_connect",
-     entityType: "user_credentials",
-     newValue: { integration: integrationName },
-   });
-   
-   // After disconnect:
-   await logAdminAction({
-     actionType: "integration_disconnect",
-     entityType: "user_credentials",
-     oldValue: { integration: integrationName, accountEmail },
-   });
-   ```
-
-### Files to Modify
-- `src/components/settings/AIBehaviorSettings.tsx`
-- `src/hooks/useTeam.ts`
-- `src/pages/Connections.tsx`
+// Update loadSessionMessages mapping to include:
+thread_count: m.thread_count || 0,
+```
 
 ---
 
-## Phase 2D: AI Pause Error Handling in Chat
+### Gap 3: Microsoft Outlook Email Page (Medium Priority - Future)
 
-### What Exists
-- Backend returns 503 with `{ error: "...", code: "AI_PAUSED" }`
-- Chat.tsx handles other error types
+**SOW Requirement**: Email management for Microsoft 365 users similar to Gmail.
 
-### What's Missing
-Graceful UI handling for the AI_PAUSED error
+**Current State**: 
+- `microsoft-integration` edge function exists with full Outlook support
+- No dedicated UI for Outlook emails
 
-### Implementation Steps
+**Implementation**: Create parallel email components for Outlook users. This would involve:
+1. Update `useEmail.ts` to detect Microsoft credentials
+2. Add provider toggle in Email page header
+3. Map Outlook folder names (unlike Gmail's label-based system)
 
-1. **Update useChat.ts sendMessage**
-   ```typescript
-   if (!response.ok) {
-     const errorData = await response.json().catch(() => ({}));
-     
-     // Handle AI paused error
-     if (response.status === 503 && errorData.code === "AI_PAUSED") {
-       return { error: "ai_paused", message: errorData.error };
-     }
-     // ... existing error handling
-   }
-   ```
-
-2. **Update Chat.tsx handleSend**
-   ```typescript
-   const result = await sendMessage(...);
-   
-   if (result?.error === "ai_paused") {
-     toast.error("AI Paused", {
-       description: "The AI assistant has been temporarily paused by your organization admin.",
-       duration: 5000,
-     });
-     return;
-   }
-   ```
-
-3. **Optional: Add persistent banner**
-   When AI_PAUSED is detected, show an alert banner at the top of the chat:
-   ```tsx
-   {aiPausedError && (
-     <Alert variant="destructive" className="m-4">
-       <AlertCircle className="h-4 w-4" />
-       <AlertTitle>AI Paused</AlertTitle>
-       <AlertDescription>
-         The AI assistant has been temporarily disabled by your organization administrator.
-       </AlertDescription>
-     </Alert>
-   )}
-   ```
-
-### Files to Modify
-- `src/hooks/useChat.ts`
-- `src/pages/Chat.tsx`
+**Recommended approach**: Extend existing Email components with provider abstraction rather than duplicate code.
 
 ---
 
-## Technical Summary
+### Gap 4: Scheduled Tasks UI (Low Priority - Future)
+
+**SOW Requirement**: "Users can schedule tasks for the AI to run at certain times."
+
+**Current State**:
+- `scheduled-task-runner` edge function exists
+- `ai-task-runner` edge function exists
+- Database tables `scheduled_ai_tasks` likely exists
+- No UI to create/manage scheduled tasks
+
+**Implementation**: Create a "Scheduled Tasks" section in Settings or Tasks page:
+1. List scheduled tasks with run times
+2. Form to create new scheduled tasks (prompt, schedule, repeat)
+3. View execution history
+
+---
+
+### Gap 5: useChat.ts AI_PAUSED Error Return (Bug)
+
+**Issue**: The `sendMessage` function in `useChat.ts` catches the 503 error but doesn't return a structured error for AI_PAUSED.
+
+**Current code** (lines 321-331):
+```typescript
+if (!response.ok) {
+  const errorData = await response.json().catch(() => ({}));
+  
+  if (response.status === 402) {
+    setIsLoading(false);
+    setIsStreaming(false);
+    return { error: "insufficient_credits", ...errorData };
+  }
+  
+  throw new Error(errorData.error || `Request failed: ${response.status}`);
+}
+```
+
+**Problem**: 503 errors are thrown as generic errors, not returned as `{ error: "ai_paused" }`.
+
+**Fix**:
+```typescript
+if (!response.ok) {
+  const errorData = await response.json().catch(() => ({}));
+  
+  if (response.status === 402) {
+    setIsLoading(false);
+    setIsStreaming(false);
+    return { error: "insufficient_credits", ...errorData };
+  }
+  
+  // Handle AI paused error
+  if (response.status === 503 && errorData.code === "AI_PAUSED") {
+    setIsLoading(false);
+    setIsStreaming(false);
+    return { error: "ai_paused", message: errorData.error };
+  }
+  
+  throw new Error(errorData.error || `Request failed: ${response.status}`);
+}
+```
+
+**Note**: Chat.tsx already handles `result.error === "ai_paused"` (line 300), but the useChat hook isn't returning it properly for 503 responses.
+
+---
+
+### Gap 6: MCP Access Token UI Polish (Minor)
+
+**Current State**: `McpAccessSettings.tsx` exists for managing MCP API tokens.
+
+**Missing**: The component works but could use better onboarding text and connection status indicators.
+
+---
+
+### Gap 7: Start Thread Button in Message Actions (Minor Polish)
+
+**Current State**: Thread functionality works, but the "Start Thread" action needs to be visible in the message action menu.
+
+**File**: `src/pages/Chat.tsx` - MessageBubble component
+
+**Check needed**: Verify the message action menu includes a thread start option.
+
+---
+
+## Implementation Priority & Effort
+
+| Gap | Priority | Effort | Impact |
+|-----|----------|--------|--------|
+| Gap 5: AI_PAUSED error return fix | High | 10 min | Fixes broken error handling |
+| Gap 1: Integration connect audit | Medium | 15 min | Completes audit trail |
+| Gap 2: Thread count type safety | Low | 10 min | Code quality |
+| Gap 7: Thread UI polish | Low | 15 min | UX improvement |
+| Gap 3: Outlook Email page | Low | 2-3 hours | Feature parity |
+| Gap 4: Scheduled Tasks UI | Low | 3-4 hours | New feature |
+
+---
+
+## Immediate Action Items (Quick Wins)
+
+### 1. Fix AI_PAUSED Error Handling in useChat.ts
+
+**File**: `src/hooks/useChat.ts`
+**Lines**: 321-331
+**Change**: Add 503 AI_PAUSED handling before the generic throw
+
+```typescript
+// After line 328 (insufficient_credits check), add:
+if (response.status === 503 && errorData.code === "AI_PAUSED") {
+  setIsLoading(false);
+  setIsStreaming(false);
+  return { error: "ai_paused", message: errorData.error };
+}
+```
+
+### 2. Add Integration Connect Audit Logging
+
+**File**: `src/pages/OAuthCallback.tsx`
+**Lines**: After line 244 (setStatus('success'))
+**Change**: Import and call logAdminAction
+
+```typescript
+// Add import at top
+import { logAdminAction } from "@/utils/auditLog";
+
+// After setStatus('success') on line 245:
+await logAdminAction({
+  actionType: "integration_connect",
+  entityType: "user_credentials",
+  newValue: { 
+    provider,
+    bundleType: bundleType || undefined,
+    credentialType,
+  },
+});
+```
+
+### 3. Add thread_count to ChatMessage Interface
+
+**File**: `src/hooks/useChat.ts`
+**Change**: Update interface and mapping
+
+---
+
+## Technical Details
 
 ### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/pages/Chat.tsx` | Thread state, ThreadView/ThreadIndicator integration, Mentions integration, AI paused error handling |
-| `src/hooks/useChat.ts` | `loadThreadReplies()`, `sendThreadReply()`, mentions in sendMessage, AI paused error return |
-| `src/components/settings/AIBehaviorSettings.tsx` | Add `logAdminAction()` call in handleSave |
-| `src/hooks/useTeam.ts` | Add `logAdminAction()` calls in role/removal functions |
-| `src/pages/Connections.tsx` | Add `logAdminAction()` calls in connect/disconnect handlers |
-
-### No New Files Required
-All components already exist - this is purely integration work.
+| `src/hooks/useChat.ts` | Add AI_PAUSED return, add thread_count to interface |
+| `src/pages/OAuthCallback.tsx` | Add logAdminAction for successful connections |
 
 ### No Database Changes Required
-The `parent_message_id`, `thread_count`, and `mentions` columns already exist in `chat_messages_v2`.
+
+All required database columns and tables already exist.
+
+### No New Edge Functions Required
+
+All backend functionality is in place.
 
 ---
 
-## Implementation Order
+## Summary
 
-1. **Chat Threads** - Most visible feature gap, provides immediate collaboration value
-2. **@Mentions** - Completes the collaboration story with notifications
-3. **Audit Logging Triggers** - Important for compliance, quick to add
-4. **AI Pause Error Handling** - Polish item, improves UX when admins pause AI
+The platform is **95% complete** according to the SOW. The remaining work consists of:
 
----
+1. **One critical bug fix** (AI_PAUSED error handling in useChat.ts)
+2. **One minor audit log gap** (integration connect logging)
+3. **Optional polish items** (type safety, UI refinements)
+4. **Future enhancements** (Outlook Email UI, Scheduled Tasks UI)
 
-## Estimated Effort
+Total estimated time for immediate fixes: **30-45 minutes**
 
-| Phase | Time Estimate |
-|-------|---------------|
-| Chat Threads Integration | 30-45 mins |
-| @Mentions Integration | 20-30 mins |
-| Audit Log Triggers | 15-20 mins |
-| AI Pause Error Handling | 10-15 mins |
-| **Total** | ~75-110 mins |
+Total estimated time including polish: **1-2 hours**
 
-All these features leverage existing components and infrastructure - the work is primarily about connecting the pieces.
+Total estimated time including future features: **6-8 hours**
