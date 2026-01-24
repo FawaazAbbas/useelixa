@@ -207,7 +207,7 @@ export const MainNavSidebar = () => {
             activeClassName="bg-primary/10 text-primary"
           >
             {item.customIcon ? (
-              <img src={item.customIcon} alt={item.label} className="w-6 h-6 object-contain" />
+              <img src={item.customIcon} alt={item.label} className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-muted bg-muted" />
             ) : item.icon ? (
               <item.icon className="w-5 h-5" />
             ) : null}
