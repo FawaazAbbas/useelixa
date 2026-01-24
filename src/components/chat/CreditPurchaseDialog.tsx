@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Check, Sparkles, Zap } from "lucide-react";
+import { CreditCard, Coins, TrendingUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,18 +8,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { CreditSlider } from "@/components/billing/CreditSlider";
 
-interface CreditPackage {
-  id: string;
-  name: string;
-  credits: number;
-  price_cents: number;
-  popular: boolean;
+interface CreditPricing {
+  price_per_credit_pence: number;
+  min_credits: number;
+  credit_increment: number;
+  max_credits: number;
+  currency: string;
 }
 
 interface CreditPurchaseDialogProps {
@@ -35,139 +33,125 @@ export function CreditPurchaseDialog({
   currentCredits = 0,
   requiredCredits,
 }: CreditPurchaseDialogProps) {
-  const [packages, setPackages] = useState<CreditPackage[]>([]);
+  const [pricing, setPricing] = useState<CreditPricing | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [selectedCredits, setSelectedCredits] = useState(500);
+  const [purchasing, setPurchasing] = useState(false);
 
   useEffect(() => {
-    const fetchPackages = async () => {
+    const fetchPricing = async () => {
       try {
         const { data, error } = await supabase
-          .from("credit_packages")
+          .from("credit_pricing")
           .select("*")
-          .order("credits", { ascending: true });
+          .limit(1)
+          .single();
 
         if (error) throw error;
-        setPackages(data || []);
+        
+        setPricing(data);
+        // Set initial value to minimum or required amount
+        const initialValue = requiredCredits 
+          ? Math.max(data.min_credits, Math.ceil(requiredCredits / data.credit_increment) * data.credit_increment)
+          : data.min_credits;
+        setSelectedCredits(initialValue);
       } catch (error) {
-        console.error("Error fetching packages:", error);
+        console.error("Error fetching pricing:", error);
+        // Fallback pricing
+        setPricing({
+          price_per_credit_pence: 6,
+          min_credits: 100,
+          credit_increment: 100,
+          max_credits: 10000,
+          currency: "GBP",
+        });
       } finally {
         setLoading(false);
       }
     };
 
     if (open) {
-      fetchPackages();
+      fetchPricing();
     }
-  }, [open]);
+  }, [open, requiredCredits]);
 
-  const formatPrice = (cents: number) => {
-    return new Intl.NumberFormat("en-US", {
+  const formatPrice = (pence: number) => {
+    return new Intl.NumberFormat("en-GB", {
       style: "currency",
-      currency: "USD",
-    }).format(cents / 100);
+      currency: "GBP",
+    }).format(pence / 100);
   };
 
   const handlePurchase = async () => {
-    if (!selectedPackage) return;
+    if (!pricing) return;
+    
+    setPurchasing(true);
 
     // TODO: Integrate with Stripe checkout
     toast.info("Stripe integration coming soon!", {
-      description: "Credit purchases will be available in the next update.",
+      description: `You'll be able to purchase ${selectedCredits.toLocaleString()} credits for ${formatPrice(selectedCredits * pricing.price_per_credit_pence)}.`,
     });
+    
+    setPurchasing(false);
   };
+
+  const totalPrice = pricing ? selectedCredits * pricing.price_per_credit_pence : 0;
+  const afterPurchase = currentCredits + selectedCredits;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-primary" />
+            <Coins className="h-5 w-5 text-primary" />
             Buy Credits
           </DialogTitle>
           <DialogDescription>
             {requiredCredits
               ? `You need ${requiredCredits} credits but only have ${currentCredits}. Purchase more to continue.`
-              : "Purchase credits to use premium AI models and features."}
+              : "Purchase credits to use AI models and features."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-3 py-4">
+        <div className="py-4">
           {loading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
             </div>
-          ) : (
-            packages.map((pkg) => {
-              const isSelected = selectedPackage === pkg.id;
-              const pricePerCredit = (pkg.price_cents / pkg.credits / 100).toFixed(4);
+          ) : pricing ? (
+            <div className="space-y-6">
+              <CreditSlider
+                min={pricing.min_credits}
+                max={pricing.max_credits}
+                step={pricing.credit_increment}
+                value={selectedCredits}
+                onChange={setSelectedCredits}
+                pricePerCredit={pricing.price_per_credit_pence}
+              />
 
-              return (
-                <Card
-                  key={pkg.id}
-                  className={cn(
-                    "cursor-pointer transition-all hover:border-primary/50",
-                    isSelected && "border-primary ring-2 ring-primary/20",
-                    pkg.popular && "border-primary/30"
-                  )}
-                  onClick={() => setSelectedPackage(pkg.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={cn(
-                            "w-10 h-10 rounded-full flex items-center justify-center",
-                            pkg.popular
-                              ? "bg-primary/10 text-primary"
-                              : "bg-muted"
-                          )}
-                        >
-                          {pkg.popular ? (
-                            <Sparkles className="h-5 w-5" />
-                          ) : (
-                            <Zap className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold">{pkg.name}</span>
-                            {pkg.popular && (
-                              <Badge variant="default" className="text-[10px] px-1.5 py-0">
-                                POPULAR
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {pkg.credits.toLocaleString()} credits • ${pricePerCredit}/credit
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold">
-                          {formatPrice(pkg.price_cents)}
-                        </span>
-                        {isSelected && (
-                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                            <Check className="h-3 w-3 text-primary-foreground" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
+              {/* Balance info */}
+              <div className="flex items-center justify-between text-sm border-t pt-4">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground">Current balance</div>
+                  <div className="font-medium">{currentCredits.toLocaleString()} credits</div>
+                </div>
+                <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                <div className="space-y-1 text-right">
+                  <div className="text-muted-foreground">After purchase</div>
+                  <div className="font-medium text-primary">{afterPurchase.toLocaleString()} credits</div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handlePurchase} disabled={!selectedPackage}>
+          <Button onClick={handlePurchase} disabled={!pricing || purchasing}>
             <CreditCard className="h-4 w-4 mr-2" />
-            Purchase Credits
+            {purchasing ? "Processing..." : `Purchase ${formatPrice(totalPrice)}`}
           </Button>
         </div>
       </DialogContent>

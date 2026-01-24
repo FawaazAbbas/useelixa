@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3 } from "lucide-react";
+import { CreditCard, Zap, CheckCircle, ArrowRight, BarChart3, Coins, Clock, Lock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,58 +8,83 @@ import { useTeam } from "@/hooks/useTeam";
 import { PageLayout, CardGrid } from "@/components/PageLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { CreditPurchaseDialog } from "@/components/chat/CreditPurchaseDialog";
 
 interface UsageStats {
   ai_calls: number;
   tool_executions: number;
   documents_uploaded: number;
   storage_bytes_used: number;
+  credits_used: number;
+  credits_purchased: number;
+}
+
+interface OrgData {
+  plan: string;
+  trial_ends_at: string | null;
+  monthly_credits: number;
+  is_unlimited: boolean;
+  has_premium_models: boolean;
+  connector_limit: number | null;
 }
 
 const plans = [
   {
-    name: "Free",
-    price: "$0",
-    description: "For individuals getting started",
+    id: "trial",
+    name: "Free Trial",
+    price: "£0",
+    description: "14-day trial to explore Elixa",
     features: [
-      "1 workspace",
-      "3 team members",
-      "1,000 AI credits/month",
-      "5 integrations",
-      "Community support",
+      "100 AI credits",
+      "Standard Elixa AI only",
+      "2 connectors maximum",
+      "14-day access",
     ],
-    limits: { ai_calls: 1000, tool_executions: 500, documents: 50 },
-    current: true,
+    limits: { credits: 100, connectors: 2, premiumModels: false },
+    trial: true,
   },
   {
-    name: "Pro",
-    price: "$29",
+    id: "starter",
+    name: "Starter",
+    price: "£5.99",
     period: "/month",
-    description: "For growing teams",
+    description: "For individuals getting started",
     features: [
-      "Unlimited workspaces",
-      "10 team members",
-      "10,000 AI credits/month",
-      "Unlimited integrations",
-      "Priority support",
-      "Custom branding",
+      "1,000 AI credits/month",
+      "Standard Elixa AI",
+      "Unlimited connectors",
+      "Email support",
     ],
-    limits: { ai_calls: 10000, tool_executions: 5000, documents: 500 },
+    limits: { credits: 1000, connectors: Infinity, premiumModels: false },
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: "£14.99",
+    period: "/month",
+    description: "For power users",
+    features: [
+      "5,000 AI credits/month",
+      "Access to GPT & Gemini Pro",
+      "Unlimited connectors",
+      "Priority support",
+    ],
+    limits: { credits: 5000, connectors: Infinity, premiumModels: true },
     highlighted: true,
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    description: "For large organizations",
+    id: "unlimited",
+    name: "Unlimited",
+    price: "£29.99",
+    period: "/month",
+    description: "No limits, full power",
     features: [
-      "Everything in Pro",
-      "Unlimited team members",
       "Unlimited AI credits",
-      "SSO & SAML",
+      "Access to GPT & Gemini Pro",
+      "Unlimited connectors",
       "Dedicated support",
-      "SLA guarantee",
     ],
-    limits: { ai_calls: Infinity, tool_executions: Infinity, documents: Infinity },
+    limits: { credits: Infinity, connectors: Infinity, premiumModels: true },
   },
 ];
 
@@ -67,43 +92,58 @@ const Billing = () => {
   const { user } = useAuth();
   const { organization, loading } = useTeam();
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+  const [orgData, setOrgData] = useState<OrgData | null>(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false);
 
   useEffect(() => {
-    const fetchUsage = async () => {
+    const fetchData = async () => {
       if (!organization?.id) {
         setLoadingUsage(false);
         return;
       }
 
       try {
+        // Fetch org data
+        const { data: org } = await supabase
+          .from("orgs")
+          .select("plan, trial_ends_at, monthly_credits, is_unlimited, has_premium_models, connector_limit")
+          .eq("id", organization.id)
+          .single();
+
+        if (org) {
+          setOrgData(org as OrgData);
+        }
+
+        // Fetch usage stats
         const currentMonth = new Date().toISOString().slice(0, 7) + "-01";
-        
-        const { data, error } = await supabase
+        const { data: usage } = await supabase
           .from("usage_stats")
           .select("*")
           .eq("org_id", organization.id)
           .eq("month", currentMonth)
           .maybeSingle();
 
-        if (!error && data) {
-          setUsageStats(data as UsageStats);
+        if (usage) {
+          setUsageStats(usage as UsageStats);
         } else {
           setUsageStats({
             ai_calls: 0,
             tool_executions: 0,
             documents_uploaded: 0,
             storage_bytes_used: 0,
+            credits_used: 0,
+            credits_purchased: 0,
           });
         }
       } catch (error) {
-        console.error("Error fetching usage:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoadingUsage(false);
       }
     };
 
-    fetchUsage();
+    fetchData();
   }, [organization?.id]);
 
   if (loading) {
@@ -116,20 +156,22 @@ const Billing = () => {
     );
   }
 
-  const currentPlan = organization?.plan || "free";
-  const currentPlanData = plans.find(p => p.name.toLowerCase() === currentPlan) || plans[0];
+  const currentPlan = orgData?.plan || "trial";
+  const currentPlanData = plans.find(p => p.id === currentPlan) || plans[0];
   
-  const aiCreditsUsed = usageStats?.ai_calls || 0;
-  const aiCreditsLimit = currentPlanData.limits?.ai_calls || 1000;
-  const aiUsagePercent = Math.min((aiCreditsUsed / aiCreditsLimit) * 100, 100);
-  
-  const toolsUsed = usageStats?.tool_executions || 0;
-  const toolsLimit = currentPlanData.limits?.tool_executions || 500;
-  const toolsUsagePercent = Math.min((toolsUsed / toolsLimit) * 100, 100);
+  // Calculate credits
+  const monthlyCredits = orgData?.monthly_credits || 100;
+  const creditsUsed = usageStats?.credits_used || 0;
+  const creditsPurchased = usageStats?.credits_purchased || 0;
+  const totalAvailable = monthlyCredits + creditsPurchased;
+  const creditsRemaining = Math.max(0, totalAvailable - creditsUsed);
+  const creditUsagePercent = orgData?.is_unlimited ? 0 : Math.min((creditsUsed / totalAvailable) * 100, 100);
 
-  const docsUploaded = usageStats?.documents_uploaded || 0;
-  const docsLimit = currentPlanData.limits?.documents || 50;
-  const docsUsagePercent = Math.min((docsUploaded / docsLimit) * 100, 100);
+  // Trial countdown
+  const trialEndsAt = orgData?.trial_ends_at ? new Date(orgData.trial_ends_at) : null;
+  const daysRemaining = trialEndsAt 
+    ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return "0 B";
@@ -143,7 +185,7 @@ const Billing = () => {
     <PageLayout
       title="Billing"
       icon={CreditCard}
-      badge={currentPlan}
+      badge={currentPlanData.name}
     >
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Current Usage */}
@@ -154,9 +196,17 @@ const Billing = () => {
                 <CardTitle>Current Plan</CardTitle>
                 <CardDescription>Your current subscription and usage</CardDescription>
               </div>
-              <Badge variant="outline" className="capitalize text-lg px-4 py-1">
-                {currentPlan}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="capitalize text-lg px-4 py-1">
+                  {currentPlanData.name}
+                </Badge>
+                {currentPlan === "trial" && daysRemaining > 0 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Clock className="h-3 w-3" />
+                    {daysRemaining} days left
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -170,44 +220,67 @@ const Billing = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-2">
-                      <Zap className="h-4 w-4" />
-                      AI Credits Used
+                      <Coins className="h-4 w-4" />
+                      AI Credits
                     </span>
                     <span className="font-medium">
-                      {aiCreditsUsed.toLocaleString()} / {aiCreditsLimit.toLocaleString()}
+                      {orgData?.is_unlimited ? (
+                        <span className="text-primary">Unlimited</span>
+                      ) : (
+                        <>
+                          {creditsRemaining.toLocaleString()} remaining
+                          <span className="text-muted-foreground ml-1">
+                            ({creditsUsed.toLocaleString()} / {totalAvailable.toLocaleString()} used)
+                          </span>
+                        </>
+                      )}
                     </span>
                   </div>
-                  <Progress value={aiUsagePercent} className="h-2" />
+                  {!orgData?.is_unlimited && <Progress value={creditUsagePercent} className="h-2" />}
                 </div>
 
-                {/* Tool Executions */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4" />
-                      Tool Executions
-                    </span>
-                    <span className="font-medium">
-                      {toolsUsed.toLocaleString()} / {toolsLimit.toLocaleString()}
-                    </span>
-                  </div>
-                  <Progress value={toolsUsagePercent} className="h-2" />
+                {/* Premium Models Access */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    Premium AI Models (GPT, Gemini Pro)
+                  </span>
+                  {orgData?.has_premium_models ? (
+                    <Badge variant="default" className="gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Enabled
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="gap-1">
+                      <Lock className="h-3 w-3" />
+                      Upgrade to unlock
+                    </Badge>
+                  )}
                 </div>
 
-                {/* Documents */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Documents Uploaded</span>
-                    <span className="font-medium">
-                      {docsUploaded} / {docsLimit}
-                    </span>
-                  </div>
-                  <Progress value={docsUsagePercent} className="h-2" />
+                {/* Connectors */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Connectors
+                  </span>
+                  <span className="font-medium">
+                    {orgData?.connector_limit === null ? "Unlimited" : `${orgData?.connector_limit} max`}
+                  </span>
                 </div>
 
                 {/* Storage */}
                 <div className="text-sm text-muted-foreground">
                   Storage used: {formatBytes(usageStats?.storage_bytes_used || 0)}
+                </div>
+
+                {/* Top Up Button */}
+                <div className="pt-4 border-t">
+                  <Button onClick={() => setCreditDialogOpen(true)} variant="outline" className="w-full sm:w-auto">
+                    <Coins className="h-4 w-4 mr-2" />
+                    Top Up Credits
+                    <span className="ml-2 text-muted-foreground">£0.06/credit</span>
+                  </Button>
                 </div>
               </>
             )}
@@ -217,63 +290,66 @@ const Billing = () => {
         {/* Plans */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Available Plans</h2>
-          <CardGrid columns={3}>
-            {plans.map((plan) => (
-              <Card
-                key={plan.name}
-                className={`relative ${
-                  plan.highlighted 
-                    ? "border-primary shadow-lg" 
-                    : ""
-                }`}
-              >
-                {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">
-                      <Zap className="h-3 w-3 mr-1" />
-                      Popular
-                    </Badge>
-                  </div>
-                )}
-                <CardHeader>
-                  <CardTitle className="flex items-baseline gap-1">
-                    <span className="text-2xl">{plan.price}</span>
-                    {plan.period && (
-                      <span className="text-sm font-normal text-muted-foreground">
-                        {plan.period}
-                      </span>
-                    )}
-                  </CardTitle>
-                  <div>
-                    <p className="font-semibold">{plan.name}</p>
-                    <p className="text-sm text-muted-foreground">{plan.description}</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-center gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-primary shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant={plan.current ? "outline" : plan.highlighted ? "default" : "secondary"}
-                    className="w-full"
-                    disabled={plan.current}
-                  >
-                    {plan.current ? (
-                      "Current Plan"
-                    ) : (
-                      <>
-                        Upgrade <ArrowRight className="h-4 w-4 ml-1" />
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+          <CardGrid columns={4}>
+            {plans.map((plan) => {
+              const isCurrent = plan.id === currentPlan;
+              return (
+                <Card
+                  key={plan.name}
+                  className={`relative ${
+                    plan.highlighted 
+                      ? "border-primary shadow-lg" 
+                      : ""
+                  }`}
+                >
+                  {plan.highlighted && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="bg-primary text-primary-foreground">
+                        <Zap className="h-3 w-3 mr-1" />
+                        Popular
+                      </Badge>
+                    </div>
+                  )}
+                  <CardHeader>
+                    <CardTitle className="flex items-baseline gap-1">
+                      <span className="text-2xl">{plan.price}</span>
+                      {plan.period && (
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {plan.period}
+                        </span>
+                      )}
+                    </CardTitle>
+                    <div>
+                      <p className="font-semibold">{plan.name}</p>
+                      <p className="text-sm text-muted-foreground">{plan.description}</p>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ul className="space-y-2">
+                      {plan.features.map((feature) => (
+                        <li key={feature} className="flex items-center gap-2 text-sm">
+                          <CheckCircle className="h-4 w-4 text-primary shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      variant={isCurrent ? "outline" : plan.highlighted ? "default" : "secondary"}
+                      className="w-full"
+                      disabled={isCurrent}
+                    >
+                      {isCurrent ? (
+                        "Current Plan"
+                      ) : (
+                        <>
+                          Upgrade <ArrowRight className="h-4 w-4 ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </CardGrid>
         </div>
 
@@ -285,11 +361,18 @@ const Billing = () => {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground text-center py-8">
-              No billing history available. You're on the free plan.
+              No billing history available yet.
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Credit Purchase Dialog */}
+      <CreditPurchaseDialog
+        open={creditDialogOpen}
+        onOpenChange={setCreditDialogOpen}
+        currentCredits={creditsRemaining}
+      />
     </PageLayout>
   );
 };

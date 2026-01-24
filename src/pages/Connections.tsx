@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plug, Search, CheckCircle2, Loader2, ExternalLink, Plus, User } from "lucide-react";
+import { Plug, Search, CheckCircle2, Loader2, ExternalLink, Plus, User, Lock, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { PageLayout, PageEmptyState, SectionHeader, CardGrid } from "@/components/PageLayout";
@@ -33,6 +34,11 @@ interface UserCredential {
   connected_at: string;
 }
 
+interface OrgLimits {
+  connector_limit: number | null;
+  plan: string;
+}
+
 // OAuth mapping - including Google services (each Google service is independent)
 const INTEGRATION_OAUTH_MAP: Record<string, { provider: string; credentialType: string; bundleType?: string }> = {
   // Google services - each has its own unique bundle type for independent connections
@@ -57,6 +63,7 @@ const Connections = () => {
   const { user } = useAuth();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [credentials, setCredentials] = useState<UserCredential[]>([]);
+  const [orgLimits, setOrgLimits] = useState<OrgLimits | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -79,7 +86,8 @@ const Connections = () => {
 
     if (integrationsData) setIntegrations(integrationsData);
 
-  if (user) {
+    if (user) {
+      // Fetch credentials
       const { data: credentialsData } = await supabase
         .from("user_credentials")
         .select("id, credential_type, bundle_type, account_email, scopes, created_at")
@@ -92,6 +100,25 @@ const Connections = () => {
           scopes: c.scopes || null,
           connected_at: c.created_at
         })));
+      }
+
+      // Fetch org limits for connector restrictions
+      const { data: membership } = await supabase
+        .from("org_members")
+        .select("org_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (membership?.org_id) {
+        const { data: org } = await supabase
+          .from("orgs")
+          .select("connector_limit, plan")
+          .eq("id", membership.org_id)
+          .single();
+
+        if (org) {
+          setOrgLimits(org as OrgLimits);
+        }
       }
     }
     setLoading(false);
@@ -116,10 +143,26 @@ const Connections = () => {
     return getCredentialsForIntegration(integration).length > 0;
   };
 
-  const handleConnect = async (integration: Integration) => {
+  // Connector limit - will be calculated after connectedIntegrations is defined
+  const connectorLimit = orgLimits?.connector_limit;
+
+  const handleConnect = async (integration: Integration, connectedCount: number) => {
     if (!user) {
       toast.error("Please sign in to connect integrations");
       navigate("/auth");
+      return;
+    }
+
+    // Check connector limit before connecting
+    const limitReached = connectorLimit !== null && connectedCount >= connectorLimit;
+    if (limitReached) {
+      toast.error("Connector limit reached", {
+        description: "Upgrade your plan to connect more integrations.",
+        action: {
+          label: "Upgrade",
+          onClick: () => navigate("/billing"),
+        },
+      });
       return;
     }
 
@@ -184,13 +227,37 @@ const Connections = () => {
   const connectedIntegrations = filtered.filter(i => isIntegrationConnected(i));
   const availableIntegrations = filtered.filter(i => !isIntegrationConnected(i));
 
+  // Check if connector limit is reached (after connectedIntegrations is calculated)
+  const isLimitReached = connectorLimit !== null && connectedIntegrations.length >= connectorLimit;
+  const canAddConnector = connectorLimit === null || connectedIntegrations.length < connectorLimit;
+
   return (
     <PageLayout
       title="Connections"
       icon={Plug}
-      badge={connectedIntegrations.length > 0 ? `${connectedIntegrations.length} connected` : undefined}
+      badge={connectorLimit !== null 
+        ? `${connectedIntegrations.length}/${connectorLimit} connected`
+        : connectedIntegrations.length > 0 
+          ? `${connectedIntegrations.length} connected` 
+          : undefined
+      }
       fullWidth
     >
+      {/* Connector limit warning */}
+      {isLimitReached && (
+        <Alert variant="default" className="mb-6 border-amber-500/50 bg-amber-500/10">
+          <Lock className="h-4 w-4 text-amber-500" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              You've reached your connector limit ({connectorLimit}). Upgrade to connect more integrations.
+            </span>
+            <Button size="sm" onClick={() => navigate("/billing")} className="ml-4">
+              Upgrade Plan
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Search and filters */}
       <div className="flex flex-wrap gap-4 mb-8">
         <div className="relative flex-1 min-w-[200px] max-w-md">
@@ -295,7 +362,7 @@ const Connections = () => {
                           variant="outline"
                           size="sm"
                           className="w-full"
-                          onClick={() => handleConnect(integration)}
+                          onClick={() => handleConnect(integration, connectedIntegrations.length)}
                           disabled={connectingId === integration.id}
                         >
                           {connectingId === integration.id ? (
@@ -337,19 +404,23 @@ const Connections = () => {
                       <CardDescription className="line-clamp-2 text-xs mb-3 min-h-[2.5rem]">
                         {integration.description || `Connect ${integration.name}`}
                       </CardDescription>
-                      <Button
-                        variant={hasOAuth ? "default" : "secondary"}
-                        size="sm"
-                        className="w-full"
-                        onClick={() => hasOAuth && handleConnect(integration)}
-                        disabled={!hasOAuth || connectingId === integration.id}
-                      >
-                        {connectingId === integration.id ? (
-                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Connecting...</>
-                        ) : hasOAuth ? (
-                          <><ExternalLink className="h-4 w-4 mr-2" />Connect</>
-                        ) : "Coming Soon"}
-                      </Button>
+                  <Button
+                    variant={hasOAuth && canAddConnector ? "default" : "secondary"}
+                    size="sm"
+                    className="w-full"
+                    onClick={() => hasOAuth && handleConnect(integration, connectedIntegrations.length)}
+                    disabled={!hasOAuth || connectingId === integration.id || !canAddConnector}
+                  >
+                    {connectingId === integration.id ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Connecting...</>
+                    ) : !hasOAuth ? (
+                      "Coming Soon"
+                    ) : !canAddConnector ? (
+                      <><Lock className="h-4 w-4 mr-2" />Limit Reached</>
+                    ) : (
+                      <><ExternalLink className="h-4 w-4 mr-2" />Connect</>
+                    )}
+                  </Button>
                     </CardContent>
                   </Card>
                 );
