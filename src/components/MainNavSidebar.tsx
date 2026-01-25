@@ -199,8 +199,8 @@ export const MainNavSidebar = () => {
         />
       </div>
 
-      {/* Navigation - scrollable */}
-      <nav className="flex flex-col gap-1 flex-1 w-full px-2 overflow-y-auto scrollbar-thin">
+      {/* Navigation - vertically scrollable */}
+      <nav className="flex flex-col gap-1 flex-1 min-h-0 w-full px-2 overflow-y-auto overflow-x-hidden scrollbar-thin">
         {navItems.map((item) => (
           <NavLink
             key={item.path}
