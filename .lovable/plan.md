@@ -1,296 +1,195 @@
 
 
-# Mascot Prominence Enhancement Plan
+# Google Analytics Admin API Enhancement Plan
 
 ## Overview
 
-This plan identifies additional strategic locations throughout the app where the Elixa mascot can be integrated to create a warmer, more inviting, and cohesive user experience. The goal is to make the mascot feel like a natural companion throughout the user journey.
+You've enabled the required Google APIs and already have the `analytics.edit` OAuth scope configured. The current implementation only uses read-only reporting capabilities. This plan adds **Admin API management tools** to give the AI full configuration access to Google Analytics.
 
 ---
 
-## Integration Locations
+## Current State
 
-### 1. Main Navigation Sidebar (Chat Entry Point)
+### What We Have (9 Read-Only Tools)
+| Tool | Purpose |
+|------|---------|
+| `ga_list_accounts` | List GA accounts |
+| `ga_list_properties` | List GA4 properties |
+| `ga_get_traffic` | Traffic metrics |
+| `ga_get_user_behavior` | Engagement metrics |
+| `ga_get_conversions` | Conversion data |
+| `ga_get_top_pages` | Top pages report |
+| `ga_get_traffic_sources` | Traffic sources |
+| `ga_get_realtime` | Realtime users |
+| `ga_get_demographics` | Location data |
 
-**File:** `src/components/MainNavSidebar.tsx`
-
-**Current:** Uses `Elixa-Responded.png` as a small 36px avatar for the AI Chat nav item.
-
-**Enhancement:** Replace with the `ElixaMascot` component using the `default` pose with a subtle hover animation.
-
-**Details:**
-- Size: `xs` (current 36px dimension matches)
-- Animation: Add scale/wave animation on hover for interactivity
-- This is a highly visible location users see constantly
-
----
-
-### 2. Chat Sidebar - Empty State
-
-**File:** `src/components/ChatSidebar.tsx`
-
-**Current:** Simple text "No conversations yet"
-
-**Enhancement:** Add mascot with `waving` pose above the text.
-
-**Details:**
-- Size: `sm`
-- Animation: `float`
-- Message: Make it feel inviting to start a conversation
+### OAuth Scopes (Already Configured)
+- `analytics.readonly` - For Data API reporting
+- `analytics.edit` - For Admin API management
 
 ---
 
-### 3. Settings Page - AI Behavior Section
+## New Capabilities to Add
 
-**File:** `src/pages/Settings.tsx`
+### 1. Custom Event Management (Admin API)
 
-**Current:** Standard settings tabs with icons only.
+**New Tools:**
+- `ga_list_custom_events` - List configured custom events
+- `ga_create_conversion_event` - Mark an event as a conversion (HITL)
+- `ga_update_conversion_event` - Modify conversion settings (HITL)
+- `ga_delete_conversion_event` - Remove conversion marking (HITL)
 
-**Enhancement:** Add a small mascot in the profile or AI settings tab to make settings feel less sterile.
+### 2. Custom Dimensions and Metrics
 
-**Details:**
-- Size: `sm`
-- Pose: `relaxed` or `sitting`
-- Position: Decorative element in the card header or sidebar
+**New Tools:**
+- `ga_list_custom_dimensions` - List custom dimensions
+- `ga_create_custom_dimension` - Create new dimension (HITL)
+- `ga_list_custom_metrics` - List custom metrics
+- `ga_create_custom_metric` - Create new metric (HITL)
 
----
+### 3. Data Streams Management
 
-### 4. Billing Page - Credit Exhausted State
+**New Tools:**
+- `ga_list_data_streams` - List web/app data streams
+- `ga_get_data_stream` - Get stream details including Measurement ID
+- `ga_update_data_stream` - Modify stream settings (HITL)
 
-**File:** `src/pages/Billing.tsx`
+### 4. Audience Management
 
-**Current:** Low credit warning shows AlertTriangle icon.
+**New Tools:**
+- `ga_list_audiences` - List configured audiences
+- `ga_get_audience` - Get audience definition details
 
-**Enhancement:** Add mascot with `thinking` or concerned pose to humanize the upgrade prompt.
+### 5. Additional Reporting Tools
 
-**Details:**
-- Size: `sm`
-- Position: Beside the low credit warning text
-- Makes the billing nudge feel less aggressive
-
----
-
-### 5. Connections Page - Empty/First Time
-
-**File:** `src/pages/Connections.tsx`
-
-**Current:** Shows list of available integrations.
-
-**Enhancement:** Add mascot with `pointing-right` pose when user has no connections, pointing toward integrations to connect.
-
-**Details:**
-- Size: `md`
-- Animation: `float`
-- Message: Encourage first-time connection
+**New Tools:**
+- `ga_get_devices` - Device category breakdown (desktop, mobile, tablet)
+- `ga_get_ecommerce` - E-commerce metrics (transactions, revenue, products)
+- `ga_get_landing_pages` - Landing page performance
 
 ---
 
-### 6. Digest Page - No Digest Available
+## Implementation Details
 
-**File:** `src/pages/Digest.tsx`
+### Files to Modify
 
-**Current:** Shows PageEmptyState when no digest is generated.
+**1. Edge Function: `supabase/functions/google-analytics-integration/index.ts`**
 
-**Enhancement:** Use `thinking` pose mascot for empty state.
+Add new action handlers for Admin API operations:
 
-**Details:**
-- Size: `lg`
-- Animation: `pulse`
-- Context: "Elixa is preparing your digest..."
+```text
+New Actions:
+- list_custom_events
+- create_conversion_event (writes to pending_actions for HITL)
+- list_custom_dimensions
+- create_custom_dimension (writes to pending_actions for HITL)
+- list_data_streams
+- get_data_stream
+- list_audiences
+- get_devices
+- get_ecommerce
+- get_landing_pages
+```
 
----
+**2. Chat Tool Definitions: `supabase/functions/chat/index.ts`**
 
-### 7. Notifications Page - All Caught Up
+Add new tool definitions for the AI to use:
 
-**File:** `src/pages/Notifications.tsx`
+```text
+New GA Tools (Read):
+- ga_list_custom_events
+- ga_list_custom_dimensions
+- ga_list_custom_metrics
+- ga_list_data_streams
+- ga_get_data_stream
+- ga_list_audiences
+- ga_get_devices
+- ga_get_ecommerce
+- ga_get_landing_pages
 
-**Current:** Bell icon with "You're all caught up!"
+New GA Tools (Write - HITL Required):
+- ga_create_conversion_event
+- ga_create_custom_dimension
+- ga_create_custom_metric
+```
 
-**Enhancement:** Replace with `celebrating` pose mascot.
+**3. Tool Executor: Update tool routing in chat/index.ts**
 
-**Details:**
-- Size: `lg`
-- Animation: `bounce`
-- Makes the empty state feel rewarding
-
----
-
-### 8. Error Boundary - Crash State
-
-**File:** `src/components/ErrorBoundary.tsx`
-
-**Current:** AlertTriangle icon with error message.
-
-**Enhancement:** Add mascot with `thinking` or concerned pose to soften the error experience.
-
-**Details:**
-- Size: `md`
-- Position: Above or beside the error message
-- Makes errors feel less scary
-
----
-
-### 9. Knowledge Base - Empty State
-
-**File:** `src/pages/KnowledgeBase.tsx`
-
-**Current:** FileText icon for "No documents yet"
-
-**Enhancement:** Use `search` pose mascot holding magnifying glass.
-
-**Details:**
-- Size: `lg`
-- Animation: `float`
-- Encourages document upload
+Map new tool names to google-analytics-integration actions.
 
 ---
 
-### 10. Calendar - No Events State
+## API Endpoints Used
 
-**File:** `src/pages/Calendar.tsx`
+### Google Analytics Admin API (v1beta)
+```text
+Base: https://analyticsadmin.googleapis.com/v1beta
 
-**Current:** Standard empty state.
+GET  /properties/{propertyId}/conversionEvents      - List conversion events
+POST /properties/{propertyId}/conversionEvents      - Create conversion event
+GET  /properties/{propertyId}/customDimensions      - List custom dimensions
+POST /properties/{propertyId}/customDimensions      - Create custom dimension
+GET  /properties/{propertyId}/customMetrics         - List custom metrics
+POST /properties/{propertyId}/customMetrics         - Create custom metric
+GET  /properties/{propertyId}/dataStreams           - List data streams
+GET  /properties/{propertyId}/dataStreams/{id}      - Get stream details
+GET  /properties/{propertyId}/audiences             - List audiences
+```
 
-**Enhancement:** Add `relaxed` or `sitting` mascot for empty calendar.
+### Google Analytics Data API (v1beta) - New Reports
+```text
+Base: https://analyticsdata.googleapis.com/v1beta
 
-**Details:**
-- Size: `md`
-- Message: Peaceful, relaxed day vibe
-
----
-
-### 11. Tasks - Empty Kanban Board
-
-**File:** `src/pages/Tasks.tsx`
-
-**Current:** Uses PageEmptyState.
-
-**Enhancement:** Already partially implemented. Ensure mascot appears with `celebrating` pose when all tasks are done, `search` when no tasks exist.
-
-**Details:**
-- Different poses for different states
-- Completed all tasks = celebrating
-- No tasks yet = pointing toward "Add Task"
-
----
-
-### 12. Notes - No Note Selected
-
-**File:** `src/pages/Notes.tsx`
-
-**Current:** PageEmptyState with "Select a note" message.
-
-**Enhancement:** Use `sitting` or `relaxed` pose mascot.
-
-**Details:**
-- Size: `md`
-- Animation: `float`
-- Calm, contemplative vibe
+POST /properties/{propertyId}:runReport
+- Device report: dimension "deviceCategory"
+- E-commerce report: metrics "transactions", "purchaseRevenue", "itemsPurchased"
+- Landing pages: dimension "landingPage"
+```
 
 ---
 
-### 13. Logs Page - No Logs State
+## Tool Summary (After Implementation)
 
-**File:** `src/pages/Logs.tsx`
-
-**Current:** PageEmptyState for sign-in required.
-
-**Enhancement:** Add mascot for empty logs state.
-
-**Details:**
-- Size: `md`
-- Pose: `search` when no logs found
-- Makes analytics page feel less cold
+| Category | Read Tools | Write Tools (HITL) |
+|----------|-----------|-------------------|
+| Accounts/Properties | 2 | 0 |
+| Traffic Reports | 6 → 9 | 0 |
+| Configuration | 0 → 6 | 0 → 3 |
+| **Total** | **8 → 17** | **0 → 3** |
 
 ---
 
-### 14. Trial Banner - Upgrade Prompt
+## Human-In-The-Loop (HITL) Integration
 
-**File:** `src/components/billing/TrialBanner.tsx`
+Write operations will use the existing `pending_actions` table:
 
-**Current:** Clock icon with days remaining.
+```text
+Actions requiring HITL approval:
+- ga_create_conversion_event
+- ga_create_custom_dimension  
+- ga_create_custom_metric
+```
 
-**Enhancement:** Add tiny mascot beside the upgrade button.
-
-**Details:**
-- Size: `xs`
-- Pose: `waving` or `pointing-right`
-- Softens the commercial message
-
----
-
-### 15. Notification List - Empty State
-
-**File:** `src/components/notifications/NotificationList.tsx`
-
-**Current:** Bell icon with "No notifications yet"
-
-**Enhancement:** Use `relaxed` pose mascot.
-
-**Details:**
-- Size: `md`
-- Animation: `float`
-- Peaceful "nothing to worry about" vibe
+The AI will propose the action, user sees an approve/deny button, and execution only happens on approval.
 
 ---
 
-## Implementation Summary
+## Deployment Steps
 
-| Location | Pose | Size | Animation | Purpose |
-|----------|------|------|-----------|---------|
-| MainNavSidebar (Chat) | default | xs | hover-scale | Always visible |
-| ChatSidebar empty | waving | sm | float | Welcome new users |
-| Settings page | sitting | sm | none | Warm up settings |
-| Billing low credit | thinking | sm | none | Soften upgrade nudge |
-| Connections empty | pointing-right | md | float | Encourage connections |
-| Digest empty | thinking | md | pulse | Processing indicator |
-| Notifications empty | celebrating | lg | bounce | Reward "caught up" |
-| ErrorBoundary | thinking | md | none | Soften errors |
-| Knowledge Base empty | search | lg | float | Encourage uploads |
-| Calendar empty | relaxed | md | float | Peaceful day |
-| Tasks completed | celebrating | md | bounce | Celebrate success |
-| Notes empty | sitting | md | float | Contemplative |
-| Logs empty | search | md | none | Analytics warmth |
-| Trial banner | waving | xs | none | Friendly upgrade |
-| NotificationList empty | relaxed | md | float | Peace of mind |
-
----
-
-## Files to Modify
-
-1. `src/components/MainNavSidebar.tsx`
-2. `src/components/ChatSidebar.tsx`
-3. `src/pages/Settings.tsx`
-4. `src/pages/Billing.tsx`
-5. `src/pages/Connections.tsx`
-6. `src/pages/Digest.tsx`
-7. `src/pages/Notifications.tsx`
-8. `src/components/ErrorBoundary.tsx`
-9. `src/pages/KnowledgeBase.tsx`
-10. `src/pages/Calendar.tsx`
-11. `src/pages/Tasks.tsx`
-12. `src/pages/Notes.tsx`
-13. `src/pages/Logs.tsx`
-14. `src/components/billing/TrialBanner.tsx`
-15. `src/components/notifications/NotificationList.tsx`
-
----
-
-## Technical Notes
-
-- All implementations will use the existing `ElixaMascot` component from `src/components/ElixaMascot.tsx`
-- Supported poses: `default`, `waving`, `thinking`, `sitting`, `relaxed`, `pointing-left`, `pointing-right`, `celebrating`, `search`
-- Supported sizes: `xs` (32px), `sm` (48px), `md` (80px), `lg` (128px), `xl` (192px), `2xl` (256px)
-- Supported animations: `none`, `float`, `bounce`, `pulse`, `wave`
+1. Update `google-analytics-integration/index.ts` with new action handlers
+2. Update `chat/index.ts` with new tool definitions
+3. Update tool routing in the chat function
+4. Deploy edge functions automatically on save
 
 ---
 
 ## Expected Outcome
 
-After implementation, the Elixa mascot will appear naturally throughout the app:
-- Greeting users when they start new conversations
-- Celebrating when tasks are completed or notifications are cleared
-- Gently guiding users toward features like connections and document uploads
-- Softening error states and commercial messages
-- Creating a consistent, friendly brand presence
+After implementation, the AI will be able to:
+- List and create conversion events
+- Configure custom dimensions and metrics
+- View data stream details (including Measurement IDs)
+- Browse configured audiences
+- Generate device, e-commerce, and landing page reports
+- All write operations require user approval
 
