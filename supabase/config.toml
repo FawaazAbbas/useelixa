@@ -95,3 +95,12 @@ verify_jwt = false
 
 [functions.generate-daily-digest]
 verify_jwt = false
+
+[functions.youtube-analytics-integration]
+verify_jwt = false
+
+[functions.google-tag-manager-integration]
+verify_jwt = false
+
+[functions.google-places-integration]
+verify_jwt = false

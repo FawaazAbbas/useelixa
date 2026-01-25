@@ -126,6 +126,12 @@ function getGoogleScopes(bundleType?: string): string {
       return `${baseScopes} https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/analytics.edit`;
     case "google_sheets":
       return `${baseScopes} https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly`;
+    case "youtube":
+      return `${baseScopes} https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly https://www.googleapis.com/auth/yt-analytics-monetary.readonly`;
+    case "tag_manager":
+      return `${baseScopes} https://www.googleapis.com/auth/tagmanager.readonly https://www.googleapis.com/auth/tagmanager.edit.containers https://www.googleapis.com/auth/tagmanager.publish`;
+    case "places":
+      return `${baseScopes} https://www.googleapis.com/auth/cloud-platform`;
     default:
       return baseScopes;
   }
