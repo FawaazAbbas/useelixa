@@ -343,10 +343,6 @@ const BlogPostPage = () => {
               <div className="absolute top-0 right-0 w-32 h-32 sm:w-48 sm:h-48 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
               
               <div className="relative text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                  <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
-                  <span className="text-[10px] sm:text-xs font-medium text-primary uppercase tracking-wider">Get Started</span>
-                </div>
                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
                   <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                     Try Elixa Today

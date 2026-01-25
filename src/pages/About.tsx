@@ -11,10 +11,6 @@ const About = () => {
       <main className="pt-28 sm:pt-24 pb-16">
         {/* Hero Section */}
         <section className="max-w-4xl mx-auto px-4 sm:px-6 text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">About Elixa</span>
-          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
             Connect Your Tools to AI
           </h1>
