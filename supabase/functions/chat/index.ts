@@ -103,7 +103,7 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "gads_update_ad_status", description: "Enable, pause, or remove a Google Ads ad. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, adId: { type: "string", description: "Ad ID to update" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "adGroupId", "adId", "status"] } } },
   { type: "function", function: { name: "gads_update_keyword_status", description: "Enable, pause, or remove a keyword. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, criterionId: { type: "string", description: "Keyword criterion ID" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"], description: "New status" } }, required: ["customerId", "adGroupId", "criterionId", "status"] } } },
   { type: "function", function: { name: "gads_add_keyword", description: "Add a new keyword to an ad group. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { customerId: { type: "string", description: "Google Ads customer ID" }, adGroupId: { type: "string", description: "Ad group ID" }, keywordText: { type: "string", description: "Keyword text" }, matchType: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"], description: "Match type (default: BROAD)" } }, required: ["customerId", "adGroupId", "keywordText"] } } },
-  // Google Analytics tools
+  // Google Analytics tools - Reporting (Data API)
   { type: "function", function: { name: "ga_list_accounts", description: "List all Google Analytics accounts accessible by the connected Google account. Use this first to discover available accounts, then use ga_list_properties to find property IDs.", parameters: { type: "object", properties: {} } } },
   { type: "function", function: { name: "ga_list_properties", description: "List Google Analytics 4 properties. Returns NUMERIC property IDs (e.g., 266890436) which are used for all other GA tools. IMPORTANT: Property ID is numeric and different from Measurement ID (G-XXXXXX which is used in tracking code).", parameters: { type: "object", properties: { accountId: { type: "string", description: "Optional: Filter by account ID to show properties for a specific account" } } } } },
   { type: "function", function: { name: "ga_get_traffic", description: "Get website traffic data (pageviews, sessions, users). The propertyId MUST be numeric (e.g., 266890436), NOT a Measurement ID (G-XXXXXX).", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID (e.g., 266890436)" }, startDate: { type: "string", description: "Start date (YYYY-MM-DD or relative like '30daysAgo')" }, endDate: { type: "string", description: "End date (YYYY-MM-DD or 'today')" } }, required: ["propertyId"] } } },
@@ -112,6 +112,20 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_traffic_sources", description: "Get traffic sources breakdown. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_realtime", description: "Get realtime active users. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_demographics", description: "Get user demographics data (country, city). Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_devices", description: "Get device category breakdown (desktop, mobile, tablet) with sessions, users, and engagement metrics.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_ecommerce", description: "Get e-commerce metrics (transactions, revenue, items purchased). Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_landing_pages", description: "Get landing page performance with sessions, bounce rate, and conversions.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
+  // Google Analytics tools - Configuration (Admin API)
+  { type: "function", function: { name: "ga_list_conversion_events", description: "List all conversion events configured in a GA4 property.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_create_conversion_event", description: "Mark an event as a conversion in GA4. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, eventName: { type: "string", description: "Name of the event to mark as conversion" } }, required: ["propertyId", "eventName"] } } },
+  { type: "function", function: { name: "ga_list_custom_dimensions", description: "List all custom dimensions configured in a GA4 property.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_create_custom_dimension", description: "Create a new custom dimension in GA4. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, parameterName: { type: "string", description: "Event parameter name to use" }, displayName: { type: "string", description: "Display name for the dimension" }, description: { type: "string", description: "Description of the dimension" }, scope: { type: "string", enum: ["EVENT", "USER"], description: "Scope of the dimension (default: EVENT)" } }, required: ["propertyId", "parameterName", "displayName"] } } },
+  { type: "function", function: { name: "ga_list_custom_metrics", description: "List all custom metrics configured in a GA4 property.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_create_custom_metric", description: "Create a new custom metric in GA4. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, parameterName: { type: "string", description: "Event parameter name to use" }, displayName: { type: "string", description: "Display name for the metric" }, description: { type: "string", description: "Description of the metric" }, measurementUnit: { type: "string", enum: ["STANDARD", "CURRENCY", "FEET", "METERS", "KILOMETERS", "MILES", "MILLISECONDS", "SECONDS", "MINUTES", "HOURS"], description: "Unit of measurement (default: STANDARD)" } }, required: ["propertyId", "parameterName", "displayName"] } } },
+  { type: "function", function: { name: "ga_list_data_streams", description: "List all data streams (web/app) for a GA4 property.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_data_stream", description: "Get details of a specific data stream including Measurement ID.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, streamId: { type: "string", description: "Data stream ID" } }, required: ["propertyId", "streamId"] } } },
+  { type: "function", function: { name: "ga_list_audiences", description: "List all audiences configured in a GA4 property.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
   // Google Sheets tools
   { type: "function", function: { name: "sheets_list", description: "List Google Sheets spreadsheets accessible to the user", parameters: { type: "object", properties: { maxResults: { type: "number", description: "Max results (default 20)" }, query: { type: "string", description: "Search query to filter by name" } } } } },
   { type: "function", function: { name: "sheets_get", description: "Get spreadsheet metadata including list of sheets/tabs", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID from the URL" } }, required: ["spreadsheetId"] } } },
@@ -155,6 +169,9 @@ const WRITE_TOOLS = [
   "sheets_append",
   "sheets_clear",
   "sheets_create",
+  "ga_create_conversion_event",
+  "ga_create_custom_dimension",
+  "ga_create_custom_metric",
 ];
 
 // Model for lightweight tasks (title generation) - always use cheapest
@@ -1581,6 +1598,123 @@ async function executeTool(
           method: "POST",
           headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "get_realtime", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_demographics": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_demographics", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_devices": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_devices", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_ecommerce": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_ecommerce", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_landing_pages": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_landing_pages", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_list_conversion_events": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_conversion_events", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_create_conversion_event": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_conversion_event", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_list_custom_dimensions": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_custom_dimensions", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_create_custom_dimension": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_custom_dimension", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_list_custom_metrics": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_custom_metrics", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_create_custom_metric": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_custom_metric", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_list_data_streams": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_data_streams", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_data_stream": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_data_stream", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_list_audiences": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_audiences", params: args }),
         });
         return await response.json();
       }
