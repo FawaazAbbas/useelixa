@@ -13,6 +13,7 @@ import { getOAuthUrl } from "@/config/oauth";
 import { toast } from "sonner";
 import { ShopifyConnectDialog } from "@/components/connections/ShopifyConnectDialog";
 import { logAdminAction } from "@/utils/auditLog";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface Integration {
   id: string;
@@ -443,11 +444,11 @@ const Connections = () => {
           </div>
 
           {filtered.length === 0 && (
-            <PageEmptyState
-              icon={Plug}
-              title="No integrations found"
-              description="Try adjusting your search or filters."
-            />
+            <div className="flex flex-col items-center justify-center py-12">
+              <ElixaMascot pose="search" size="lg" animation="float" className="mb-4" />
+              <h3 className="text-lg font-medium mb-1">No integrations found</h3>
+              <p className="text-muted-foreground text-sm">Try adjusting your search or filters.</p>
+            </div>
           )}
 
           {/* Shopify Connect Dialog */}

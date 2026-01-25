@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { Notification } from "@/hooks/useNotifications";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const typeIcons: Record<Notification["type"], React.ReactNode> = {
   pending_action: <Bell className="h-4 w-4 text-amber-500" />,
@@ -89,8 +90,9 @@ export function NotificationList({
       {/* List */}
       {notifications.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-          <Bell className="h-8 w-8 mb-2 opacity-50" />
-          <p className="text-sm">No notifications yet</p>
+          <ElixaMascot pose="relaxed" size="md" animation="float" className="mb-3" />
+          <p className="text-sm font-medium">All caught up!</p>
+          <p className="text-xs mt-1">No notifications to show</p>
         </div>
       ) : (
         <ScrollArea className="h-[300px]">

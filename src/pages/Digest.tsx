@@ -34,6 +34,7 @@ import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface DigestContent {
   date: string;
@@ -679,9 +680,7 @@ export default function Digest() {
         <Card className="max-w-lg mx-auto">
           <CardContent className="py-12">
             <div className="text-center space-y-4">
-              <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Newspaper className="h-6 w-6 text-primary" />
-              </div>
+              <ElixaMascot pose="thinking" size="lg" animation="pulse" className="mx-auto" />
               <div className="space-y-2">
                 <h3 className="text-lg font-semibold">No digests yet</h3>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto">

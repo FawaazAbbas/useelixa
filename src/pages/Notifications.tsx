@@ -31,6 +31,7 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { useNotifications, type Notification } from "@/hooks/useNotifications";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const typeIcons: Record<Notification["type"], React.ReactNode> = {
   pending_action: <Bell className="h-5 w-5 text-amber-500" />,
@@ -248,12 +249,14 @@ const Notifications = () => {
           ) : filteredNotifications.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <Bell className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                <h3 className="font-medium text-lg mb-1">No notifications</h3>
+                <ElixaMascot pose="celebrating" size="lg" animation="bounce" className="mb-4" />
+                <h3 className="font-medium text-lg mb-1">
+                  {searchQuery || typeFilter !== "all" ? "No matches" : "You're all caught up!"}
+                </h3>
                 <p className="text-muted-foreground text-sm">
                   {searchQuery || typeFilter !== "all"
                     ? "No notifications match your filters"
-                    : "You're all caught up!"}
+                    : "Great job staying on top of things!"}
                 </p>
               </CardContent>
             </Card>

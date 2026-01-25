@@ -19,6 +19,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface UsageStats {
   ai_calls: number;
@@ -301,46 +302,50 @@ const Billing = () => {
         {/* Low Credit Warning Banner */}
         {showLowCreditWarning && (
           <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle className="flex items-center justify-between">
-              <span>Low Credit Balance</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 -mr-2"
-                onClick={() => setLowCreditDismissed(true)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </AlertTitle>
-            <AlertDescription className="mt-2">
-              <p className="mb-3">
-                You have only <strong>{creditsRemaining.toLocaleString()} credits</strong> remaining. 
-                Top up now to avoid interruptions to your AI workflows.
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => setCreditDialogOpen(true)}
-                  className="gap-1"
-                >
-                  <Coins className="h-4 w-4" />
-                  Top Up Credits
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleUpgrade("pro")}
-                  disabled={upgradingPlan === "pro"}
-                >
-                  {upgradingPlan === "pro" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Upgrade Plan"
-                  )}
-                </Button>
+            <div className="flex items-start gap-3">
+              <ElixaMascot pose="thinking" size="sm" className="shrink-0" />
+              <div className="flex-1">
+                <AlertTitle className="flex items-center justify-between">
+                  <span>Low Credit Balance</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 -mr-2"
+                    onClick={() => setLowCreditDismissed(true)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </AlertTitle>
+                <AlertDescription className="mt-2">
+                  <p className="mb-3">
+                    You have only <strong>{creditsRemaining.toLocaleString()} credits</strong> remaining. 
+                    Top up now to avoid interruptions to your AI workflows.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => setCreditDialogOpen(true)}
+                      className="gap-1"
+                    >
+                      <Coins className="h-4 w-4" />
+                      Top Up Credits
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleUpgrade("pro")}
+                      disabled={upgradingPlan === "pro"}
+                    >
+                      {upgradingPlan === "pro" ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Upgrade Plan"
+                      )}
+                    </Button>
+                  </div>
+                </AlertDescription>
               </div>
-            </AlertDescription>
+            </div>
           </Alert>
         )}
         {/* Current Usage */}
