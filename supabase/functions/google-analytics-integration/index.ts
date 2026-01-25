@@ -65,8 +65,8 @@ serve(async (req) => {
     let result;
 
     switch (action) {
+      // ============= ACCOUNT & PROPERTY MANAGEMENT =============
       case "list_accounts": {
-        // List all accessible GA4 accounts
         const response = await fetch(`${GA_ADMIN_API_BASE}/accounts`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
@@ -85,7 +85,6 @@ serve(async (req) => {
       }
 
       case "list_properties": {
-        // List all accessible GA4 properties
         const accountId = params?.accountId;
         let url = `${GA_ADMIN_API_BASE}/properties`;
         if (accountId) {
@@ -109,8 +108,8 @@ serve(async (req) => {
         break;
       }
 
+      // ============= DATA API - TRAFFIC & REPORTING =============
       case "get_traffic": {
-        // Get website traffic data (pageviews, sessions, users)
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
@@ -144,21 +143,11 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          metadata: data.metadata,
-          _hint: (data.rows || []).length === 0 
-            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
-            : undefined,
-        };
+        result = formatReportResult(data);
         break;
       }
 
       case "get_user_behavior": {
-        // Get user behavior data (engagement, bounce rate, session duration)
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
@@ -192,25 +181,41 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          _hint: (data.rows || []).length === 0 
-            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
-            : undefined,
-        };
+        result = formatReportResult(data);
         break;
       }
 
       case "get_conversions": {
-        // Get conversion data
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
         const startDate = params?.startDate || "30daysAgo";
         const endDate = params?.endDate || "today";
+
+        const requestBody: any = {
+          dateRanges: [{ startDate, endDate }],
+          dimensions: [{ name: "eventName" }],
+          metrics: [
+            { name: "conversions" },
+            { name: "eventCount" },
+            { name: "eventValue" },
+            { name: "totalRevenue" },
+          ],
+          orderBys: [{ metric: { metricName: "conversions" }, desc: true }],
+          limit: params?.limit || 20,
+        };
+
+        if (params?.eventFilter) {
+          requestBody.dimensionFilter = {
+            filter: {
+              fieldName: "eventName",
+              stringFilter: {
+                matchType: "CONTAINS",
+                value: params.eventFilter,
+              },
+            },
+          };
+        }
 
         const response = await fetch(`${GA_API_BASE}/properties/${propertyId}:runReport`, {
           method: "POST",
@@ -218,27 +223,7 @@ serve(async (req) => {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            dateRanges: [{ startDate, endDate }],
-            dimensions: [{ name: "eventName" }],
-            metrics: [
-              { name: "conversions" },
-              { name: "eventCount" },
-              { name: "eventValue" },
-              { name: "totalRevenue" },
-            ],
-            dimensionFilter: {
-              filter: {
-                fieldName: "eventName",
-                stringFilter: {
-                  matchType: "CONTAINS",
-                  value: params?.eventFilter || "",
-                },
-              },
-            },
-            orderBys: [{ metric: { metricName: "conversions" }, desc: true }],
-            limit: params?.limit || 20,
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
@@ -248,20 +233,11 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          _hint: (data.rows || []).length === 0 
-            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
-            : undefined,
-        };
+        result = formatReportResult(data);
         break;
       }
 
       case "get_top_pages": {
-        // Get top pages by pageviews
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
@@ -295,20 +271,11 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          _hint: (data.rows || []).length === 0 
-            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
-            : undefined,
-        };
+        result = formatReportResult(data);
         break;
       }
 
       case "get_traffic_sources": {
-        // Get traffic sources breakdown
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
@@ -346,20 +313,11 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          _hint: (data.rows || []).length === 0 
-            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
-            : undefined,
-        };
+        result = formatReportResult(data);
         break;
       }
 
       case "get_realtime": {
-        // Get realtime data
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
@@ -371,9 +329,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             dimensions: [{ name: "country" }],
-            metrics: [
-              { name: "activeUsers" },
-            ],
+            metrics: [{ name: "activeUsers" }],
             limit: 10,
           }),
         });
@@ -386,11 +342,8 @@ serve(async (req) => {
 
         const data = await response.json();
         result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          _hint: (data.rows || []).length === 0 
+          ...formatReportResult(data),
+          _hint: (data.rows || []).length === 0
             ? "No realtime data found. This could mean no users are currently active on the property, or the connected account lacks access."
             : undefined,
         };
@@ -398,7 +351,6 @@ serve(async (req) => {
       }
 
       case "get_demographics": {
-        // Get user demographics data
         const propertyId = params?.propertyId;
         if (!propertyId) throw new Error("propertyId is required");
 
@@ -431,20 +383,395 @@ serve(async (req) => {
         }
 
         const data = await response.json();
+        result = formatReportResult(data);
+        break;
+      }
+
+      case "get_devices": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const startDate = params?.startDate || "30daysAgo";
+        const endDate = params?.endDate || "today";
+
+        const response = await fetch(`${GA_API_BASE}/properties/${propertyId}:runReport`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dateRanges: [{ startDate, endDate }],
+            dimensions: [{ name: "deviceCategory" }],
+            metrics: [
+              { name: "sessions" },
+              { name: "totalUsers" },
+              { name: "engagementRate" },
+              { name: "averageSessionDuration" },
+              { name: "bounceRate" },
+            ],
+            orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Get devices error:", error);
+          throw new Error(`Google Analytics API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = formatReportResult(data);
+        break;
+      }
+
+      case "get_ecommerce": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const startDate = params?.startDate || "30daysAgo";
+        const endDate = params?.endDate || "today";
+
+        const response = await fetch(`${GA_API_BASE}/properties/${propertyId}:runReport`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dateRanges: [{ startDate, endDate }],
+            dimensions: [{ name: "date" }],
+            metrics: [
+              { name: "transactions" },
+              { name: "purchaseRevenue" },
+              { name: "totalPurchasers" },
+              { name: "ecommercePurchases" },
+              { name: "itemsPurchased" },
+              { name: "averagePurchaseRevenue" },
+            ],
+            orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Get ecommerce error:", error);
+          throw new Error(`Google Analytics API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = formatReportResult(data);
+        break;
+      }
+
+      case "get_landing_pages": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const startDate = params?.startDate || "30daysAgo";
+        const endDate = params?.endDate || "today";
+
+        const response = await fetch(`${GA_API_BASE}/properties/${propertyId}:runReport`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dateRanges: [{ startDate, endDate }],
+            dimensions: [{ name: "landingPage" }],
+            metrics: [
+              { name: "sessions" },
+              { name: "totalUsers" },
+              { name: "bounceRate" },
+              { name: "conversions" },
+              { name: "engagementRate" },
+            ],
+            orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+            limit: params?.limit || 20,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Get landing pages error:", error);
+          throw new Error(`Google Analytics API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = formatReportResult(data);
+        break;
+      }
+
+      // ============= ADMIN API - CONVERSION EVENTS =============
+      case "list_conversion_events": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/conversionEvents`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] List conversion events error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status}`);
+        }
+
+        const data = await response.json();
         result = {
-          dimensionHeaders: data.dimensionHeaders,
-          metricHeaders: data.metricHeaders,
-          rows: data.rows || [],
-          rowCount: data.rowCount,
-          _hint: (data.rows || []).length === 0 
-            ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
-            : undefined,
+          conversionEvents: data.conversionEvents || [],
+        };
+        break;
+      }
+
+      case "create_conversion_event": {
+        const propertyId = params?.propertyId;
+        const eventName = params?.eventName;
+        if (!propertyId) throw new Error("propertyId is required");
+        if (!eventName) throw new Error("eventName is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/conversionEvents`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              eventName: eventName,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Create conversion event error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          conversionEvent: data,
+          message: `Successfully marked "${eventName}" as a conversion event`,
+        };
+        break;
+      }
+
+      // ============= ADMIN API - CUSTOM DIMENSIONS =============
+      case "list_custom_dimensions": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/customDimensions`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] List custom dimensions error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = {
+          customDimensions: data.customDimensions || [],
+        };
+        break;
+      }
+
+      case "create_custom_dimension": {
+        const propertyId = params?.propertyId;
+        const parameterName = params?.parameterName;
+        const displayName = params?.displayName;
+        if (!propertyId) throw new Error("propertyId is required");
+        if (!parameterName) throw new Error("parameterName is required");
+        if (!displayName) throw new Error("displayName is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/customDimensions`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              parameterName: parameterName,
+              displayName: displayName,
+              description: params?.description || "",
+              scope: params?.scope || "EVENT",
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Create custom dimension error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          customDimension: data,
+          message: `Successfully created custom dimension "${displayName}"`,
+        };
+        break;
+      }
+
+      // ============= ADMIN API - CUSTOM METRICS =============
+      case "list_custom_metrics": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/customMetrics`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] List custom metrics error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = {
+          customMetrics: data.customMetrics || [],
+        };
+        break;
+      }
+
+      case "create_custom_metric": {
+        const propertyId = params?.propertyId;
+        const parameterName = params?.parameterName;
+        const displayName = params?.displayName;
+        if (!propertyId) throw new Error("propertyId is required");
+        if (!parameterName) throw new Error("parameterName is required");
+        if (!displayName) throw new Error("displayName is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/customMetrics`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              parameterName: parameterName,
+              displayName: displayName,
+              description: params?.description || "",
+              measurementUnit: params?.measurementUnit || "STANDARD",
+              scope: "EVENT",
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Create custom metric error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status} - ${error}`);
+        }
+
+        const data = await response.json();
+        result = {
+          success: true,
+          customMetric: data,
+          message: `Successfully created custom metric "${displayName}"`,
+        };
+        break;
+      }
+
+      // ============= ADMIN API - DATA STREAMS =============
+      case "list_data_streams": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/dataStreams`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] List data streams error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = {
+          dataStreams: data.dataStreams || [],
+        };
+        break;
+      }
+
+      case "get_data_stream": {
+        const propertyId = params?.propertyId;
+        const streamId = params?.streamId;
+        if (!propertyId) throw new Error("propertyId is required");
+        if (!streamId) throw new Error("streamId is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/dataStreams/${streamId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Get data stream error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = {
+          dataStream: data,
+        };
+        break;
+      }
+
+      // ============= ADMIN API - AUDIENCES =============
+      case "list_audiences": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const response = await fetch(
+          `${GA_ADMIN_API_BASE}/properties/${propertyId}/audiences`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] List audiences error:", error);
+          throw new Error(`Google Analytics Admin API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = {
+          audiences: data.audiences || [],
         };
         break;
       }
 
       default:
-        throw new Error(`Unknown action: ${action}. Available actions: list_accounts, list_properties, get_traffic, get_user_behavior, get_conversions, get_top_pages, get_traffic_sources, get_realtime, get_demographics`);
+        throw new Error(`Unknown action: ${action}. Available actions: list_accounts, list_properties, get_traffic, get_user_behavior, get_conversions, get_top_pages, get_traffic_sources, get_realtime, get_demographics, get_devices, get_ecommerce, get_landing_pages, list_conversion_events, create_conversion_event, list_custom_dimensions, create_custom_dimension, list_custom_metrics, create_custom_metric, list_data_streams, get_data_stream, list_audiences`);
     }
 
     // Log execution
@@ -468,6 +795,20 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to format report results consistently
+function formatReportResult(data: any) {
+  return {
+    dimensionHeaders: data.dimensionHeaders,
+    metricHeaders: data.metricHeaders,
+    rows: data.rows || [],
+    rowCount: data.rowCount,
+    metadata: data.metadata,
+    _hint: (data.rows || []).length === 0
+      ? "No data returned. This could mean: (1) The connected Google account lacks read access to this property, (2) There is no data for the requested date range, or (3) You may need to connect the specific Google account that owns this property."
+      : undefined,
+  };
+}
 
 async function refreshGoogleToken(
   supabase: any,
