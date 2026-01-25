@@ -1,432 +1,233 @@
 
-# Elixa "Super Genius" Features Implementation Plan
+# Integration Fixes Plan
 
-## Overview
-This plan implements four major capabilities to transform Elixa from a reactive AI assistant into a proactive, intelligent orchestration platform:
-
-1. **Workflow Orchestration** - Visual workflow builder with conditional logic
-2. **Agent-to-Agent Communication** - AI Employees that collaborate and delegate
-3. **AI Explainability** - Reasoning traces for transparency
-4. **Daily AI Digest** - Automated summaries of user activity
+## Executive Summary
+This plan addresses critical issues across multiple integrations that prevent OAuth connections from working properly. The fixes are prioritized by severity and organized into logical groups.
 
 ---
 
-## Phase 1: Workflow Orchestration (Visual Workflow Builder)
+## Issues Identified
 
-### What It Does
-Users can create multi-step automated workflows that chain tools together with conditional logic, similar to n8n or Zapier but powered by AI.
+### Critical Priority (Blocking Functionality)
 
-### Database Schema
+#### 1. Shopify Integration - Credential Type Mismatch
+**Problem**: The `shopify-integration` edge function looks for credentials with type `"shopify"`, but the OAuth flow stores them as `"shopifyApi"`.
 
-```sql
--- Workflows table
-CREATE TABLE workflows (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  org_id UUID REFERENCES orgs(id),
-  name TEXT NOT NULL,
-  description TEXT,
-  is_active BOOLEAN DEFAULT true,
-  trigger_type TEXT, -- 'manual', 'schedule', 'webhook', 'event'
-  trigger_config JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
+**Files Affected**:
+- `supabase/functions/shopify-integration/index.ts` (line 21, 30)
 
--- Workflow steps (nodes in the workflow)
-CREATE TABLE workflow_steps (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workflow_id UUID REFERENCES workflows(id) ON DELETE CASCADE,
-  step_order INTEGER NOT NULL,
-  step_type TEXT NOT NULL, -- 'tool', 'condition', 'loop', 'delay', 'ai_decision'
-  tool_name TEXT, -- Which tool to execute
-  tool_params JSONB DEFAULT '{}',
-  condition_config JSONB, -- For conditional steps
-  on_success_step_id UUID,
-  on_failure_step_id UUID,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Workflow executions (run history)
-CREATE TABLE workflow_executions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  workflow_id UUID REFERENCES workflows(id) ON DELETE CASCADE,
-  triggered_by UUID REFERENCES auth.users(id),
-  status TEXT DEFAULT 'running', -- 'running', 'completed', 'failed', 'paused'
-  started_at TIMESTAMPTZ DEFAULT now(),
-  completed_at TIMESTAMPTZ,
-  step_results JSONB DEFAULT '[]',
-  error_message TEXT
-);
-```
-
-### New Components
-
-**`src/pages/Workflows.tsx`** - Main workflows page with list view
-**`src/components/workflows/WorkflowBuilder.tsx`** - Visual drag-drop workflow editor
-**`src/components/workflows/WorkflowStepCard.tsx`** - Individual step configuration
-**`src/components/workflows/WorkflowCanvas.tsx`** - Canvas for connecting steps
-**`src/components/workflows/ConditionEditor.tsx`** - Condition builder UI
-
-### Edge Function
-
-**`supabase/functions/execute-workflow/index.ts`**
-- Loads workflow definition
-- Executes steps in order
-- Handles conditional branching
-- Logs each step result
-- Supports pause/resume for HITL approvals
-
-### UI Flow
-```text
-[Workflows Page]
-    ↓
-[+ Create Workflow] → Opens Builder
-    ↓
-[Drag Steps: Gmail → Condition → Slack/Notion]
-    ↓
-[Configure Each Step]
-    ↓
-[Save & Activate]
-    ↓
-[Runs automatically or manually]
-```
-
----
-
-## Phase 2: Agent-to-Agent Communication (AI Employees)
-
-### What It Does
-Create specialized AI agents (employees) that can collaborate, delegate tasks to each other, and work together on complex problems.
-
-### Database Schema
-
-```sql
--- AI Employees (specialized agents)
-CREATE TABLE ai_employees (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  org_id UUID REFERENCES orgs(id),
-  name TEXT NOT NULL,
-  role TEXT NOT NULL, -- 'sales_rep', 'researcher', 'writer', 'analyst'
-  description TEXT,
-  avatar_url TEXT,
-  system_prompt TEXT,
-  allowed_tools TEXT[] DEFAULT '{}',
-  can_delegate_to UUID[], -- Other AI employees this one can delegate to
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- AI Employee conversations (inter-agent communication)
-CREATE TABLE ai_employee_messages (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  from_employee_id UUID REFERENCES ai_employees(id),
-  to_employee_id UUID REFERENCES ai_employees(id),
-  parent_task_id UUID REFERENCES tasks(id),
-  message_type TEXT, -- 'delegation', 'response', 'clarification', 'handoff'
-  content TEXT NOT NULL,
-  metadata JSONB DEFAULT '{}',
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- AI Employee task assignments
-CREATE TABLE ai_employee_tasks (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  employee_id UUID REFERENCES ai_employees(id),
-  original_task_id UUID REFERENCES tasks(id),
-  delegated_by_employee_id UUID REFERENCES ai_employees(id),
-  status TEXT DEFAULT 'pending',
-  result TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  completed_at TIMESTAMPTZ
-);
-```
-
-### New Components
-
-**`src/pages/AIEmployees.tsx`** - Manage AI employees
-**`src/components/ai-employees/EmployeeCard.tsx`** - Display employee info
-**`src/components/ai-employees/CreateEmployeeDialog.tsx`** - Create/edit employees
-**`src/components/ai-employees/EmployeeChat.tsx`** - Direct chat with an employee
-**`src/components/ai-employees/DelegationViewer.tsx`** - See how tasks flow between employees
-
-### Edge Functions
-
-**`supabase/functions/ai-employee-orchestrator/index.ts`**
-- Routes tasks to appropriate employees
-- Handles delegation logic
-- Manages inter-agent communication
-- Ensures tasks complete or escalate
-
-### Pre-built Employee Templates
-- **Research Assistant** - Searches knowledge base, web, summarizes findings
-- **Email Manager** - Drafts, organizes, responds to emails
-- **Task Coordinator** - Breaks down projects, assigns subtasks
-- **Data Analyst** - Analyzes Stripe/Shopify data, creates reports
-- **Content Writer** - Creates notes, documents, reports
-
----
-
-## Phase 3: AI Explainability (Reasoning Traces)
-
-### What It Does
-Shows users WHY the AI made decisions, what tools it considered, and its reasoning process. Builds trust and allows debugging.
-
-### Database Schema
-
-```sql
--- Reasoning traces for AI actions
-CREATE TABLE reasoning_traces (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  message_id UUID REFERENCES chat_messages_v2(id),
-  task_id UUID REFERENCES tasks(id),
-  workflow_execution_id UUID REFERENCES workflow_executions(id),
-  employee_id UUID REFERENCES ai_employees(id),
-  reasoning_steps JSONB NOT NULL, -- Array of step objects
-  confidence_score DECIMAL(3,2),
-  tools_considered TEXT[],
-  tools_used TEXT[],
-  decision_summary TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
-### Reasoning Step Structure
-```json
-{
-  "reasoning_steps": [
-    {
-      "step": 1,
-      "thought": "User wants to send an email to John",
-      "action": "Analyzing available tools",
-      "observation": "Gmail is connected, can use gmail_send_email"
-    },
-    {
-      "step": 2,
-      "thought": "Need to check if I have John's email address",
-      "action": "Searching contacts in knowledge base",
-      "observation": "Found john@example.com in contacts.csv"
-    },
-    {
-      "step": 3,
-      "thought": "Have all required info, proceeding with email draft",
-      "action": "Calling gmail_send_email tool",
-      "observation": "Email drafted, awaiting user confirmation"
-    }
-  ]
-}
-```
-
-### New Components
-
-**`src/components/chat/ReasoningTrace.tsx`** - Expandable trace viewer
-**`src/components/chat/ThinkingIndicator.tsx`** - Shows AI is reasoning
-**`src/components/ai-employees/EmployeeDecisionLog.tsx`** - Employee-specific traces
-
-### Chat Function Updates
-
-Modify `supabase/functions/chat/index.ts` to:
-1. Track reasoning at each step
-2. Store traces before final response
-3. Include trace ID in response metadata
-
-### UI Integration
-
-Add a "Show reasoning" toggle/button on:
-- Chat messages (assistant responses)
-- Task completion notifications
-- Workflow execution logs
-
----
-
-## Phase 4: Daily AI Digest (Automated Summaries)
-
-### What It Does
-Automatically generates and delivers a daily summary of emails, tasks, calendar events, and key metrics.
-
-### Database Schema
-
-```sql
--- Digest configurations
-CREATE TABLE digest_configs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  is_enabled BOOLEAN DEFAULT true,
-  delivery_time TIME DEFAULT '08:00',
-  timezone TEXT DEFAULT 'UTC',
-  include_emails BOOLEAN DEFAULT true,
-  include_tasks BOOLEAN DEFAULT true,
-  include_calendar BOOLEAN DEFAULT true,
-  include_metrics BOOLEAN DEFAULT true,
-  email_delivery BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Generated digests
-CREATE TABLE daily_digests (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  digest_date DATE NOT NULL,
-  content JSONB NOT NULL,
-  summary TEXT,
-  generated_at TIMESTAMPTZ DEFAULT now(),
-  delivered_at TIMESTAMPTZ,
-  UNIQUE(user_id, digest_date)
-);
-```
-
-### Edge Functions
-
-**`supabase/functions/generate-daily-digest/index.ts`**
-- Triggered by scheduled cron job
-- Gathers data from: emails, tasks, calendar, Stripe, Shopify
-- Uses AI to summarize and prioritize
-- Stores digest and optionally sends email
-
-**`supabase/functions/send-digest-email/index.ts`**
-- Formats digest as HTML email
-- Sends via connected Gmail or SMTP
-
-### Digest Content Structure
-```json
-{
-  "date": "2026-01-24",
-  "summary": "You have 3 high-priority tasks due today and 12 unread emails...",
-  "sections": {
-    "emails": {
-      "unread_count": 12,
-      "important": [...],
-      "actionable": [...]
-    },
-    "tasks": {
-      "due_today": [...],
-      "overdue": [...],
-      "completed_yesterday": [...]
-    },
-    "calendar": {
-      "today_events": [...],
-      "upcoming": [...]
-    },
-    "metrics": {
-      "stripe_revenue": "...",
-      "shopify_orders": "..."
-    },
-    "ai_suggestions": [
-      "Consider following up with Client X",
-      "Task 'Q4 Report' is overdue by 2 days"
-    ]
-  }
-}
-```
-
-### New Components
-
-**`src/components/settings/DigestSettings.tsx`** - Configure digest preferences
-**`src/pages/Digest.tsx`** - View past digests
-**`src/components/digest/DigestCard.tsx`** - Display a single digest
-**`src/components/digest/DigestSection.tsx`** - Section component (emails, tasks, etc.)
-
-### Cron Setup
-```sql
-SELECT cron.schedule(
-  'generate-daily-digests',
-  '0 * * * *', -- Every hour (checks user timezones)
-  $$
-  SELECT net.http_post(
-    url:='https://okkybxipbxpoyzqmtosz.supabase.co/functions/v1/generate-daily-digest',
-    headers:='{"Authorization": "Bearer <anon-key>"}'::jsonb
-  )
-  $$
-);
-```
-
----
-
-## Navigation Updates
-
-Add new sidebar items to `src/components/MainNavSidebar.tsx`:
-
+**Current Code**:
 ```typescript
-const navItems: NavItem[] = [
-  // ... existing items
-  { icon: Workflow, label: "Workflows", path: "/workflows" },
-  { icon: Users, label: "AI Employees", path: "/ai-employees" },
-  { icon: Newspaper, label: "Daily Digest", path: "/digest" },
-];
+.eq("credential_type", "shopify")
+```
+
+**Fix**: Change to `"shopifyApi"` to match what `exchange-oauth-token` stores.
+
+---
+
+#### 2. Calendar Integration - Wrong Secret Names for Token Refresh
+**Problem**: The `calendar-integration` edge function uses incorrect environment variable names for Google OAuth token refresh.
+
+**Files Affected**:
+- `supabase/functions/calendar-integration/index.ts` (lines 329-330)
+
+**Current Code**:
+```typescript
+const clientId = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID");
+const clientSecret = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET");
+```
+
+**Correct Secret Names** (as used by `gmail-integration` and `exchange-oauth-token`):
+```typescript
+const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
+const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
 ```
 
 ---
 
-## Implementation Order
+#### 3. Google Sheets Integration - Custom Decryption Method
+**Problem**: The `google-sheets-integration` uses a custom decryption method that expects a raw base64 encryption key, while the shared `_shared/crypto.ts` uses PBKDF2 key derivation with a salt.
 
-### Week 1: Foundation
-1. Database migrations for all new tables
-2. Basic Workflows page and list view
-3. AI Employees table and basic CRUD
+**Files Affected**:
+- `supabase/functions/google-sheets-integration/index.ts` (lines 10-42, 44-102)
 
-### Week 2: Workflow Builder
-4. Visual workflow builder component
-5. Step configuration UI
-6. Workflow execution edge function
+**Current Implementation**:
+- Lines 12-42: Custom `decryptToken` function that:
+  - Expects raw base64-encoded key from `CREDENTIAL_ENCRYPTION_KEY`
+  - Directly imports as raw AES key (no PBKDF2 derivation)
+  - Different IV/ciphertext format
 
-### Week 3: AI Employees
-7. Employee creation and management
-8. Delegation logic and orchestrator
-9. Inter-employee messaging
+**Shared Implementation** (`_shared/crypto.ts`):
+- Uses PBKDF2 with salt `"elixa_credential_salt_v1"` and 100,000 iterations
+- Stores IV prepended to ciphertext in base64 format
 
-### Week 4: Explainability & Digest
-10. Reasoning trace capture in chat
-11. Trace viewer UI component
-12. Daily digest generation
-13. Digest settings and viewer
+**Fix**: Replace custom implementation with shared utilities from `_shared/credentials.ts`.
 
 ---
 
-## Technical Considerations
+### Medium Priority (Partial Functionality)
 
-### Performance
-- Workflows execute asynchronously using `EdgeRuntime.waitUntil()`
-- Reasoning traces are stored in background, not blocking responses
-- Digest generation runs off-peak hours
+#### 4. Frontend Shopify Client ID
+**Problem**: The `VITE_SHOPIFY_CLIENT_ID` environment variable exists in secrets but the fallback in `oauth.ts` was removed.
 
-### Security
-- AI Employees inherit org-level tool permissions
-- Workflow steps respect existing HITL approval for write actions
-- All inter-agent messages logged for audit
+**Current State**:
+- Secret exists: `VITE_SHOPIFY_CLIENT_ID` 
+- Frontend code: `SHOPIFY: import.meta.env.VITE_SHOPIFY_CLIENT_ID || ""`
 
-### Scalability
-- Workflow executions are stateless and resumable
-- Employee orchestrator uses message queue pattern
-- Digests are cached and served from database
+**Verification Needed**: Confirm `VITE_SHOPIFY_CLIENT_ID` is set correctly (the secret exists but we can't see its value).
 
 ---
 
-## Files to Create
+#### 5. Missing Backend Functions
+**Problem**: Some integrations have OAuth mapping but no corresponding edge function.
 
-### New Pages
-- `src/pages/Workflows.tsx`
-- `src/pages/AIEmployees.tsx`
-- `src/pages/Digest.tsx`
+| Integration | Has OAuth Mapping | Has Edge Function |
+|------------|------------------|-------------------|
+| Mailchimp | Yes | No |
+| Slack | Yes | No |
 
-### New Components
-- `src/components/workflows/WorkflowBuilder.tsx`
-- `src/components/workflows/WorkflowCanvas.tsx`
-- `src/components/workflows/WorkflowStepCard.tsx`
-- `src/components/workflows/ConditionEditor.tsx`
-- `src/components/ai-employees/EmployeeCard.tsx`
-- `src/components/ai-employees/CreateEmployeeDialog.tsx`
-- `src/components/ai-employees/DelegationViewer.tsx`
-- `src/components/chat/ReasoningTrace.tsx`
-- `src/components/digest/DigestCard.tsx`
-- `src/components/settings/DigestSettings.tsx`
+**Impact**: Users can complete OAuth flow but the AI cannot use these integrations.
 
-### New Edge Functions
-- `supabase/functions/execute-workflow/index.ts`
-- `supabase/functions/ai-employee-orchestrator/index.ts`
-- `supabase/functions/generate-daily-digest/index.ts`
+---
 
-### Modified Files
-- `src/components/MainNavSidebar.tsx` (new nav items)
-- `src/App.tsx` (new routes)
-- `supabase/functions/chat/index.ts` (reasoning traces)
-- `supabase/config.toml` (new functions)
+### Low Priority (Configuration Issues)
+
+#### 6. Slack OAuth - Backend Secrets Missing
+**Problem**: Slack OAuth requires backend secrets that don't exist.
+
+**Required Secrets**:
+- `SLACK_OAUTH_CLIENT_ID` (not in secrets list)
+- `SLACK_OAUTH_CLIENT_SECRET` (not in secrets list)
+
+**Current State**: Frontend has hardcoded client ID `8186913077078.8224803663382` but token exchange will fail without backend secrets.
+
+---
+
+## Implementation Plan
+
+### Phase 1: Critical Fixes (Immediate)
+
+#### Task 1.1: Fix Shopify credential type
+**File**: `supabase/functions/shopify-integration/index.ts`
+
+Change credential type lookup from `"shopify"` to `"shopifyApi"`:
+- Line 21: Update query filter
+- Line 30: Update `getDecryptedCredentials` call
+
+```text
+Modified lines:
+- Line 21: .eq("credential_type", "shopifyApi")
+- Line 30: getDecryptedCredentials(supabase, userId, "shopifyApi")
+```
+
+---
+
+#### Task 1.2: Fix Calendar token refresh secret names
+**File**: `supabase/functions/calendar-integration/index.ts`
+
+Update the `refreshGoogleToken` function (lines 324-369):
+
+```text
+Modified lines:
+- Line 329: const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
+- Line 330: const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
+```
+
+---
+
+#### Task 1.3: Refactor Google Sheets to use shared crypto
+**File**: `supabase/functions/google-sheets-integration/index.ts`
+
+Major refactor needed:
+1. Remove custom `decryptToken` function (lines 12-42)
+2. Import and use shared utilities:
+   ```typescript
+   import { getDecryptedCredentials, updateRefreshedToken } from "../_shared/credentials.ts";
+   ```
+3. Replace `getValidAccessToken` function (lines 44-102) with pattern from `gmail-integration`
+
+---
+
+### Phase 2: Consistency Improvements
+
+#### Task 2.1: Add missing integration edge functions (Future)
+
+Create placeholder edge functions for:
+- `mailchimp-integration/index.ts`
+- `slack-integration/index.ts` (using Lovable connector gateway pattern)
+
+These would follow the same pattern as existing integrations.
+
+---
+
+## Technical Details
+
+### Credential Type Mapping Reference
+
+| Integration | Frontend Slug | Credential Type | Bundle Type |
+|------------|--------------|-----------------|-------------|
+| Gmail | gmail | googleOAuth2Api | gmail |
+| Google Calendar | google-calendar | googleOAuth2Api | google_calendar |
+| Google Ads | google-ads | googleOAuth2Api | google_ads |
+| Google Analytics | google-analytics | googleOAuth2Api | google_analytics |
+| Google Sheets | google-sheets | googleOAuth2Api | google_sheets |
+| Shopify | shopify | shopifyApi | - |
+| Notion | notion | notionApi | - |
+| Calendly | calendly | calendlyApi | - |
+| Microsoft Teams | microsoft-teams | microsoftOAuth2Api | teams |
+| Outlook | outlook | microsoftOAuth2Api | outlook |
+| OneDrive | onedrive | microsoftOAuth2Api | onedrive |
+
+---
+
+### Secrets Verification
+
+Available secrets needed for integrations:
+- `GOOGLEOAUTH2API_CLIENT_ID`
+- `GOOGLEOAUTH2API_CLIENT_SECRET`
+- `SHOPIFY_OAUTH_CLIENT_ID`
+- `SHOPIFY_OAUTH_CLIENT_SECRET`
+- `MICROSOFT_OAUTH_APPLICATION_ID`
+- `MICROSOFT_OAUTH_CLIENT_SECRET`
+- `NOTION_OAUTH_CLIENT_ID`
+- `NOTION_OAUTH_CLIENT_SECRET`
+- `CALENDLY_OAUTH_CLIENT_ID`
+- `CALENDLY_OAUTH_CLIENT_SECRET`
+- `MAILCHIMP_OAUTH_CLIENT_ID`
+- `MAILCHIMP_OAUTH_CLIENT_SECRET`
+- `CREDENTIAL_ENCRYPTION_KEY`
+- `VITE_SHOPIFY_CLIENT_ID`
+
+**Missing**:
+- `SLACK_OAUTH_CLIENT_ID`
+- `SLACK_OAUTH_CLIENT_SECRET`
+
+---
+
+## Files to Modify
+
+1. `supabase/functions/shopify-integration/index.ts` - Fix credential type
+2. `supabase/functions/calendar-integration/index.ts` - Fix secret names
+3. `supabase/functions/google-sheets-integration/index.ts` - Use shared crypto
+
+---
+
+## Testing Recommendations
+
+After implementing fixes, test each integration:
+
+1. **Shopify**: Connect a store → Verify credentials stored with `shopifyApi` type → Test shop info retrieval
+2. **Google Calendar**: Connect account → Let token expire → Verify refresh works
+3. **Google Sheets**: Connect account → List spreadsheets → Verify encrypted token decryption works
+
+---
+
+## Risk Assessment
+
+| Fix | Risk Level | Rollback Complexity |
+|-----|-----------|---------------------|
+| Shopify credential type | Low | Simple string change |
+| Calendar secret names | Low | Simple string change |
+| Google Sheets crypto refactor | Medium | Larger code change, but uses proven shared code |
+
+All changes are backward compatible - existing credentials will continue to work as the shared utilities support both encrypted and plaintext tokens.
