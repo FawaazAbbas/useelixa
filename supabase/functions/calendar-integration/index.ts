@@ -326,8 +326,8 @@ async function refreshGoogleToken(
   userId: string,
   refreshToken: string
 ): Promise<string | null> {
-  const clientId = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID");
-  const clientSecret = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET");
+  const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
+  const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
 
   if (!clientId || !clientSecret || !refreshToken) {
     console.error("[Calendar] Missing refresh credentials");

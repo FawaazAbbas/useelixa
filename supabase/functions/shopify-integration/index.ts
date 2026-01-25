@@ -18,7 +18,7 @@ async function getShopifyCredentials(supabase: any, userId: string): Promise<Sho
     .from("user_credentials")
     .select("account_label, account_email")
     .eq("user_id", userId)
-    .eq("credential_type", "shopify")
+    .eq("credential_type", "shopifyApi")
     .single();
 
   if (error || !credentialRow) {
@@ -27,7 +27,7 @@ async function getShopifyCredentials(supabase: any, userId: string): Promise<Sho
   }
 
   // Get decrypted access token
-  const credential = await getDecryptedCredentials(supabase, userId, "shopify");
+  const credential = await getDecryptedCredentials(supabase, userId, "shopifyApi");
   if (!credential) {
     return null;
   }

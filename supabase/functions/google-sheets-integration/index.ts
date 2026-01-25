@@ -1,45 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getDecryptedCredentials, updateRefreshedToken } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-// Encryption key for decrypting credentials
-const ENCRYPTION_KEY = Deno.env.get("CREDENTIAL_ENCRYPTION_KEY");
-
-async function decryptToken(encryptedData: string): Promise<string> {
-  if (!ENCRYPTION_KEY) {
-    throw new Error("Encryption key not configured");
-  }
-
-  try {
-    const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
-    const iv = combined.slice(0, 12);
-    const ciphertext = combined.slice(12);
-    
-    const keyData = Uint8Array.from(atob(ENCRYPTION_KEY), c => c.charCodeAt(0));
-    const key = await crypto.subtle.importKey(
-      "raw",
-      keyData,
-      { name: "AES-GCM" },
-      false,
-      ["decrypt"]
-    );
-    
-    const decrypted = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ciphertext
-    );
-    
-    return new TextDecoder().decode(decrypted);
-  } catch (error) {
-    console.error("[GoogleSheets] Decryption error:", error);
-    throw new Error("Failed to decrypt token");
-  }
-}
 
 async function getValidAccessToken(
   supabase: any,
@@ -47,19 +13,15 @@ async function getValidAccessToken(
 ): Promise<string> {
   console.log(`[GoogleSheets] Getting credentials for user ${userId}`);
 
-  // Get credentials for google_sheets bundle type or general google OAuth
-  const { data: credential, error } = await supabase
-    .from("user_credentials")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("credential_type", "googleOAuth2Api")
-    .or("bundle_type.eq.google_sheets,bundle_type.is.null")
-    .order("bundle_type", { ascending: false, nullsFirst: false })
-    .limit(1)
-    .single();
+  // Try google_sheets bundle first, then fall back to general googleOAuth2Api
+  let credential = await getDecryptedCredentials(supabase, userId, "googleOAuth2Api", "google_sheets");
+  
+  if (!credential) {
+    // Fall back to general Google OAuth credential
+    credential = await getDecryptedCredentials(supabase, userId, "googleOAuth2Api");
+  }
 
-  if (error || !credential) {
-    console.error("[GoogleSheets] Credential fetch error:", error);
+  if (!credential) {
     throw new Error("No Google Sheets credentials found. Please connect Google Sheets in the Connections page.");
   }
 
@@ -70,35 +32,72 @@ async function getValidAccessToken(
   
   if (isExpired && credential.refresh_token) {
     console.log("[GoogleSheets] Token expired, refreshing...");
-    const refreshUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/refresh-oauth-token`;
-    const refreshResponse = await fetch(refreshUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        credentialType: "googleOAuth2Api",
-        userId,
-        refreshToken: credential.is_encrypted 
-          ? await decryptToken(credential.encrypted_refresh_token)
-          : credential.refresh_token,
-      }),
-    });
-    
-    if (!refreshResponse.ok) {
-      const errText = await refreshResponse.text();
-      console.error("[GoogleSheets] Token refresh failed:", errText);
-      throw new Error("Token refresh failed. Please reconnect your Google account.");
-    }
-    
-    const refreshedData = await refreshResponse.json();
-    return refreshedData.access_token;
+    return await refreshGoogleToken(supabase, userId, credential.refresh_token);
   }
 
-  // Return the current access token
-  if (credential.is_encrypted && credential.encrypted_access_token) {
-    return await decryptToken(credential.encrypted_access_token);
-  }
-  
   return credential.access_token;
+}
+
+async function refreshGoogleToken(
+  supabase: any,
+  userId: string,
+  refreshToken: string
+): Promise<string> {
+  const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
+  const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    console.error("[GoogleSheets] Missing refresh credentials");
+    throw new Error("Token refresh failed. Please reconnect your Google account.");
+  }
+
+  try {
+    const response = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }).toString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[GoogleSheets] Token refresh failed:", errorText);
+      throw new Error("Token refresh failed. Please reconnect your Google account.");
+    }
+
+    const tokens = await response.json();
+    
+    // Update the refreshed token in the database
+    const updated = await updateRefreshedToken(
+      supabase,
+      userId,
+      "googleOAuth2Api",
+      tokens.access_token,
+      tokens.expires_in,
+      "google_sheets"
+    );
+
+    if (!updated) {
+      // Try updating without bundle_type as fallback
+      await updateRefreshedToken(
+        supabase,
+        userId,
+        "googleOAuth2Api",
+        tokens.access_token,
+        tokens.expires_in
+      );
+    }
+
+    console.log("[GoogleSheets] Google token refreshed successfully");
+    return tokens.access_token;
+  } catch (e) {
+    console.error("[GoogleSheets] Refresh error:", e);
+    throw new Error("Token refresh failed. Please reconnect your Google account.");
+  }
 }
 
 async function listSpreadsheets(accessToken: string, params: any): Promise<any> {
@@ -397,6 +396,16 @@ serve(async (req) => {
       default:
         throw new Error(`Unknown action: ${action}`);
     }
+
+    // Log execution
+    await supabase.from("tool_execution_log").insert({
+      user_id: user.id,
+      tool_name: `sheets_${action}`,
+      credential_type: "googleOAuth2Api",
+      success: true,
+      input_summary: JSON.stringify(params).substring(0, 500),
+      output_summary: JSON.stringify(result).substring(0, 500),
+    });
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
