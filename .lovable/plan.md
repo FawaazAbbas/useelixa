@@ -1,113 +1,60 @@
-# Google Analytics Implementation - COMPLETED
 
-## Implementation Summary
+# Fix: Shopify Integration "Not Configured" Error
 
-Expanded from **22 tools** to **45 tools** across all three phases.
+## Problem
+The Shopify connect dialog shows "Shopify integration is not configured" because the frontend environment variable `VITE_SHOPIFY_CLIENT_ID` is empty.
 
----
-
-## All GA4 Tools (45 Total)
-
-### Account & Property Discovery (2)
-| Tool | Description |
-|------|-------------|
-| `ga_list_accounts` | List accessible GA accounts |
-| `ga_list_properties` | List GA4 properties |
-
-### Reporting - Core Traffic (8)
-| Tool | Description |
-|------|-------------|
-| `ga_get_traffic` | Pageviews, sessions, users |
-| `ga_get_user_behavior` | Engagement, bounce rate, duration |
-| `ga_get_conversions` | Conversion and event data |
-| `ga_get_top_pages` | Top pages with scroll depth |
-| `ga_get_exit_pages` | Exit page analysis |
-| `ga_get_traffic_sources` | Traffic sources breakdown |
-| `ga_get_realtime` | Realtime active users |
-| `ga_get_landing_pages` | Landing page performance |
-
-### Reporting - Phase 1 High-Priority (7)
-| Tool | Description |
-|------|-------------|
-| `ga_get_page_traffic_sources` | **Traffic sources per page** (the one you asked for!) |
-| `ga_run_custom_report` | **Flexible custom reports** (any dimension/metric combo) |
-| `ga_get_events` | All events with counts |
-| `ga_get_campaigns` | UTM campaign performance |
-| `ga_compare_periods` | Period-over-period comparison |
-| `ga_get_user_journey` | Path/funnel analysis |
-| `ga_get_hourly` | Hour/day patterns |
-
-### Reporting - Phase 2 Demographics (8)
-| Tool | Description |
-|------|-------------|
-| `ga_get_demographics` | Country/city breakdown |
-| `ga_get_devices` | Device category breakdown |
-| `ga_get_ecommerce` | E-commerce metrics |
-| `ga_get_age_gender` | Age and gender breakdown |
-| `ga_get_interests` | Interest categories |
-| `ga_get_browser_os` | Browser/OS breakdown |
-| `ga_get_new_vs_returning` | New vs returning users |
-| `ga_get_content_groups` | Content group performance |
-| `ga_get_cohort_analysis` | Cohort retention |
-
-### Admin - Configuration Read (7)
-| Tool | Description |
-|------|-------------|
-| `ga_list_conversion_events` | List conversion events |
-| `ga_list_custom_dimensions` | List custom dimensions |
-| `ga_list_custom_metrics` | List custom metrics |
-| `ga_list_data_streams` | List data streams |
-| `ga_get_data_stream` | Get data stream details |
-| `ga_list_audiences` | List audiences |
-| `ga_list_key_events` | List key events |
-| `ga_list_google_ads_links` | List Ads links |
-| `ga_get_change_history` | Property change history |
-
-### Admin - Configuration Write (10 - HITL Required)
-| Tool | Description |
-|------|-------------|
-| `ga_create_conversion_event` | Mark event as conversion |
-| `ga_create_custom_dimension` | Create custom dimension |
-| `ga_create_custom_metric` | Create custom metric |
-| `ga_update_custom_dimension` | Update custom dimension |
-| `ga_update_custom_metric` | Update custom metric |
-| `ga_archive_dimension` | Archive custom dimension |
-| `ga_archive_metric` | Archive custom metric |
-| `ga_create_key_event` | Create key event |
-| `ga_create_google_ads_link` | Link Google Ads |
-| `ga_create_audience` | Create audience |
-
----
-
-## Power Features
-
-### `ga_run_custom_report`
-The most flexible tool - accepts any combination of up to 9 dimensions and 10 metrics:
-```json
-{
-  "propertyId": "123456789",
-  "dimensions": ["pagePath", "sessionSource", "deviceCategory"],
-  "metrics": ["sessions", "bounceRate", "conversions"],
-  "startDate": "30daysAgo",
-  "endDate": "today"
-}
+## Root Cause Analysis
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  Frontend (ShopifyConnectDialog.tsx)                           │
+│  ↓                                                              │
+│  Reads: OAUTH_CLIENT_IDS.SHOPIFY                               │
+│  ↓                                                              │
+│  Which uses: import.meta.env.VITE_SHOPIFY_CLIENT_ID            │
+│  ↓                                                              │
+│  Current value in .env: "" (empty string)                      │
+│  ↓                                                              │
+│  Check fails: if (!clientId) → Shows error                     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### `ga_get_page_traffic_sources`
-Get traffic source breakdown for specific pages:
-```json
-{
-  "propertyId": "123456789",
-  "pagePath": "/collections/bags",
-  "exactMatch": false
-}
+**Backend secrets exist and are configured correctly:**
+- `SHOPIFY_OAUTH_CLIENT_ID` ✓
+- `SHOPIFY_OAUTH_CLIENT_SECRET` ✓
+
+**Frontend is missing the Client ID:**
+- `VITE_SHOPIFY_CLIENT_ID` = "" (empty)
+
+## Solution
+
+### Step 1: Update the .env file
+Add the Shopify Client ID to the `.env` file. This is the **same value** as the `SHOPIFY_OAUTH_CLIENT_ID` secret:
+
+```env
+VITE_SHOPIFY_CLIENT_ID="your-shopify-client-id-here"
 ```
 
----
+### Why This Is Safe
+Shopify Client IDs (like all OAuth Client IDs) are **public/publishable keys**. They are safe to include in frontend code because:
+- They only identify your app to Shopify
+- They cannot be used to access any data without the user completing OAuth
+- The secret (`SHOPIFY_OAUTH_CLIENT_SECRET`) remains securely stored in Supabase secrets
 
-## Files Modified
+## Technical Details
 
-- `supabase/functions/google-analytics-integration/index.ts` - Added 23 new action handlers
-- `supabase/functions/chat/index.ts` - Added 23 new tool definitions and routing
+### Files Involved
+| File | Purpose |
+|------|---------|
+| `.env` | Stores `VITE_SHOPIFY_CLIENT_ID` for frontend |
+| `src/config/oauth.ts` | Reads the env var as `OAUTH_CLIENT_IDS.SHOPIFY` |
+| `src/components/connections/ShopifyConnectDialog.tsx` | Uses it to build OAuth URL |
+| Supabase Secrets | Stores `SHOPIFY_OAUTH_CLIENT_ID` and `SHOPIFY_OAUTH_CLIENT_SECRET` for backend |
 
-## Status: ✅ COMPLETE
+### OAuth Flow After Fix
+1. User enters shop domain → Dialog uses `VITE_SHOPIFY_CLIENT_ID` to build auth URL
+2. User authorizes on Shopify → Redirected back with auth code
+3. Backend (`exchange-oauth-token`) uses `SHOPIFY_OAUTH_CLIENT_ID` and `SHOPIFY_OAUTH_CLIENT_SECRET` to exchange code for token
+
+## Action Required
+You need to provide the Shopify Client ID value to populate in the `.env` file. This should match what you have configured in your Shopify Partner Dashboard app.
