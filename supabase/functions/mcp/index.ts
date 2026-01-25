@@ -98,12 +98,66 @@ const TOOL_DEFINITIONS: Record<string, { domain: string; actions: { name: string
   "google-ads": {
     domain: "advertising",
     actions: [
+      // Account & Customers
       { name: "list_customers", description: "List accessible Google Ads customer accounts", parameters: { type: "object", properties: {} } },
       { name: "get_customer", description: "Get Google Ads customer account details", parameters: { type: "object", properties: { customerId: { type: "string" } }, required: ["customerId"] } },
+      // Campaigns
       { name: "get_campaigns", description: "Get campaigns with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "update_campaign_status", description: "Enable, pause, or remove a campaign (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"] } }, required: ["customerId", "campaignId", "status"] } },
+      { name: "update_campaign_budget", description: "Update campaign budget amount (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, budgetId: { type: "string" }, amount: { type: "number" } }, required: ["customerId", "budgetId", "amount"] } },
+      { name: "create_campaign", description: "Create a new campaign (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, name: { type: "string" }, advertisingChannelType: { type: "string" }, budgetAmountMicros: { type: "number" }, biddingStrategyType: { type: "string" } }, required: ["customerId", "name", "budgetAmountMicros"] } },
+      // Ad Groups
       { name: "get_ad_groups", description: "Get ad groups with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "update_ad_group_status", description: "Enable, pause, or remove an ad group (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"] } }, required: ["customerId", "adGroupId", "status"] } },
+      { name: "create_ad_group", description: "Create a new ad group (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, name: { type: "string" }, cpcBidMicros: { type: "number" } }, required: ["customerId", "campaignId", "name"] } },
+      // Ads
       { name: "get_ads", description: "Get ads with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "update_ad_status", description: "Enable, pause, or remove an ad (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, adId: { type: "string" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"] } }, required: ["customerId", "adGroupId", "adId", "status"] } },
+      { name: "create_responsive_search_ad", description: "Create a responsive search ad (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, finalUrls: { type: "array" }, headlines: { type: "array" }, descriptions: { type: "array" } }, required: ["customerId", "adGroupId", "finalUrls", "headlines", "descriptions"] } },
+      // Keywords
       { name: "get_keywords", description: "Get keywords with performance and quality score", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, campaignId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "update_keyword_status", description: "Enable, pause, or remove a keyword (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, criterionId: { type: "string" }, status: { type: "string", enum: ["ENABLED", "PAUSED", "REMOVED"] } }, required: ["customerId", "adGroupId", "criterionId", "status"] } },
+      { name: "add_keyword", description: "Add a keyword to an ad group (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, keywordText: { type: "string" }, matchType: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"] }, cpcBidMicros: { type: "number" } }, required: ["customerId", "adGroupId", "keywordText"] } },
+      { name: "set_keyword_bid", description: "Set CPC bid for a keyword (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, criterionId: { type: "string" }, cpcBidMicros: { type: "number" } }, required: ["customerId", "adGroupId", "criterionId", "cpcBidMicros"] } },
+      // Search Terms & Negatives
+      { name: "get_search_terms", description: "Get search terms report with performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, adGroupId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "list_negative_keywords", description: "List negative keywords", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, adGroupId: { type: "string" } }, required: ["customerId"] } },
+      { name: "add_negative_keyword", description: "Add negative keyword to ad group (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, adGroupId: { type: "string" }, keywordText: { type: "string" }, matchType: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"] } }, required: ["customerId", "adGroupId", "keywordText"] } },
+      { name: "add_campaign_negative_keyword", description: "Add negative keyword to campaign (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, keywordText: { type: "string" }, matchType: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"] } }, required: ["customerId", "campaignId", "keywordText"] } },
+      // Conversions
+      { name: "list_conversions", description: "List all conversion actions", parameters: { type: "object", properties: { customerId: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "get_conversion_stats", description: "Get conversion metrics by action type", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
+      { name: "create_conversion", description: "Create a new conversion action (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, name: { type: "string" }, type: { type: "string" }, category: { type: "string" }, countingType: { type: "string" }, defaultValue: { type: "number" } }, required: ["customerId", "name"] } },
+      // Bidding
+      { name: "list_bidding_strategies", description: "List all bidding strategies", parameters: { type: "object", properties: { customerId: { type: "string" } }, required: ["customerId"] } },
+      // Targeting
+      { name: "get_location_targeting", description: "Get geographic targeting settings", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" } }, required: ["customerId"] } },
+      { name: "set_location_targeting", description: "Add location targeting (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, geoTargetConstant: { type: "string" }, bidModifier: { type: "number" }, negative: { type: "boolean" } }, required: ["customerId", "campaignId", "geoTargetConstant"] } },
+      { name: "get_device_targeting", description: "Get device bid adjustments", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" } }, required: ["customerId"] } },
+      { name: "set_device_bid_adjustment", description: "Set device bid modifier (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, deviceType: { type: "string" }, bidModifier: { type: "number" } }, required: ["customerId", "campaignId", "bidModifier"] } },
+      { name: "get_ad_schedule", description: "Get ad schedule settings", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" } }, required: ["customerId"] } },
+      { name: "set_ad_schedule", description: "Add ad schedule (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, dayOfWeek: { type: "string" }, startHour: { type: "number" }, endHour: { type: "number" }, bidModifier: { type: "number" } }, required: ["customerId", "campaignId", "dayOfWeek"] } },
+      // Extensions
+      { name: "list_extensions", description: "List all ad extensions", parameters: { type: "object", properties: { customerId: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "create_sitelink", description: "Create sitelink extension (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, linkText: { type: "string" }, finalUrl: { type: "string" }, description1: { type: "string" }, description2: { type: "string" } }, required: ["customerId", "linkText", "finalUrl"] } },
+      { name: "create_callout", description: "Create callout extension (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, calloutText: { type: "string" } }, required: ["customerId", "calloutText"] } },
+      { name: "create_call_extension", description: "Create call extension (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, phoneNumber: { type: "string" }, countryCode: { type: "string" } }, required: ["customerId", "phoneNumber"] } },
+      // Audiences
+      { name: "list_audiences", description: "List remarketing and custom audiences", parameters: { type: "object", properties: { customerId: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "add_audience_to_campaign", description: "Add audience targeting to campaign (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, userListId: { type: "string" }, bidModifier: { type: "number" } }, required: ["customerId", "campaignId", "userListId"] } },
+      // Recommendations
+      { name: "get_recommendations", description: "Get Google's optimization recommendations", parameters: { type: "object", properties: { customerId: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      { name: "apply_recommendation", description: "Apply an optimization recommendation (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, recommendationResourceName: { type: "string" } }, required: ["customerId", "recommendationResourceName"] } },
+      { name: "dismiss_recommendation", description: "Dismiss an optimization recommendation (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, recommendationResourceName: { type: "string" } }, required: ["customerId", "recommendationResourceName"] } },
+      // Quality Score
+      { name: "get_quality_score_insights", description: "Get detailed quality score breakdown by keyword", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      // Labels
+      { name: "list_labels", description: "List all account labels", parameters: { type: "object", properties: { customerId: { type: "string" } }, required: ["customerId"] } },
+      { name: "create_label", description: "Create a new label (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, name: { type: "string" }, backgroundColor: { type: "string" } }, required: ["customerId", "name"] } },
+      { name: "apply_label_to_campaign", description: "Apply label to a campaign (HITL)", parameters: { type: "object", properties: { customerId: { type: "string" }, campaignId: { type: "string" }, labelId: { type: "string" } }, required: ["customerId", "campaignId", "labelId"] } },
+      // Change History
+      { name: "get_change_history", description: "View recent account changes", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["customerId"] } },
+      // Budget & Performance
       { name: "get_budget_summary", description: "Get budget summary across campaigns", parameters: { type: "object", properties: { customerId: { type: "string" } }, required: ["customerId"] } },
       { name: "get_account_performance", description: "Get overall account performance metrics", parameters: { type: "object", properties: { customerId: { type: "string" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["customerId"] } },
     ],
@@ -158,12 +212,66 @@ const INTEGRATION_FUNCTION_MAP: Record<string, { functionName: string; actionMap
   "google-ads": {
     functionName: "google-ads-integration",
     actionMap: {
+      // Account
       list_customers: "list_customers",
       get_customer: "get_customer",
+      // Campaigns
       get_campaigns: "get_campaigns",
+      update_campaign_status: "update_campaign_status",
+      update_campaign_budget: "update_campaign_budget",
+      create_campaign: "create_campaign",
+      // Ad Groups
       get_ad_groups: "get_ad_groups",
+      update_ad_group_status: "update_ad_group_status",
+      create_ad_group: "create_ad_group",
+      // Ads
       get_ads: "get_ads",
+      update_ad_status: "update_ad_status",
+      create_responsive_search_ad: "create_responsive_search_ad",
+      // Keywords
       get_keywords: "get_keywords",
+      update_keyword_status: "update_keyword_status",
+      add_keyword: "add_keyword",
+      set_keyword_bid: "set_keyword_bid",
+      // Search Terms & Negatives
+      get_search_terms: "get_search_terms",
+      list_negative_keywords: "list_negative_keywords",
+      add_negative_keyword: "add_negative_keyword",
+      add_campaign_negative_keyword: "add_campaign_negative_keyword",
+      // Conversions
+      list_conversions: "list_conversions",
+      get_conversion_stats: "get_conversion_stats",
+      create_conversion: "create_conversion",
+      // Bidding
+      list_bidding_strategies: "list_bidding_strategies",
+      // Targeting
+      get_location_targeting: "get_location_targeting",
+      set_location_targeting: "set_location_targeting",
+      get_device_targeting: "get_device_targeting",
+      set_device_bid_adjustment: "set_device_bid_adjustment",
+      get_ad_schedule: "get_ad_schedule",
+      set_ad_schedule: "set_ad_schedule",
+      // Extensions
+      list_extensions: "list_extensions",
+      create_sitelink: "create_sitelink",
+      create_callout: "create_callout",
+      create_call_extension: "create_call_extension",
+      // Audiences
+      list_audiences: "list_audiences",
+      add_audience_to_campaign: "add_audience_to_campaign",
+      // Recommendations
+      get_recommendations: "get_recommendations",
+      apply_recommendation: "apply_recommendation",
+      dismiss_recommendation: "dismiss_recommendation",
+      // Quality Score
+      get_quality_score_insights: "get_quality_score_insights",
+      // Labels
+      list_labels: "list_labels",
+      create_label: "create_label",
+      apply_label_to_campaign: "apply_label_to_campaign",
+      // Change History
+      get_change_history: "get_change_history",
+      // Budget & Performance
       get_budget_summary: "get_budget_summary",
       get_account_performance: "get_account_performance",
     },
