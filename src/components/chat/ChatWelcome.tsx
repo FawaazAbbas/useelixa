@@ -1,7 +1,7 @@
 import { Mail, Calendar, CheckSquare, FileText, Search, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import ElixaResponded from "@/assets/Elixa-Responded.png";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface QuickActionCardProps {
   icon: React.ElementType;
@@ -75,11 +75,7 @@ export const ChatWelcome = ({ onQuickAction, hasConnectedServices }: ChatWelcome
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] text-center py-12 px-4">
-      <img
-        src={ElixaResponded}
-        alt="Elixa"
-        className="h-20 w-20 rounded-full object-cover mb-4 border-2 border-muted bg-muted"
-      />
+      <ElixaMascot pose="waving" size="xl" animation="float" className="mb-4" />
       <h2 className="text-2xl font-semibold mb-2">How can I help you today?</h2>
       <p className="text-muted-foreground max-w-md mb-8">
         I'm your intelligent assistant. I can help you manage emails, calendar events, tasks, notes, 

@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { ElixaLogo } from "@/components/ElixaLogo";
+import { ElixaMascot } from "@/components/ElixaMascot";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plug, Key, Activity, LayoutDashboard } from "lucide-react";
-import { PageLayout, PageEmptyState, CardGrid } from "@/components/PageLayout";
+import { PageLayout, CardGrid } from "@/components/PageLayout";
 
 const Workspace = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Workspace = () => {
     return (
       <PageLayout title="Workspace" icon={LayoutDashboard}>
         <div className="flex items-center justify-center py-16">
-          <ElixaLogo size={48} className="animate-pulse" />
+          <ElixaMascot pose="thinking" size="lg" animation="pulse" />
         </div>
       </PageLayout>
     );
@@ -30,7 +30,7 @@ const Workspace = () => {
     <PageLayout title="Workspace" icon={LayoutDashboard}>
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center py-8">
-          <ElixaLogo size={64} className="mx-auto mb-4" />
+          <ElixaMascot pose="celebrating" size="xl" animation="bounce" className="mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">Welcome to Elixa</h2>
           <p className="text-muted-foreground">
             Your Tool Hub + MCP Connector Platform
