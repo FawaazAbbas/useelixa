@@ -17,7 +17,7 @@ export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterPro
             <div className="col-span-2 sm:col-span-1 space-y-3 md:space-y-4">
               <ElixaLogo size={24} className="md:w-7" />
               <p className="text-xs md:text-sm text-muted-foreground">
-                Your AI Talent Pool. Hire brilliant AI agents to transform your workspace.
+                Connect your favorite tools to AI assistants. The MCP connector platform.
               </p>
             </div>
 
@@ -82,26 +82,26 @@ export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterPro
               <ul className="space-y-1.5 md:space-y-2 text-xs md:text-sm">
                 <li>
                   <Link
-                    to="/waitlist"
+                    to="/auth"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Join the Waitlist
+                    Sign Up Free
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/referral"
+                    to="/tool-library"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Referral Program
+                    Browse Integrations
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/developers"
+                    to="/blog"
                     className="text-muted-foreground hover:text-primary transition-colors"
                   >
-                    Become an Agent Developer
+                    Blog
                   </Link>
                 </li>
               </ul>

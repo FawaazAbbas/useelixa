@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Home from "./pages/Home";
 import TalentPool from "./pages/TalentPool";
 import Workspace from "./pages/Workspace";
 import Tasks from "./pages/Tasks";
@@ -50,10 +51,11 @@ const AppContent = () => {
       <MobileRedirect />
       
         <Routes>
-          {/* Tool Library (main landing) */}
-          <Route path="/" element={<TalentPool />} />
-          <Route path="/tool-library" element={<TalentPool />} />
+          {/* Home (main landing) */}
+          <Route path="/" element={<Home />} />
           
+          {/* Tool Library */}
+          <Route path="/tool-library" element={<TalentPool />} />
           {/* Legacy redirects */}
           <Route path="/talent-pool" element={<Navigate to="/tool-library" replace />} />
           <Route path="/talent-pool/*" element={<Navigate to="/tool-library" replace />} />

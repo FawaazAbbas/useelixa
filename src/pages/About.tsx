@@ -16,11 +16,11 @@ const About = () => {
             <span className="text-sm font-medium text-primary">About Elixa</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text">
-            The Team That Never Sleeps
+            Connect Your Tools to AI
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            We're building the future of work by creating AI employees that actually get work done. 
-            Your team, reimagined.
+            We're building the bridge between your favorite apps and AI assistants.
+            Connect once, use everywhere.
           </p>
         </section>
 
@@ -30,10 +30,11 @@ const About = () => {
             <CardContent className="p-8 md:p-12">
               <h2 className="text-2xl font-bold mb-4">Our Mission</h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Elixa exists to democratize access to world-class talent. We believe every business, 
-                regardless of size or budget, deserves access to brilliant minds that can transform 
-                their operations. Our AI agents are trained on the best practices of industry experts, 
-                available 24/7, and designed to integrate seamlessly into your existing workflows.
+                Elixa exists to bridge the gap between your everyday tools and AI assistants. 
+                We believe in the power of the Model Context Protocol to create seamless, secure 
+                connections that let AI work with your data safely. Our platform enables 
+                Claude, Cursor, and other MCP-compatible clients to access your tools with 
+                enterprise-grade OAuth 2.0 security.
               </p>
             </CardContent>
           </Card>
@@ -48,10 +49,10 @@ const About = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-4">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="font-semibold mb-2">Efficiency First</h3>
+                <h3 className="font-semibold mb-2">MCP Native</h3>
                 <p className="text-sm text-muted-foreground">
-                  We build agents that get real work done, not just chat. Every agent is designed 
-                  to deliver measurable results.
+                  Built for the Model Context Protocol standard. Connect your tools once 
+                  and use them with any compatible AI client.
                 </p>
               </CardContent>
             </Card>
@@ -61,10 +62,10 @@ const About = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mx-auto mb-4">
                   <Shield className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="font-semibold mb-2">Trust & Transparency</h3>
+                <h3 className="font-semibold mb-2">Secure by Design</h3>
                 <p className="text-sm text-muted-foreground">
-                  Your data stays yours. Our agents work with your information securely, 
-                  with full visibility into their actions.
+                  Enterprise-grade OAuth 2.0 with encrypted credential storage. 
+                  Your tokens are never exposed.
                 </p>
               </CardContent>
             </Card>
@@ -74,10 +75,10 @@ const About = () => {
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center mx-auto mb-4">
                   <Users className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="font-semibold mb-2">Human-Centered AI</h3>
+                <h3 className="font-semibold mb-2">30+ Integrations</h3>
                 <p className="text-sm text-muted-foreground">
-                  AI should augment human capabilities, not replace human connection. 
-                  Our agents work alongside your team.
+                  Connect Gmail, Shopify, Slack, Notion, Stripe, and many more. 
+                  New integrations added regularly.
                 </p>
               </CardContent>
             </Card>
@@ -93,10 +94,10 @@ const About = () => {
                 <span className="font-bold text-primary">1</span>
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Browse the Talent Pool</h3>
+                <h3 className="font-semibold mb-1">Connect Your Tools</h3>
                 <p className="text-muted-foreground">
-                  Explore our marketplace of specialized AI agents across marketing, sales, 
-                  operations, finance, and more.
+                  Link your Gmail, Shopify, Calendar, Slack, and 30+ other services 
+                  using secure OAuth 2.0 authentication.
                 </p>
               </div>
             </div>
@@ -106,10 +107,10 @@ const About = () => {
                 <span className="font-bold text-primary">2</span>
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Add to Your Workspace</h3>
+                <h3 className="font-semibold mb-1">Generate MCP Token</h3>
                 <p className="text-muted-foreground">
-                  Install agents directly into your workspace. They integrate with your existing 
-                  tools and start working immediately.
+                  Get a secure API token to authenticate your AI clients. 
+                  Works with Claude Desktop, Cursor, and any MCP-compatible tool.
                 </p>
               </div>
             </div>
@@ -119,10 +120,10 @@ const About = () => {
                 <span className="font-bold text-primary">3</span>
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Collaborate & Scale</h3>
+                <h3 className="font-semibold mb-1">Use with Any AI</h3>
                 <p className="text-muted-foreground">
-                  Chat with your agents, assign tasks, and watch them execute. Scale your team 
-                  instantly without the hiring overhead.
+                  Your AI assistant can now access your tools directly. Read emails, 
+                  manage calendar, check orders, and more—all through natural conversation.
                 </p>
               </div>
             </div>
