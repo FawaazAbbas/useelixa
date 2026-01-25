@@ -305,26 +305,34 @@ serve(async (req) => {
 });
 
 async function getGoogleAccessToken(supabase: any, userId: string): Promise<string | null> {
-  const creds = await getDecryptedCredentials(supabase, userId, "googleOAuth2Api");
-  if (!creds) return null;
-
-  // Check if token is expired
-  if (creds.expires_at && new Date(creds.expires_at) < new Date()) {
-    console.log("[Calendar] Google token expired, refreshing...");
-    if (!creds.refresh_token) {
-      console.error("[Calendar] No refresh token available");
-      return null;
+  // Try google_calendar bundle first, then gmail_calendar as fallback
+  const bundleTypes = ["google_calendar", "gmail_calendar"];
+  
+  for (const bundleType of bundleTypes) {
+    const creds = await getDecryptedCredentials(supabase, userId, "googleOAuth2Api", bundleType);
+    if (creds) {
+      // Check if token is expired
+      if (creds.expires_at && new Date(creds.expires_at) < new Date()) {
+        console.log(`[Calendar] Google token (${bundleType}) expired, refreshing...`);
+        if (!creds.refresh_token) {
+          console.error("[Calendar] No refresh token available");
+          continue;
+        }
+        return await refreshGoogleToken(supabase, userId, creds.refresh_token, bundleType);
+      }
+      return creds.access_token;
     }
-    return await refreshGoogleToken(supabase, userId, creds.refresh_token);
   }
-
-  return creds.access_token;
+  
+  console.log("[Calendar] No Google Calendar credentials found");
+  return null;
 }
 
 async function refreshGoogleToken(
   supabase: any,
   userId: string,
-  refreshToken: string
+  refreshToken: string,
+  bundleType: string = "google_calendar"
 ): Promise<string | null> {
   const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
   const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
@@ -358,10 +366,11 @@ async function refreshGoogleToken(
       userId,
       "googleOAuth2Api",
       tokens.access_token,
-      tokens.expires_in
+      tokens.expires_in,
+      bundleType
     );
 
-    console.log("[Calendar] Google token refreshed successfully");
+    console.log(`[Calendar] Google token refreshed successfully (${bundleType})`);
     return tokens.access_token;
   } catch (e) {
     console.error("[Calendar] Refresh error:", e);
