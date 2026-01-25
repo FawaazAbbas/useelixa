@@ -1,233 +1,220 @@
 
-# Integration Fixes Plan
+# New Homepage Design Plan
 
-## Executive Summary
-This plan addresses critical issues across multiple integrations that prevent OAuth connections from working properly. The fixes are prioritized by severity and organized into logical groups.
-
----
-
-## Issues Identified
-
-### Critical Priority (Blocking Functionality)
-
-#### 1. Shopify Integration - Credential Type Mismatch
-**Problem**: The `shopify-integration` edge function looks for credentials with type `"shopify"`, but the OAuth flow stores them as `"shopifyApi"`.
-
-**Files Affected**:
-- `supabase/functions/shopify-integration/index.ts` (line 21, 30)
-
-**Current Code**:
-```typescript
-.eq("credential_type", "shopify")
-```
-
-**Fix**: Change to `"shopifyApi"` to match what `exchange-oauth-token` stores.
+## Overview
+Create a compelling marketing homepage that clearly communicates what Elixa is: **an MCP connector platform** that bridges your favorite tools with AI assistants like Claude and Cursor. The homepage will precede the Tool Library section and feature a prominent "Try it out" CTA.
 
 ---
 
-#### 2. Calendar Integration - Wrong Secret Names for Token Refresh
-**Problem**: The `calendar-integration` edge function uses incorrect environment variable names for Google OAuth token refresh.
+## Page Structure
 
-**Files Affected**:
-- `supabase/functions/calendar-integration/index.ts` (lines 329-330)
+### 1. Hero Section
+**Purpose:** Immediately communicate the value proposition
 
-**Current Code**:
-```typescript
-const clientId = Deno.env.get("GOOGLE_OAUTH_CLIENT_ID");
-const clientSecret = Deno.env.get("GOOGLE_OAUTH_CLIENT_SECRET");
-```
-
-**Correct Secret Names** (as used by `gmail-integration` and `exchange-oauth-token`):
-```typescript
-const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
-const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
-```
+**Content:**
+- **Headline:** "Connect Your Tools to AI"
+- **Subheadline:** "Elixa is the bridge between your favorite apps and AI assistants. Connect once, use everywhere."
+- **Primary CTA:** "Try it out" button (navigates to `/auth` for signup, or `/chat` for logged-in users)
+- **Secondary CTA:** "Browse Tools" (scrolls to tool library section)
+- **Visual:** Animated graphic showing tool logos connecting to AI (Claude, Cursor icons)
 
 ---
 
-#### 3. Google Sheets Integration - Custom Decryption Method
-**Problem**: The `google-sheets-integration` uses a custom decryption method that expects a raw base64 encryption key, while the shared `_shared/crypto.ts` uses PBKDF2 key derivation with a salt.
+### 2. "How It Works" Section
+**Purpose:** Explain the concept in 3 simple steps
 
-**Files Affected**:
-- `supabase/functions/google-sheets-integration/index.ts` (lines 10-42, 44-102)
+**Steps:**
+1. **Connect Your Tools** - "Link your Gmail, Shopify, Calendar, Slack, and 30+ other services in one place."
+2. **Generate MCP Token** - "Get a secure API token to authenticate your AI clients."
+3. **Use with Any AI** - "Claude Desktop, Cursor, or any MCP-compatible client can now access your tools."
 
-**Current Implementation**:
-- Lines 12-42: Custom `decryptToken` function that:
-  - Expects raw base64-encoded key from `CREDENTIAL_ENCRYPTION_KEY`
-  - Directly imports as raw AES key (no PBKDF2 derivation)
-  - Different IV/ciphertext format
-
-**Shared Implementation** (`_shared/crypto.ts`):
-- Uses PBKDF2 with salt `"elixa_credential_salt_v1"` and 100,000 iterations
-- Stores IV prepended to ciphertext in base64 format
-
-**Fix**: Replace custom implementation with shared utilities from `_shared/credentials.ts`.
+**Visual:** Step-by-step flow diagram or numbered cards
 
 ---
 
-### Medium Priority (Partial Functionality)
+### 3. Integration Showcase Section
+**Purpose:** Display the breadth of supported tools
 
-#### 4. Frontend Shopify Client ID
-**Problem**: The `VITE_SHOPIFY_CLIENT_ID` environment variable exists in secrets but the fallback in `oauth.ts` was removed.
-
-**Current State**:
-- Secret exists: `VITE_SHOPIFY_CLIENT_ID` 
-- Frontend code: `SHOPIFY: import.meta.env.VITE_SHOPIFY_CLIENT_ID || ""`
-
-**Verification Needed**: Confirm `VITE_SHOPIFY_CLIENT_ID` is set correctly (the secret exists but we can't see its value).
+**Content:**
+- Grid of integration logos (Slack, Gmail, Google Calendar, Shopify, Notion, Stripe, HubSpot, Figma, etc.)
+- Category pills: Communication, Productivity, E-commerce, CRM, Marketing, Payments
+- Count badge: "30+ integrations and growing"
+- Links to full Tool Library
 
 ---
 
-#### 5. Missing Backend Functions
-**Problem**: Some integrations have OAuth mapping but no corresponding edge function.
+### 4. Key Features Section
+**Purpose:** Highlight core differentiators
 
-| Integration | Has OAuth Mapping | Has Edge Function |
-|------------|------------------|-------------------|
-| Mailchimp | Yes | No |
-| Slack | Yes | No |
-
-**Impact**: Users can complete OAuth flow but the AI cannot use these integrations.
-
----
-
-### Low Priority (Configuration Issues)
-
-#### 6. Slack OAuth - Backend Secrets Missing
-**Problem**: Slack OAuth requires backend secrets that don't exist.
-
-**Required Secrets**:
-- `SLACK_OAUTH_CLIENT_ID` (not in secrets list)
-- `SLACK_OAUTH_CLIENT_SECRET` (not in secrets list)
-
-**Current State**: Frontend has hardcoded client ID `8186913077078.8224803663382` but token exchange will fail without backend secrets.
+**Feature Cards:**
+1. **MCP Native** - "Built for the Model Context Protocol standard. Works with Claude Desktop, Cursor, and any MCP client."
+2. **Secure OAuth** - "Enterprise-grade OAuth 2.0 with encrypted credential storage. Your tokens are never exposed."
+3. **One Connection, Many AIs** - "Connect once and use across all your AI tools. No re-authentication needed."
+4. **Built-in AI Chat** - "Don't have an MCP client? Use our built-in AI assistant to interact with your tools directly."
 
 ---
 
-## Implementation Plan
+### 5. Use Cases Section
+**Purpose:** Show practical applications
 
-### Phase 1: Critical Fixes (Immediate)
+**Cards:**
+- **Email Management** - "Ask Claude to summarize your inbox or draft responses"
+- **Calendar Scheduling** - "Let AI find your free slots and create events"
+- **E-commerce Insights** - "Get order summaries and inventory updates via chat"
+- **CRM Updates** - "Create contacts and log interactions hands-free"
 
-#### Task 1.1: Fix Shopify credential type
-**File**: `supabase/functions/shopify-integration/index.ts`
+---
 
-Change credential type lookup from `"shopify"` to `"shopifyApi"`:
-- Line 21: Update query filter
-- Line 30: Update `getDecryptedCredentials` call
+### 6. Social Proof / Trust Section
+**Purpose:** Build credibility
 
+**Elements:**
+- Security badges (OAuth 2.0, encrypted storage)
+- "Trusted by X teams" (placeholder for future metrics)
+- Compatibility logos (Claude, Cursor, etc.)
+
+---
+
+### 7. Final CTA Section
+**Purpose:** Drive conversion
+
+**Content:**
+- **Headline:** "Ready to supercharge your AI?"
+- **Subheadline:** "Connect your tools in minutes. No credit card required."
+- **CTA Button:** "Try it out"
+
+---
+
+### 8. Tool Library Section (Existing)
+**Purpose:** Preserve the current integration browsing functionality
+
+The existing TalentPool integration grid will be moved below the new marketing sections, serving as a "Browse All Tools" area.
+
+---
+
+## Technical Implementation
+
+### New File Structure
 ```text
-Modified lines:
-- Line 21: .eq("credential_type", "shopifyApi")
-- Line 30: getDecryptedCredentials(supabase, userId, "shopifyApi")
+src/pages/Home.tsx         (New - Landing page with all sections)
+src/pages/TalentPool.tsx   (Modify - Becomes tool-only view, no hero)
+```
+
+### Component Breakdown
+
+**Home.tsx** - New landing page containing:
+- `<TalentPoolNavbar />` - Existing navbar (reused)
+- `<HeroSection />` - New component with headline, CTAs, and animated visual
+- `<HowItWorksSection />` - 3-step process explanation
+- `<IntegrationShowcase />` - Logo grid with category filters
+- `<FeaturesSection />` - Feature cards
+- `<UseCasesSection />` - Use case cards
+- `<FinalCTASection />` - Conversion-focused CTA
+- `<TalentPoolFooter />` - Existing footer (reused)
+
+### Routing Changes
+| Route | Component | Description |
+|-------|-----------|-------------|
+| `/` | `Home.tsx` | New landing page |
+| `/tool-library` | `TalentPool.tsx` | Tool browsing only |
+
+### Design Tokens
+- Use existing color palette from `tailwind.config.ts`
+- Primary gradients: `from-primary/5 to-background`
+- Card styling: Consistent with existing `Card` component
+- Animations: Subtle fade-in on scroll using `framer-motion`
+
+### Responsive Behavior
+- Mobile: Single-column layout, stacked sections
+- Tablet: 2-column grids where applicable
+- Desktop: Full-width hero, 3-4 column grids
+
+---
+
+## Content Refinements
+
+### Updated Messaging
+- Remove all "AI employee" and "talent pool" language
+- Focus on "tools," "connectors," and "integrations"
+- Emphasize MCP compatibility as the primary differentiator
+- Highlight security and ease of use
+
+### Footer Updates
+Update `TalentPoolFooter.tsx` to remove outdated links:
+- Remove "Join the Waitlist" (app is live)
+- Remove "Referral Program" (if not active)
+- Remove "Become an Agent Developer" (old concept)
+- Add "Documentation" link
+- Add "MCP Setup Guide" link
+
+---
+
+## Files to Create/Modify
+
+| File | Action | Purpose |
+|------|--------|---------|
+| `src/pages/Home.tsx` | Create | New landing page |
+| `src/pages/TalentPool.tsx` | Modify | Remove hero, keep tool grid |
+| `src/components/home/HeroSection.tsx` | Create | Hero with CTA |
+| `src/components/home/HowItWorksSection.tsx` | Create | 3-step process |
+| `src/components/home/IntegrationShowcase.tsx` | Create | Logo grid |
+| `src/components/home/FeaturesSection.tsx` | Create | Feature cards |
+| `src/components/home/UseCasesSection.tsx` | Create | Use cases |
+| `src/components/home/FinalCTASection.tsx` | Create | Bottom CTA |
+| `src/components/TalentPoolFooter.tsx` | Modify | Update links |
+| `src/pages/About.tsx` | Modify | Update outdated language |
+| `src/App.tsx` | Modify | Update route for `/` |
+
+---
+
+## CTA Behavior
+
+**"Try it out" Button Logic:**
+```typescript
+const handleTryItOut = () => {
+  if (user) {
+    navigate("/chat"); // Logged-in users go to chat
+  } else {
+    navigate("/auth"); // New users go to auth
+  }
+};
 ```
 
 ---
 
-#### Task 1.2: Fix Calendar token refresh secret names
-**File**: `supabase/functions/calendar-integration/index.ts`
+## Visual References
 
-Update the `refreshGoogleToken` function (lines 324-369):
-
+### Hero Animation Concept
 ```text
-Modified lines:
-- Line 329: const clientId = Deno.env.get("GOOGLEOAUTH2API_CLIENT_ID");
-- Line 330: const clientSecret = Deno.env.get("GOOGLEOAUTH2API_CLIENT_SECRET");
+    ┌─────────┐     ┌─────────┐     ┌─────────┐
+    │  Gmail  │     │ Shopify │     │  Slack  │
+    └────┬────┘     └────┬────┘     └────┬────┘
+         │               │               │
+         └───────────────┼───────────────┘
+                         │
+                    ┌────▼────┐
+                    │  ELIXA  │
+                    └────┬────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+    ┌────▼────┐     ┌────▼────┐     ┌────▼────┐
+    │ Claude  │     │ Cursor  │     │   AI    │
+    └─────────┘     └─────────┘     └─────────┘
 ```
 
----
-
-#### Task 1.3: Refactor Google Sheets to use shared crypto
-**File**: `supabase/functions/google-sheets-integration/index.ts`
-
-Major refactor needed:
-1. Remove custom `decryptToken` function (lines 12-42)
-2. Import and use shared utilities:
-   ```typescript
-   import { getDecryptedCredentials, updateRefreshedToken } from "../_shared/credentials.ts";
-   ```
-3. Replace `getValidAccessToken` function (lines 44-102) with pattern from `gmail-integration`
+### Color Scheme
+- Hero background: Gradient from `primary/5` to `background`
+- Accent colors: Use existing purple/rose gradient for CTAs
+- Cards: Use `bg-card` with `border-border/50`
 
 ---
 
-### Phase 2: Consistency Improvements
+## Summary
 
-#### Task 2.1: Add missing integration edge functions (Future)
-
-Create placeholder edge functions for:
-- `mailchimp-integration/index.ts`
-- `slack-integration/index.ts` (using Lovable connector gateway pattern)
-
-These would follow the same pattern as existing integrations.
-
----
-
-## Technical Details
-
-### Credential Type Mapping Reference
-
-| Integration | Frontend Slug | Credential Type | Bundle Type |
-|------------|--------------|-----------------|-------------|
-| Gmail | gmail | googleOAuth2Api | gmail |
-| Google Calendar | google-calendar | googleOAuth2Api | google_calendar |
-| Google Ads | google-ads | googleOAuth2Api | google_ads |
-| Google Analytics | google-analytics | googleOAuth2Api | google_analytics |
-| Google Sheets | google-sheets | googleOAuth2Api | google_sheets |
-| Shopify | shopify | shopifyApi | - |
-| Notion | notion | notionApi | - |
-| Calendly | calendly | calendlyApi | - |
-| Microsoft Teams | microsoft-teams | microsoftOAuth2Api | teams |
-| Outlook | outlook | microsoftOAuth2Api | outlook |
-| OneDrive | onedrive | microsoftOAuth2Api | onedrive |
-
----
-
-### Secrets Verification
-
-Available secrets needed for integrations:
-- `GOOGLEOAUTH2API_CLIENT_ID`
-- `GOOGLEOAUTH2API_CLIENT_SECRET`
-- `SHOPIFY_OAUTH_CLIENT_ID`
-- `SHOPIFY_OAUTH_CLIENT_SECRET`
-- `MICROSOFT_OAUTH_APPLICATION_ID`
-- `MICROSOFT_OAUTH_CLIENT_SECRET`
-- `NOTION_OAUTH_CLIENT_ID`
-- `NOTION_OAUTH_CLIENT_SECRET`
-- `CALENDLY_OAUTH_CLIENT_ID`
-- `CALENDLY_OAUTH_CLIENT_SECRET`
-- `MAILCHIMP_OAUTH_CLIENT_ID`
-- `MAILCHIMP_OAUTH_CLIENT_SECRET`
-- `CREDENTIAL_ENCRYPTION_KEY`
-- `VITE_SHOPIFY_CLIENT_ID`
-
-**Missing**:
-- `SLACK_OAUTH_CLIENT_ID`
-- `SLACK_OAUTH_CLIENT_SECRET`
-
----
-
-## Files to Modify
-
-1. `supabase/functions/shopify-integration/index.ts` - Fix credential type
-2. `supabase/functions/calendar-integration/index.ts` - Fix secret names
-3. `supabase/functions/google-sheets-integration/index.ts` - Use shared crypto
-
----
-
-## Testing Recommendations
-
-After implementing fixes, test each integration:
-
-1. **Shopify**: Connect a store → Verify credentials stored with `shopifyApi` type → Test shop info retrieval
-2. **Google Calendar**: Connect account → Let token expire → Verify refresh works
-3. **Google Sheets**: Connect account → List spreadsheets → Verify encrypted token decryption works
-
----
-
-## Risk Assessment
-
-| Fix | Risk Level | Rollback Complexity |
-|-----|-----------|---------------------|
-| Shopify credential type | Low | Simple string change |
-| Calendar secret names | Low | Simple string change |
-| Google Sheets crypto refactor | Medium | Larger code change, but uses proven shared code |
-
-All changes are backward compatible - existing credentials will continue to work as the shared utilities support both encrypted and plaintext tokens.
+This redesign transforms the homepage from a simple tool directory into a compelling marketing page that:
+1. Clearly explains what Elixa does (MCP connector)
+2. Shows the breadth of integrations (30+ tools)
+3. Highlights key benefits (security, ease of use, MCP native)
+4. Provides a clear path to action ("Try it out")
+5. Maintains access to the tool library for browsing
