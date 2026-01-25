@@ -1,192 +1,296 @@
 
-# Revised Homepage Plan: Elixa as an AI-Powered Workspace
 
-## The Problem
+# Mascot Prominence Enhancement Plan
 
-The current homepage messaging is **incorrect**. It positions Elixa as an "MCP Connector Platform" when Elixa is actually a **full-featured AI-powered workspace** with:
+## Overview
 
-- **AI Chat** - Built-in AI assistant that can interact with all connected tools
-- **Tasks** - Kanban board with AI task assignment and scheduled automation
-- **Calendar** - Event management with Google Calendar sync
-- **Notes** - Rich text note-taking
-- **Knowledge Base** - Document upload and AI-searchable storage
-- **Daily Digest** - AI-generated summaries of emails, tasks, calendar, and metrics
-- **Connections** - 30+ tool integrations (Gmail, Shopify, Stripe, Notion, etc.)
-- **Logs & Analytics** - Tool execution monitoring
-
-The MCP endpoint exists but is a **secondary feature** for power users, not the core value proposition.
+This plan identifies additional strategic locations throughout the app where the Elixa mascot can be integrated to create a warmer, more inviting, and cohesive user experience. The goal is to make the mascot feel like a natural companion throughout the user journey.
 
 ---
 
-## Corrected Messaging
+## Integration Locations
 
-### What Elixa Actually Is
-**"Your AI-Powered Workspace"** - A unified platform where an intelligent AI assistant manages your tasks, calendar, emails, and business tools in one place.
+### 1. Main Navigation Sidebar (Chat Entry Point)
 
-### Core Value Proposition
-- **One AI, All Your Tools** - Elixa connects to your apps and lets you manage everything through conversation
-- **Workspace Features** - Tasks, Calendar, Notes, Knowledge Base, Daily Digest
-- **30+ Integrations** - Gmail, Shopify, Stripe, Notion, Calendly, and more
-- **Intelligent Automation** - AI can execute tasks, schedule work, and generate insights
+**File:** `src/components/MainNavSidebar.tsx`
 
----
+**Current:** Uses `Elixa-Responded.png` as a small 36px avatar for the AI Chat nav item.
 
-## Revised Page Structure
+**Enhancement:** Replace with the `ElixaMascot` component using the `default` pose with a subtle hover animation.
 
-### 1. Hero Section (Updated)
-
-**Badge:** "AI-Powered Workspace" (instead of "MCP Connector Platform")
-
-**Headline:** "Your AI Assistant That Gets Work Done"
-
-**Subheadline:** "Elixa connects to your tools and handles tasks, emails, scheduling, and more - all through natural conversation."
-
-**Primary CTA:** "Try it out" (navigates to /chat or /auth)
-
-**Secondary CTA:** "See how it works" (scrolls to features)
-
-**Visual:** Show a workspace mockup with the AI chat interface, displaying example interactions like "Summarize my emails" or "Create a task for tomorrow"
+**Details:**
+- Size: `xs` (current 36px dimension matches)
+- Animation: Add scale/wave animation on hover for interactivity
+- This is a highly visible location users see constantly
 
 ---
 
-### 2. Workspace Features Section (New - Replaces "How It Works")
+### 2. Chat Sidebar - Empty State
 
-**Title:** "Everything You Need in One Place"
+**File:** `src/components/ChatSidebar.tsx`
 
-**Feature Cards:**
+**Current:** Simple text "No conversations yet"
 
-1. **AI Chat** (MessageSquare icon)
-   - "Ask questions, give commands, get insights - all in natural language"
-   
-2. **Tasks** (CheckSquare icon)
-   - "Kanban boards, priorities, due dates - with AI that can complete tasks for you"
-   
-3. **Calendar** (Calendar icon)
-   - "Manage events and sync with Google Calendar automatically"
-   
-4. **Notes** (FileText icon)
-   - "Quick notes with rich text, AI can create and search them"
-   
-5. **Knowledge Base** (BookOpen icon)
-   - "Upload documents for AI to search and reference"
-   
-6. **Daily Digest** (Newspaper icon)
-   - "Get AI-generated summaries of your emails, tasks, and metrics every morning"
+**Enhancement:** Add mascot with `waving` pose above the text.
+
+**Details:**
+- Size: `sm`
+- Animation: `float`
+- Message: Make it feel inviting to start a conversation
 
 ---
 
-### 3. How AI Works For You Section (Replaces old "How It Works")
+### 3. Settings Page - AI Behavior Section
 
-**Title:** "How Elixa Works"
+**File:** `src/pages/Settings.tsx`
 
-**Steps:**
-1. **Connect Your Tools** - "Link your Gmail, Shopify, Calendar, and 30+ other services in one click"
-2. **Chat with Elixa** - "Ask anything: 'What's on my calendar?' 'Summarize unread emails' 'Create a task'"
-3. **AI Takes Action** - "Elixa reads, writes, schedules, and manages - with your approval for sensitive actions"
+**Current:** Standard settings tabs with icons only.
 
----
+**Enhancement:** Add a small mascot in the profile or AI settings tab to make settings feel less sterile.
 
-### 4. Integration Showcase (Keep - Minor Updates)
-
-**Title:** "Connect All Your Tools"
-
-Keep the existing logo grid but update the intro text:
-- "Elixa integrates with the tools you already use. Connect once, and your AI assistant can access them all."
+**Details:**
+- Size: `sm`
+- Pose: `relaxed` or `sitting`
+- Position: Decorative element in the card header or sidebar
 
 ---
 
-### 5. What You Can Do Section (Updated Use Cases)
+### 4. Billing Page - Credit Exhausted State
 
-**Title:** "What Elixa Can Do For You"
+**File:** `src/pages/Billing.tsx`
 
-**Cards:**
-1. **Email Intelligence** - "Summarize your inbox, draft responses, find attachments"
-2. **Task Automation** - "Create tasks from conversations, assign work to AI, track progress"
-3. **Calendar Management** - "Schedule meetings, check availability, get agenda summaries"
-4. **Business Insights** - "Get order updates from Shopify, revenue from Stripe, all via chat"
-5. **Document Search** - "Upload files and ask questions about your knowledge base"
-6. **Daily Briefings** - "Start each day with an AI-curated summary of what needs attention"
+**Current:** Low credit warning shows AlertTriangle icon.
 
----
+**Enhancement:** Add mascot with `thinking` or concerned pose to humanize the upgrade prompt.
 
-### 6. Why Choose Elixa Section (Updated Features)
-
-**Cards:**
-1. **All-in-One Workspace** - "Tasks, calendar, notes, and AI chat in one unified interface"
-2. **Secure by Design** - "OAuth 2.0 authentication with encrypted credential storage"
-3. **AI That Acts** - "Not just answers - Elixa can create tasks, send emails, and schedule events"
-4. **30+ Integrations** - "Gmail, Shopify, Stripe, Notion, Calendly, Microsoft, and more"
+**Details:**
+- Size: `sm`
+- Position: Beside the low credit warning text
+- Makes the billing nudge feel less aggressive
 
 ---
 
-### 7. Final CTA Section (Updated)
+### 5. Connections Page - Empty/First Time
 
-**Headline:** "Ready to Work Smarter?"
+**File:** `src/pages/Connections.tsx`
 
-**Subheadline:** "Let AI handle the busywork. Start with a free account."
+**Current:** Shows list of available integrations.
 
-**CTA:** "Try it out"
+**Enhancement:** Add mascot with `pointing-right` pose when user has no connections, pointing toward integrations to connect.
+
+**Details:**
+- Size: `md`
+- Animation: `float`
+- Message: Encourage first-time connection
+
+---
+
+### 6. Digest Page - No Digest Available
+
+**File:** `src/pages/Digest.tsx`
+
+**Current:** Shows PageEmptyState when no digest is generated.
+
+**Enhancement:** Use `thinking` pose mascot for empty state.
+
+**Details:**
+- Size: `lg`
+- Animation: `pulse`
+- Context: "Elixa is preparing your digest..."
+
+---
+
+### 7. Notifications Page - All Caught Up
+
+**File:** `src/pages/Notifications.tsx`
+
+**Current:** Bell icon with "You're all caught up!"
+
+**Enhancement:** Replace with `celebrating` pose mascot.
+
+**Details:**
+- Size: `lg`
+- Animation: `bounce`
+- Makes the empty state feel rewarding
+
+---
+
+### 8. Error Boundary - Crash State
+
+**File:** `src/components/ErrorBoundary.tsx`
+
+**Current:** AlertTriangle icon with error message.
+
+**Enhancement:** Add mascot with `thinking` or concerned pose to soften the error experience.
+
+**Details:**
+- Size: `md`
+- Position: Above or beside the error message
+- Makes errors feel less scary
+
+---
+
+### 9. Knowledge Base - Empty State
+
+**File:** `src/pages/KnowledgeBase.tsx`
+
+**Current:** FileText icon for "No documents yet"
+
+**Enhancement:** Use `search` pose mascot holding magnifying glass.
+
+**Details:**
+- Size: `lg`
+- Animation: `float`
+- Encourages document upload
+
+---
+
+### 10. Calendar - No Events State
+
+**File:** `src/pages/Calendar.tsx`
+
+**Current:** Standard empty state.
+
+**Enhancement:** Add `relaxed` or `sitting` mascot for empty calendar.
+
+**Details:**
+- Size: `md`
+- Message: Peaceful, relaxed day vibe
+
+---
+
+### 11. Tasks - Empty Kanban Board
+
+**File:** `src/pages/Tasks.tsx`
+
+**Current:** Uses PageEmptyState.
+
+**Enhancement:** Already partially implemented. Ensure mascot appears with `celebrating` pose when all tasks are done, `search` when no tasks exist.
+
+**Details:**
+- Different poses for different states
+- Completed all tasks = celebrating
+- No tasks yet = pointing toward "Add Task"
+
+---
+
+### 12. Notes - No Note Selected
+
+**File:** `src/pages/Notes.tsx`
+
+**Current:** PageEmptyState with "Select a note" message.
+
+**Enhancement:** Use `sitting` or `relaxed` pose mascot.
+
+**Details:**
+- Size: `md`
+- Animation: `float`
+- Calm, contemplative vibe
+
+---
+
+### 13. Logs Page - No Logs State
+
+**File:** `src/pages/Logs.tsx`
+
+**Current:** PageEmptyState for sign-in required.
+
+**Enhancement:** Add mascot for empty logs state.
+
+**Details:**
+- Size: `md`
+- Pose: `search` when no logs found
+- Makes analytics page feel less cold
+
+---
+
+### 14. Trial Banner - Upgrade Prompt
+
+**File:** `src/components/billing/TrialBanner.tsx`
+
+**Current:** Clock icon with days remaining.
+
+**Enhancement:** Add tiny mascot beside the upgrade button.
+
+**Details:**
+- Size: `xs`
+- Pose: `waving` or `pointing-right`
+- Softens the commercial message
+
+---
+
+### 15. Notification List - Empty State
+
+**File:** `src/components/notifications/NotificationList.tsx`
+
+**Current:** Bell icon with "No notifications yet"
+
+**Enhancement:** Use `relaxed` pose mascot.
+
+**Details:**
+- Size: `md`
+- Animation: `float`
+- Peaceful "nothing to worry about" vibe
+
+---
+
+## Implementation Summary
+
+| Location | Pose | Size | Animation | Purpose |
+|----------|------|------|-----------|---------|
+| MainNavSidebar (Chat) | default | xs | hover-scale | Always visible |
+| ChatSidebar empty | waving | sm | float | Welcome new users |
+| Settings page | sitting | sm | none | Warm up settings |
+| Billing low credit | thinking | sm | none | Soften upgrade nudge |
+| Connections empty | pointing-right | md | float | Encourage connections |
+| Digest empty | thinking | md | pulse | Processing indicator |
+| Notifications empty | celebrating | lg | bounce | Reward "caught up" |
+| ErrorBoundary | thinking | md | none | Soften errors |
+| Knowledge Base empty | search | lg | float | Encourage uploads |
+| Calendar empty | relaxed | md | float | Peaceful day |
+| Tasks completed | celebrating | md | bounce | Celebrate success |
+| Notes empty | sitting | md | float | Contemplative |
+| Logs empty | search | md | none | Analytics warmth |
+| Trial banner | waving | xs | none | Friendly upgrade |
+| NotificationList empty | relaxed | md | float | Peace of mind |
 
 ---
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/components/home/HeroSection.tsx` | Update badge, headline, subheadline, visual |
-| `src/components/home/HowItWorksSection.tsx` | Change to "Workspace Features" or rename steps |
-| `src/components/home/FeaturesSection.tsx` | Update features to focus on workspace capabilities |
-| `src/components/home/UseCasesSection.tsx` | Update to reflect full workspace functionality |
-| `src/components/home/IntegrationShowcase.tsx` | Update intro text |
-| `src/components/home/FinalCTASection.tsx` | Update headline |
+1. `src/components/MainNavSidebar.tsx`
+2. `src/components/ChatSidebar.tsx`
+3. `src/pages/Settings.tsx`
+4. `src/pages/Billing.tsx`
+5. `src/pages/Connections.tsx`
+6. `src/pages/Digest.tsx`
+7. `src/pages/Notifications.tsx`
+8. `src/components/ErrorBoundary.tsx`
+9. `src/pages/KnowledgeBase.tsx`
+10. `src/pages/Calendar.tsx`
+11. `src/pages/Tasks.tsx`
+12. `src/pages/Notes.tsx`
+13. `src/pages/Logs.tsx`
+14. `src/components/billing/TrialBanner.tsx`
+15. `src/components/notifications/NotificationList.tsx`
 
 ---
 
-## Visual Changes
+## Technical Notes
 
-### Hero Visual Concept
-
-Instead of showing "Tools → Elixa Hub → AI Clients" (MCP-focused), show:
-
-```text
-┌────────────────────────────────────────────┐
-│  ELIXA WORKSPACE                           │
-│  ┌──────────┬───────────────────────────┐  │
-│  │ Sidebar  │   Chat with Elixa         │  │
-│  │ ─────────│   ─────────────────────   │  │
-│  │ Chat     │   You: What's on my       │  │
-│  │ Tasks    │   calendar today?         │  │
-│  │ Calendar │                           │  │
-│  │ Notes    │   Elixa: You have 3       │  │
-│  │ Digest   │   meetings today:         │  │
-│  │          │   • 9am Team standup      │  │
-│  │          │   • 2pm Client call       │  │
-│  │          │   • 4pm Design review     │  │
-│  └──────────┴───────────────────────────┘  │
-└────────────────────────────────────────────┘
-```
-
-Show the actual workspace UI with an example conversation, demonstrating the AI in action.
+- All implementations will use the existing `ElixaMascot` component from `src/components/ElixaMascot.tsx`
+- Supported poses: `default`, `waving`, `thinking`, `sitting`, `relaxed`, `pointing-left`, `pointing-right`, `celebrating`, `search`
+- Supported sizes: `xs` (32px), `sm` (48px), `md` (80px), `lg` (128px), `xl` (192px), `2xl` (256px)
+- Supported animations: `none`, `float`, `bounce`, `pulse`, `wave`
 
 ---
 
-## Key Messaging Shifts
+## Expected Outcome
 
-| Old (Incorrect) | New (Correct) |
-|-----------------|---------------|
-| "MCP Connector Platform" | "AI-Powered Workspace" |
-| "Connect once, use everywhere" | "One AI assistant for all your tools" |
-| "Generate MCP Token" | "Chat with Elixa" |
-| "Works with Claude, Cursor" | "Built-in AI that takes action" |
-| "Bridge between apps and AI" | "Your AI assistant that manages tasks, calendar, and tools" |
+After implementation, the Elixa mascot will appear naturally throughout the app:
+- Greeting users when they start new conversations
+- Celebrating when tasks are completed or notifications are cleared
+- Gently guiding users toward features like connections and document uploads
+- Softening error states and commercial messages
+- Creating a consistent, friendly brand presence
 
----
-
-## Summary
-
-This revision repositions Elixa correctly as:
-1. **Primary**: A full-featured AI workspace (Chat, Tasks, Calendar, Notes, Digest, Knowledge Base)
-2. **Secondary**: Integrated with 30+ tools (Gmail, Shopify, Stripe, etc.)
-3. **Tertiary**: Power users can use MCP for external AI clients (mentioned briefly, not prominently)
-
-The "Try it out" CTA remains as requested, directing users to the chat interface where they can immediately experience the AI assistant.
