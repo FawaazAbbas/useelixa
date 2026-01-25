@@ -161,6 +161,41 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "sheets_append", description: "Append rows to the end of a sheet. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "The sheet name or range to append to (e.g., 'Sheet1')" }, values: { type: "array", description: "2D array of row values to append", items: { type: "array", items: { type: "string" } } } }, required: ["spreadsheetId", "range", "values"] } } },
   { type: "function", function: { name: "sheets_clear", description: "Clear data in a specific range. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { spreadsheetId: { type: "string", description: "The spreadsheet ID" }, range: { type: "string", description: "A1 notation range to clear" } }, required: ["spreadsheetId", "range"] } } },
   { type: "function", function: { name: "sheets_create", description: "Create a new spreadsheet. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { title: { type: "string", description: "Title of the new spreadsheet" } }, required: ["title"] } } },
+  // YouTube Analytics tools
+  { type: "function", function: { name: "yt_get_channel", description: "Get your YouTube channel information including subscriber count, video count, and total views.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "yt_list_videos", description: "List your uploaded YouTube videos with basic stats.", parameters: { type: "object", properties: { maxResults: { type: "number", description: "Max videos to return (default 25)" }, pageToken: { type: "string", description: "Token for pagination" } } } } },
+  { type: "function", function: { name: "yt_get_channel_analytics", description: "Get YouTube channel analytics including views, watch time, subscribers gained/lost, likes, comments.", parameters: { type: "object", properties: { startDate: { type: "string", description: "Start date (YYYY-MM-DD)" }, endDate: { type: "string", description: "End date (YYYY-MM-DD)" } } } } },
+  { type: "function", function: { name: "yt_get_video_analytics", description: "Get analytics for specific videos or all videos.", parameters: { type: "object", properties: { videoId: { type: "string", description: "Optional specific video ID" }, startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "yt_get_audience_retention", description: "Get audience retention data for a specific video.", parameters: { type: "object", properties: { videoId: { type: "string", description: "Video ID to analyze" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["videoId"] } } },
+  { type: "function", function: { name: "yt_get_traffic_sources", description: "Get traffic source breakdown (YouTube search, suggested videos, external, etc.).", parameters: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "yt_get_demographics", description: "Get viewer demographics (age and gender breakdown).", parameters: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "yt_get_geography", description: "Get geographic breakdown of viewers by country.", parameters: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "yt_get_subscriber_changes", description: "Get daily subscriber gains and losses.", parameters: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "yt_get_revenue", description: "Get revenue data (requires YouTube Partner Program monetization).", parameters: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" } } } } },
+  { type: "function", function: { name: "yt_get_top_videos", description: "Get top performing videos by views.", parameters: { type: "object", properties: { startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number", description: "Number of videos (default 10)" } } } } },
+  { type: "function", function: { name: "yt_list_playlists", description: "List your YouTube playlists.", parameters: { type: "object", properties: { maxResults: { type: "number" } } } } },
+  // Google Tag Manager tools
+  { type: "function", function: { name: "gtm_list_accounts", description: "List Google Tag Manager accounts accessible to you.", parameters: { type: "object", properties: {} } } },
+  { type: "function", function: { name: "gtm_list_containers", description: "List GTM containers in an account.", parameters: { type: "object", properties: { accountId: { type: "string", description: "GTM account ID" } }, required: ["accountId"] } } },
+  { type: "function", function: { name: "gtm_list_workspaces", description: "List workspaces in a GTM container.", parameters: { type: "object", properties: { containerPath: { type: "string", description: "Container path (e.g., accounts/123/containers/456)" } }, required: ["containerPath"] } } },
+  { type: "function", function: { name: "gtm_list_tags", description: "List all tags in a GTM workspace.", parameters: { type: "object", properties: { workspacePath: { type: "string", description: "Workspace path" } }, required: ["workspacePath"] } } },
+  { type: "function", function: { name: "gtm_get_tag", description: "Get details of a specific GTM tag.", parameters: { type: "object", properties: { tagPath: { type: "string", description: "Tag path" } }, required: ["tagPath"] } } },
+  { type: "function", function: { name: "gtm_create_tag", description: "Create a new GTM tag. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { workspacePath: { type: "string" }, name: { type: "string" }, type: { type: "string", description: "Tag type (e.g., 'gaawe' for GA4)" }, firingTriggerId: { type: "array", items: { type: "string" } }, parameter: { type: "array" } }, required: ["workspacePath", "name", "type"] } } },
+  { type: "function", function: { name: "gtm_update_tag", description: "Update a GTM tag. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { tagPath: { type: "string" }, tagData: { type: "object" } }, required: ["tagPath", "tagData"] } } },
+  { type: "function", function: { name: "gtm_delete_tag", description: "Delete a GTM tag. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { tagPath: { type: "string" } }, required: ["tagPath"] } } },
+  { type: "function", function: { name: "gtm_list_triggers", description: "List all triggers in a GTM workspace.", parameters: { type: "object", properties: { workspacePath: { type: "string" } }, required: ["workspacePath"] } } },
+  { type: "function", function: { name: "gtm_create_trigger", description: "Create a new GTM trigger. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { workspacePath: { type: "string" }, name: { type: "string" }, type: { type: "string", description: "Trigger type (e.g., 'pageview', 'click')" } }, required: ["workspacePath", "name", "type"] } } },
+  { type: "function", function: { name: "gtm_list_variables", description: "List all variables in a GTM workspace.", parameters: { type: "object", properties: { workspacePath: { type: "string" } }, required: ["workspacePath"] } } },
+  { type: "function", function: { name: "gtm_create_variable", description: "Create a new GTM variable. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { workspacePath: { type: "string" }, name: { type: "string" }, type: { type: "string" } }, required: ["workspacePath", "name", "type"] } } },
+  { type: "function", function: { name: "gtm_list_versions", description: "List GTM container versions.", parameters: { type: "object", properties: { containerPath: { type: "string" } }, required: ["containerPath"] } } },
+  { type: "function", function: { name: "gtm_publish", description: "Publish GTM workspace changes. REQUIRES CONFIRMATION.", parameters: { type: "object", properties: { workspacePath: { type: "string" }, name: { type: "string" }, notes: { type: "string" } }, required: ["workspacePath"] } } },
+  // Google Places tools
+  { type: "function", function: { name: "places_search_nearby", description: "Search for places near a location.", parameters: { type: "object", properties: { latitude: { type: "number" }, longitude: { type: "number" }, radius: { type: "number", description: "Radius in meters (default 1000)" }, types: { type: "array", items: { type: "string" }, description: "Place types (e.g., ['restaurant', 'cafe'])" }, maxResults: { type: "number" } }, required: ["latitude", "longitude"] } } },
+  { type: "function", function: { name: "places_search_text", description: "Search for places by text query.", parameters: { type: "object", properties: { query: { type: "string" }, latitude: { type: "number", description: "Optional center point" }, longitude: { type: "number" }, radius: { type: "number" }, maxResults: { type: "number" } }, required: ["query"] } } },
+  { type: "function", function: { name: "places_get_details", description: "Get detailed information about a specific place.", parameters: { type: "object", properties: { placeId: { type: "string" } }, required: ["placeId"] } } },
+  { type: "function", function: { name: "places_autocomplete", description: "Get place autocomplete suggestions.", parameters: { type: "object", properties: { input: { type: "string" }, latitude: { type: "number" }, longitude: { type: "number" }, types: { type: "array", items: { type: "string" } } }, required: ["input"] } } },
+  { type: "function", function: { name: "places_find_competitors", description: "Find competing businesses near a location.", parameters: { type: "object", properties: { businessType: { type: "string", description: "Type of business (e.g., 'restaurant', 'gym')" }, latitude: { type: "number" }, longitude: { type: "number" }, radius: { type: "number", description: "Search radius in meters" } }, required: ["businessType", "latitude", "longitude"] } } },
+  { type: "function", function: { name: "places_analyze_area", description: "Analyze the business composition of an area.", parameters: { type: "object", properties: { latitude: { type: "number" }, longitude: { type: "number" }, radius: { type: "number" } }, required: ["latitude", "longitude"] } } },
   // Image Generation
   { type: "function", function: { name: "generate_image", description: "Generate an AI image based on a text prompt. Returns a downloadable image URL.", parameters: { type: "object", properties: { prompt: { type: "string", description: "Detailed description of the image to generate" }, style: { type: "string", enum: ["realistic", "artistic", "cartoon", "abstract"], description: "Style of the image (optional)" } }, required: ["prompt"] } } },
   // Memory/Personalization tools
@@ -207,6 +242,13 @@ const WRITE_TOOLS = [
   "ga_create_key_event",
   "ga_create_google_ads_link",
   "ga_create_audience",
+  // GTM write tools
+  "gtm_create_tag",
+  "gtm_update_tag",
+  "gtm_delete_tag",
+  "gtm_create_trigger",
+  "gtm_create_variable",
+  "gtm_publish",
 ];
 
 // Model for lightweight tasks (title generation) - always use cheapest
@@ -2033,6 +2075,297 @@ async function executeTool(
           method: "POST",
           headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "create", params: args }),
+        });
+        return await response.json();
+      }
+
+      // YouTube Analytics tools
+      case "yt_get_channel": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_channel", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_list_videos": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_videos", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_channel_analytics": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_channel_analytics", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_video_analytics": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_video_analytics", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_audience_retention": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_audience_retention", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_traffic_sources": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_traffic_sources", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_demographics": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_demographics", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_geography": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_geography", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_subscriber_changes": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_subscriber_changes", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_revenue": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_revenue", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_get_top_videos": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_top_videos", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "yt_list_playlists": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/youtube-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_playlists", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      // Google Tag Manager tools
+      case "gtm_list_accounts": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_accounts", params: args || {} }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_list_containers": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_containers", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_list_workspaces": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_workspaces", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_list_tags": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_tags", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_get_tag": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_tag", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_create_tag": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_tag", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_update_tag": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "update_tag", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_delete_tag": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "delete_tag", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_list_triggers": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_triggers", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_create_trigger": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_trigger", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_list_variables": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_variables", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_create_variable": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "create_variable", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_list_versions": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "list_versions", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "gtm_publish": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-tag-manager-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "publish_version", params: args }),
+        });
+        return await response.json();
+      }
+
+      // Google Places tools
+      case "places_search_nearby": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-places-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "search_nearby", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "places_search_text": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-places-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "search_text", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "places_get_details": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-places-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_place", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "places_autocomplete": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-places-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "autocomplete", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "places_find_competitors": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-places-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "find_competitors", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "places_analyze_area": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-places-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "analyze_area", params: args }),
         });
         return await response.json();
       }
