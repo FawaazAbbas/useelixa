@@ -33,10 +33,10 @@ export const FinalCTASection = () => {
           </div>
 
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
-            Ready to supercharge your AI?
+            Ready to Work Smarter?
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Connect your tools in minutes. No credit card required.
+            Let AI handle the busywork. Start with a free account.
           </p>
 
           <Button
@@ -66,7 +66,7 @@ export const FinalCTASection = () => {
               <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>MCP Compatible</span>
+              <span>30+ Integrations</span>
             </div>
           </div>
         </motion.div>

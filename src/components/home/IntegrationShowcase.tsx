@@ -31,7 +31,7 @@ export const IntegrationShowcase = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-20 md:py-32">
+    <section id="tool-library" className="py-20 md:py-32 bg-muted/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -40,9 +40,9 @@ export const IntegrationShowcase = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">30+ Integrations and Growing</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Connect All Your Tools</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Connect all your favorite tools in one place
+            Elixa integrates with the tools you already use. Connect once, and your AI assistant can access them all.
           </p>
 
           {/* Category pills */}
@@ -50,7 +50,7 @@ export const IntegrationShowcase = () => {
             {categories.map((category) => (
               <span
                 key={category}
-                className="px-4 py-1.5 rounded-full bg-muted text-muted-foreground text-sm font-medium"
+                className="px-4 py-1.5 rounded-full bg-background text-muted-foreground text-sm font-medium border border-border/50"
               >
                 {category}
               </span>

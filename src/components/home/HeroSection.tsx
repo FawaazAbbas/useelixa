@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, MessageSquare, CheckSquare, Calendar, FileText, Newspaper } from "lucide-react";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
@@ -16,23 +16,9 @@ export const HeroSection = () => {
     }
   };
 
-  const handleBrowseTools = () => {
-    document.getElementById("tool-library")?.scrollIntoView({ behavior: "smooth" });
+  const handleSeeHowItWorks = () => {
+    document.getElementById("workspace-features")?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const toolLogos = [
-    { name: "Gmail", src: "/logos/GoogleDriveLogo.png" },
-    { name: "Shopify", src: "/logos/ShopifyLogo.svg" },
-    { name: "Slack", src: "/logos/SlackLogo.svg" },
-    { name: "Notion", src: "/logos/NotionLogo.svg" },
-    { name: "Stripe", src: "/logos/StripeLogo.png" },
-  ];
-
-  const aiLogos = [
-    { name: "Claude", initial: "C", color: "from-orange-500 to-amber-500" },
-    { name: "Cursor", initial: "⌘", color: "from-blue-500 to-cyan-500" },
-    { name: "Any AI", initial: "AI", color: "from-purple-500 to-pink-500" },
-  ];
 
   return (
     <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
@@ -53,7 +39,7 @@ export const HeroSection = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6"
           >
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">MCP Connector Platform</span>
+            <span className="text-sm font-medium text-primary">AI-Powered Workspace</span>
           </motion.div>
 
           {/* Headline */}
@@ -63,7 +49,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-foreground/70 bg-clip-text"
           >
-            Connect Your Tools to AI
+            Your AI Assistant That Gets Work Done
           </motion.h1>
 
           {/* Subheadline */}
@@ -73,8 +59,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
           >
-            Elixa is the bridge between your favorite apps and AI assistants. 
-            Connect once, use everywhere.
+            Elixa connects to your tools and handles tasks, emails, scheduling, and more — all through natural conversation.
           </motion.p>
 
           {/* CTAs */}
@@ -95,83 +80,113 @@ export const HeroSection = () => {
             <Button
               size="lg"
               variant="outline"
-              onClick={handleBrowseTools}
+              onClick={handleSeeHowItWorks}
               className="text-lg px-8 py-6"
             >
-              Browse Tools
+              See how it works
             </Button>
           </motion.div>
         </div>
 
-        {/* Visual: Tool logos connecting to AI */}
+        {/* Visual: Workspace mockup */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.7, delay: 0.4 }}
           className="relative max-w-4xl mx-auto"
         >
-          <div className="flex flex-col items-center gap-8">
-            {/* Tool logos */}
-            <div className="flex items-center justify-center gap-4 md:gap-8 flex-wrap">
-              {toolLogos.map((tool, index) => (
-                <motion.div
-                  key={tool.name}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
-                  className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-card border border-border/50 flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300"
-                >
-                  <img src={tool.src} alt={tool.name} className="w-8 h-8 md:w-10 md:h-10 object-contain" />
-                </motion.div>
-              ))}
+          <div className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm shadow-2xl overflow-hidden">
+            {/* Window header */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50 bg-muted/30">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              </div>
+              <span className="text-xs text-muted-foreground ml-2">Elixa Workspace</span>
             </div>
 
-            {/* Connection lines */}
-            <div className="relative w-full h-24 flex items-center justify-center">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 100" preserveAspectRatio="xMidYMid meet">
-                <motion.path
-                  d="M50,10 Q200,10 200,50 M150,10 Q200,10 200,50 M200,10 L200,50 M250,10 Q200,10 200,50 M350,10 Q200,10 200,50"
-                  fill="none"
-                  stroke="url(#gradient)"
-                  strokeWidth="2"
-                  strokeDasharray="5,5"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.5, delay: 1 }}
-                />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-                    <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity="1" />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              
-              {/* Elixa hub */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 1.2, type: "spring" }}
-                className="relative z-10 w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-xl shadow-primary/30"
+            {/* Workspace layout */}
+            <div className="flex min-h-[300px] md:min-h-[400px]">
+              {/* Sidebar */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="hidden sm:flex flex-col w-48 border-r border-border/50 bg-muted/20 p-3 gap-1"
               >
-                <span className="text-2xl font-bold text-primary-foreground">E</span>
+                {[
+                  { icon: MessageSquare, label: "Chat", active: true },
+                  { icon: CheckSquare, label: "Tasks" },
+                  { icon: Calendar, label: "Calendar" },
+                  { icon: FileText, label: "Notes" },
+                  { icon: Newspaper, label: "Digest" },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                      item.active 
+                        ? "bg-primary/10 text-primary" 
+                        : "text-muted-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </div>
+                ))}
               </motion.div>
-            </div>
 
-            {/* AI logos */}
-            <div className="flex items-center justify-center gap-4 md:gap-8">
-              {aiLogos.map((ai, index) => (
+              {/* Chat area */}
+              <div className="flex-1 p-4 md:p-6 flex flex-col gap-4">
+                {/* User message */}
                 <motion.div
-                  key={ai.name}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 1.4 + index * 0.1 }}
-                  className={`w-14 h-14 md:w-16 md:h-16 rounded-xl bg-gradient-to-br ${ai.color} flex items-center justify-center shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300`}
+                  transition={{ duration: 0.4, delay: 0.8 }}
+                  className="flex justify-end"
                 >
-                  <span className="text-xl md:text-2xl font-bold text-white">{ai.initial}</span>
+                  <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%]">
+                    <p className="text-sm">What's on my calendar today?</p>
+                  </div>
                 </motion.div>
-              ))}
+
+                {/* AI response */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 1.0 }}
+                  className="flex gap-3"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary-foreground">E</span>
+                  </div>
+                  <div className="bg-muted/50 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
+                    <p className="text-sm mb-2">You have 3 meetings today:</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• 9:00 AM — Team standup</li>
+                      <li>• 2:00 PM — Client call</li>
+                      <li>• 4:00 PM — Design review</li>
+                    </ul>
+                  </div>
+                </motion.div>
+
+                {/* Typing indicator */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 1.3 }}
+                  className="flex gap-3 items-center"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary-foreground">E</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </motion.div>
+              </div>
             </div>
           </div>
         </motion.div>
