@@ -10,7 +10,7 @@ export const OAUTH_CLIENT_IDS = {
   MICROSOFT: import.meta.env.VITE_MICROSOFT_CLIENT_ID || "9ebd49b8-d209-4881-94f6-ad7d587b9962",
   CALENDLY: import.meta.env.VITE_CALENDLY_CLIENT_ID || "Nnj-dmLFXc9lRSx6m7I5g2xEv33H4AEUCeQJA6rW-fI",
   MAILCHIMP: import.meta.env.VITE_MAILCHIMP_CLIENT_ID || "334313964170",
-  SHOPIFY: import.meta.env.VITE_SHOPIFY_CLIENT_ID || "",
+  SHOPIFY: import.meta.env.VITE_SHOPIFY_CLIENT_ID || "44ad1408b7b236bb6dfe4d8ee9efff5d",
   META: "your-meta-client-id",
   TWILIO: "your-twilio-client-id",
   TYPEFORM: "your-typeform-client-id",
