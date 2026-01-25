@@ -12,6 +12,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const Notes = () => {
   const { notes, loading, saving, createNote, updateNote, deleteNote } = useNotes();
@@ -165,18 +166,14 @@ const Notes = () => {
           saving={saving}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center h-full">
-          <PageEmptyState
-            icon={FileText}
-            title="Select a note"
-            description="Choose a note from the sidebar or create a new one"
-            action={
-              <Button onClick={handleCreateNote} variant="outline">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Note
-              </Button>
-            }
-          />
+        <div className="flex-1 flex flex-col items-center justify-center h-full">
+          <ElixaMascot pose="sitting" size="lg" animation="float" className="mb-4" />
+          <h3 className="text-lg font-medium mb-1">Select a note</h3>
+          <p className="text-muted-foreground text-sm mb-4">Choose a note from the sidebar or create a new one</p>
+          <Button onClick={handleCreateNote} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Note
+          </Button>
         </div>
       )}
     </PageLayout>

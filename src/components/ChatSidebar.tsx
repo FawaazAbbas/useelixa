@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { ElixaMascot } from '@/components/ElixaMascot';
 
 interface ChatSession {
   id: string;
@@ -71,8 +72,10 @@ export const ChatSidebar = ({
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {sessions.length === 0 ? (
-            <div className="p-4 text-center text-sm text-muted-foreground">
-              No conversations yet
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+              <ElixaMascot pose="waving" size="sm" animation="float" className="mb-3" />
+              <p className="text-sm text-muted-foreground">No conversations yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Start chatting with Elixa!</p>
             </div>
           ) : (
             sessions.map((session) => (

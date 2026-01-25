@@ -21,6 +21,7 @@ import { ExecutionTimeline } from "@/components/analytics/ExecutionTimeline";
 import { ErrorRateCard } from "@/components/analytics/ErrorRateCard";
 import { toast } from "sonner";
 import { DateRange } from "react-day-picker";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface ToolCall {
   id: string;
@@ -276,11 +277,11 @@ const Logs = () => {
   if (!user) {
     return (
       <PageLayout title="Logs & Analytics" icon={Activity}>
-        <PageEmptyState
-          icon={Activity}
-          title="Sign in required"
-          description="Please sign in to view logs and analytics."
-        />
+        <div className="flex flex-col items-center justify-center py-16">
+          <ElixaMascot pose="search" size="lg" animation="float" className="mb-4" />
+          <h3 className="text-lg font-medium mb-1">Sign in required</h3>
+          <p className="text-muted-foreground text-sm">Please sign in to view logs and analytics.</p>
+        </div>
       </PageLayout>
     );
   }

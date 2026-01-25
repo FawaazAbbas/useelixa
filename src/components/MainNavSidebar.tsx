@@ -16,17 +16,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import ElixaRespondedIcon from "@/assets/Elixa-Responded.png";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 type NavItem = {
   icon?: LucideIcon;
-  customIcon?: string;
+  isMascot?: boolean;
   label: string;
   path: string;
 };
 
 const navItems: NavItem[] = [
-  { customIcon: ElixaRespondedIcon, label: "AI Chat", path: "/chat" },
+  { label: "AI Chat", path: "/chat", isMascot: true },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
@@ -201,15 +201,17 @@ export const MainNavSidebar = () => {
 
       {/* Navigation - vertically scrollable */}
       <nav className="flex flex-col gap-1 flex-1 min-h-0 w-full px-2 overflow-y-auto overflow-x-hidden scrollbar-thin">
-        {navItems.map((item) => (
+          {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             activeClassName="bg-primary/10 text-primary"
           >
-            {item.customIcon ? (
-              <img src={item.customIcon} alt={item.label} className="h-9 w-9 rounded-full object-cover flex-shrink-0 border-2 border-muted bg-muted" />
+            {item.isMascot ? (
+              <div className="h-9 w-9 rounded-full border-2 border-muted bg-muted flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                <ElixaMascot pose="default" size="xs" className="scale-[1.1]" />
+              </div>
             ) : item.icon ? (
               <item.icon className="w-5 h-5" />
             ) : null}

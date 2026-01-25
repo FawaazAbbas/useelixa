@@ -8,6 +8,7 @@ import { DocumentUploadZone } from "@/components/knowledge-base/DocumentUploadZo
 import { DocumentCard } from "@/components/knowledge-base/DocumentCard";
 import { DocumentPreviewDialog } from "@/components/knowledge-base/DocumentPreviewDialog";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 type FilterType = "all" | "pdf" | "doc" | "other";
 
@@ -148,17 +149,17 @@ const KnowledgeBase = () => {
             ))}
           </div>
         ) : documents.length > 0 ? (
-          <PageEmptyState
-            icon={Search}
-            title="No documents match your filters"
-            description="Try adjusting your search or filter criteria."
-          />
+          <div className="flex flex-col items-center justify-center py-12">
+            <ElixaMascot pose="search" size="lg" animation="float" className="mb-4" />
+            <h3 className="text-lg font-medium mb-1">No documents match your filters</h3>
+            <p className="text-muted-foreground text-sm">Try adjusting your search or filter criteria.</p>
+          </div>
         ) : (
-          <PageEmptyState
-            icon={FileText}
-            title="No documents yet"
-            description="Upload documents to build your knowledge base for AI assistance."
-          />
+          <div className="flex flex-col items-center justify-center py-12">
+            <ElixaMascot pose="search" size="lg" animation="float" className="mb-4" />
+            <h3 className="text-lg font-medium mb-1">No documents yet</h3>
+            <p className="text-muted-foreground text-sm">Upload documents to build your knowledge base for AI assistance.</p>
+          </div>
         )}
       </div>
 

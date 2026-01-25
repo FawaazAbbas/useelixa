@@ -1,8 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from "react";
-import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { ElixaMascot } from "@/components/ElixaMascot";
 interface Props {
   children: ReactNode;
 }
@@ -36,9 +35,11 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
           <Card className="max-w-lg w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-6 w-6" />
+            <CardHeader className="text-center pb-2">
+              <div className="flex justify-center mb-4">
+                <ElixaMascot pose="thinking" size="md" />
+              </div>
+              <CardTitle className="text-destructive">
                 Something went wrong
               </CardTitle>
               <CardDescription>

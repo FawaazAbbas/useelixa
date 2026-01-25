@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, Building2, Upload, Bot, CreditCard } from "lucide-react";
+import { ArrowLeft, User, Lock, Building2, Upload, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -178,9 +179,7 @@ const Settings = () => {
 
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <User className="h-6 w-6 text-primary" />
-              </div>
+              <ElixaMascot pose="sitting" size="sm" />
               <h1 className="text-3xl md:text-4xl font-bold">Settings</h1>
             </div>
             <p className="text-muted-foreground text-sm md:text-base">

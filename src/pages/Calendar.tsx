@@ -13,6 +13,7 @@ import {
   type CalendarEvent,
   type ViewMode,
 } from "@/components/calendar";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const Calendar = () => {
   const { user } = useAuth();
@@ -210,11 +211,11 @@ const Calendar = () => {
   if (!user) {
     return (
       <PageLayout title="Calendar" icon={CalendarIcon}>
-        <PageEmptyState
-          icon={CalendarIcon}
-          title="Sign in required"
-          description="Please sign in to manage your calendar events."
-        />
+        <div className="flex flex-col items-center justify-center py-16">
+          <ElixaMascot pose="relaxed" size="lg" animation="float" className="mb-4" />
+          <h3 className="text-lg font-medium mb-1">Sign in required</h3>
+          <p className="text-muted-foreground text-sm">Please sign in to manage your calendar events.</p>
+        </div>
       </PageLayout>
     );
   }

@@ -18,6 +18,7 @@ import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
 import { TaskStatsHeader } from "@/components/tasks/TaskStatsHeader";
 import { PageLayout, PageEmptyState } from "@/components/PageLayout";
 import { format } from "date-fns";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const AI_TOOLS = [
   { id: "search_knowledge_base", label: "Search Knowledge Base", description: "Search uploaded documents" },
@@ -243,11 +244,11 @@ const Tasks = () => {
   if (!user) {
     return (
       <PageLayout title="Tasks" icon={CheckSquare}>
-        <PageEmptyState
-          icon={CheckSquare}
-          title="Sign in to manage tasks"
-          description="Create and organize your tasks with our powerful task manager."
-        />
+        <div className="flex flex-col items-center justify-center py-16">
+          <ElixaMascot pose="pointing-right" size="lg" animation="float" className="mb-4" />
+          <h3 className="text-lg font-medium mb-1">Sign in to manage tasks</h3>
+          <p className="text-muted-foreground text-sm">Create and organize your tasks with our powerful task manager.</p>
+        </div>
       </PageLayout>
     );
   }

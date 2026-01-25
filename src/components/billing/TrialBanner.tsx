@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, Sparkles, X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface OrgData {
   plan: string;
@@ -56,7 +57,7 @@ export function TrialBanner() {
     return (
       <div className="bg-destructive/10 border-b border-destructive/20 px-4 py-2.5">
         <div className="flex items-center justify-center gap-3 text-sm">
-          <Clock className="h-4 w-4 text-destructive" />
+          <ElixaMascot pose="thinking" size="xs" />
           <span className="text-destructive font-medium">
             Your free trial has expired
           </span>
@@ -86,7 +87,7 @@ export function TrialBanner() {
       )}
     >
       <div className="flex items-center justify-center gap-3 text-sm">
-        <Clock className={cn("h-4 w-4", isUrgent ? "text-amber-500" : "text-primary")} />
+        <ElixaMascot pose="waving" size="xs" />
         <span className={cn("font-medium", isUrgent ? "text-amber-600 dark:text-amber-400" : "text-foreground")}>
           {daysRemaining} {daysRemaining === 1 ? "day" : "days"} left on your free trial
         </span>
