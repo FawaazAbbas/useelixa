@@ -1,34 +1,48 @@
 import { motion } from "framer-motion";
-import { Mail, Calendar, ShoppingCart, Users } from "lucide-react";
+import { Mail, CheckSquare, Calendar, ShoppingCart, FileSearch, Newspaper } from "lucide-react";
 
 const useCases = [
   {
     icon: Mail,
-    title: "Email Management",
-    description: "Ask Claude to summarize your inbox or draft responses",
+    title: "Email Intelligence",
+    description: "Summarize your inbox, draft responses, find attachments",
     gradient: "from-blue-500/10 to-cyan-500/10",
     iconColor: "text-blue-500",
   },
   {
+    icon: CheckSquare,
+    title: "Task Automation",
+    description: "Create tasks from conversations, assign work to AI, track progress",
+    gradient: "from-purple-500/10 to-violet-500/10",
+    iconColor: "text-purple-500",
+  },
+  {
     icon: Calendar,
-    title: "Calendar Scheduling",
-    description: "Let AI find your free slots and create events",
+    title: "Calendar Management",
+    description: "Schedule meetings, check availability, get agenda summaries",
     gradient: "from-green-500/10 to-emerald-500/10",
     iconColor: "text-green-500",
   },
   {
     icon: ShoppingCart,
-    title: "E-commerce Insights",
-    description: "Get order summaries and inventory updates via chat",
-    gradient: "from-purple-500/10 to-pink-500/10",
-    iconColor: "text-purple-500",
-  },
-  {
-    icon: Users,
-    title: "CRM Updates",
-    description: "Create contacts and log interactions hands-free",
+    title: "Business Insights",
+    description: "Get order updates from Shopify, revenue from Stripe, all via chat",
     gradient: "from-orange-500/10 to-amber-500/10",
     iconColor: "text-orange-500",
+  },
+  {
+    icon: FileSearch,
+    title: "Document Search",
+    description: "Upload files and ask questions about your knowledge base",
+    gradient: "from-pink-500/10 to-rose-500/10",
+    iconColor: "text-pink-500",
+  },
+  {
+    icon: Newspaper,
+    title: "Daily Briefings",
+    description: "Start each day with an AI-curated summary of what needs attention",
+    gradient: "from-cyan-500/10 to-blue-500/10",
+    iconColor: "text-cyan-500",
   },
 ];
 
@@ -43,13 +57,13 @@ export const UseCasesSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">What You Can Do</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">What Elixa Can Do For You</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Real examples of how teams use Elixa every day
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {useCases.map((useCase, index) => (
             <motion.div
               key={useCase.title}

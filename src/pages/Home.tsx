@@ -2,6 +2,7 @@ import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
 import { TalentPoolFooter } from "@/components/TalentPoolFooter";
 import {
   HeroSection,
+  WorkspaceFeaturesSection,
   HowItWorksSection,
   IntegrationShowcase,
   FeaturesSection,
@@ -16,10 +17,11 @@ const Home = () => {
       
       <main>
         <HeroSection />
+        <WorkspaceFeaturesSection />
         <HowItWorksSection />
+        <UseCasesSection />
         <IntegrationShowcase />
         <FeaturesSection />
-        <UseCasesSection />
         <FinalCTASection />
       </main>
 

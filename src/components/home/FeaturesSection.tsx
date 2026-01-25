@@ -1,30 +1,30 @@
 import { motion } from "framer-motion";
-import { Cpu, Shield, Link, MessageSquare } from "lucide-react";
+import { Layout, Shield, Zap, Link } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const features = [
   {
-    icon: Cpu,
-    title: "MCP Native",
-    description: "Built for the Model Context Protocol standard. Works with Claude Desktop, Cursor, and any MCP client.",
+    icon: Layout,
+    title: "All-in-One Workspace",
+    description: "Tasks, calendar, notes, and AI chat in one unified interface.",
     color: "from-purple-500 to-violet-600",
   },
   {
     icon: Shield,
-    title: "Secure OAuth",
-    description: "Enterprise-grade OAuth 2.0 with encrypted credential storage. Your tokens are never exposed.",
+    title: "Secure by Design",
+    description: "OAuth 2.0 authentication with encrypted credential storage.",
     color: "from-emerald-500 to-teal-600",
   },
   {
-    icon: Link,
-    title: "One Connection, Many AIs",
-    description: "Connect once and use across all your AI tools. No re-authentication needed.",
+    icon: Zap,
+    title: "AI That Acts",
+    description: "Not just answers — Elixa can create tasks, send emails, and schedule events.",
     color: "from-blue-500 to-indigo-600",
   },
   {
-    icon: MessageSquare,
-    title: "Built-in AI Chat",
-    description: "Don't have an MCP client? Use our built-in AI assistant to interact with your tools directly.",
+    icon: Link,
+    title: "30+ Integrations",
+    description: "Gmail, Shopify, Stripe, Notion, Calendly, Microsoft, and more.",
     color: "from-orange-500 to-rose-600",
   },
 ];
@@ -42,7 +42,7 @@ export const FeaturesSection = () => {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Elixa</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Built from the ground up for the AI-native workflow
+            Built for the way you actually work
           </p>
         </motion.div>
 

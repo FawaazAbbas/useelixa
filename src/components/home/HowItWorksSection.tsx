@@ -1,23 +1,23 @@
 import { motion } from "framer-motion";
-import { Link2, Key, Cpu } from "lucide-react";
+import { Link2, MessageSquare, Zap } from "lucide-react";
 
 const steps = [
   {
     icon: Link2,
     title: "Connect Your Tools",
-    description: "Link your Gmail, Shopify, Calendar, Slack, and 30+ other services in one place.",
+    description: "Link your Gmail, Shopify, Calendar, and 30+ other services in one click.",
     color: "from-blue-500 to-cyan-500",
   },
   {
-    icon: Key,
-    title: "Generate MCP Token",
-    description: "Get a secure API token to authenticate your AI clients.",
+    icon: MessageSquare,
+    title: "Chat with Elixa",
+    description: "Ask anything: 'What's on my calendar?' 'Summarize unread emails' 'Create a task'",
     color: "from-purple-500 to-pink-500",
   },
   {
-    icon: Cpu,
-    title: "Use with Any AI",
-    description: "Claude Desktop, Cursor, or any MCP-compatible client can now access your tools.",
+    icon: Zap,
+    title: "AI Takes Action",
+    description: "Elixa reads, writes, schedules, and manages — with your approval for sensitive actions.",
     color: "from-orange-500 to-amber-500",
   },
 ];
@@ -33,7 +33,7 @@ export const HowItWorksSection = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">How Elixa Works</h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Get started in minutes with three simple steps
           </p>
