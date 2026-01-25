@@ -1,220 +1,192 @@
 
-# New Homepage Design Plan
+# Revised Homepage Plan: Elixa as an AI-Powered Workspace
 
-## Overview
-Create a compelling marketing homepage that clearly communicates what Elixa is: **an MCP connector platform** that bridges your favorite tools with AI assistants like Claude and Cursor. The homepage will precede the Tool Library section and feature a prominent "Try it out" CTA.
+## The Problem
 
----
+The current homepage messaging is **incorrect**. It positions Elixa as an "MCP Connector Platform" when Elixa is actually a **full-featured AI-powered workspace** with:
 
-## Page Structure
+- **AI Chat** - Built-in AI assistant that can interact with all connected tools
+- **Tasks** - Kanban board with AI task assignment and scheduled automation
+- **Calendar** - Event management with Google Calendar sync
+- **Notes** - Rich text note-taking
+- **Knowledge Base** - Document upload and AI-searchable storage
+- **Daily Digest** - AI-generated summaries of emails, tasks, calendar, and metrics
+- **Connections** - 30+ tool integrations (Gmail, Shopify, Stripe, Notion, etc.)
+- **Logs & Analytics** - Tool execution monitoring
 
-### 1. Hero Section
-**Purpose:** Immediately communicate the value proposition
-
-**Content:**
-- **Headline:** "Connect Your Tools to AI"
-- **Subheadline:** "Elixa is the bridge between your favorite apps and AI assistants. Connect once, use everywhere."
-- **Primary CTA:** "Try it out" button (navigates to `/auth` for signup, or `/chat` for logged-in users)
-- **Secondary CTA:** "Browse Tools" (scrolls to tool library section)
-- **Visual:** Animated graphic showing tool logos connecting to AI (Claude, Cursor icons)
+The MCP endpoint exists but is a **secondary feature** for power users, not the core value proposition.
 
 ---
 
-### 2. "How It Works" Section
-**Purpose:** Explain the concept in 3 simple steps
+## Corrected Messaging
 
-**Steps:**
-1. **Connect Your Tools** - "Link your Gmail, Shopify, Calendar, Slack, and 30+ other services in one place."
-2. **Generate MCP Token** - "Get a secure API token to authenticate your AI clients."
-3. **Use with Any AI** - "Claude Desktop, Cursor, or any MCP-compatible client can now access your tools."
+### What Elixa Actually Is
+**"Your AI-Powered Workspace"** - A unified platform where an intelligent AI assistant manages your tasks, calendar, emails, and business tools in one place.
 
-**Visual:** Step-by-step flow diagram or numbered cards
-
----
-
-### 3. Integration Showcase Section
-**Purpose:** Display the breadth of supported tools
-
-**Content:**
-- Grid of integration logos (Slack, Gmail, Google Calendar, Shopify, Notion, Stripe, HubSpot, Figma, etc.)
-- Category pills: Communication, Productivity, E-commerce, CRM, Marketing, Payments
-- Count badge: "30+ integrations and growing"
-- Links to full Tool Library
+### Core Value Proposition
+- **One AI, All Your Tools** - Elixa connects to your apps and lets you manage everything through conversation
+- **Workspace Features** - Tasks, Calendar, Notes, Knowledge Base, Daily Digest
+- **30+ Integrations** - Gmail, Shopify, Stripe, Notion, Calendly, and more
+- **Intelligent Automation** - AI can execute tasks, schedule work, and generate insights
 
 ---
 
-### 4. Key Features Section
-**Purpose:** Highlight core differentiators
+## Revised Page Structure
+
+### 1. Hero Section (Updated)
+
+**Badge:** "AI-Powered Workspace" (instead of "MCP Connector Platform")
+
+**Headline:** "Your AI Assistant That Gets Work Done"
+
+**Subheadline:** "Elixa connects to your tools and handles tasks, emails, scheduling, and more - all through natural conversation."
+
+**Primary CTA:** "Try it out" (navigates to /chat or /auth)
+
+**Secondary CTA:** "See how it works" (scrolls to features)
+
+**Visual:** Show a workspace mockup with the AI chat interface, displaying example interactions like "Summarize my emails" or "Create a task for tomorrow"
+
+---
+
+### 2. Workspace Features Section (New - Replaces "How It Works")
+
+**Title:** "Everything You Need in One Place"
 
 **Feature Cards:**
-1. **MCP Native** - "Built for the Model Context Protocol standard. Works with Claude Desktop, Cursor, and any MCP client."
-2. **Secure OAuth** - "Enterprise-grade OAuth 2.0 with encrypted credential storage. Your tokens are never exposed."
-3. **One Connection, Many AIs** - "Connect once and use across all your AI tools. No re-authentication needed."
-4. **Built-in AI Chat** - "Don't have an MCP client? Use our built-in AI assistant to interact with your tools directly."
+
+1. **AI Chat** (MessageSquare icon)
+   - "Ask questions, give commands, get insights - all in natural language"
+   
+2. **Tasks** (CheckSquare icon)
+   - "Kanban boards, priorities, due dates - with AI that can complete tasks for you"
+   
+3. **Calendar** (Calendar icon)
+   - "Manage events and sync with Google Calendar automatically"
+   
+4. **Notes** (FileText icon)
+   - "Quick notes with rich text, AI can create and search them"
+   
+5. **Knowledge Base** (BookOpen icon)
+   - "Upload documents for AI to search and reference"
+   
+6. **Daily Digest** (Newspaper icon)
+   - "Get AI-generated summaries of your emails, tasks, and metrics every morning"
 
 ---
 
-### 5. Use Cases Section
-**Purpose:** Show practical applications
+### 3. How AI Works For You Section (Replaces old "How It Works")
+
+**Title:** "How Elixa Works"
+
+**Steps:**
+1. **Connect Your Tools** - "Link your Gmail, Shopify, Calendar, and 30+ other services in one click"
+2. **Chat with Elixa** - "Ask anything: 'What's on my calendar?' 'Summarize unread emails' 'Create a task'"
+3. **AI Takes Action** - "Elixa reads, writes, schedules, and manages - with your approval for sensitive actions"
+
+---
+
+### 4. Integration Showcase (Keep - Minor Updates)
+
+**Title:** "Connect All Your Tools"
+
+Keep the existing logo grid but update the intro text:
+- "Elixa integrates with the tools you already use. Connect once, and your AI assistant can access them all."
+
+---
+
+### 5. What You Can Do Section (Updated Use Cases)
+
+**Title:** "What Elixa Can Do For You"
 
 **Cards:**
-- **Email Management** - "Ask Claude to summarize your inbox or draft responses"
-- **Calendar Scheduling** - "Let AI find your free slots and create events"
-- **E-commerce Insights** - "Get order summaries and inventory updates via chat"
-- **CRM Updates** - "Create contacts and log interactions hands-free"
+1. **Email Intelligence** - "Summarize your inbox, draft responses, find attachments"
+2. **Task Automation** - "Create tasks from conversations, assign work to AI, track progress"
+3. **Calendar Management** - "Schedule meetings, check availability, get agenda summaries"
+4. **Business Insights** - "Get order updates from Shopify, revenue from Stripe, all via chat"
+5. **Document Search** - "Upload files and ask questions about your knowledge base"
+6. **Daily Briefings** - "Start each day with an AI-curated summary of what needs attention"
 
 ---
 
-### 6. Social Proof / Trust Section
-**Purpose:** Build credibility
+### 6. Why Choose Elixa Section (Updated Features)
 
-**Elements:**
-- Security badges (OAuth 2.0, encrypted storage)
-- "Trusted by X teams" (placeholder for future metrics)
-- Compatibility logos (Claude, Cursor, etc.)
-
----
-
-### 7. Final CTA Section
-**Purpose:** Drive conversion
-
-**Content:**
-- **Headline:** "Ready to supercharge your AI?"
-- **Subheadline:** "Connect your tools in minutes. No credit card required."
-- **CTA Button:** "Try it out"
+**Cards:**
+1. **All-in-One Workspace** - "Tasks, calendar, notes, and AI chat in one unified interface"
+2. **Secure by Design** - "OAuth 2.0 authentication with encrypted credential storage"
+3. **AI That Acts** - "Not just answers - Elixa can create tasks, send emails, and schedule events"
+4. **30+ Integrations** - "Gmail, Shopify, Stripe, Notion, Calendly, Microsoft, and more"
 
 ---
 
-### 8. Tool Library Section (Existing)
-**Purpose:** Preserve the current integration browsing functionality
+### 7. Final CTA Section (Updated)
 
-The existing TalentPool integration grid will be moved below the new marketing sections, serving as a "Browse All Tools" area.
+**Headline:** "Ready to Work Smarter?"
+
+**Subheadline:** "Let AI handle the busywork. Start with a free account."
+
+**CTA:** "Try it out"
 
 ---
 
-## Technical Implementation
+## Files to Modify
 
-### New File Structure
+| File | Changes |
+|------|---------|
+| `src/components/home/HeroSection.tsx` | Update badge, headline, subheadline, visual |
+| `src/components/home/HowItWorksSection.tsx` | Change to "Workspace Features" or rename steps |
+| `src/components/home/FeaturesSection.tsx` | Update features to focus on workspace capabilities |
+| `src/components/home/UseCasesSection.tsx` | Update to reflect full workspace functionality |
+| `src/components/home/IntegrationShowcase.tsx` | Update intro text |
+| `src/components/home/FinalCTASection.tsx` | Update headline |
+
+---
+
+## Visual Changes
+
+### Hero Visual Concept
+
+Instead of showing "Tools → Elixa Hub → AI Clients" (MCP-focused), show:
+
 ```text
-src/pages/Home.tsx         (New - Landing page with all sections)
-src/pages/TalentPool.tsx   (Modify - Becomes tool-only view, no hero)
+┌────────────────────────────────────────────┐
+│  ELIXA WORKSPACE                           │
+│  ┌──────────┬───────────────────────────┐  │
+│  │ Sidebar  │   Chat with Elixa         │  │
+│  │ ─────────│   ─────────────────────   │  │
+│  │ Chat     │   You: What's on my       │  │
+│  │ Tasks    │   calendar today?         │  │
+│  │ Calendar │                           │  │
+│  │ Notes    │   Elixa: You have 3       │  │
+│  │ Digest   │   meetings today:         │  │
+│  │          │   • 9am Team standup      │  │
+│  │          │   • 2pm Client call       │  │
+│  │          │   • 4pm Design review     │  │
+│  └──────────┴───────────────────────────┘  │
+└────────────────────────────────────────────┘
 ```
 
-### Component Breakdown
-
-**Home.tsx** - New landing page containing:
-- `<TalentPoolNavbar />` - Existing navbar (reused)
-- `<HeroSection />` - New component with headline, CTAs, and animated visual
-- `<HowItWorksSection />` - 3-step process explanation
-- `<IntegrationShowcase />` - Logo grid with category filters
-- `<FeaturesSection />` - Feature cards
-- `<UseCasesSection />` - Use case cards
-- `<FinalCTASection />` - Conversion-focused CTA
-- `<TalentPoolFooter />` - Existing footer (reused)
-
-### Routing Changes
-| Route | Component | Description |
-|-------|-----------|-------------|
-| `/` | `Home.tsx` | New landing page |
-| `/tool-library` | `TalentPool.tsx` | Tool browsing only |
-
-### Design Tokens
-- Use existing color palette from `tailwind.config.ts`
-- Primary gradients: `from-primary/5 to-background`
-- Card styling: Consistent with existing `Card` component
-- Animations: Subtle fade-in on scroll using `framer-motion`
-
-### Responsive Behavior
-- Mobile: Single-column layout, stacked sections
-- Tablet: 2-column grids where applicable
-- Desktop: Full-width hero, 3-4 column grids
+Show the actual workspace UI with an example conversation, demonstrating the AI in action.
 
 ---
 
-## Content Refinements
+## Key Messaging Shifts
 
-### Updated Messaging
-- Remove all "AI employee" and "talent pool" language
-- Focus on "tools," "connectors," and "integrations"
-- Emphasize MCP compatibility as the primary differentiator
-- Highlight security and ease of use
-
-### Footer Updates
-Update `TalentPoolFooter.tsx` to remove outdated links:
-- Remove "Join the Waitlist" (app is live)
-- Remove "Referral Program" (if not active)
-- Remove "Become an Agent Developer" (old concept)
-- Add "Documentation" link
-- Add "MCP Setup Guide" link
-
----
-
-## Files to Create/Modify
-
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/pages/Home.tsx` | Create | New landing page |
-| `src/pages/TalentPool.tsx` | Modify | Remove hero, keep tool grid |
-| `src/components/home/HeroSection.tsx` | Create | Hero with CTA |
-| `src/components/home/HowItWorksSection.tsx` | Create | 3-step process |
-| `src/components/home/IntegrationShowcase.tsx` | Create | Logo grid |
-| `src/components/home/FeaturesSection.tsx` | Create | Feature cards |
-| `src/components/home/UseCasesSection.tsx` | Create | Use cases |
-| `src/components/home/FinalCTASection.tsx` | Create | Bottom CTA |
-| `src/components/TalentPoolFooter.tsx` | Modify | Update links |
-| `src/pages/About.tsx` | Modify | Update outdated language |
-| `src/App.tsx` | Modify | Update route for `/` |
-
----
-
-## CTA Behavior
-
-**"Try it out" Button Logic:**
-```typescript
-const handleTryItOut = () => {
-  if (user) {
-    navigate("/chat"); // Logged-in users go to chat
-  } else {
-    navigate("/auth"); // New users go to auth
-  }
-};
-```
-
----
-
-## Visual References
-
-### Hero Animation Concept
-```text
-    ┌─────────┐     ┌─────────┐     ┌─────────┐
-    │  Gmail  │     │ Shopify │     │  Slack  │
-    └────┬────┘     └────┬────┘     └────┬────┘
-         │               │               │
-         └───────────────┼───────────────┘
-                         │
-                    ┌────▼────┐
-                    │  ELIXA  │
-                    └────┬────┘
-                         │
-         ┌───────────────┼───────────────┐
-         │               │               │
-    ┌────▼────┐     ┌────▼────┐     ┌────▼────┐
-    │ Claude  │     │ Cursor  │     │   AI    │
-    └─────────┘     └─────────┘     └─────────┘
-```
-
-### Color Scheme
-- Hero background: Gradient from `primary/5` to `background`
-- Accent colors: Use existing purple/rose gradient for CTAs
-- Cards: Use `bg-card` with `border-border/50`
+| Old (Incorrect) | New (Correct) |
+|-----------------|---------------|
+| "MCP Connector Platform" | "AI-Powered Workspace" |
+| "Connect once, use everywhere" | "One AI assistant for all your tools" |
+| "Generate MCP Token" | "Chat with Elixa" |
+| "Works with Claude, Cursor" | "Built-in AI that takes action" |
+| "Bridge between apps and AI" | "Your AI assistant that manages tasks, calendar, and tools" |
 
 ---
 
 ## Summary
 
-This redesign transforms the homepage from a simple tool directory into a compelling marketing page that:
-1. Clearly explains what Elixa does (MCP connector)
-2. Shows the breadth of integrations (30+ tools)
-3. Highlights key benefits (security, ease of use, MCP native)
-4. Provides a clear path to action ("Try it out")
-5. Maintains access to the tool library for browsing
+This revision repositions Elixa correctly as:
+1. **Primary**: A full-featured AI workspace (Chat, Tasks, Calendar, Notes, Digest, Knowledge Base)
+2. **Secondary**: Integrated with 30+ tools (Gmail, Shopify, Stripe, etc.)
+3. **Tertiary**: Power users can use MCP for external AI clients (mentioned briefly, not prominently)
+
+The "Try it out" CTA remains as requested, directing users to the chat interface where they can immediately experience the AI assistant.
