@@ -1,7 +1,7 @@
 import { Sparkles, Search, Zap, Link2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ElixaLogo } from "@/components/ElixaLogo";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 interface SuggestionCardProps {
   icon: React.ReactNode;
@@ -46,9 +46,7 @@ export const ChatEmptyState = ({ onSuggestionClick, hasConnectedServices = false
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8">
-      <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-        <ElixaLogo size={40} />
-      </div>
+      <ElixaMascot pose="waving" size="xl" animation="float" className="mb-6" />
       
       <h1 className="text-2xl font-semibold mb-2">How can I help you today?</h1>
       <p className="text-muted-foreground text-center max-w-md mb-8">

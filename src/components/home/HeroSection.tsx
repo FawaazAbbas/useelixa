@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, MessageSquare, CheckSquare, Calendar, FileText, Newspaper } from "lucide-react";
+import { ArrowRight, MessageSquare, CheckSquare, Calendar, FileText, Newspaper } from "lucide-react";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
@@ -147,8 +148,8 @@ export const HeroSection = () => {
                   transition={{ duration: 0.4, delay: 1.0 }}
                   className="flex gap-3"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary-foreground">E</span>
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <ElixaMascot pose="default" size="xs" className="w-10 h-10" />
                   </div>
                   <div className="bg-muted/50 rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%]">
                     <p className="text-sm mb-2">You have 3 meetings today:</p>
@@ -167,8 +168,8 @@ export const HeroSection = () => {
                   transition={{ duration: 0.3, delay: 1.3 }}
                   className="flex gap-3 items-center"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary-foreground">E</span>
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <ElixaMascot pose="thinking" size="xs" className="w-10 h-10" />
                   </div>
                   <div className="flex gap-1">
                     <div className="w-2 h-2 rounded-full bg-muted-foreground/50 animate-bounce" style={{ animationDelay: "0ms" }} />

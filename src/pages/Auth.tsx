@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -87,11 +88,11 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md border-2">
-        <CardHeader className="space-y-4">
+        <CardHeader className="space-y-4 pt-8">
           <div className="flex justify-center">
-            <img src="/elixa-logo.png" alt="ELIXA" className="h-16 w-auto object-contain transition-all duration-300 hover:scale-110 hover:rotate-6 drop-shadow-lg hover:drop-shadow-2xl cursor-pointer" />
+            <ElixaMascot pose="waving" size="xl" animation="wave" />
           </div>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-base">
             Sign in or create an account to get started
           </CardDescription>
         </CardHeader>

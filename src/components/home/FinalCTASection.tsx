@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { ElixaMascot } from "@/components/ElixaMascot";
 
 export const FinalCTASection = () => {
   const navigate = useNavigate();
@@ -26,7 +27,9 @@ export const FinalCTASection = () => {
           transition={{ duration: 0.5 }}
           className="text-center"
         >
-
+          <div className="flex justify-center mb-6">
+            <ElixaMascot pose="pointing-right" size="xl" animation="float" />
+          </div>
           <h2 className="text-3xl md:text-5xl font-bold mb-6">
             Ready to Work Smarter?
           </h2>

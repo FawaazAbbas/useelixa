@@ -3,6 +3,7 @@ import { LucideIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
 import { cn } from "@/lib/utils";
+import { ElixaMascot, MascotPose } from "@/components/ElixaMascot";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -80,17 +81,22 @@ export const PageLayout = ({
 
 // Empty state component for consistency
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   title: string;
   description?: string;
   action?: ReactNode;
+  mascotPose?: MascotPose;
 }
 
-export const PageEmptyState = ({ icon: Icon, title, description, action }: EmptyStateProps) => (
+export const PageEmptyState = ({ icon: Icon, title, description, action, mascotPose = "search" }: EmptyStateProps) => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
-    <div className="p-4 bg-muted rounded-full mb-4">
-      <Icon className="h-8 w-8 text-muted-foreground" />
-    </div>
+    {mascotPose ? (
+      <ElixaMascot pose={mascotPose} size="lg" animation="float" className="mb-4" />
+    ) : Icon ? (
+      <div className="p-4 bg-muted rounded-full mb-4">
+        <Icon className="h-8 w-8 text-muted-foreground" />
+      </div>
+    ) : null}
     <h3 className="text-lg font-medium mb-1">{title}</h3>
     {description && (
       <p className="text-sm text-muted-foreground max-w-sm mb-4">{description}</p>
