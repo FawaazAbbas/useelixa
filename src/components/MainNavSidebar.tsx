@@ -189,7 +189,7 @@ export const MainNavSidebar = () => {
   };
 
   return (
-    <div className="h-screen w-[72px] bg-card border-r flex flex-col items-center py-4 gap-2 flex-shrink-0">
+    <div className="h-screen w-[72px] bg-card border-r flex flex-col items-center py-4 gap-2 flex-shrink-0 overflow-visible">
       {/* Logo */}
       <div className="h-10 w-10 mb-4 flex items-center justify-center">
         <img 
@@ -200,39 +200,45 @@ export const MainNavSidebar = () => {
       </div>
 
       {/* Navigation - vertically scrollable */}
-      <nav className="flex flex-col gap-1 flex-1 min-h-0 w-full px-2 overflow-y-auto overflow-x-hidden scrollbar-thin">
-          {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            activeClassName="bg-primary/10 text-primary"
-          >
-            {item.isMascot ? (
-              <div className="h-9 w-9 rounded-full border-2 border-muted bg-muted flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
-                <ElixaMascot pose="default" size="xs" className="scale-[1.1]" />
-              </div>
-            ) : item.icon ? (
-              <item.icon className="w-5 h-5" />
-            ) : null}
-            <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+      <nav className="flex flex-col gap-1 flex-1 min-h-0 w-full px-2 overflow-y-auto scrollbar-thin">
+        {navItems.map((item) => (
+          <Tooltip key={item.path}>
+            <TooltipTrigger asChild>
+              <NavLink
+                to={item.path}
+                className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                activeClassName="bg-primary/10 text-primary"
+              >
+                {item.isMascot ? (
+                  <div className="h-9 w-9 rounded-full border-2 border-muted bg-muted flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
+                    <ElixaMascot pose="default" size="xs" className="scale-[1.1]" />
+                  </div>
+                ) : item.icon ? (
+                  <item.icon className="w-5 h-5" />
+                ) : null}
+              </NavLink>
+            </TooltipTrigger>
+            <TooltipContent side="right">
               {item.label}
-            </span>
-          </NavLink>
+            </TooltipContent>
+          </Tooltip>
         ))}
 
         {/* Coming Soon Items */}
         <div className="mt-2 pt-2 border-t border-border/50">
           {comingSoonItems.map((item) => (
-            <div
-              key={item.label}
-              className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground/50 hover:bg-muted/50 transition-colors cursor-not-allowed"
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            <Tooltip key={item.label}>
+              <TooltipTrigger asChild>
+                <div
+                  className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground/50 hover:bg-muted/50 transition-colors cursor-not-allowed"
+                >
+                  <item.icon className="w-5 h-5" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
                 {item.label} <span className="text-muted-foreground">(Coming Soon)</span>
-              </span>
-            </div>
+              </TooltipContent>
+            </Tooltip>
           ))}
         </div>
       </nav>
@@ -255,9 +261,6 @@ export const MainNavSidebar = () => {
                 )}
               >
                 <Coins className="w-5 h-5" />
-                <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                  {credits === -1 ? "Unlimited" : `${credits.toLocaleString()} credits`}
-                </span>
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">
@@ -266,27 +269,35 @@ export const MainNavSidebar = () => {
           </Tooltip>
         )}
 
-        <NavLink
-          to="/notifications"
-          className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          activeClassName="bg-primary/10 text-primary"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/notifications"
+              className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              activeClassName="bg-primary/10 text-primary"
+            >
+              <Bell className="w-5 h-5" />
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
             Notifications
-          </span>
-        </NavLink>
+          </TooltipContent>
+        </Tooltip>
         
-        <NavLink
-          to="/settings"
-          className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          activeClassName="bg-primary/10 text-primary"
-        >
-          <SettingsIcon className="w-5 h-5" />
-          <span className="absolute left-full ml-3 px-2.5 py-1.5 bg-popover text-popover-foreground text-xs font-medium rounded-md shadow-lg border opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <NavLink
+              to="/settings"
+              className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              activeClassName="bg-primary/10 text-primary"
+            >
+              <SettingsIcon className="w-5 h-5" />
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">
             Settings
-          </span>
-        </NavLink>
+          </TooltipContent>
+        </Tooltip>
 
         {/* User */}
         <DropdownMenu>
