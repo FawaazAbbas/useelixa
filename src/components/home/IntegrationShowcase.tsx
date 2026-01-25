@@ -1,7 +1,4 @@
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 
 const integrations = [
   { name: "Gmail", logo: "/logos/GoogleDriveLogo.png" },
@@ -28,7 +25,6 @@ const categories = [
 ];
 
 export const IntegrationShowcase = () => {
-  const navigate = useNavigate();
 
   return (
     <section id="tool-library" className="py-20 md:py-32 bg-muted/30">
@@ -64,7 +60,7 @@ export const IntegrationShowcase = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6 mb-12"
+          className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 md:gap-6"
         >
           {integrations.map((integration, index) => (
             <motion.div
@@ -84,18 +80,6 @@ export const IntegrationShowcase = () => {
           ))}
         </motion.div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate("/tool-library")}
-            className="group"
-          >
-            View All Integrations
-            <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
       </div>
     </section>
   );

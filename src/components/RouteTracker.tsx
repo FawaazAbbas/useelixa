@@ -4,9 +4,7 @@ import { trackPageView } from "@/utils/analytics";
 
 // Map routes to page titles for better analytics
 const routeTitles: Record<string, string> = {
-  "/": "AI Talent Pool",
-  "/talent-pool": "AI Talent Pool",
-  "/talent-pool/charts": "Top Charts",
+  "/": "Elixa",
   "/workspace": "Workspace",
   "/tasks": "Tasks",
   "/calendar": "Calendar",

@@ -1,7 +1,7 @@
-import { Search, X, Zap, BarChart3, BookOpen, LogIn, UserPlus } from "lucide-react";
+import { Search, X, Zap, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
 import { trackNavClick } from "@/utils/analytics";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,10 +20,7 @@ export const TalentPoolNavbar = ({
   showSearch = true,
 }: TalentPoolNavbarProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user } = useAuth();
-
-  const isChartsPage = location.pathname === "/talent-pool/charts";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50">
@@ -43,7 +40,7 @@ export const TalentPoolNavbar = ({
             </div>
 
             {/* Search Bar - Desktop/Tablet */}
-            {showSearch && !isChartsPage && (
+            {showSearch && (
               <div className="hidden sm:flex flex-1 max-w-[200px] lg:max-w-xs mx-4">
                 <div className="relative w-full group">
                   <Input
@@ -66,54 +63,11 @@ export const TalentPoolNavbar = ({
               </div>
             )}
 
-            {/* Charts page - show title */}
-            {isChartsPage && (
-              <div className="flex-1">
-                <span className="text-base font-semibold">Top Charts</span>
-              </div>
-            )}
-
             {/* Spacer for mobile */}
-            {!isChartsPage && <div className="flex-1 sm:hidden" />}
+            <div className="flex-1 sm:hidden" />
 
             {/* Right: Navigation (Desktop/Tablet) */}
             <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  trackNavClick("Blog");
-                  navigate("/blog");
-                }}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Blog
-              </Button>
-              {!isChartsPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    trackNavClick("Charts");
-                    navigate("/talent-pool/charts");
-                  }}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Charts
-                </Button>
-              )}
-              {isChartsPage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/")}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
-                >
-                  Discover
-                </Button>
-              )}
               {user ? (
                 <Button
                   onClick={() => {
@@ -200,7 +154,7 @@ export const TalentPoolNavbar = ({
       </div>
 
       {/* Mobile floating search bar */}
-      {showSearch && !isChartsPage && (
+      {showSearch && (
         <div className="sm:hidden px-4 py-3 bg-gradient-to-b from-background/60 to-transparent">
           <div className="relative">
             <Input
@@ -225,6 +179,7 @@ export const TalentPoolNavbar = ({
     </nav>
   );
 };
+
 // Breadcrumb navigation for agent details
 interface BreadcrumbItem {
   label: string;

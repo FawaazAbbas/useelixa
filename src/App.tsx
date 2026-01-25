@@ -54,17 +54,16 @@ const AppContent = () => {
           {/* Home (main landing) */}
           <Route path="/" element={<Home />} />
           
-          {/* Tool Library */}
-          <Route path="/tool-library" element={<TalentPool />} />
-          {/* Legacy redirects */}
-          <Route path="/talent-pool" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/talent-pool/*" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/agent/*" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/publish" element={<Navigate to="/tool-library" replace />} />
-          <Route path="/developers" element={<Navigate to="/tool-library" replace />} />
+          {/* Legacy redirects - redirect old routes to home */}
+          <Route path="/tool-library" element={<Navigate to="/" replace />} />
+          <Route path="/talent-pool" element={<Navigate to="/" replace />} />
+          <Route path="/talent-pool/*" element={<Navigate to="/" replace />} />
+          <Route path="/agent/*" element={<Navigate to="/" replace />} />
+          <Route path="/publish" element={<Navigate to="/" replace />} />
+          <Route path="/developers" element={<Navigate to="/" replace />} />
           <Route path="/signup" element={<Navigate to="/auth" replace />} />
           <Route path="/waitlist" element={<Navigate to="/auth" replace />} />
-          <Route path="/referral" element={<Navigate to="/tool-library" replace />} />
+          <Route path="/referral" element={<Navigate to="/" replace />} />
           
           <Route path="/auth" element={<Auth />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
@@ -100,8 +99,9 @@ const AppContent = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/contact" element={<Contact />} />
           
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogPost />} />
+          {/* Blog routes hidden for now */}
+          {/* <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} /> */}
           <Route path="/admin" element={<Admin />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
