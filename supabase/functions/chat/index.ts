@@ -109,7 +109,8 @@ const TOOL_DEFINITIONS = [
   { type: "function", function: { name: "ga_get_traffic", description: "Get website traffic data (pageviews, sessions, users). The propertyId MUST be numeric (e.g., 266890436), NOT a Measurement ID (G-XXXXXX).", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID (e.g., 266890436)" }, startDate: { type: "string", description: "Start date (YYYY-MM-DD or relative like '30daysAgo')" }, endDate: { type: "string", description: "End date (YYYY-MM-DD or 'today')" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_user_behavior", description: "Get user behavior data (engagement, bounce rate, session duration). Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_conversions", description: "Get conversion and event data. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, eventFilter: { type: "string" } }, required: ["propertyId"] } } },
-  { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_top_pages", description: "Get top pages by pageviews with scroll depth (users who scrolled 90%+). Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
+  { type: "function", function: { name: "ga_get_exit_pages", description: "Get exit page analysis showing which pages users most frequently leave from. Returns exit page paths with session counts and engagement metrics.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_traffic_sources", description: "Get traffic sources breakdown. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_realtime", description: "Get realtime active users. Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" } }, required: ["propertyId"] } } },
   { type: "function", function: { name: "ga_get_demographics", description: "Get user demographics data (country, city). Property ID must be numeric.", parameters: { type: "object", properties: { propertyId: { type: "string", description: "Numeric GA4 property ID" }, startDate: { type: "string" }, endDate: { type: "string" }, limit: { type: "number" } }, required: ["propertyId"] } } },
@@ -1580,6 +1581,15 @@ async function executeTool(
           method: "POST",
           headers: { Authorization: authHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ action: "get_top_pages", params: args }),
+        });
+        return await response.json();
+      }
+
+      case "ga_get_exit_pages": {
+        const response = await fetch(`${supabaseUrl}/functions/v1/google-analytics-integration`, {
+          method: "POST",
+          headers: { Authorization: authHeader, "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "get_exit_pages", params: args }),
         });
         return await response.json();
       }

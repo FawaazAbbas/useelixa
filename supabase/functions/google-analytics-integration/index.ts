@@ -258,6 +258,7 @@ serve(async (req) => {
               { name: "activeUsers" },
               { name: "averageSessionDuration" },
               { name: "bounceRate" },
+              { name: "scrolledUsers" },
             ],
             orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
             limit: params?.limit || 20,
@@ -267,6 +268,44 @@ serve(async (req) => {
         if (!response.ok) {
           const error = await response.text();
           console.error("[GA] Get top pages error:", error);
+          throw new Error(`Google Analytics API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        result = formatReportResult(data);
+        break;
+      }
+
+      case "get_exit_pages": {
+        const propertyId = params?.propertyId;
+        if (!propertyId) throw new Error("propertyId is required");
+
+        const startDate = params?.startDate || "30daysAgo";
+        const endDate = params?.endDate || "today";
+
+        const response = await fetch(`${GA_API_BASE}/properties/${propertyId}:runReport`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dateRanges: [{ startDate, endDate }],
+            dimensions: [{ name: "exitPage" }],
+            metrics: [
+              { name: "sessions" },
+              { name: "activeUsers" },
+              { name: "bounceRate" },
+              { name: "engagementRate" },
+            ],
+            orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+            limit: params?.limit || 20,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error("[GA] Get exit pages error:", error);
           throw new Error(`Google Analytics API error: ${response.status}`);
         }
 
