@@ -1,265 +1,275 @@
 
-# Pitch Deck Page - Full Visual Remix
+
+# Pitch Deck Light Mode & Content Overhaul
 
 ## Overview
-Transform the text-based pitch deck PDF into an immersive, animated, full-screen scrolling presentation page for Elixa's Pre-Seed fundraise.
-
-## Pitch Deck Content (13 Slides)
-
-Based on the uploaded PDF, here's the content structure:
-
-| Slide | Title | Key Content |
-|-------|-------|-------------|
-| 1 | Title | ELIXA - Pre-Seed Deck |
-| 2 | Problem | Solopreneurs struggle with overhead - avg UK salary £39,039 + £5,106 tax |
-| 3 | Solution Intro | AI employees are here...but £500+ for a simple chatbot |
-| 4 | Our Solution | AI employee talent pool + workspace. Think "Slack + App Store" |
-| 5 | Demo | AI Teams Chats, Cross-collaboration, 90+ tool integrations |
-| 6 | Founder | Fawaaz Abbas - Marketing & programming, ex-Linvelles founder |
-| 7 | Customer | SMEs: $3,500/year on SaaS, 120 hrs on admin, 10-30% software waste |
-| 8 | Market | "Size of market, big numbers" (placeholder) |
-| 9 | Shopify Focus | 5.5M merchants, $120/month on apps, 64% small businesses |
-| 10 | Traction | 10,000 projected signups by end of February |
-| 11 | Competition | Motion, Sintra, Alibaba, Google, ChatGPT, N8N, Salesforce |
-| 12 | Advantage | Private developers, 90+ tools, no coding required |
-| 13 | Timeline | Jan-Aug roadmap: Workspace → Integrations → Launch → 10k users |
+Transform the pitch deck from dark mode to light mode, reorganize slides, add competitor comparison boxes, update pricing to match the website, and create a more visual workspace demo.
 
 ---
 
-## Technical Architecture
+## Changes Summary
 
-### New Files to Create
+| Change | Description |
+|--------|-------------|
+| Light Mode | Convert all slides from dark gradients to light, professional backgrounds |
+| Solution Comparison | Add 3 competitor boxes: Private Developers, N8N, Motion |
+| Elixa Reveal | Add "Made by private developers" box + specific AI employee roles |
+| Visual Workspace | Replace box-based product slide with actual workspace mockup |
+| Remove Architecture | Delete ArchitectureSlide completely |
+| Correct Pricing | Update to Starter £4.99, Pro £14.99, Unlimited £29.99 + credits/storage |
+| Reorder Slides | Move Traction before GTM ("How We'll Win") |
+| Shopify Deep Dive | Add detailed customer segment slide after Market |
+| Remove Profitability | Update Revenue slide heading |
+
+---
+
+## Slide Order (New)
 
 ```text
-src/pages/PitchDeck.tsx              # Main page component
-src/components/pitch-deck/slides/    # Slide components folder
-  ├── TitleSlide.tsx
-  ├── ProblemSlide.tsx
-  ├── SolutionIntroSlide.tsx
-  ├── OurSolutionSlide.tsx
-  ├── DemoSlide.tsx
-  ├── FounderSlide.tsx
-  ├── CustomerSlide.tsx
-  ├── MarketSlide.tsx
-  ├── ShopifyFocusSlide.tsx
-  ├── TractionSlide.tsx
-  ├── CompetitionSlide.tsx
-  ├── AdvantageSlide.tsx
-  └── TimelineSlide.tsx
+1.  Title
+2.  Problem
+3.  Solution Intro (with competitor comparison)
+4.  Our Solution (enhanced with roles)
+5.  Product (visual workspace demo)
+6.  Market Size
+7.  Shopify Deep Dive (NEW)
+8.  Traction (MOVED UP)
+9.  Competition
+10. Pricing (updated)
+11. Revenue (remove profitability mention)
+12. GTM (Path to Win)
+13. Team & Ask
 ```
 
-### Update Existing Files
-
-- `src/App.tsx` - Add `/pitch-deck` route
-- `src/components/pitch-deck/SlideProgressIndicator.tsx` - Update slide labels
-- `src/index.css` - Add pitch deck specific styles
+Total: 13 slides (same count, Architecture removed, Shopify added)
 
 ---
 
-## Design System
+## Technical Implementation
 
-### Visual Language
+### 1. Light Mode Theme
 
-- **Full-screen slides**: Each slide = 100vh viewport
-- **Dark theme**: Deep gradient backgrounds for cinematic feel
-- **Accent colors**: Primary blue (#3B82F6) with gradient accents
-- **Typography**: Bold headlines (text-6xl to text-8xl), clean body text
-- **Animations**: Framer Motion scroll-triggered reveals
-- **Mascot integration**: Elixa mascot in contextual poses
+**Files affected:**
+- `src/index.css` - Add `.pitch-deck-light` theme variables
+- `src/pages/PitchDeck.tsx` - Remove `dark` class, add light mode class
+- All 13 slide components - Update background gradients and text colors
 
-### Slide Backgrounds
+**Light mode color palette:**
+- Background: Clean whites and soft grays (hsl(220, 20%, 98%))
+- Text: Dark navy/charcoal (hsl(220, 15%, 15%))
+- Accent colors: Same primary blue, but on light backgrounds
+- Cards: White with subtle shadows instead of dark glass
 
-Each slide uses unique gradient backgrounds:
+### 2. Solution Intro Slide Update
+
+**File:** `src/components/pitch-deck/slides/SolutionIntroSlide.tsx`
+
+Add 3 competitor comparison boxes below "But where are they?":
 
 ```text
-Title:      Deep blue to purple radial gradient
-Problem:    Dark with red/orange accent (pain point)
-Solution:   Blue to teal gradient (hope/possibility)
-Demo:       Dark with workspace screenshot mockup
-Founder:    Professional dark with subtle pattern
-Market:     Dark with animated number counters
-Timeline:   Dark with animated progress line
++------------------+  +------------------+  +------------------+
+| Private          |  | N8N              |  | Motion           |
+| Developers       |  |                  |  |                  |
+|                  |  |                  |  |                  |
+| £500+            |  | £24/month        |  | £35/month        |
+| "Expensive"      |  | "DIY solution"   |  | "Not very smart" |
++------------------+  +------------------+  +------------------+
 ```
 
-### Animation Patterns
+### 3. Our Solution Slide Enhancement
 
-Using existing `slideAnimations.ts`:
-- `fadeInUp` - Default content reveal
-- `staggerContainer` - Lists and grid items
-- `scaleIn` - Key metrics and numbers
-- `slideInLeft/Right` - Two-column layouts
-- `floatUp` - Hero elements
+**File:** `src/components/pitch-deck/slides/OurSolutionSlide.tsx`
 
----
+Changes:
+- Add third box: "Made by private developers"
+- Update Talent Pool description with specific roles:
+  - Bookkeeper
+  - Google PPC Marketer
+  - SEO Analyst
+  - Customer Support Agent
+  - Tax & Audit Supervisor
 
-## Detailed Slide Designs
+Layout becomes 3-column grid with:
+1. Made by Private Developers
+2. Talent Pool (with role examples)
+3. Unified Workspace
 
-### Slide 1: Title
-- Full-screen gradient background (blue → purple)
-- Large "ELIXA" logo with glow effect
-- "PRE-SEED DECK" subtitle
-- Elixa mascot (waving pose) with float animation
-- Scroll indicator at bottom
+### 4. Visual Workspace Demo
 
-### Slide 2: Problem
-- **Headline**: "Solopreneurs struggle with overhead"
-- Split layout: Story on left, stats on right
-- Animated counter: "£39,039 + £5,106"
-- Pain point illustration with stressed founder visual
-- Red/orange accent to convey urgency
+**File:** `src/components/pitch-deck/slides/ProductSlide.tsx`
 
-### Slide 3: Solution Intro
-- "The solution? AI employees"
-- "But where are they?"
-- Price card: "£500+ for a simple chatbot"
-- Creates tension before Elixa's solution
+Replace abstract boxes with:
+- Full-width workspace mockup/screenshot area
+- Floating feature callouts overlaid on the visual
+- Show actual chat interface, sidebar, connected tools
+- "See it in action" CTA remains
 
-### Slide 4: Our Solution
-- **Headline**: "AI Employee Talent Pool + Workspace"
-- "Think Slack + App Store"
-- Split visual: Talent pool grid + unified workspace
-- Elixa mascot (pointing-right) introducing the concept
+### 5. Remove Architecture Slide
 
-### Slide 5: Demo
-- Full-width workspace mockup
-- Floating feature cards:
-  - AI Teams Chats
-  - Cross collaboration
-  - 90+ tools
-  - One workspace
-- "See it in action" CTA linking to `/chat`
+**Files affected:**
+- Delete: `src/components/pitch-deck/slides/ArchitectureSlide.tsx`
+- Update: `src/pages/PitchDeck.tsx` - Remove import and component
+- Update: `src/components/pitch-deck/SlideProgressIndicator.tsx` - Update labels
 
-### Slide 6: Founder
-- Large profile photo area (placeholder or actual)
-- **Fawaaz Abbas**
-- Credentials list with icons:
-  - Marketing & programming background
-  - Ex-founder of Linvelles (fashion)
-  - Expert in distribution & MVP builds
+### 6. Create Shopify Deep Dive Slide
 
-### Slide 7: Customer (SMEs)
-- Animated statistics grid:
-  - $3,500/year on SaaS
-  - 120 hours/year on admin
-  - 24 days on financial admin
-  - 96 min lost daily
-  - 1.8 hrs searching for info
-  - 10-30% software waste
-- Each stat animates in with counter effect
+**New file:** `src/components/pitch-deck/slides/ShopifyDeepDiveSlide.tsx`
 
-### Slide 8: Market Size
-- Large animated numbers
-- TAM/SAM/SOM concentric circles visualization
-- Placeholder for "big numbers" to be added
-
-### Slide 9: Shopify Focus
-- Shopify logo integration
-- Key metrics:
+Content:
+- Headline: "Let's Zoom In: Shopify Merchants"
+- Key metrics with animated counters:
   - 5.5M merchants globally
-  - $120/month on apps
-  - 64% small businesses
-- Niche-down strategy explanation
+  - $120/month average app spend
+  - 64% are small businesses
+  - $7.9B total addressable within Shopify alone
+- Visual showing merchant pain points
+- Position after Market slide, before Traction
 
-### Slide 10: Traction
-- Large animated counter: "10,000"
-- "Projected signups by February"
-- Growth trajectory visualization
-- Waitlist/signup CTA
+### 7. Update Pricing Slide
 
-### Slide 11: Competition
-- Competitive landscape grid
-- Logos: Motion, Sintra, Alibaba, Google, ChatGPT, N8N, Salesforce
-- Visual differentiation showing Elixa's unique position
+**File:** `src/components/pitch-deck/slides/PricingSlide.tsx`
 
-### Slide 12: Competitive Advantage
-- Four advantage cards:
-  1. Private developers
-  2. One fully built workspace
-  3. 90+ tool integrations
-  4. No coding ever required
-- Each card with icon and description
+Update pricing to match website:
 
-### Slide 13: Timeline
-- Horizontal timeline visualization
-- Animated progress through milestones:
-  - Jan: Foundational workspace
-  - Feb: 90+ integrations
-  - Mar: Soft launch + invite users
-  - Mar: Invite developers
-  - May: AI employee section
-  - Aug: 10k users
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Trial | £0 | 100 credits, 2 connectors, 14 days |
+| Starter | £4.99/mo | 1,000 credits, unlimited connectors |
+| Pro | £14.99/mo | 5,000 credits, GPT & Gemini Pro |
+| Unlimited | £29.99/mo | Unlimited credits, premium models |
 
----
+Add "Additional Costs" section below pricing cards:
 
-## Interactive Features
-
-### Navigation
-- **Slide Progress Indicator** (existing component, updated)
-- Keyboard navigation: Arrow keys, Page Up/Down
-- Scroll snap for clean slide transitions
-- Touch/swipe support for mobile
-
-### Scroll Behavior
-```css
-.pitch-deck-wrapper {
-  scroll-snap-type: y mandatory;
-}
-
-section {
-  scroll-snap-align: start;
-  height: 100vh;
-}
+```text
++------------------------+  +------------------------+
+| Storage                |  | Credits                |
+| TBC                    |  | 6p per credit          |
+| Additional storage     |  | Top up anytime for     |
+| pricing coming soon    |  | extra AI interactions  |
++------------------------+  +------------------------+
 ```
 
-### Analytics Integration
-Using existing analytics utilities:
-- Track each slide view
-- Track completion rate
-- Track CTA clicks
+### 8. Reorder Slides & Update Revenue
+
+**File:** `src/pages/PitchDeck.tsx`
+
+New order:
+```tsx
+<TitleSlide />
+<ProblemSlide />
+<SolutionIntroSlide />
+<OurSolutionSlide />
+<ProductSlide />
+<MarketSlide />
+<ShopifyDeepDiveSlide />  {/* NEW */}
+<TractionSlide />         {/* MOVED UP */}
+<CompetitionSlide />
+<PricingSlide />
+<RevenueSlide />
+<GTMSlide />              {/* Now after Traction */}
+<TeamAskSlide />
+```
+
+**File:** `src/components/pitch-deck/slides/RevenueSlide.tsx`
+- Change heading from "Path to Profitability" to "Revenue Model" or "Business Model"
+
+### 9. Update Progress Indicator
+
+**File:** `src/components/pitch-deck/SlideProgressIndicator.tsx`
+
+New labels:
+```typescript
+const slideLabels = [
+  "Title",
+  "Problem",
+  "Solution Intro",
+  "Our Solution",
+  "Product",
+  "Market",
+  "Shopify Focus",
+  "Traction",
+  "Competition",
+  "Pricing",
+  "Revenue",
+  "GTM",
+  "Team & Ask",
+];
+```
 
 ---
 
-## Responsive Design
+## Light Mode Style Guide
 
-### Desktop (1024px+)
-- Full visual experience
-- Side navigation indicator
-- Large typography and animations
+### Background Gradients (per slide)
 
-### Tablet (768px - 1023px)
-- Scaled layouts
-- Adjusted typography
-- Simplified animations
+| Slide | Light Mode Background |
+|-------|----------------------|
+| Title | White to soft blue gradient |
+| Problem | Soft warm gray with subtle orange accent |
+| Solution Intro | Light gray to white |
+| Our Solution | White with blue accent glow |
+| Product | Light gray with grid pattern |
+| Market | White with teal accent |
+| Shopify | White with green (Shopify brand) accent |
+| Traction | Light with teal gradient |
+| Competition | Clean white |
+| Pricing | Soft gray to white |
+| Revenue | White with green accent |
+| GTM | Light purple tint |
+| Team & Ask | Gradient to primary blue |
 
-### Mobile (< 768px)
-- Vertical scrolling experience
-- Stacked content layouts
-- Touch-optimized navigation
-- Reduced animation complexity
+### Text Colors
+- Headlines: `text-slate-900` or `text-gray-900`
+- Body text: `text-slate-600` or `text-gray-600`
+- Muted: `text-slate-400`
+- Accent text: Keep existing primary/purple/teal colors
+
+### Card Styling
+- Background: `bg-white`
+- Border: `border border-slate-200`
+- Shadow: `shadow-lg shadow-slate-200/50`
 
 ---
 
-## Implementation Summary
+## Files to Modify
 
-1. **Create page component** (`PitchDeck.tsx`)
-   - Full-screen scroll container
-   - Keyboard event listeners
-   - Analytics tracking
+| File | Action |
+|------|--------|
+| `src/pages/PitchDeck.tsx` | Update slide order, remove Architecture import |
+| `src/index.css` | Add light mode pitch deck styles |
+| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Update slide labels |
+| `src/components/pitch-deck/slides/TitleSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/ProblemSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Light mode + add competitor boxes |
+| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Light mode + 3-column with roles |
+| `src/components/pitch-deck/slides/ProductSlide.tsx` | Light mode + visual workspace |
+| `src/components/pitch-deck/slides/MarketSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/ShopifyDeepDiveSlide.tsx` | **CREATE NEW** |
+| `src/components/pitch-deck/slides/TractionSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/PricingSlide.tsx` | Light mode + update prices + add costs |
+| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Light mode + remove profitability |
+| `src/components/pitch-deck/slides/GTMSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/TeamAskSlide.tsx` | Light mode conversion |
 
-2. **Create 13 slide components**
-   - Each self-contained with animations
-   - Consistent structure: background → content → animations
+---
 
-3. **Update navigation**
-   - Add route to App.tsx
-   - Update slide labels in progress indicator
+## Landscape Improvements
 
-4. **Add CSS**
-   - Scroll snap styles
-   - Pitch deck specific utilities
-   - Print styles for PDF export
+For better landscape viewing:
+- Increase horizontal padding on all slides
+- Use more horizontal layouts (side-by-side) instead of stacked
+- Ensure content doesn't feel cramped
+- Use `max-w-7xl` instead of `max-w-6xl` on wider slides
+- Add `lg:flex-row` patterns where content is currently stacked
 
-5. **Testing**
-   - All screen sizes
-   - Keyboard navigation
-   - Animation performance
+---
+
+## Visual Workspace Mockup
+
+For the Product slide, will create a stylized representation showing:
+- Left sidebar with navigation icons
+- Chat area with sample AI conversation
+- Connected tools badges floating around
+- This can be achieved with CSS/Tailwind styling to represent the UI
+
