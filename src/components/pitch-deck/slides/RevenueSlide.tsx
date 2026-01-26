@@ -37,8 +37,8 @@ const projections = [
 export const RevenueSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-revenue">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(240,30%,6%)] via-[hsl(140,30%,8%)] to-[hsl(240,30%,8%)]" />
+      {/* Light background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-green-50/30 to-slate-50" />
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-6xl w-full">
@@ -50,9 +50,9 @@ export const RevenueSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-12"
           >
-            <span className="text-green-400 text-sm uppercase tracking-widest mb-4 block">Revenue Model</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-              Path to Profitability
+            <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-medium">Revenue Model</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+              Business Model
             </h2>
           </motion.div>
 
@@ -64,25 +64,25 @@ export const RevenueSlide = () => {
             viewport={defaultViewport}
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
           >
-            <motion.div variants={scaleIn} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-              <DollarSign className="w-8 h-8 text-green-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">£29</div>
-              <div className="text-muted-foreground text-sm">ARPU/month</div>
+            <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-lg shadow-slate-200/50">
+              <DollarSign className="w-8 h-8 text-green-500 mx-auto mb-3" />
+              <div className="text-2xl font-bold text-slate-900 mb-1">£14.99</div>
+              <div className="text-slate-500 text-sm">ARPU/month</div>
             </motion.div>
-            <motion.div variants={scaleIn} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-              <Repeat className="w-8 h-8 text-teal-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">95%</div>
-              <div className="text-muted-foreground text-sm">Target Retention</div>
+            <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-lg shadow-slate-200/50">
+              <Repeat className="w-8 h-8 text-teal-500 mx-auto mb-3" />
+              <div className="text-2xl font-bold text-slate-900 mb-1">95%</div>
+              <div className="text-slate-500 text-sm">Target Retention</div>
             </motion.div>
-            <motion.div variants={scaleIn} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-              <Users className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">3:1</div>
-              <div className="text-muted-foreground text-sm">LTV:CAC Ratio</div>
+            <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-lg shadow-slate-200/50">
+              <Users className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+              <div className="text-2xl font-bold text-slate-900 mb-1">3:1</div>
+              <div className="text-slate-500 text-sm">LTV:CAC Ratio</div>
             </motion.div>
-            <motion.div variants={scaleIn} className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-              <TrendingUp className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">70%</div>
-              <div className="text-muted-foreground text-sm">Gross Margin</div>
+            <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-lg shadow-slate-200/50">
+              <TrendingUp className="w-8 h-8 text-purple-500 mx-auto mb-3" />
+              <div className="text-2xl font-bold text-slate-900 mb-1">70%</div>
+              <div className="text-slate-500 text-sm">Gross Margin</div>
             </motion.div>
           </motion.div>
 
@@ -92,17 +92,17 @@ export const RevenueSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="bg-white/5 border border-white/10 rounded-2xl p-8"
+            className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg shadow-slate-200/50"
           >
-            <h3 className="text-xl font-semibold text-white mb-6 text-center">ARR Projections (£k)</h3>
+            <h3 className="text-xl font-semibold text-slate-900 mb-6 text-center">ARR Projections (£k)</h3>
             <div className="grid md:grid-cols-3 gap-8">
               {projections.map((proj, index) => (
                 <div key={index} className="text-center">
-                  <div className="text-muted-foreground mb-2">{proj.year}</div>
-                  <div className="text-4xl font-bold text-white mb-2">
+                  <div className="text-slate-500 mb-2">{proj.year}</div>
+                  <div className="text-4xl font-bold text-slate-900 mb-2">
                     £<AnimatedCounter end={proj.arr} suffix="k" />
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-slate-500">
                     <AnimatedCounter end={proj.users} /> users
                   </div>
                 </div>

@@ -1,18 +1,17 @@
 import { useEffect } from "react";
-import { motion } from "framer-motion";
 import { SlideProgressIndicator } from "@/components/pitch-deck/SlideProgressIndicator";
 import { TitleSlide } from "@/components/pitch-deck/slides/TitleSlide";
 import { ProblemSlide } from "@/components/pitch-deck/slides/ProblemSlide";
 import { SolutionIntroSlide } from "@/components/pitch-deck/slides/SolutionIntroSlide";
 import { OurSolutionSlide } from "@/components/pitch-deck/slides/OurSolutionSlide";
 import { ProductSlide } from "@/components/pitch-deck/slides/ProductSlide";
-import { ArchitectureSlide } from "@/components/pitch-deck/slides/ArchitectureSlide";
 import { MarketSlide } from "@/components/pitch-deck/slides/MarketSlide";
+import { ShopifyDeepDiveSlide } from "@/components/pitch-deck/slides/ShopifyDeepDiveSlide";
+import { TractionSlide } from "@/components/pitch-deck/slides/TractionSlide";
 import { CompetitionSlide } from "@/components/pitch-deck/slides/CompetitionSlide";
 import { PricingSlide } from "@/components/pitch-deck/slides/PricingSlide";
 import { RevenueSlide } from "@/components/pitch-deck/slides/RevenueSlide";
 import { GTMSlide } from "@/components/pitch-deck/slides/GTMSlide";
-import { TractionSlide } from "@/components/pitch-deck/slides/TractionSlide";
 import { TeamAskSlide } from "@/components/pitch-deck/slides/TeamAskSlide";
 import { trackPageView } from "@/utils/analytics";
 
@@ -52,7 +51,7 @@ const PitchDeck = () => {
   }, []);
 
   return (
-    <div className="pitch-deck-wrapper dark">
+    <div className="pitch-deck-wrapper pitch-deck-light">
       <SlideProgressIndicator />
       
       <TitleSlide />
@@ -60,13 +59,13 @@ const PitchDeck = () => {
       <SolutionIntroSlide />
       <OurSolutionSlide />
       <ProductSlide />
-      <ArchitectureSlide />
       <MarketSlide />
+      <ShopifyDeepDiveSlide />
+      <TractionSlide />
       <CompetitionSlide />
       <PricingSlide />
       <RevenueSlide />
       <GTMSlide />
-      <TractionSlide />
       <TeamAskSlide />
     </div>
   );
