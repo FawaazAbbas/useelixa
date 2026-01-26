@@ -38,11 +38,11 @@ const milestones = [
 export const TractionSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-traction">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(240,30%,6%)] via-[hsl(180,30%,8%)] to-[hsl(240,30%,8%)]" />
+      {/* Light background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/40 to-slate-50" />
       
       {/* Glow effect */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-200/30 rounded-full blur-3xl" />
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-5xl w-full text-center">
@@ -54,8 +54,8 @@ export const TractionSlide = () => {
             viewport={defaultViewport}
             className="mb-12"
           >
-            <span className="text-teal-400 text-sm uppercase tracking-widest mb-4 block">Traction</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">Traction</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
               Growing Fast
             </h2>
           </motion.div>
@@ -69,11 +69,11 @@ export const TractionSlide = () => {
             className="mb-16"
           >
             <div className="inline-block">
-              <div className="text-7xl md:text-8xl lg:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">
+              <div className="text-7xl md:text-8xl lg:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-500">
                 <AnimatedCounter end={10000} />
               </div>
-              <p className="text-2xl text-muted-foreground mt-4">
-                Projected signups by <span className="text-white font-semibold">February 2025</span>
+              <p className="text-2xl text-slate-500 mt-4">
+                Projected signups by <span className="text-slate-900 font-semibold">February 2025</span>
               </p>
             </div>
           </motion.div>
@@ -90,19 +90,19 @@ export const TractionSlide = () => {
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className={`bg-white/5 border rounded-2xl p-6 ${
-                  milestone.done ? 'border-teal-500/30' : 'border-white/10'
+                className={`bg-white border rounded-2xl p-6 shadow-lg shadow-slate-200/50 ${
+                  milestone.done ? 'border-teal-300' : 'border-slate-200'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center ${
-                  milestone.done ? 'bg-teal-500/20' : 'bg-white/10'
+                  milestone.done ? 'bg-teal-100' : 'bg-slate-100'
                 }`}>
-                  <milestone.icon className={`w-6 h-6 ${milestone.done ? 'text-teal-400' : 'text-muted-foreground'}`} />
+                  <milestone.icon className={`w-6 h-6 ${milestone.done ? 'text-teal-600' : 'text-slate-400'}`} />
                 </div>
-                <div className="text-xl font-bold text-white mb-1">{milestone.value}</div>
-                <div className="text-sm text-muted-foreground">{milestone.label}</div>
+                <div className="text-xl font-bold text-slate-900 mb-1">{milestone.value}</div>
+                <div className="text-sm text-slate-500">{milestone.label}</div>
                 {milestone.done && (
-                  <span className="inline-block mt-2 text-xs bg-teal-500/20 text-teal-400 px-2 py-1 rounded-full">
+                  <span className="inline-block mt-2 text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">
                     ✓ Complete
                   </span>
                 )}

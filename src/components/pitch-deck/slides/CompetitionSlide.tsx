@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { Check, X, Minus } from "lucide-react";
+import { fadeInUp, scaleIn, defaultViewport } from "../slideAnimations";
+import { Check, X } from "lucide-react";
 
 const competitors = [
   { name: "ChatGPT", hasWorkspace: false, hasIntegrations: false, hasTalentPool: false },
@@ -13,16 +13,16 @@ const competitors = [
 
 const Feature = ({ has, isUs }: { has: boolean; isUs?: boolean }) => {
   if (has) {
-    return <Check className={`w-5 h-5 ${isUs ? 'text-primary' : 'text-green-400'}`} />;
+    return <Check className={`w-5 h-5 ${isUs ? 'text-primary' : 'text-green-500'}`} />;
   }
-  return <X className="w-5 h-5 text-muted-foreground/50" />;
+  return <X className="w-5 h-5 text-slate-300" />;
 };
 
 export const CompetitionSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-competition">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(240,30%,6%)] via-[hsl(220,30%,8%)] to-[hsl(240,30%,8%)]" />
+      {/* Light background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-white" />
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-5xl w-full">
@@ -34,8 +34,8 @@ export const CompetitionSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-12"
           >
-            <span className="text-orange-400 text-sm uppercase tracking-widest mb-4 block">Competition</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+            <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-medium">Competition</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
               The Landscape
             </h2>
           </motion.div>
@@ -46,15 +46,15 @@ export const CompetitionSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden"
+            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50"
           >
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left p-4 text-muted-foreground font-medium">Company</th>
-                  <th className="text-center p-4 text-muted-foreground font-medium">Workspace</th>
-                  <th className="text-center p-4 text-muted-foreground font-medium">90+ Integrations</th>
-                  <th className="text-center p-4 text-muted-foreground font-medium">AI Talent Pool</th>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="text-left p-4 text-slate-500 font-medium">Company</th>
+                  <th className="text-center p-4 text-slate-500 font-medium">Workspace</th>
+                  <th className="text-center p-4 text-slate-500 font-medium">90+ Integrations</th>
+                  <th className="text-center p-4 text-slate-500 font-medium">AI Talent Pool</th>
                 </tr>
               </thead>
               <tbody>
@@ -62,11 +62,11 @@ export const CompetitionSlide = () => {
                   <motion.tr
                     key={index}
                     variants={scaleIn}
-                    className={`border-b border-white/5 ${competitor.isUs ? 'bg-primary/10' : ''}`}
+                    className={`border-b border-slate-100 ${competitor.isUs ? 'bg-primary/5' : ''}`}
                   >
-                    <td className={`p-4 font-medium ${competitor.isUs ? 'text-primary' : 'text-white'}`}>
+                    <td className={`p-4 font-medium ${competitor.isUs ? 'text-primary' : 'text-slate-900'}`}>
                       {competitor.name}
-                      {competitor.isUs && <span className="ml-2 text-xs bg-primary/20 px-2 py-1 rounded-full">Us</span>}
+                      {competitor.isUs && <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-semibold">Us</span>}
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex justify-center">
@@ -95,7 +95,7 @@ export const CompetitionSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center text-xl text-muted-foreground mt-8"
+            className="text-center text-xl text-slate-500 mt-8"
           >
             Only <span className="text-primary font-semibold">Elixa</span> combines all three
           </motion.p>

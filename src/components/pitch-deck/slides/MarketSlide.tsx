@@ -30,8 +30,8 @@ const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end:
 export const MarketSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-market">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(240,30%,6%)] via-[hsl(220,40%,8%)] to-[hsl(200,35%,10%)]" />
+      {/* Light background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-6xl w-full">
@@ -43,8 +43,8 @@ export const MarketSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-16"
           >
-            <span className="text-teal-400 text-sm uppercase tracking-widest mb-4 block">Market Opportunity</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">Market Opportunity</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
               Massive & Growing
             </h2>
           </motion.div>
@@ -59,13 +59,13 @@ export const MarketSlide = () => {
               viewport={defaultViewport}
               className="relative"
             >
-              <div className="w-64 h-64 md:w-80 md:h-80 rounded-full border-2 border-teal-500/30 flex items-center justify-center bg-teal-500/5">
+              <div className="w-64 h-64 md:w-80 md:h-80 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50">
                 <div className="text-center">
-                  <div className="text-4xl md:text-5xl font-bold text-white mb-2">
+                  <div className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">
                     $<AnimatedCounter end={150} suffix="B" />
                   </div>
-                  <div className="text-teal-400 font-semibold">TAM</div>
-                  <div className="text-muted-foreground text-sm">Global AI Market</div>
+                  <div className="text-teal-600 font-semibold">TAM</div>
+                  <div className="text-slate-500 text-sm">Global AI Market</div>
                 </div>
               </div>
             </motion.div>
@@ -78,13 +78,13 @@ export const MarketSlide = () => {
               viewport={defaultViewport}
               className="relative -mt-8 md:mt-0 md:-ml-8"
             >
-              <div className="w-48 h-48 md:w-60 md:h-60 rounded-full border-2 border-blue-500/40 flex items-center justify-center bg-blue-500/10">
+              <div className="w-48 h-48 md:w-60 md:h-60 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50">
                 <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                     $<AnimatedCounter end={25} suffix="B" />
                   </div>
-                  <div className="text-blue-400 font-semibold">SAM</div>
-                  <div className="text-muted-foreground text-sm">SME AI Tools</div>
+                  <div className="text-blue-600 font-semibold">SAM</div>
+                  <div className="text-slate-500 text-sm">SME AI Tools</div>
                 </div>
               </div>
             </motion.div>
@@ -97,13 +97,13 @@ export const MarketSlide = () => {
               viewport={defaultViewport}
               className="relative -mt-8 md:mt-0 md:-ml-8"
             >
-              <div className="w-36 h-36 md:w-44 md:h-44 rounded-full border-2 border-primary/50 flex items-center justify-center bg-primary/15">
+              <div className="w-36 h-36 md:w-44 md:h-44 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10">
                 <div className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">
+                  <div className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">
                     $<AnimatedCounter end={500} suffix="M" />
                   </div>
                   <div className="text-primary font-semibold">SOM</div>
-                  <div className="text-muted-foreground text-xs">Year 5 Target</div>
+                  <div className="text-slate-500 text-xs">Year 5 Target</div>
                 </div>
               </div>
             </motion.div>
@@ -115,7 +115,7 @@ export const MarketSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center text-muted-foreground mt-12 max-w-2xl mx-auto"
+            className="text-center text-slate-500 mt-12 max-w-2xl mx-auto"
           >
             The AI productivity tools market is projected to grow at 35% CAGR through 2030
           </motion.p>

@@ -459,8 +459,18 @@ All colors MUST be HSL.
     overflow-y: auto;
     height: 100vh;
     scroll-behavior: smooth;
+  }
+
+  /* Dark theme (default) */
+  .pitch-deck-wrapper:not(.pitch-deck-light) {
     background: hsl(240, 30%, 6%);
     color: hsl(220, 14%, 96%);
+  }
+
+  /* Light theme */
+  .pitch-deck-wrapper.pitch-deck-light {
+    background: hsl(0, 0%, 100%);
+    color: hsl(220, 15%, 15%);
   }
 
   .pitch-slide {
@@ -494,13 +504,18 @@ All colors MUST be HSL.
     }
   }
 
-  /* Progress bar track */
+  /* Progress bar track - Dark mode */
   .slide-progress-bar-track {
     width: 3px;
     height: 120px;
     background: hsl(220, 14%, 20%);
     border-radius: 2px;
     overflow: hidden;
+  }
+
+  /* Progress bar track - Light mode */
+  .slide-progress-bar-track.pitch-deck-light-progress {
+    background: hsl(220, 14%, 85%);
   }
 
   .slide-progress-bar-fill {
@@ -539,6 +554,11 @@ All colors MUST be HSL.
     transition: all 0.2s ease;
   }
 
+  /* Light mode dots */
+  .slide-dot-inner.pitch-deck-light-dot {
+    background: hsl(220, 14%, 70%);
+  }
+
   .slide-dot:hover .slide-dot-inner {
     background: hsl(220, 14%, 50%);
     transform: scale(1.25);
@@ -550,7 +570,7 @@ All colors MUST be HSL.
     box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
   }
 
-  /* Tooltip */
+  /* Tooltip - Dark mode */
   .slide-dot-tooltip {
     position: absolute;
     right: 100%;
@@ -567,11 +587,19 @@ All colors MUST be HSL.
     color: hsl(220, 14%, 96%);
   }
 
+  /* Tooltip - Light mode */
+  .slide-dot-tooltip.pitch-deck-light-tooltip {
+    background: hsl(0, 0%, 100%);
+    border: 1px solid hsl(220, 13%, 91%);
+    color: hsl(220, 15%, 15%);
+    box-shadow: 0 4px 12px hsl(220, 14%, 50% / 0.15);
+  }
+
   .slide-dot:hover .slide-dot-tooltip {
     opacity: 1;
   }
 
-  /* Slide counter */
+  /* Slide counter - Dark mode */
   .slide-counter {
     font-size: 0.75rem;
     font-weight: 500;
@@ -581,17 +609,34 @@ All colors MUST be HSL.
     color: hsl(220, 14%, 50%);
   }
 
+  /* Slide counter - Light mode */
+  .slide-counter.pitch-deck-light-counter {
+    color: hsl(220, 14%, 60%);
+  }
+
   .slide-counter-current {
     color: hsl(220, 14%, 96%);
     font-weight: 600;
+  }
+
+  .pitch-deck-light-counter .slide-counter-current {
+    color: hsl(220, 15%, 15%);
   }
 
   .slide-counter-divider {
     color: hsl(220, 14%, 30%);
   }
 
+  .pitch-deck-light-counter .slide-counter-divider {
+    color: hsl(220, 14%, 70%);
+  }
+
   .slide-counter-total {
     color: hsl(220, 14%, 50%);
+  }
+
+  .pitch-deck-light-counter .slide-counter-total {
+    color: hsl(220, 14%, 60%);
   }
 
   /* Print styles for PDF export */

@@ -7,13 +7,13 @@ const slideLabels = [
   "Solution Intro",
   "Our Solution",
   "Product",
-  "Architecture",
   "Market",
+  "Shopify Focus",
+  "Traction",
   "Competition",
   "Pricing",
   "Revenue",
   "GTM",
-  "Traction",
   "Team & Ask",
 ];
 
@@ -55,7 +55,7 @@ export const SlideProgressIndicator = () => {
   return (
     <div className="slide-progress-container print:hidden">
       {/* Progress bar */}
-      <div className="slide-progress-bar-track">
+      <div className="slide-progress-bar-track pitch-deck-light-progress">
         <motion.div className="slide-progress-bar-fill" style={{ scaleY }} />
       </div>
 
@@ -67,14 +67,14 @@ export const SlideProgressIndicator = () => {
             onClick={() => scrollToSlide(index)}
             className={`slide-dot ${activeSlide === index ? "slide-dot-active" : ""}`}
           >
-            <div className="slide-dot-inner" />
-            <span className="slide-dot-tooltip">{label}</span>
+            <div className="slide-dot-inner pitch-deck-light-dot" />
+            <span className="slide-dot-tooltip pitch-deck-light-tooltip">{label}</span>
           </button>
         ))}
       </div>
 
       {/* Slide counter */}
-      <div className="slide-counter">
+      <div className="slide-counter pitch-deck-light-counter">
         <span className="slide-counter-current">{String(activeSlide + 1).padStart(2, "0")}</span>
         <span className="slide-counter-divider">/</span>
         <span className="slide-counter-total">{String(slideLabels.length).padStart(2, "0")}</span>

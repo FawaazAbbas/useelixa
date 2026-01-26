@@ -6,17 +6,17 @@ import { ChevronDown } from "lucide-react";
 export const TitleSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-title">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[hsl(240,30%,8%)] via-[hsl(220,40%,12%)] to-[hsl(260,30%,10%)]" />
+      {/* Light background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-blue-50" />
       
-      {/* Animated gradient orbs */}
+      {/* Subtle accent orbs */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl" />
       </div>
       
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
-        {/* Logo with glow */}
+        {/* Logo with subtle shadow */}
         <motion.div
           variants={floatUp}
           initial="hidden"
@@ -25,10 +25,10 @@ export const TitleSlide = () => {
           className="mb-8"
         >
           <div className="relative">
-            <h1 className="text-8xl md:text-9xl font-bold text-white tracking-tight">
+            <h1 className="text-8xl md:text-9xl font-bold text-slate-900 tracking-tight">
               ELIXA
             </h1>
-            <div className="absolute inset-0 text-8xl md:text-9xl font-bold text-primary blur-2xl opacity-50">
+            <div className="absolute inset-0 text-8xl md:text-9xl font-bold text-primary/20 blur-2xl">
               ELIXA
             </div>
           </div>
@@ -40,7 +40,7 @@ export const TitleSlide = () => {
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}
-          className="text-2xl md:text-3xl text-muted-foreground font-light tracking-widest uppercase mb-12"
+          className="text-2xl md:text-3xl text-slate-500 font-light tracking-widest uppercase mb-12"
         >
           Pre-Seed Deck
         </motion.p>
@@ -61,7 +61,7 @@ export const TitleSlide = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5, duration: 0.5 }}
-          className="absolute bottom-12 flex flex-col items-center gap-2 text-muted-foreground"
+          className="absolute bottom-12 flex flex-col items-center gap-2 text-slate-400"
         >
           <span className="text-sm uppercase tracking-widest">Scroll to explore</span>
           <motion.div
