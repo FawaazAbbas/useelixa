@@ -1,168 +1,265 @@
 
-# Google Ads Integration - Full Capability Expansion
+# Pitch Deck Page - Full Visual Remix
 
-## Current State Assessment
+## Overview
+Transform the text-based pitch deck PDF into an immersive, animated, full-screen scrolling presentation page for Elixa's Pre-Seed fundraise.
 
-### Existing Tools (14)
-| Category | Tools |
-|----------|-------|
-| Account | `gads_list_customers` |
-| Campaigns | `gads_get_campaigns`, `gads_update_campaign_status`, `gads_update_campaign_budget` |
-| Ad Groups | `gads_get_ad_groups`, `gads_update_ad_group_status` |
-| Ads | `gads_get_ads`, `gads_update_ad_status` |
-| Keywords | `gads_get_keywords`, `gads_update_keyword_status`*, `gads_add_keyword`* |
-| Reporting | `gads_get_budget_summary`, `gads_get_account_performance` |
+## Pitch Deck Content (13 Slides)
 
-*Backend implemented but missing frontend tool definitions
+Based on the uploaded PDF, here's the content structure:
 
----
-
-## Proposed Additions: 35+ New Tools
-
-### 1. Conversion Tracking (High Priority)
-| Tool | Description |
-|------|-------------|
-| `gads_list_conversions` | List all conversion actions with tracking status |
-| `gads_get_conversion_stats` | Get conversion metrics by action type |
-| `gads_create_conversion` | Create a new conversion action (HITL) |
-| `gads_update_conversion` | Update conversion action settings (HITL) |
-| `gads_upload_offline_conversions` | Upload offline/CRM conversions (HITL) |
-
-### 2. Audience Management (High Priority)
-| Tool | Description |
-|------|-------------|
-| `gads_list_audiences` | List all custom and remarketing audiences |
-| `gads_get_audience_insights` | Get audience size and demographics |
-| `gads_create_audience` | Create custom audience segment (HITL) |
-| `gads_list_remarketing_lists` | List remarketing/user lists |
-| `gads_add_audience_to_campaign` | Add audience targeting to campaign (HITL) |
-
-### 3. Bidding & Optimization
-| Tool | Description |
-|------|-------------|
-| `gads_list_bidding_strategies` | List all bidding strategies |
-| `gads_get_bidding_performance` | Get bidding strategy performance |
-| `gads_update_bidding_strategy` | Update bidding strategy settings (HITL) |
-| `gads_set_keyword_bid` | Set individual keyword CPC bid (HITL) |
-| `gads_get_bid_simulator` | Get bid simulator projections |
-
-### 4. Extensions/Assets
-| Tool | Description |
-|------|-------------|
-| `gads_list_extensions` | List all ad extensions by type |
-| `gads_create_sitelink` | Create sitelink extension (HITL) |
-| `gads_create_callout` | Create callout extension (HITL) |
-| `gads_create_call_extension` | Create call extension (HITL) |
-| `gads_update_extension_status` | Enable/disable extensions (HITL) |
-
-### 5. Targeting Criteria
-| Tool | Description |
-|------|-------------|
-| `gads_get_location_targeting` | Get geographic targeting settings |
-| `gads_set_location_targeting` | Update location targeting (HITL) |
-| `gads_get_device_targeting` | Get device bid adjustments |
-| `gads_set_device_bid_adjustment` | Set device bid modifiers (HITL) |
-| `gads_get_schedule_targeting` | Get ad schedule settings |
-| `gads_set_ad_schedule` | Update ad scheduling/dayparting (HITL) |
-| `gads_get_demographics` | Get demographic targeting |
-| `gads_set_demographic_targeting` | Update demographic bids (HITL) |
-
-### 6. Search Terms & Negatives
-| Tool | Description |
-|------|-------------|
-| `gads_get_search_terms` | Get search terms report with metrics |
-| `gads_add_negative_keyword` | Add negative keywords (HITL) |
-| `gads_list_negative_keywords` | List all negative keywords |
-| `gads_add_search_term_as_keyword` | Promote search term to keyword (HITL) |
-
-### 7. Recommendations & Insights
-| Tool | Description |
-|------|-------------|
-| `gads_get_recommendations` | Get Google's optimization recommendations |
-| `gads_apply_recommendation` | Apply a recommendation (HITL) |
-| `gads_dismiss_recommendation` | Dismiss a recommendation (HITL) |
-| `gads_get_quality_score_insights` | Get detailed quality score breakdown |
-
-### 8. Campaign Creation (Advanced)
-| Tool | Description |
-|------|-------------|
-| `gads_create_campaign` | Create new campaign (HITL) |
-| `gads_create_ad_group` | Create new ad group (HITL) |
-| `gads_create_responsive_search_ad` | Create responsive search ad (HITL) |
-
-### 9. Labels & Organization
-| Tool | Description |
-|------|-------------|
-| `gads_list_labels` | List all account labels |
-| `gads_create_label` | Create a new label (HITL) |
-| `gads_apply_label` | Apply label to campaign/ad group/ad (HITL) |
-
-### 10. Keyword Planning
-| Tool | Description |
-|------|-------------|
-| `gads_generate_keyword_ideas` | Generate keyword suggestions |
-| `gads_get_keyword_forecast` | Get traffic/cost forecasts for keywords |
-
-### 11. Change History
-| Tool | Description |
-|------|-------------|
-| `gads_get_change_history` | View recent account changes |
+| Slide | Title | Key Content |
+|-------|-------|-------------|
+| 1 | Title | ELIXA - Pre-Seed Deck |
+| 2 | Problem | Solopreneurs struggle with overhead - avg UK salary £39,039 + £5,106 tax |
+| 3 | Solution Intro | AI employees are here...but £500+ for a simple chatbot |
+| 4 | Our Solution | AI employee talent pool + workspace. Think "Slack + App Store" |
+| 5 | Demo | AI Teams Chats, Cross-collaboration, 90+ tool integrations |
+| 6 | Founder | Fawaaz Abbas - Marketing & programming, ex-Linvelles founder |
+| 7 | Customer | SMEs: $3,500/year on SaaS, 120 hrs on admin, 10-30% software waste |
+| 8 | Market | "Size of market, big numbers" (placeholder) |
+| 9 | Shopify Focus | 5.5M merchants, $120/month on apps, 64% small businesses |
+| 10 | Traction | 10,000 projected signups by end of February |
+| 11 | Competition | Motion, Sintra, Alibaba, Google, ChatGPT, N8N, Salesforce |
+| 12 | Advantage | Private developers, 90+ tools, no coding required |
+| 13 | Timeline | Jan-Aug roadmap: Workspace → Integrations → Launch → 10k users |
 
 ---
 
-## Implementation Priority
+## Technical Architecture
 
-### Phase 1 - Essential (Fix + Core Reporting)
-1. **Fix missing tool definitions** for `gads_update_keyword_status` and `gads_add_keyword`
-2. **Add search terms report** - Critical for optimization
-3. **Add negative keywords** - Essential for waste reduction
-4. **Add conversion tracking** - Core to measuring ROI
+### New Files to Create
 
-### Phase 2 - Optimization
-5. **Bidding controls** - Manual bid adjustments
-6. **Recommendations** - Apply Google's suggestions
-7. **Quality score insights** - Detailed breakdowns
-8. **Location targeting** - Geo-targeting controls
+```text
+src/pages/PitchDeck.tsx              # Main page component
+src/components/pitch-deck/slides/    # Slide components folder
+  ├── TitleSlide.tsx
+  ├── ProblemSlide.tsx
+  ├── SolutionIntroSlide.tsx
+  ├── OurSolutionSlide.tsx
+  ├── DemoSlide.tsx
+  ├── FounderSlide.tsx
+  ├── CustomerSlide.tsx
+  ├── MarketSlide.tsx
+  ├── ShopifyFocusSlide.tsx
+  ├── TractionSlide.tsx
+  ├── CompetitionSlide.tsx
+  ├── AdvantageSlide.tsx
+  └── TimelineSlide.tsx
+```
 
-### Phase 3 - Advanced
-9. **Extensions management** - Sitelinks, callouts
-10. **Audience management** - Remarketing lists
-11. **Campaign creation** - Full creation capabilities
-12. **Keyword planning** - Idea generation
+### Update Existing Files
 
----
-
-## Technical Notes
-
-### Required Scopes
-The current `adwords` scope covers all Google Ads API operations.
-
-### HITL (Human-in-the-Loop)
-All "write" operations will require user confirmation before execution, following the existing pattern.
-
-### API Version
-Using Google Ads API v17 (already configured in the integration).
+- `src/App.tsx` - Add `/pitch-deck` route
+- `src/components/pitch-deck/SlideProgressIndicator.tsx` - Update slide labels
+- `src/index.css` - Add pitch deck specific styles
 
 ---
 
-## User Requirements
+## Design System
 
-Before implementation, you'll need to confirm:
-1. **Do you have access to all Google Ads API features?** Some features like Audience Insights require allowlisting.
-2. **Conversion upload**: Do you want to support offline conversion uploads from CRM data?
-3. **Keyword planning**: This may require separate API access approval from Google.
+### Visual Language
+
+- **Full-screen slides**: Each slide = 100vh viewport
+- **Dark theme**: Deep gradient backgrounds for cinematic feel
+- **Accent colors**: Primary blue (#3B82F6) with gradient accents
+- **Typography**: Bold headlines (text-6xl to text-8xl), clean body text
+- **Animations**: Framer Motion scroll-triggered reveals
+- **Mascot integration**: Elixa mascot in contextual poses
+
+### Slide Backgrounds
+
+Each slide uses unique gradient backgrounds:
+
+```text
+Title:      Deep blue to purple radial gradient
+Problem:    Dark with red/orange accent (pain point)
+Solution:   Blue to teal gradient (hope/possibility)
+Demo:       Dark with workspace screenshot mockup
+Founder:    Professional dark with subtle pattern
+Market:     Dark with animated number counters
+Timeline:   Dark with animated progress line
+```
+
+### Animation Patterns
+
+Using existing `slideAnimations.ts`:
+- `fadeInUp` - Default content reveal
+- `staggerContainer` - Lists and grid items
+- `scaleIn` - Key metrics and numbers
+- `slideInLeft/Right` - Two-column layouts
+- `floatUp` - Hero elements
 
 ---
 
-## Summary
+## Detailed Slide Designs
 
-| Current State | Proposed State |
-|---------------|----------------|
-| 14 tools (12 exposed) | 50+ tools |
-| Basic CRUD | Full account control |
-| Read-heavy | Balanced read/write |
-| No conversion tracking | Full conversion management |
-| No audience management | Complete audience control |
-| No keyword planning | Idea generation + forecasts |
-| No extensions | All extension types |
-| No targeting controls | Location, device, schedule, demographics |
+### Slide 1: Title
+- Full-screen gradient background (blue → purple)
+- Large "ELIXA" logo with glow effect
+- "PRE-SEED DECK" subtitle
+- Elixa mascot (waving pose) with float animation
+- Scroll indicator at bottom
+
+### Slide 2: Problem
+- **Headline**: "Solopreneurs struggle with overhead"
+- Split layout: Story on left, stats on right
+- Animated counter: "£39,039 + £5,106"
+- Pain point illustration with stressed founder visual
+- Red/orange accent to convey urgency
+
+### Slide 3: Solution Intro
+- "The solution? AI employees"
+- "But where are they?"
+- Price card: "£500+ for a simple chatbot"
+- Creates tension before Elixa's solution
+
+### Slide 4: Our Solution
+- **Headline**: "AI Employee Talent Pool + Workspace"
+- "Think Slack + App Store"
+- Split visual: Talent pool grid + unified workspace
+- Elixa mascot (pointing-right) introducing the concept
+
+### Slide 5: Demo
+- Full-width workspace mockup
+- Floating feature cards:
+  - AI Teams Chats
+  - Cross collaboration
+  - 90+ tools
+  - One workspace
+- "See it in action" CTA linking to `/chat`
+
+### Slide 6: Founder
+- Large profile photo area (placeholder or actual)
+- **Fawaaz Abbas**
+- Credentials list with icons:
+  - Marketing & programming background
+  - Ex-founder of Linvelles (fashion)
+  - Expert in distribution & MVP builds
+
+### Slide 7: Customer (SMEs)
+- Animated statistics grid:
+  - $3,500/year on SaaS
+  - 120 hours/year on admin
+  - 24 days on financial admin
+  - 96 min lost daily
+  - 1.8 hrs searching for info
+  - 10-30% software waste
+- Each stat animates in with counter effect
+
+### Slide 8: Market Size
+- Large animated numbers
+- TAM/SAM/SOM concentric circles visualization
+- Placeholder for "big numbers" to be added
+
+### Slide 9: Shopify Focus
+- Shopify logo integration
+- Key metrics:
+  - 5.5M merchants globally
+  - $120/month on apps
+  - 64% small businesses
+- Niche-down strategy explanation
+
+### Slide 10: Traction
+- Large animated counter: "10,000"
+- "Projected signups by February"
+- Growth trajectory visualization
+- Waitlist/signup CTA
+
+### Slide 11: Competition
+- Competitive landscape grid
+- Logos: Motion, Sintra, Alibaba, Google, ChatGPT, N8N, Salesforce
+- Visual differentiation showing Elixa's unique position
+
+### Slide 12: Competitive Advantage
+- Four advantage cards:
+  1. Private developers
+  2. One fully built workspace
+  3. 90+ tool integrations
+  4. No coding ever required
+- Each card with icon and description
+
+### Slide 13: Timeline
+- Horizontal timeline visualization
+- Animated progress through milestones:
+  - Jan: Foundational workspace
+  - Feb: 90+ integrations
+  - Mar: Soft launch + invite users
+  - Mar: Invite developers
+  - May: AI employee section
+  - Aug: 10k users
+
+---
+
+## Interactive Features
+
+### Navigation
+- **Slide Progress Indicator** (existing component, updated)
+- Keyboard navigation: Arrow keys, Page Up/Down
+- Scroll snap for clean slide transitions
+- Touch/swipe support for mobile
+
+### Scroll Behavior
+```css
+.pitch-deck-wrapper {
+  scroll-snap-type: y mandatory;
+}
+
+section {
+  scroll-snap-align: start;
+  height: 100vh;
+}
+```
+
+### Analytics Integration
+Using existing analytics utilities:
+- Track each slide view
+- Track completion rate
+- Track CTA clicks
+
+---
+
+## Responsive Design
+
+### Desktop (1024px+)
+- Full visual experience
+- Side navigation indicator
+- Large typography and animations
+
+### Tablet (768px - 1023px)
+- Scaled layouts
+- Adjusted typography
+- Simplified animations
+
+### Mobile (< 768px)
+- Vertical scrolling experience
+- Stacked content layouts
+- Touch-optimized navigation
+- Reduced animation complexity
+
+---
+
+## Implementation Summary
+
+1. **Create page component** (`PitchDeck.tsx`)
+   - Full-screen scroll container
+   - Keyboard event listeners
+   - Analytics tracking
+
+2. **Create 13 slide components**
+   - Each self-contained with animations
+   - Consistent structure: background → content → animations
+
+3. **Update navigation**
+   - Add route to App.tsx
+   - Update slide labels in progress indicator
+
+4. **Add CSS**
+   - Scroll snap styles
+   - Pitch deck specific utilities
+   - Print styles for PDF export
+
+5. **Testing**
+   - All screen sizes
+   - Keyboard navigation
+   - Animation performance
