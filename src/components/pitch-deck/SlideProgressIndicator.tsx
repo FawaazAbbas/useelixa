@@ -4,8 +4,8 @@ import { motion, useScroll, useSpring } from "framer-motion";
 const slideLabels = [
   "Title",
   "Problem",
-  "Solution",
-  "Why Now",
+  "Solution Intro",
+  "Our Solution",
   "Product",
   "Architecture",
   "Market",

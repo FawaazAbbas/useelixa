@@ -33,6 +33,7 @@ import Email from "./pages/Email";
 import Workflows from "./pages/Workflows";
 import AIEmployees from "./pages/AIEmployees";
 import Digest from "./pages/Digest";
+import PitchDeck from "./pages/PitchDeck";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -103,6 +104,7 @@ const AppContent = () => {
           {/* <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} /> */}
           <Route path="/admin" element={<Admin />} />
+          <Route path="/pitch-deck" element={<PitchDeck />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
