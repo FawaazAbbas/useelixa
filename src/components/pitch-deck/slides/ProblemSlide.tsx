@@ -3,9 +3,9 @@ import { fadeInUp, slideInLeft, slideInRight, staggerContainer, defaultViewport 
 import { TrendingDown, Clock, DollarSign } from "lucide-react";
 
 const stats = [
-  { icon: DollarSign, value: "£39,039", label: "Avg UK salary" },
-  { icon: TrendingDown, value: "+£5,106", label: "Employer tax cost" },
-  { icon: Clock, value: "120hrs", label: "Lost to admin yearly" },
+  { icon: DollarSign, value: "£39,039", label: "Cost of ONE employee/year" },
+  { icon: Clock, value: "24 days", label: "Lost to admin per year" },
+  { icon: TrendingDown, value: "10-30%", label: "Software budget wasted" },
 ];
 
 export const ProblemSlide = () => {

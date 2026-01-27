@@ -13,6 +13,7 @@ const competitors = [
     logo: null,
     icon: Code,
     iconColor: "text-red-500",
+    useTextLogo: false,
   },
   {
     name: "N8N",
@@ -24,6 +25,7 @@ const competitors = [
     logo: "/logos/n8nLogo.png",
     icon: null,
     iconColor: null,
+    useTextLogo: false,
   },
   {
     name: "Motion",
@@ -32,9 +34,10 @@ const competitors = [
     captionColor: "text-slate-600",
     bgColor: "bg-slate-50",
     borderColor: "border-slate-200",
-    logo: "https://assets.usemotion.com/website-assets-v2/logo/motion-logo.svg",
+    logo: null,
     icon: null,
     iconColor: null,
+    useTextLogo: true,
   },
 ];
 
@@ -96,6 +99,13 @@ export const SolutionIntroSlide = () => {
                       alt={`${comp.name} logo`} 
                       className="h-12 w-auto object-contain"
                     />
+                  ) : comp.useTextLogo ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <span className="text-white font-bold text-lg">M</span>
+                      </div>
+                      <span className="text-2xl font-bold text-slate-700">Motion</span>
+                    </div>
                   ) : comp.icon ? (
                     <div className={`w-14 h-14 rounded-xl ${comp.bgColor} border ${comp.borderColor} flex items-center justify-center`}>
                       <comp.icon className={`w-7 h-7 ${comp.iconColor}`} />
