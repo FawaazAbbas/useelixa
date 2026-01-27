@@ -4,49 +4,61 @@ import { Calendar, Rocket, Users, Code, Layers, Target } from "lucide-react";
 
 const milestones = [
   {
-    month: "Jan 2025",
-    title: "Foundational Workspace",
-    description: "Core platform development",
+    month: "Jan",
+    year: "2025",
+    title: "Workspace MVP",
+    description: "Core platform",
     icon: Layers,
     color: "bg-slate-500",
+    done: true,
   },
   {
     month: "Feb",
+    year: "2025",
     title: "90+ Integrations",
-    description: "Onboard minimum integrations",
+    description: "Connect tools",
     icon: Code,
     color: "bg-blue-500",
+    done: true,
   },
   {
     month: "Mar",
+    year: "2025",
     title: "Soft Launch",
-    description: "Invite early users",
+    description: "Early users",
     icon: Rocket,
     color: "bg-teal-500",
     arr: "First Revenue",
+    done: false,
   },
   {
-    month: "Mar",
-    title: "Developer Program",
-    description: "Invite developers to build",
+    month: "Apr",
+    year: "2025",
+    title: "Dev Program",
+    description: "Invite builders",
     icon: Code,
     color: "bg-purple-500",
+    done: false,
   },
   {
     month: "May",
-    title: "AI Employee Section",
-    description: "Launch talent pool",
+    year: "2025",
+    title: "AI Employees",
+    description: "Talent pool",
     icon: Users,
     color: "bg-primary",
     arr: "£50k ARR",
+    done: false,
   },
   {
     month: "Aug",
+    year: "2025",
     title: "10k Users",
-    description: "Scale milestone",
+    description: "Scale target",
     icon: Target,
     color: "bg-green-500",
     arr: "£250k ARR",
+    done: false,
   },
 ];
 
@@ -79,14 +91,14 @@ export const RevenueSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="relative"
+            className="relative mb-8"
           >
-            {/* Timeline line */}
-            <div className="absolute top-8 left-0 right-0 h-1 bg-slate-200 hidden md:block"></div>
-            <div className="absolute top-8 left-0 right-0 h-1 bg-gradient-to-r from-slate-400 via-primary to-green-500 hidden md:block"></div>
+            {/* Timeline line - desktop */}
+            <div className="absolute top-10 left-[8%] right-[8%] h-1 bg-slate-200 hidden md:block rounded-full"></div>
+            <div className="absolute top-10 left-[8%] w-[30%] h-1 bg-gradient-to-r from-teal-400 to-teal-500 hidden md:block rounded-full"></div>
             
             {/* Milestones */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-2">
               {milestones.map((milestone, index) => (
                 <motion.div
                   key={index}
@@ -94,22 +106,27 @@ export const RevenueSlide = () => {
                   className="flex flex-col items-center text-center"
                 >
                   {/* Icon circle */}
-                  <div className={`w-16 h-16 rounded-full ${milestone.color} flex items-center justify-center shadow-lg mb-3 relative z-10`}>
-                    <milestone.icon className="w-7 h-7 text-white" />
+                  <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full ${milestone.color} flex items-center justify-center shadow-lg mb-2 relative z-10 ${milestone.done ? 'ring-4 ring-teal-200' : ''}`}>
+                    <milestone.icon className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                    {milestone.done && (
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-teal-500 rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Month badge */}
-                  <div className="bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-1 rounded-full mb-2">
-                    {milestone.month}
+                  <div className="bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-0.5 rounded-full mb-1">
+                    {milestone.month} {milestone.year?.slice(-2)}
                   </div>
                   
                   {/* Title */}
-                  <h3 className="font-bold text-slate-900 text-sm mb-1">{milestone.title}</h3>
-                  <p className="text-xs text-slate-500 mb-2">{milestone.description}</p>
+                  <h3 className="font-bold text-slate-900 text-xs md:text-sm mb-0.5 leading-tight">{milestone.title}</h3>
+                  <p className="text-[10px] md:text-xs text-slate-500 mb-1">{milestone.description}</p>
                   
                   {/* ARR Badge */}
                   {milestone.arr && (
-                    <div className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+                    <div className="bg-green-100 text-green-700 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full">
                       {milestone.arr}
                     </div>
                   )}

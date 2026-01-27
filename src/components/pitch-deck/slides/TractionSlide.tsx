@@ -29,10 +29,10 @@ const AnimatedCounter = ({ end, suffix = "" }: { end: number; suffix?: string })
 };
 
 const milestones = [
-  { icon: Zap, label: "MVP Live", value: "Jan 2025", done: true },
-  { icon: Users, label: "Beta Users", value: "500+", done: true },
-  { icon: TrendingUp, label: "Projected Signups", value: "10,000", done: false },
-  { icon: Calendar, label: "Target Date", value: "Feb 2025", done: false },
+  { icon: Zap, label: "MVP Live", value: "Jan 2025", done: true, subtitle: "Platform launched" },
+  { icon: Users, label: "Beta Users", value: "500+", done: true, subtitle: "Early adopters" },
+  { icon: TrendingUp, label: "Target Signups", value: "10,000", done: false, subtitle: "Growth goal" },
+  { icon: Calendar, label: "Target Date", value: "Aug 2025", done: false, subtitle: "Scale milestone" },
 ];
 
 export const TractionSlide = () => {
@@ -60,21 +60,36 @@ export const TractionSlide = () => {
             </h2>
           </motion.div>
 
-          {/* Big number */}
+          {/* Big numbers row */}
           <motion.div
             variants={scaleIn}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mb-16"
+            className="mb-12"
           >
-            <div className="inline-block">
-              <div className="text-7xl md:text-8xl lg:text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-500">
-                <AnimatedCounter end={10000} />
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
+              {/* Main number */}
+              <div className="text-center">
+                <div className="text-6xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-500">
+                  <AnimatedCounter end={10000} />
+                </div>
+                <p className="text-lg text-slate-500 mt-2">
+                  Target users by <span className="text-slate-900 font-semibold">August 2025</span>
+                </p>
               </div>
-              <p className="text-2xl text-slate-500 mt-4">
-                Projected signups by <span className="text-slate-900 font-semibold">February 2025</span>
-              </p>
+              
+              {/* Secondary metric */}
+              <div className="hidden md:block w-px h-20 bg-gradient-to-b from-transparent via-slate-300 to-transparent" />
+              
+              <div className="text-center">
+                <div className="text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-teal-500">
+                  £<AnimatedCounter end={250} />k
+                </div>
+                <p className="text-lg text-slate-500 mt-2">
+                  Target <span className="text-slate-900 font-semibold">ARR</span>
+                </p>
+              </div>
             </div>
           </motion.div>
 
@@ -90,20 +105,21 @@ export const TractionSlide = () => {
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className={`bg-white border rounded-2xl p-6 shadow-lg shadow-slate-200/50 ${
+                className={`bg-white border rounded-2xl p-5 shadow-lg shadow-slate-200/50 ${
                   milestone.done ? 'border-teal-300' : 'border-slate-200'
                 }`}
               >
-                <div className={`w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center ${
+                <div className={`w-11 h-11 rounded-xl mx-auto mb-3 flex items-center justify-center ${
                   milestone.done ? 'bg-teal-100' : 'bg-slate-100'
                 }`}>
-                  <milestone.icon className={`w-6 h-6 ${milestone.done ? 'text-teal-600' : 'text-slate-400'}`} />
+                  <milestone.icon className={`w-5 h-5 ${milestone.done ? 'text-teal-600' : 'text-slate-400'}`} />
                 </div>
-                <div className="text-xl font-bold text-slate-900 mb-1">{milestone.value}</div>
-                <div className="text-sm text-slate-500">{milestone.label}</div>
+                <div className="text-xl font-bold text-slate-900 mb-0.5">{milestone.value}</div>
+                <div className="text-sm font-medium text-slate-700">{milestone.label}</div>
+                <div className="text-xs text-slate-400 mb-2">{milestone.subtitle}</div>
                 {milestone.done && (
-                  <span className="inline-block mt-2 text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">
-                    ✓ Complete
+                  <span className="inline-block text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
+                    ✓ Done
                   </span>
                 )}
               </motion.div>

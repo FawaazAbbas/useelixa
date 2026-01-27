@@ -19,14 +19,16 @@ const Feature = ({ has, isUs }: { has: boolean; isUs?: boolean }) => {
   return <X className="w-5 h-5 text-slate-300" />;
 };
 
-// Positioning data for the 2x2 matrix
+// Positioning data for the 2x2 matrix (X: Cheap→Expensive, Y: Smart→Basic)
+// Y values: 100% = top (Smart), 0% = bottom (Basic)
+// X values: 0% = left (Cheap), 100% = right (Expensive)
 const positioningData = [
-  { name: "ChatGPT", x: 20, y: 75, size: "lg" },
-  { name: "N8N", x: 65, y: 30, size: "md" },
-  { name: "Motion", x: 35, y: 40, size: "md" },
-  { name: "Lindy", x: 72, y: 70, size: "md" },
-  { name: "Einstein", x: 85, y: 55, size: "sm" },
-  { name: "Elixa", x: 78, y: 82, size: "lg", isUs: true },
+  { name: "ChatGPT", x: 25, y: 85, size: "lg" },      // Cheap, Very Smart
+  { name: "N8N", x: 20, y: 40, size: "md" },          // Very Cheap, Medium-Basic
+  { name: "Motion", x: 35, y: 35, size: "md" },       // Cheap-ish, Basic
+  { name: "Lindy", x: 75, y: 80, size: "md" },        // Expensive, Smart
+  { name: "Einstein", x: 90, y: 65, size: "sm" },     // Very Expensive, Medium-Smart
+  { name: "Elixa", x: 22, y: 82, size: "lg", isUs: true }, // Cheap, Smart - Sweet spot!
 ];
 
 export const CompetitionSlide = () => {
@@ -69,14 +71,14 @@ export const CompetitionSlide = () => {
                   {/* Horizontal axis */}
                   <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-300"></div>
                   
-                  {/* Labels */}
+                  {/* Labels - Updated axes: Smart/Basic (Y), Cheap/Expensive (X) */}
                   <span className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Smart</span>
                   <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Basic</span>
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide rotate-0">Simple</span>
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Integrated</span>
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-green-600 uppercase tracking-wide">Cheap</span>
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-red-500 uppercase tracking-wide">Expensive</span>
                   
-                  {/* Quadrant shading */}
-                  <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-green-50/50 rounded-tr-xl"></div>
+                  {/* Quadrant shading - top-left is the sweet spot (Smart + Cheap) */}
+                  <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-green-50/60 rounded-tl-xl"></div>
                 </div>
                 
                 {/* Competitor bubbles */}

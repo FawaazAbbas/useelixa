@@ -34,20 +34,12 @@ export const SlideProgressIndicator = () => {
   }, [scrollYProgress]);
 
   const scrollToSlide = (index: number) => {
-    const slides = document.querySelectorAll<HTMLElement>(".pitch-deck-wrapper section");
-    const targetSection = slides[index];
-
-    if (targetSection) {
-      targetSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-      return;
-    }
-
     const slideHeight = window.innerHeight;
+    const targetScroll = index * slideHeight;
+    
+    // Use window scroll directly - more reliable with scroll-snap
     window.scrollTo({
-      top: index * slideHeight,
+      top: targetScroll,
       behavior: "smooth",
     });
   };
