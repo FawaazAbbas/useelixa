@@ -1,278 +1,244 @@
 
 
-# Pitch Deck Updates - Visual & Content Enhancement
+# Pitch Deck Fixes - 7 Issues
 
 ## Overview
-Update multiple slides with enhanced visuals, competitor logos, agent pricing, timeline with ARR projections, and improved market opportunity presentation.
+
+This plan addresses 7 specific issues with the pitch deck:
+
+1. **Problem Slide (Slide 2)** - Replace weak stats below avg salary
+2. **Solution Intro Slide (Slide 3)** - Motion logo not showing
+3. **Our Solution Slide (Slide 4)** - Poor design, needs improvement
+4. **Traction Slide** - Only shows 10k, needs more meaningful numbers
+5. **Competition Slide** - Positioning matrix axes wrong and bubble placement needs fixing
+6. **Timeline Slide** - Layout needs improvement
+7. **Sidebar Navigation** - Scroll-to-slide not working
 
 ---
 
-## Changes Summary
+## Issue 1: Problem Slide - Replace Weak Stats
 
-| Slide | Changes |
-|-------|---------|
-| Solution Intro | Replace Lucide icons with actual N8N and UseMotion logos; enhance caption prominence |
-| Our Solution | Add prominent mascot + Elixa logo header; improve visual hierarchy |
-| Market Opportunity | Redesign with richer content, clearer TAM/SAM breakdown, visual callouts |
-| Competition (Landscape) | Creative redesign with visual positioning; add Lindy AI as competitor |
-| Pricing | Add agent counts (Starter: 2, Pro: 6, Unlimited: 12) + extra agent pricing (£10/mo) |
-| Revenue Model | Replace entirely with Timeline + ARR Projections slide |
-
----
-
-## Detailed Implementation
-
-### 1. Solution Intro Slide (`SolutionIntroSlide.tsx`)
+**File:** `src/components/pitch-deck/slides/ProblemSlide.tsx`
 
 **Current State:**
-- Uses Lucide icons (`Code`, `Wrench`, `Sparkles`)
-- Captions styled as small italic text
-
-**Changes:**
-- Replace N8N's `Wrench` icon with `/logos/n8nLogo.png` (exists in project)
-- Replace Motion's `Sparkles` icon with a new UseMotion logo image (will use external URL or add to public folder)
-- Make captions larger and bolder with red/orange accent colors to stand out
-- Add quotation styling to make the pain point messaging more prominent
-
-```text
-Layout:
-+------------------+  +------------------+  +------------------+
-| [Developer icon] |  | [N8N Logo]       |  | [Motion Logo]    |
-| Private Devs     |  | N8N              |  | Motion           |
-|                  |  |                  |  |                  |
-| £500+            |  | £24/month        |  | £35/month        |
-|                  |  |                  |  |                  |
-| "EXPENSIVE"      |  | "DIY SOLUTION"   |  | "NOT VERY SMART" |
-| (large, bold)    |  | (large, bold)    |  | (large, bold)    |
-+------------------+  +------------------+  +------------------+
+```
+- £39,039 Avg UK salary
+- +£5,106 Employer tax cost  
+- 120hrs Lost to admin yearly  ← weak
 ```
 
-**Caption styling:**
-- `text-lg font-bold uppercase tracking-wide`
-- Color-coded: Red for expensive, Amber for DIY, Slate for "not smart"
-- Add subtle background pill or underline for emphasis
+**Problem:** The two stats below avg salary (employer tax and 120hrs) don't strongly communicate the pain point. They feel disconnected.
 
----
+**Fix:** Replace with more impactful, relatable pain points:
 
-### 2. Our Solution Slide (`OurSolutionSlide.tsx`)
-
-**Current State:**
-- Mascot hidden in bottom-right corner
-- No Elixa logo prominent
-
-**Changes:**
-- Add hero section with large Elixa logo + mascot at the top
-- Keep the 3-column layout below
-- Make mascot larger and centered with logo
-
-```text
-New Layout:
-+--------------------------------------------------+
-|     [ELIXA LOGO]    [MASCOT - celebrating]       |
-|     "AI Employee Talent Pool + Workspace"        |
-|     "Think Slack + App Store"                    |
-+--------------------------------------------------+
-|  +------------+  +------------+  +------------+  |
-|  | Made by    |  | Role-      |  | Unified    |  |
-|  | Private    |  | Specific   |  | Workspace  |  |
-|  | Developers |  | AI Roles   |  |            |  |
-|  +------------+  +------------+  +------------+  |
-+--------------------------------------------------+
+```
+- £39,039 - What hiring ONE employee costs
+- 24 days/year - Time lost on financial admin alone
+- 10-30% - Software budget wasted on unused tools
 ```
 
-**Mascot integration:**
-- Use `ElixaMascot` with `pose="celebrating"` and `size="xl"`
-- Position alongside `ElixaLogo` with gradient styling
+These stats are more emotionally resonant and directly tie to the solopreneur's pain.
 
 ---
 
-### 3. Market Opportunity Slide (`MarketSlide.tsx`)
+## Issue 2: Motion Logo Missing
+
+**File:** `src/components/pitch-deck/slides/SolutionIntroSlide.tsx`
 
 **Current State:**
-- Simple concentric circles (TAM/SAM/SOM)
-- Minimal context on how numbers are derived
+The Motion logo URL is set to:
+```javascript
+logo: "https://assets.usemotion.com/website-assets-v2/logo/motion-logo.svg"
+```
 
-**Changes:**
-- Add market breakdown methodology (top-down vs bottom-up)
-- Include visual callouts explaining each metric
-- Add supporting stats and growth rates
-- More visual richness with icons and data cards
+**Problem:** This external SVG URL may be blocked by CORS or the path may have changed.
 
-```text
-New Layout:
+**Fix:** Use a reliable fallback approach:
+- First try the external URL
+- If it fails, show the Motion name with styled text as fallback
+- Or use a generic icon with "Motion" text label
+
+Better approach: Use a local logo if available or create a styled text representation:
+```jsx
+<div className="h-12 flex items-center justify-center">
+  <span className="text-2xl font-bold text-slate-700">Motion</span>
+</div>
+```
+
+---
+
+## Issue 3: Our Solution Slide - Design Issues
+
+**File:** `src/components/pitch-deck/slides/OurSolutionSlide.tsx`
+
+**Current Problems:**
+1. The mascot and logo feel cramped together
+2. The 3-column layout cards are too dense
+3. Visual hierarchy is weak
+
+**Fixes:**
+1. Increase spacing between logo and mascot
+2. Make the header section larger and more prominent
+3. Add subtle visual polish to the cards (gradients, icons with better colors)
+4. Improve the role badges layout
+5. Add a subtle decorative element
+
+**Updated Layout:**
+```
 +--------------------------------------------------+
-|           MARKET OPPORTUNITY                      |
 |                                                   |
-|  +----------------------------+  +-------------+ |
-|  |                            |  | BREAKDOWN   | |
-|  |    [TAM Circle - $150B]    |  | Top-Down    | |
-|  |    [SAM Circle - $25B]     |  | Analysis    | |
-|  |    [SOM Circle - $500M]    |  | SME Focus   | |
-|  +----------------------------+  +-------------+ |
+|    [ELIXA LOGO - larger]    [MASCOT - larger]    |
 |                                                   |
-|  +-------+ +-------+ +-------+ +-------+         |
-|  | 35%   | | 50M   | | 64%   | | $3.5k |         |
-|  | CAGR  | | SMEs  | | UK    | | waste |         |
-|  +-------+ +-------+ +-------+ +-------+         |
+|    AI Employee Talent Pool + Workspace           |
+|    "Think Slack + App Store"                     |
+|                                                   |
++--------------------------------------------------+
+|                                                   |
+|   [Card 1]        [Card 2]        [Card 3]       |
+|   Made by         Role-Specific   Unified        |
+|   Experts         AI Employees    Workspace      |
+|                                                   |
 +--------------------------------------------------+
 ```
 
-**Content additions:**
-- TAM: "Global AI Productivity Tools" - $150B (top-down from analyst reports)
-- SAM: "SME AI Tools & Automation" - $25B (businesses <500 employees)
-- SOM: "Year 5 Target" - $500M (realistic capture rate)
-- Supporting metrics: 35% CAGR, 50M+ SMEs globally, 64% UK businesses are SMEs, $3,500 average SaaS waste
+---
+
+## Issue 4: Traction Slide - Only 10k
+
+**File:** `src/components/pitch-deck/slides/TractionSlide.tsx`
+
+**Current State:** Only shows "10,000 projected signups"
+
+**Problem:** One number isn't compelling enough. Need supporting metrics.
+
+**Fix:** Add milestone cards showing progress:
+
+| Milestone | Status |
+|-----------|--------|
+| MVP Live | Jan 2025 - Done |
+| Beta Users | 500+ - Done |
+| Projected Signups | 10,000 |
+| Target Date | Feb 2025 |
+
+This shows both achieved milestones and projections.
 
 ---
 
-### 4. Competition Slide (`CompetitionSlide.tsx`)
+## Issue 5: Competition Slide - Positioning Matrix
 
-**Current State:**
-- Basic table with checkmarks
-- Missing Lindy AI (close competitor found in research)
+**File:** `src/components/pitch-deck/slides/CompetitionSlide.tsx`
 
-**Changes:**
-- Redesign as visual positioning map (2x2 matrix or bubble chart)
-- Add Lindy AI as competitor (they have workspace + talent pool similar to Elixa)
-- Add more columns/dimensions for differentiation
-- Make Elixa stand out visually
+**Current Axes:**
+- Vertical: "Smart" (top) to "Basic" (bottom) - CORRECT
+- Horizontal: "Simple" (left) to "Integrated" (right) - NEEDS CHANGE
 
-**New Competitor - Lindy AI:**
-- Workspace: Yes
-- Integrations: Yes (they claim 3000+)
-- AI Talent Pool: Yes (they have AI employee concept)
-- However: Credit-based pricing, complex, enterprise-focused
+**User Request:** 
+- Y-axis: Smart to Basic (top to bottom) - keep
+- X-axis: Change from "Simple/Integrated" to "Cheap/Expensive"
 
-```text
-New Layout Option - Positioning Matrix:
+**Bubble Positioning Issues:**
+Current positioning doesn't make intuitive sense. Need to recalculate positions based on new axes.
 
-                 SMART/CAPABLE
-                      ^
-                      |
-           ChatGPT    |    Elixa ★
-                      |    Lindy
-    SIMPLE -----------+----------- INTEGRATED
-                      |
-           N8N        |    Salesforce
-           Motion     |    Einstein
-                      |
-                      v
-               BASIC/LIMITED
+**New Positions (Cheap to Expensive, Smart to Basic):**
 
-+ Comparison Table (simplified) below
-```
-
-**Updated competitor list:**
-1. ChatGPT
-2. N8N
-3. Motion
-4. Sintra AI
-5. Lindy AI (NEW)
-6. Salesforce Einstein
-7. Elixa (Us)
+| Competitor | X (Cheap→Expensive) | Y (Smart→Basic) |
+|------------|---------------------|-----------------|
+| ChatGPT | 30% | 85% | (Cheap, Very Smart)
+| N8N | 25% | 35% | (Very Cheap, Medium)
+| Motion | 35% | 30% | (Cheap-ish, Medium-Basic)
+| Lindy | 75% | 80% | (Expensive, Smart)
+| Salesforce | 95% | 60% | (Very Expensive, Medium-Smart)
+| Elixa | 25% | 80% | (Cheap, Smart) - Sweet spot
 
 ---
 
-### 5. Pricing Slide (`PricingSlide.tsx`)
+## Issue 6: Timeline Slide Layout
 
-**Current State:**
-- Shows credits and connectors
-- Missing agent counts
+**File:** `src/components/pitch-deck/slides/RevenueSlide.tsx`
 
-**Changes:**
-- Add agent counts to each plan:
-  - Trial: 1 agent
-  - Starter: 2 agents
-  - Pro: 6 agents
-  - Unlimited: 12 agents
-- Add "Additional Agents" pricing section: £10/month each
+**Current Problems:**
+- Timeline milestones cramped on mobile
+- Visual flow not clear
+- ARR projections not prominent
 
-```text
-Updated Pricing Cards:
-+----------+ +----------+ +----------+ +----------+
-| Trial    | | Starter  | | Pro ★    | | Unlimited|
-| £0       | | £4.99/mo | | £14.99/mo| | £29.99/mo|
-|          | |          | |          | |          |
-| 1 agent  | | 2 agents | | 6 agents | | 12 agents|
-| 100 cred | | 1k cred  | | 5k cred  | | Unlimited|
-| ...      | | ...      | | ...      | | ...      |
-+----------+ +----------+ +----------+ +----------+
-
-Additional Costs:
-+-------------------+ +-------------------+ +-------------------+
-| Storage           | | Credits           | | Extra Agents      |
-| TBC               | | 6p per credit     | | £10/month each    |
-+-------------------+ +-------------------+ +-------------------+
-```
+**Fixes:**
+1. Horizontal timeline with clearer connections
+2. Larger milestone icons
+3. Better visual distinction between completed and future items
+4. ARR projection badges more prominent
+5. Improve grid layout for 6 milestones
 
 ---
 
-### 6. Timeline Slide (Replace `RevenueSlide.tsx`)
+## Issue 7: Sidebar Navigation Not Working
 
-**Current State:**
-- "Revenue Model" / "Business Model" with metrics and projections
+**File:** `src/components/pitch-deck/SlideProgressIndicator.tsx`
 
-**Changes:**
-- Rename to "Timeline & Projections"
-- Show horizontal timeline with milestones
-- Overlay ARR projection targets at key points
-- Use your provided timeline:
+**Current Implementation:**
+```javascript
+const scrollToSlide = (index: number) => {
+  const slides = document.querySelectorAll<HTMLElement>(".pitch-deck-wrapper section");
+  const targetSection = slides[index];
 
-```text
-Timeline:
-Jan 2025        Feb           Mar           Mar           May           Aug
-   |             |             |             |             |             |
-   v             v             v             v             v             v
-+------+     +------+     +------+     +------+     +------+     +------+
-|Found-|     |90+   |     |Soft  |     |Invite|     |AI    |     |10k   |
-|ational|    |Integr-|    |Launch|     |Devs  |     |Employ|     |Users |
-|Work- |     |ations|     |+Users|     |      |     |Section|    |      |
-|space |     |      |     |      |     |      |     |      |     |      |
-+------+     +------+     +------+     +------+     +------+     +------+
-
-ARR Targets:
-                                              £50k ARR   £250k ARR
+  if (targetSection) {
+    targetSection.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    return;
+  }
+  // Fallback to window scroll
+};
 ```
 
-**ARR Projections overlaid:**
-- Mar (Soft Launch): First revenue
-- May (AI Employees): £50k ARR target
-- Aug (10k users): £250k ARR target (based on 10k users @ avg £25/mo = £250k ARR)
+**Potential Issues:**
+1. The selector `.pitch-deck-wrapper section` may not be finding sections correctly
+2. `scrollIntoView` with scroll-snap can behave unpredictably
+3. The scroll container might be the wrapper, not the window
+
+**Fix:** Change to use direct scroll calculation and scroll the correct container:
+
+```javascript
+const scrollToSlide = (index: number) => {
+  const wrapper = document.querySelector('.pitch-deck-wrapper');
+  const slideHeight = window.innerHeight;
+  
+  if (wrapper) {
+    wrapper.scrollTo({
+      top: index * slideHeight,
+      behavior: 'smooth'
+    });
+  } else {
+    window.scrollTo({
+      top: index * slideHeight,
+      behavior: 'smooth'
+    });
+  }
+};
+```
+
+Also need to check if `pitch-deck-wrapper` has the scroll container or if it's the window.
 
 ---
 
 ## Files to Modify
 
-| File | Action |
-|------|--------|
-| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Replace icons with logos, enhance captions |
-| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Add prominent mascot + logo header |
-| `src/components/pitch-deck/slides/MarketSlide.tsx` | Rich redesign with methodology + stats |
-| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Add Lindy AI, create positioning visual |
-| `src/components/pitch-deck/slides/PricingSlide.tsx` | Add agent counts + extra agent pricing |
-| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Complete rewrite as Timeline slide |
-| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Update "Revenue" label to "Timeline" |
-| `src/pages/PitchDeck.tsx` | Update import if file is renamed |
-
----
-
-## Visual Assets Needed
-
-| Asset | Source |
-|-------|--------|
-| N8N Logo | `/logos/n8nLogo.png` (already exists) |
-| UseMotion Logo | External URL or add to public folder |
-| Elixa Logo | `ElixaLogo` component (already exists) |
-| Mascot | `ElixaMascot` component (already exists) |
-
-For UseMotion logo, will use an external CDN URL or create a simple styled text representation if image is unavailable.
+| File | Changes |
+|------|---------|
+| `src/components/pitch-deck/slides/ProblemSlide.tsx` | Replace stats with more impactful ones |
+| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Fix Motion logo display |
+| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Improve design and spacing |
+| `src/components/pitch-deck/slides/TractionSlide.tsx` | Add milestone cards |
+| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Fix axes (Cheap/Expensive) and bubble positions |
+| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Improve timeline layout |
+| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Fix scroll-to-slide functionality |
 
 ---
 
 ## Technical Notes
 
-- All changes maintain the existing light mode theme
+- All changes maintain the light mode theme
 - Framer Motion animations preserved
 - Responsive layouts maintained
-- Print styles unaffected
+- Motion logo fallback handles CORS issues
 
