@@ -37,7 +37,7 @@ export const SolutionIntroSlide = () => {
     <section className="pitch-slide pitch-slide-solution-intro">
       {/* Light background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
-      
+
       <div className="relative z-10 flex items-center justify-center h-full px-6">
         <div className="max-w-6xl w-full text-center">
           {/* Question */}
@@ -57,19 +57,6 @@ export const SolutionIntroSlide = () => {
             </h2>
           </motion.div>
 
-          {/* Bot icon */}
-          <motion.div
-            variants={scaleIn}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="mb-8"
-          >
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-teal-100 to-blue-100 border border-teal-200">
-              <Bot className="w-10 h-10 text-teal-600" />
-            </div>
-          </motion.div>
-
           {/* But... */}
           <motion.div
             variants={fadeInUp}
@@ -78,9 +65,7 @@ export const SolutionIntroSlide = () => {
             viewport={defaultViewport}
             className="mb-12"
           >
-            <p className="text-2xl md:text-3xl text-slate-500">
-              But where are they?
-            </p>
+            <p className="text-2xl md:text-3xl text-slate-500">But where are they? What are the options?</p>
           </motion.div>
 
           {/* Competitor comparison boxes */}
@@ -97,7 +82,9 @@ export const SolutionIntroSlide = () => {
                 variants={scaleIn}
                 className={`${comp.bgColor} border ${comp.borderColor} rounded-2xl p-6 text-center shadow-lg`}
               >
-                <div className={`w-12 h-12 rounded-xl ${comp.bgColor} flex items-center justify-center mx-auto mb-4 border ${comp.borderColor}`}>
+                <div
+                  className={`w-12 h-12 rounded-xl ${comp.bgColor} flex items-center justify-center mx-auto mb-4 border ${comp.borderColor}`}
+                >
                   <comp.icon className={`w-6 h-6 ${comp.color}`} />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-800 mb-2">{comp.name}</h3>
