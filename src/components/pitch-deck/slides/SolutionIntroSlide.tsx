@@ -94,12 +94,7 @@ export const SolutionIntroSlide = () => {
                 {/* Logo or Icon */}
                 <div className="h-16 flex items-center justify-center mb-4">
                   {comp.logo ? (
-                    <img
-                      style="border-radius: 100px"
-                      src={comp.logo}
-                      alt={`${comp.name} logo`}
-                      className="h-12 w-auto object-contain"
-                    />
+                    <img src={comp.logo} alt={`${comp.name} logo`} className="h-12 w-auto object-contain" />
                   ) : comp.useTextLogo ? (
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
