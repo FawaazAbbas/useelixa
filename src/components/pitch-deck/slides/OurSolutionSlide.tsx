@@ -38,8 +38,8 @@ export const OurSolutionSlide = () => {
               Our Solution
             </span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-5 leading-tight">
-              AI Employee Talent Pool + Workspace, 
-              <br> We call it <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>.
+              AI Employee Talent Pool + Workspace, We call it
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>.
             </h2>
             <p className="text-2xl md:text-3xl text-slate-500">
               Think <span className="text-slate-900 font-semibold">"Slack + App Store"</span>
