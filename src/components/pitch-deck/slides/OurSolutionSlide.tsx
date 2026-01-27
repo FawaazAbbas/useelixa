@@ -33,7 +33,7 @@ export const OurSolutionSlide = () => {
           >
             {/* Logo and Mascot Row */}
             <div className="flex items-center justify-center gap-6 mb-6">
-              <ElixaLogo size="xl" />
+              <ElixaLogo size={80} />
               <ElixaMascot pose="celebrating" size="xl" animation="float" />
             </div>
             
