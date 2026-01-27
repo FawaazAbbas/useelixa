@@ -1,233 +1,243 @@
 
 
-# Pitch Deck Light Mode & Content Overhaul
+# Pitch Deck Updates - Visual & Content Enhancement
 
 ## Overview
-Transform the pitch deck from dark mode to light mode, reorganize slides, add competitor comparison boxes, update pricing to match the website, and create a more visual workspace demo.
+Update multiple slides with enhanced visuals, competitor logos, agent pricing, timeline with ARR projections, and improved market opportunity presentation.
 
 ---
 
 ## Changes Summary
 
-| Change | Description |
-|--------|-------------|
-| Light Mode | Convert all slides from dark gradients to light, professional backgrounds |
-| Solution Comparison | Add 3 competitor boxes: Private Developers, N8N, Motion |
-| Elixa Reveal | Add "Made by private developers" box + specific AI employee roles |
-| Visual Workspace | Replace box-based product slide with actual workspace mockup |
-| Remove Architecture | Delete ArchitectureSlide completely |
-| Correct Pricing | Update to Starter £4.99, Pro £14.99, Unlimited £29.99 + credits/storage |
-| Reorder Slides | Move Traction before GTM ("How We'll Win") |
-| Shopify Deep Dive | Add detailed customer segment slide after Market |
-| Remove Profitability | Update Revenue slide heading |
+| Slide | Changes |
+|-------|---------|
+| Solution Intro | Replace Lucide icons with actual N8N and UseMotion logos; enhance caption prominence |
+| Our Solution | Add prominent mascot + Elixa logo header; improve visual hierarchy |
+| Market Opportunity | Redesign with richer content, clearer TAM/SAM breakdown, visual callouts |
+| Competition (Landscape) | Creative redesign with visual positioning; add Lindy AI as competitor |
+| Pricing | Add agent counts (Starter: 2, Pro: 6, Unlimited: 12) + extra agent pricing (£10/mo) |
+| Revenue Model | Replace entirely with Timeline + ARR Projections slide |
 
 ---
 
-## Slide Order (New)
+## Detailed Implementation
+
+### 1. Solution Intro Slide (`SolutionIntroSlide.tsx`)
+
+**Current State:**
+- Uses Lucide icons (`Code`, `Wrench`, `Sparkles`)
+- Captions styled as small italic text
+
+**Changes:**
+- Replace N8N's `Wrench` icon with `/logos/n8nLogo.png` (exists in project)
+- Replace Motion's `Sparkles` icon with a new UseMotion logo image (will use external URL or add to public folder)
+- Make captions larger and bolder with red/orange accent colors to stand out
+- Add quotation styling to make the pain point messaging more prominent
 
 ```text
-1.  Title
-2.  Problem
-3.  Solution Intro (with competitor comparison)
-4.  Our Solution (enhanced with roles)
-5.  Product (visual workspace demo)
-6.  Market Size
-7.  Shopify Deep Dive (NEW)
-8.  Traction (MOVED UP)
-9.  Competition
-10. Pricing (updated)
-11. Revenue (remove profitability mention)
-12. GTM (Path to Win)
-13. Team & Ask
-```
-
-Total: 13 slides (same count, Architecture removed, Shopify added)
-
----
-
-## Technical Implementation
-
-### 1. Light Mode Theme
-
-**Files affected:**
-- `src/index.css` - Add `.pitch-deck-light` theme variables
-- `src/pages/PitchDeck.tsx` - Remove `dark` class, add light mode class
-- All 13 slide components - Update background gradients and text colors
-
-**Light mode color palette:**
-- Background: Clean whites and soft grays (hsl(220, 20%, 98%))
-- Text: Dark navy/charcoal (hsl(220, 15%, 15%))
-- Accent colors: Same primary blue, but on light backgrounds
-- Cards: White with subtle shadows instead of dark glass
-
-### 2. Solution Intro Slide Update
-
-**File:** `src/components/pitch-deck/slides/SolutionIntroSlide.tsx`
-
-Add 3 competitor comparison boxes below "But where are they?":
-
-```text
+Layout:
 +------------------+  +------------------+  +------------------+
-| Private          |  | N8N              |  | Motion           |
-| Developers       |  |                  |  |                  |
+| [Developer icon] |  | [N8N Logo]       |  | [Motion Logo]    |
+| Private Devs     |  | N8N              |  | Motion           |
 |                  |  |                  |  |                  |
 | £500+            |  | £24/month        |  | £35/month        |
-| "Expensive"      |  | "DIY solution"   |  | "Not very smart" |
+|                  |  |                  |  |                  |
+| "EXPENSIVE"      |  | "DIY SOLUTION"   |  | "NOT VERY SMART" |
+| (large, bold)    |  | (large, bold)    |  | (large, bold)    |
 +------------------+  +------------------+  +------------------+
 ```
 
-### 3. Our Solution Slide Enhancement
+**Caption styling:**
+- `text-lg font-bold uppercase tracking-wide`
+- Color-coded: Red for expensive, Amber for DIY, Slate for "not smart"
+- Add subtle background pill or underline for emphasis
 
-**File:** `src/components/pitch-deck/slides/OurSolutionSlide.tsx`
+---
 
-Changes:
-- Add third box: "Made by private developers"
-- Update Talent Pool description with specific roles:
-  - Bookkeeper
-  - Google PPC Marketer
-  - SEO Analyst
-  - Customer Support Agent
-  - Tax & Audit Supervisor
+### 2. Our Solution Slide (`OurSolutionSlide.tsx`)
 
-Layout becomes 3-column grid with:
-1. Made by Private Developers
-2. Talent Pool (with role examples)
-3. Unified Workspace
+**Current State:**
+- Mascot hidden in bottom-right corner
+- No Elixa logo prominent
 
-### 4. Visual Workspace Demo
-
-**File:** `src/components/pitch-deck/slides/ProductSlide.tsx`
-
-Replace abstract boxes with:
-- Full-width workspace mockup/screenshot area
-- Floating feature callouts overlaid on the visual
-- Show actual chat interface, sidebar, connected tools
-- "See it in action" CTA remains
-
-### 5. Remove Architecture Slide
-
-**Files affected:**
-- Delete: `src/components/pitch-deck/slides/ArchitectureSlide.tsx`
-- Update: `src/pages/PitchDeck.tsx` - Remove import and component
-- Update: `src/components/pitch-deck/SlideProgressIndicator.tsx` - Update labels
-
-### 6. Create Shopify Deep Dive Slide
-
-**New file:** `src/components/pitch-deck/slides/ShopifyDeepDiveSlide.tsx`
-
-Content:
-- Headline: "Let's Zoom In: Shopify Merchants"
-- Key metrics with animated counters:
-  - 5.5M merchants globally
-  - $120/month average app spend
-  - 64% are small businesses
-  - $7.9B total addressable within Shopify alone
-- Visual showing merchant pain points
-- Position after Market slide, before Traction
-
-### 7. Update Pricing Slide
-
-**File:** `src/components/pitch-deck/slides/PricingSlide.tsx`
-
-Update pricing to match website:
-
-| Plan | Price | Key Features |
-|------|-------|--------------|
-| Trial | £0 | 100 credits, 2 connectors, 14 days |
-| Starter | £4.99/mo | 1,000 credits, unlimited connectors |
-| Pro | £14.99/mo | 5,000 credits, GPT & Gemini Pro |
-| Unlimited | £29.99/mo | Unlimited credits, premium models |
-
-Add "Additional Costs" section below pricing cards:
+**Changes:**
+- Add hero section with large Elixa logo + mascot at the top
+- Keep the 3-column layout below
+- Make mascot larger and centered with logo
 
 ```text
-+------------------------+  +------------------------+
-| Storage                |  | Credits                |
-| TBC                    |  | 6p per credit          |
-| Additional storage     |  | Top up anytime for     |
-| pricing coming soon    |  | extra AI interactions  |
-+------------------------+  +------------------------+
+New Layout:
++--------------------------------------------------+
+|     [ELIXA LOGO]    [MASCOT - celebrating]       |
+|     "AI Employee Talent Pool + Workspace"        |
+|     "Think Slack + App Store"                    |
++--------------------------------------------------+
+|  +------------+  +------------+  +------------+  |
+|  | Made by    |  | Role-      |  | Unified    |  |
+|  | Private    |  | Specific   |  | Workspace  |  |
+|  | Developers |  | AI Roles   |  |            |  |
+|  +------------+  +------------+  +------------+  |
++--------------------------------------------------+
 ```
 
-### 8. Reorder Slides & Update Revenue
+**Mascot integration:**
+- Use `ElixaMascot` with `pose="celebrating"` and `size="xl"`
+- Position alongside `ElixaLogo` with gradient styling
 
-**File:** `src/pages/PitchDeck.tsx`
+---
 
-New order:
-```tsx
-<TitleSlide />
-<ProblemSlide />
-<SolutionIntroSlide />
-<OurSolutionSlide />
-<ProductSlide />
-<MarketSlide />
-<ShopifyDeepDiveSlide />  {/* NEW */}
-<TractionSlide />         {/* MOVED UP */}
-<CompetitionSlide />
-<PricingSlide />
-<RevenueSlide />
-<GTMSlide />              {/* Now after Traction */}
-<TeamAskSlide />
+### 3. Market Opportunity Slide (`MarketSlide.tsx`)
+
+**Current State:**
+- Simple concentric circles (TAM/SAM/SOM)
+- Minimal context on how numbers are derived
+
+**Changes:**
+- Add market breakdown methodology (top-down vs bottom-up)
+- Include visual callouts explaining each metric
+- Add supporting stats and growth rates
+- More visual richness with icons and data cards
+
+```text
+New Layout:
++--------------------------------------------------+
+|           MARKET OPPORTUNITY                      |
+|                                                   |
+|  +----------------------------+  +-------------+ |
+|  |                            |  | BREAKDOWN   | |
+|  |    [TAM Circle - $150B]    |  | Top-Down    | |
+|  |    [SAM Circle - $25B]     |  | Analysis    | |
+|  |    [SOM Circle - $500M]    |  | SME Focus   | |
+|  +----------------------------+  +-------------+ |
+|                                                   |
+|  +-------+ +-------+ +-------+ +-------+         |
+|  | 35%   | | 50M   | | 64%   | | $3.5k |         |
+|  | CAGR  | | SMEs  | | UK    | | waste |         |
+|  +-------+ +-------+ +-------+ +-------+         |
++--------------------------------------------------+
 ```
 
-**File:** `src/components/pitch-deck/slides/RevenueSlide.tsx`
-- Change heading from "Path to Profitability" to "Revenue Model" or "Business Model"
+**Content additions:**
+- TAM: "Global AI Productivity Tools" - $150B (top-down from analyst reports)
+- SAM: "SME AI Tools & Automation" - $25B (businesses <500 employees)
+- SOM: "Year 5 Target" - $500M (realistic capture rate)
+- Supporting metrics: 35% CAGR, 50M+ SMEs globally, 64% UK businesses are SMEs, $3,500 average SaaS waste
 
-### 9. Update Progress Indicator
+---
 
-**File:** `src/components/pitch-deck/SlideProgressIndicator.tsx`
+### 4. Competition Slide (`CompetitionSlide.tsx`)
 
-New labels:
-```typescript
-const slideLabels = [
-  "Title",
-  "Problem",
-  "Solution Intro",
-  "Our Solution",
-  "Product",
-  "Market",
-  "Shopify Focus",
-  "Traction",
-  "Competition",
-  "Pricing",
-  "Revenue",
-  "GTM",
-  "Team & Ask",
-];
+**Current State:**
+- Basic table with checkmarks
+- Missing Lindy AI (close competitor found in research)
+
+**Changes:**
+- Redesign as visual positioning map (2x2 matrix or bubble chart)
+- Add Lindy AI as competitor (they have workspace + talent pool similar to Elixa)
+- Add more columns/dimensions for differentiation
+- Make Elixa stand out visually
+
+**New Competitor - Lindy AI:**
+- Workspace: Yes
+- Integrations: Yes (they claim 3000+)
+- AI Talent Pool: Yes (they have AI employee concept)
+- However: Credit-based pricing, complex, enterprise-focused
+
+```text
+New Layout Option - Positioning Matrix:
+
+                 SMART/CAPABLE
+                      ^
+                      |
+           ChatGPT    |    Elixa ★
+                      |    Lindy
+    SIMPLE -----------+----------- INTEGRATED
+                      |
+           N8N        |    Salesforce
+           Motion     |    Einstein
+                      |
+                      v
+               BASIC/LIMITED
+
++ Comparison Table (simplified) below
+```
+
+**Updated competitor list:**
+1. ChatGPT
+2. N8N
+3. Motion
+4. Sintra AI
+5. Lindy AI (NEW)
+6. Salesforce Einstein
+7. Elixa (Us)
+
+---
+
+### 5. Pricing Slide (`PricingSlide.tsx`)
+
+**Current State:**
+- Shows credits and connectors
+- Missing agent counts
+
+**Changes:**
+- Add agent counts to each plan:
+  - Trial: 1 agent
+  - Starter: 2 agents
+  - Pro: 6 agents
+  - Unlimited: 12 agents
+- Add "Additional Agents" pricing section: £10/month each
+
+```text
+Updated Pricing Cards:
++----------+ +----------+ +----------+ +----------+
+| Trial    | | Starter  | | Pro ★    | | Unlimited|
+| £0       | | £4.99/mo | | £14.99/mo| | £29.99/mo|
+|          | |          | |          | |          |
+| 1 agent  | | 2 agents | | 6 agents | | 12 agents|
+| 100 cred | | 1k cred  | | 5k cred  | | Unlimited|
+| ...      | | ...      | | ...      | | ...      |
++----------+ +----------+ +----------+ +----------+
+
+Additional Costs:
++-------------------+ +-------------------+ +-------------------+
+| Storage           | | Credits           | | Extra Agents      |
+| TBC               | | 6p per credit     | | £10/month each    |
++-------------------+ +-------------------+ +-------------------+
 ```
 
 ---
 
-## Light Mode Style Guide
+### 6. Timeline Slide (Replace `RevenueSlide.tsx`)
 
-### Background Gradients (per slide)
+**Current State:**
+- "Revenue Model" / "Business Model" with metrics and projections
 
-| Slide | Light Mode Background |
-|-------|----------------------|
-| Title | White to soft blue gradient |
-| Problem | Soft warm gray with subtle orange accent |
-| Solution Intro | Light gray to white |
-| Our Solution | White with blue accent glow |
-| Product | Light gray with grid pattern |
-| Market | White with teal accent |
-| Shopify | White with green (Shopify brand) accent |
-| Traction | Light with teal gradient |
-| Competition | Clean white |
-| Pricing | Soft gray to white |
-| Revenue | White with green accent |
-| GTM | Light purple tint |
-| Team & Ask | Gradient to primary blue |
+**Changes:**
+- Rename to "Timeline & Projections"
+- Show horizontal timeline with milestones
+- Overlay ARR projection targets at key points
+- Use your provided timeline:
 
-### Text Colors
-- Headlines: `text-slate-900` or `text-gray-900`
-- Body text: `text-slate-600` or `text-gray-600`
-- Muted: `text-slate-400`
-- Accent text: Keep existing primary/purple/teal colors
+```text
+Timeline:
+Jan 2025        Feb           Mar           Mar           May           Aug
+   |             |             |             |             |             |
+   v             v             v             v             v             v
++------+     +------+     +------+     +------+     +------+     +------+
+|Found-|     |90+   |     |Soft  |     |Invite|     |AI    |     |10k   |
+|ational|    |Integr-|    |Launch|     |Devs  |     |Employ|     |Users |
+|Work- |     |ations|     |+Users|     |      |     |Section|    |      |
+|space |     |      |     |      |     |      |     |      |     |      |
++------+     +------+     +------+     +------+     +------+     +------+
 
-### Card Styling
-- Background: `bg-white`
-- Border: `border border-slate-200`
-- Shadow: `shadow-lg shadow-slate-200/50`
+ARR Targets:
+                                              £50k ARR   £250k ARR
+```
+
+**ARR Projections overlaid:**
+- Mar (Soft Launch): First revenue
+- May (AI Employees): £50k ARR target
+- Aug (10k users): £250k ARR target (based on 10k users @ avg £25/mo = £250k ARR)
 
 ---
 
@@ -235,41 +245,34 @@ const slideLabels = [
 
 | File | Action |
 |------|--------|
-| `src/pages/PitchDeck.tsx` | Update slide order, remove Architecture import |
-| `src/index.css` | Add light mode pitch deck styles |
-| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Update slide labels |
-| `src/components/pitch-deck/slides/TitleSlide.tsx` | Light mode conversion |
-| `src/components/pitch-deck/slides/ProblemSlide.tsx` | Light mode conversion |
-| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Light mode + add competitor boxes |
-| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Light mode + 3-column with roles |
-| `src/components/pitch-deck/slides/ProductSlide.tsx` | Light mode + visual workspace |
-| `src/components/pitch-deck/slides/MarketSlide.tsx` | Light mode conversion |
-| `src/components/pitch-deck/slides/ShopifyDeepDiveSlide.tsx` | **CREATE NEW** |
-| `src/components/pitch-deck/slides/TractionSlide.tsx` | Light mode conversion |
-| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Light mode conversion |
-| `src/components/pitch-deck/slides/PricingSlide.tsx` | Light mode + update prices + add costs |
-| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Light mode + remove profitability |
-| `src/components/pitch-deck/slides/GTMSlide.tsx` | Light mode conversion |
-| `src/components/pitch-deck/slides/TeamAskSlide.tsx` | Light mode conversion |
+| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Replace icons with logos, enhance captions |
+| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Add prominent mascot + logo header |
+| `src/components/pitch-deck/slides/MarketSlide.tsx` | Rich redesign with methodology + stats |
+| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Add Lindy AI, create positioning visual |
+| `src/components/pitch-deck/slides/PricingSlide.tsx` | Add agent counts + extra agent pricing |
+| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Complete rewrite as Timeline slide |
+| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Update "Revenue" label to "Timeline" |
+| `src/pages/PitchDeck.tsx` | Update import if file is renamed |
 
 ---
 
-## Landscape Improvements
+## Visual Assets Needed
 
-For better landscape viewing:
-- Increase horizontal padding on all slides
-- Use more horizontal layouts (side-by-side) instead of stacked
-- Ensure content doesn't feel cramped
-- Use `max-w-7xl` instead of `max-w-6xl` on wider slides
-- Add `lg:flex-row` patterns where content is currently stacked
+| Asset | Source |
+|-------|--------|
+| N8N Logo | `/logos/n8nLogo.png` (already exists) |
+| UseMotion Logo | External URL or add to public folder |
+| Elixa Logo | `ElixaLogo` component (already exists) |
+| Mascot | `ElixaMascot` component (already exists) |
+
+For UseMotion logo, will use an external CDN URL or create a simple styled text representation if image is unavailable.
 
 ---
 
-## Visual Workspace Mockup
+## Technical Notes
 
-For the Product slide, will create a stylized representation showing:
-- Left sidebar with navigation icons
-- Chat area with sample AI conversation
-- Connected tools badges floating around
-- This can be achieved with CSS/Tailwind styling to represent the UI
+- All changes maintain the existing light mode theme
+- Framer Motion animations preserved
+- Responsive layouts maintained
+- Print styles unaffected
 
