@@ -94,9 +94,10 @@ export const SolutionIntroSlide = () => {
                 {/* Logo or Icon */}
                 <div className="h-16 flex items-center justify-center mb-4">
                   {comp.logo ? (
-                    <img 
-                      src={comp.logo} 
-                      alt={`${comp.name} logo`} 
+                    <img
+                      style="border-radius: 100px"
+                      src={comp.logo}
+                      alt={`${comp.name} logo`}
                       className="h-12 w-auto object-contain"
                     />
                   ) : comp.useTextLogo ? (
@@ -107,20 +108,20 @@ export const SolutionIntroSlide = () => {
                       <span className="text-2xl font-bold text-slate-700">Motion</span>
                     </div>
                   ) : comp.icon ? (
-                    <div className={`w-14 h-14 rounded-xl ${comp.bgColor} border ${comp.borderColor} flex items-center justify-center`}>
+                    <div
+                      className={`w-14 h-14 rounded-xl ${comp.bgColor} border ${comp.borderColor} flex items-center justify-center`}
+                    >
                       <comp.icon className={`w-7 h-7 ${comp.iconColor}`} />
                     </div>
                   ) : null}
                 </div>
-                
+
                 <h3 className="text-lg font-semibold text-slate-800 mb-3">{comp.name}</h3>
                 <div className={`text-3xl font-bold ${comp.captionColor} mb-4`}>{comp.price}</div>
-                
+
                 {/* Prominent caption */}
                 <div className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-2 px-4 inline-block`}>
-                  <p className={`text-lg font-bold uppercase tracking-wide ${comp.captionColor}`}>
-                    "{comp.caption}"
-                  </p>
+                  <p className={`text-lg font-bold uppercase tracking-wide ${comp.captionColor}`}>"{comp.caption}"</p>
                 </div>
               </motion.div>
             ))}
