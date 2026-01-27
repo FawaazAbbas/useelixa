@@ -12,7 +12,7 @@ const slideLabels = [
   "Traction",
   "Competition",
   "Pricing",
-  "Revenue",
+  "Timeline",
   "GTM",
   "Team & Ask",
 ];

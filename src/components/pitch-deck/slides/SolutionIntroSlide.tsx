@@ -1,34 +1,40 @@
 import { motion } from "framer-motion";
 import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
-import { Bot, Code, Wrench, Sparkles } from "lucide-react";
+import { Code } from "lucide-react";
 
 const competitors = [
   {
-    icon: Code,
     name: "Private Developers",
     price: "£500+",
-    caption: "Expensive",
-    color: "text-red-500",
+    caption: "EXPENSIVE",
+    captionColor: "text-red-600",
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
+    logo: null,
+    icon: Code,
+    iconColor: "text-red-500",
   },
   {
-    icon: Wrench,
     name: "N8N",
     price: "£24/month",
-    caption: "DIY solution",
-    color: "text-amber-500",
+    caption: "DIY SOLUTION",
+    captionColor: "text-amber-600",
     bgColor: "bg-amber-50",
     borderColor: "border-amber-200",
+    logo: "/logos/n8nLogo.png",
+    icon: null,
+    iconColor: null,
   },
   {
-    icon: Sparkles,
     name: "Motion",
     price: "£35/month",
-    caption: "Not very smart",
-    color: "text-slate-500",
+    caption: "NOT VERY SMART",
+    captionColor: "text-slate-600",
     bgColor: "bg-slate-50",
     borderColor: "border-slate-200",
+    logo: "https://assets.usemotion.com/website-assets-v2/logo/motion-logo.svg",
+    icon: null,
+    iconColor: null,
   },
 ];
 
@@ -80,16 +86,32 @@ export const SolutionIntroSlide = () => {
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className={`${comp.bgColor} border ${comp.borderColor} rounded-2xl p-6 text-center shadow-lg`}
+                className={`${comp.bgColor} border-2 ${comp.borderColor} rounded-2xl p-6 text-center shadow-lg`}
               >
-                <div
-                  className={`w-12 h-12 rounded-xl ${comp.bgColor} flex items-center justify-center mx-auto mb-4 border ${comp.borderColor}`}
-                >
-                  <comp.icon className={`w-6 h-6 ${comp.color}`} />
+                {/* Logo or Icon */}
+                <div className="h-16 flex items-center justify-center mb-4">
+                  {comp.logo ? (
+                    <img 
+                      src={comp.logo} 
+                      alt={`${comp.name} logo`} 
+                      className="h-12 w-auto object-contain"
+                    />
+                  ) : comp.icon ? (
+                    <div className={`w-14 h-14 rounded-xl ${comp.bgColor} border ${comp.borderColor} flex items-center justify-center`}>
+                      <comp.icon className={`w-7 h-7 ${comp.iconColor}`} />
+                    </div>
+                  ) : null}
                 </div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-2">{comp.name}</h3>
-                <div className={`text-3xl font-bold ${comp.color} mb-2`}>{comp.price}</div>
-                <p className="text-slate-500 text-sm italic">"{comp.caption}"</p>
+                
+                <h3 className="text-lg font-semibold text-slate-800 mb-3">{comp.name}</h3>
+                <div className={`text-3xl font-bold ${comp.captionColor} mb-4`}>{comp.price}</div>
+                
+                {/* Prominent caption */}
+                <div className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-2 px-4 inline-block`}>
+                  <p className={`text-lg font-bold uppercase tracking-wide ${comp.captionColor}`}>
+                    "{comp.caption}"
+                  </p>
+                </div>
               </motion.div>
             ))}
           </motion.div>

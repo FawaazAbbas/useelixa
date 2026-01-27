@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { Check, Sparkles, Database, Zap } from "lucide-react";
+import { Check, Sparkles, Database, Zap, Users } from "lucide-react";
 
 const plans = [
   {
     name: "Trial",
     price: "£0",
     period: "14 days",
+    agents: 1,
     features: ["100 credits", "2 connectors", "Basic AI models", "Community support"],
     highlight: false,
   },
@@ -14,6 +15,7 @@ const plans = [
     name: "Starter",
     price: "£4.99",
     period: "/month",
+    agents: 2,
     features: ["1,000 credits/month", "Unlimited connectors", "Standard AI models", "Email support"],
     highlight: false,
   },
@@ -21,6 +23,7 @@ const plans = [
     name: "Pro",
     price: "£14.99",
     period: "/month",
+    agents: 6,
     features: ["5,000 credits/month", "GPT & Gemini Pro", "Priority support", "Advanced workflows"],
     highlight: true,
   },
@@ -28,6 +31,7 @@ const plans = [
     name: "Unlimited",
     price: "£29.99",
     period: "/month",
+    agents: 12,
     features: ["Unlimited credits", "Premium models", "Dedicated support", "Custom integrations"],
     highlight: false,
   },
@@ -45,6 +49,12 @@ const additionalCosts = [
     title: "Credits",
     price: "6p per credit",
     description: "Top up anytime for extra AI interactions",
+  },
+  {
+    icon: Users,
+    title: "Extra Agents",
+    price: "£10/month",
+    description: "Add more AI employees to your workspace",
   },
 ];
 
@@ -99,6 +109,13 @@ export const PricingSlide = () => {
                     <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
                     <span className="text-slate-500 text-sm">{plan.period}</span>
                   </div>
+                  {/* Agent count badge */}
+                  <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+                    plan.highlight ? 'bg-primary/20 text-primary' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    <Users className="w-4 h-4" />
+                    {plan.agents} {plan.agents === 1 ? 'Agent' : 'Agents'}
+                  </div>
                 </div>
                 <ul className="space-y-2">
                   {plan.features.map((feature, i) => (
@@ -120,7 +137,7 @@ export const PricingSlide = () => {
             viewport={defaultViewport}
           >
             <h3 className="text-center text-lg font-semibold text-slate-700 mb-4">Additional Costs</h3>
-            <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {additionalCosts.map((cost, index) => (
                 <div key={index} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">

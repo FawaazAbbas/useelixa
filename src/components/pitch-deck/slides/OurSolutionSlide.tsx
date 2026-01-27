@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
 import { ElixaMascot } from "@/components/ElixaMascot";
+import { ElixaLogo } from "@/components/ElixaLogo";
 import { Users, Layers, Code } from "lucide-react";
 
 const roles = [
@@ -22,14 +23,20 @@ export const OurSolutionSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-7xl w-full">
-          {/* Header */}
+          {/* Hero section with Logo + Mascot */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-12"
+            className="text-center mb-10"
           >
+            {/* Logo and Mascot Row */}
+            <div className="flex items-center justify-center gap-6 mb-6">
+              <ElixaLogo size="xl" />
+              <ElixaMascot pose="celebrating" size="xl" animation="float" />
+            </div>
+            
             <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-medium">Our Solution</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
               AI Employee{" "}
@@ -104,17 +111,6 @@ export const OurSolutionSlide = () => {
                 share context, and connect to 90+ tools seamlessly.
               </p>
             </motion.div>
-          </motion.div>
-
-          {/* Mascot */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="absolute bottom-8 right-8 hidden lg:block"
-          >
-            <ElixaMascot pose="pointing-left" size="lg" animation="float" />
           </motion.div>
         </div>
       </div>
