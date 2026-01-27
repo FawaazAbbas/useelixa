@@ -34,10 +34,10 @@ const competitors = [
     captionColor: "text-slate-600",
     bgColor: "bg-slate-50",
     borderColor: "border-slate-200",
-    logo: null,
+    logo: "/logos/MotionLogo.png",
     icon: null,
     iconColor: null,
-    useTextLogo: true,
+    useTextLogo: false,
   },
 ];
 
