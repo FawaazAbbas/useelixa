@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
 import { Code } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const competitors = [
   {
@@ -43,8 +42,6 @@ const competitors = [
 ];
 
 export const SolutionIntroSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-solution-intro">
       {/* Light background gradient */}
@@ -54,11 +51,10 @@ export const SolutionIntroSlide = () => {
         <div className="max-w-6xl w-full text-center">
           {/* Question */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="mb-8"
           >
             <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">The Promise</span>
@@ -72,11 +68,10 @@ export const SolutionIntroSlide = () => {
 
           {/* But... */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="mb-12"
           >
             <p className="text-2xl md:text-3xl text-slate-500">But where are they? What are the options?</p>
@@ -84,17 +79,16 @@ export const SolutionIntroSlide = () => {
 
           {/* Competitor comparison boxes */}
           <motion.div
-            variants={getExportSafeVariants(staggerContainer, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
           >
             {competitors.map((comp, index) => (
               <motion.div
                 key={index}
-                variants={getExportSafeVariants(scaleIn, isExporting)}
+                variants={scaleIn}
                 className={`${comp.bgColor} border-2 ${comp.borderColor} rounded-2xl p-6 text-center shadow-lg`}
               >
                 {/* Logo or Icon */}

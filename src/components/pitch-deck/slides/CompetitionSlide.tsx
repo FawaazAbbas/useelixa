@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
 import { Check, X, Star } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const competitors = [
   { name: "ChatGPT", hasWorkspace: false, hasIntegrations: false, hasTalentPool: false, hasAffordable: true },
@@ -33,8 +32,6 @@ const positioningData = [
 ];
 
 export const CompetitionSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-competition">
       {/* Light background */}
@@ -44,11 +41,10 @@ export const CompetitionSlide = () => {
         <div className="max-w-7xl w-full">
           {/* Header */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-8"
           >
             <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-medium">Competition</span>
@@ -60,11 +56,10 @@ export const CompetitionSlide = () => {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* 2x2 Positioning Matrix */}
             <motion.div
-              variants={getExportSafeVariants(fadeInUp, isExporting)}
-              initial={isExporting ? "visible" : "hidden"}
-              animate={isExporting ? "visible" : undefined}
-              whileInView={isExporting ? undefined : "visible"}
-              viewport={isExporting ? undefined : defaultViewport}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
               className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50"
             >
               <h3 className="text-lg font-semibold text-slate-900 mb-4 text-center">Market Positioning</h3>
@@ -90,11 +85,10 @@ export const CompetitionSlide = () => {
                 {positioningData.map((comp, index) => (
                   <motion.div
                     key={index}
-                    variants={getExportSafeVariants(scaleIn, isExporting)}
-                    initial={isExporting ? "visible" : "hidden"}
-                    animate={isExporting ? "visible" : undefined}
-                    whileInView={isExporting ? undefined : "visible"}
-                    viewport={isExporting ? undefined : defaultViewport}
+                    variants={scaleIn}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={defaultViewport}
                     className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
                       comp.isUs 
                         ? 'bg-primary text-white shadow-lg shadow-primary/30' 
@@ -118,11 +112,10 @@ export const CompetitionSlide = () => {
 
             {/* Comparison table */}
             <motion.div
-              variants={getExportSafeVariants(fadeInUp, isExporting)}
-              initial={isExporting ? "visible" : "hidden"}
-              animate={isExporting ? "visible" : undefined}
-              whileInView={isExporting ? undefined : "visible"}
-              viewport={isExporting ? undefined : defaultViewport}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
               className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50"
             >
               <table className="w-full text-sm">
@@ -139,7 +132,7 @@ export const CompetitionSlide = () => {
                   {competitors.map((competitor, index) => (
                     <motion.tr
                       key={index}
-                      variants={getExportSafeVariants(scaleIn, isExporting)}
+                      variants={scaleIn}
                       className={`border-b border-slate-100 ${competitor.isUs ? 'bg-primary/5' : ''}`}
                     >
                       <td className={`p-3 font-medium ${competitor.isUs ? 'text-primary' : 'text-slate-900'}`}>
@@ -175,11 +168,10 @@ export const CompetitionSlide = () => {
 
           {/* Highlight */}
           <motion.p
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center text-xl text-slate-500 mt-8"
           >
             Only <span className="text-primary font-semibold">Elixa</span> combines all four at an affordable price

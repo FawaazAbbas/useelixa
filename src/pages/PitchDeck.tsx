@@ -13,8 +13,6 @@ import { PricingSlide } from "@/components/pitch-deck/slides/PricingSlide";
 import { RevenueSlide } from "@/components/pitch-deck/slides/RevenueSlide";
 import { GTMSlide } from "@/components/pitch-deck/slides/GTMSlide";
 import { TeamAskSlide } from "@/components/pitch-deck/slides/TeamAskSlide";
-import { PDFExportButton } from "@/components/pitch-deck/PDFExportButton";
-import { PDFExportProvider } from "@/components/pitch-deck/PDFExportContext";
 import { trackPageView } from "@/utils/analytics";
 
 const PitchDeck = () => {
@@ -53,26 +51,23 @@ const PitchDeck = () => {
   }, []);
 
   return (
-    <PDFExportProvider>
-      <div className="pitch-deck-wrapper pitch-deck-light">
-        <SlideProgressIndicator />
-        <PDFExportButton />
-        
-        <TitleSlide />
-        <ProblemSlide />
-        <SolutionIntroSlide />
-        <OurSolutionSlide />
-        <ProductSlide />
-        <MarketSlide />
-        <ShopifyDeepDiveSlide />
-        <TractionSlide />
-        <CompetitionSlide />
-        <PricingSlide />
-        <RevenueSlide />
-        <GTMSlide />
-        <TeamAskSlide />
-      </div>
-    </PDFExportProvider>
+    <div className="pitch-deck-wrapper pitch-deck-light">
+      <SlideProgressIndicator />
+      
+      <TitleSlide />
+      <ProblemSlide />
+      <SolutionIntroSlide />
+      <OurSolutionSlide />
+      <ProductSlide />
+      <MarketSlide />
+      <ShopifyDeepDiveSlide />
+      <TractionSlide />
+      <CompetitionSlide />
+      <PricingSlide />
+      <RevenueSlide />
+      <GTMSlide />
+      <TeamAskSlide />
+    </div>
   );
 };
 

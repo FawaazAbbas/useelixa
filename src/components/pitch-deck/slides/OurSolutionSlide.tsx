@@ -1,13 +1,10 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
 import { Users, Layers, Code } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const roles = ["Bookkeeper", "Google PPC Marketer", "SEO Analyst", "Customer Support Agent", "Tax & Audit Supervisor"];
 
 export const OurSolutionSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-our-solution">
       {/* Light background gradient */}
@@ -20,11 +17,10 @@ export const OurSolutionSlide = () => {
         <div className="max-w-7xl w-full">
           {/* Hero section with Logo + Mascot */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-12"
           >
             <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
@@ -41,16 +37,15 @@ export const OurSolutionSlide = () => {
 
           {/* Three columns - improved design */}
           <motion.div
-            variants={getExportSafeVariants(staggerContainer, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="grid md:grid-cols-3 gap-8"
           >
             {/* Made by Private Developers */}
             <motion.div
-              variants={getExportSafeVariants(scaleIn, isExporting)}
+              variants={scaleIn}
               className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:shadow-slate-200/70 transition-shadow duration-300"
             >
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center mb-6">
@@ -65,7 +60,7 @@ export const OurSolutionSlide = () => {
 
             {/* Talent Pool */}
             <motion.div
-              variants={getExportSafeVariants(scaleIn, isExporting)}
+              variants={scaleIn}
               className="bg-white border-2 border-primary/20 rounded-3xl p-8 shadow-xl shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20 transition-shadow duration-300 relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
@@ -93,7 +88,7 @@ export const OurSolutionSlide = () => {
 
             {/* Unified Workspace */}
             <motion.div
-              variants={getExportSafeVariants(scaleIn, isExporting)}
+              variants={scaleIn}
               className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:shadow-slate-200/70 transition-shadow duration-300"
             >
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mb-6">

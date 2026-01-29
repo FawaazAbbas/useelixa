@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
 import { Check, Sparkles, Database, Zap, Users } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const plans = [
   {
@@ -60,8 +59,6 @@ const additionalCosts = [
 ];
 
 export const PricingSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-pricing">
       {/* Light background */}
@@ -71,11 +68,10 @@ export const PricingSlide = () => {
         <div className="max-w-7xl w-full">
           {/* Header */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-10"
           >
             <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-medium">Pricing</span>
@@ -86,17 +82,16 @@ export const PricingSlide = () => {
 
           {/* Pricing cards */}
           <motion.div
-            variants={getExportSafeVariants(staggerContainer, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10"
           >
             {plans.map((plan, index) => (
               <motion.div
                 key={index}
-                variants={getExportSafeVariants(scaleIn, isExporting)}
+                variants={scaleIn}
                 className={`rounded-2xl p-6 ${
                   plan.highlight
                     ? 'bg-gradient-to-br from-primary/10 to-purple-100 border-2 border-primary relative shadow-lg'
@@ -136,11 +131,10 @@ export const PricingSlide = () => {
 
           {/* Additional Costs */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
           >
             <h3 className="text-center text-lg font-semibold text-slate-700 mb-4">Additional Costs</h3>
             <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">

@@ -1,22 +1,14 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
 import { Store, DollarSign, Users, TrendingUp } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const AnimatedCounter = ({ end, prefix = "", suffix = "", decimals = 0 }: { end: number; prefix?: string; suffix?: string; decimals?: number }) => {
-  const { isExporting } = usePDFExportContext();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    // If exporting, immediately show final value
-    if (isExporting) {
-      setCount(end);
-      return;
-    }
-    
     if (isInView) {
       let start = 0;
       const increment = end / 120;
@@ -31,7 +23,7 @@ const AnimatedCounter = ({ end, prefix = "", suffix = "", decimals = 0 }: { end:
       }, 1000 / 60);
       return () => clearInterval(timer);
     }
-  }, [isInView, end, isExporting]);
+  }, [isInView, end]);
 
   const displayValue = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString();
   return <span ref={ref}>{prefix}{displayValue}{suffix}</span>;
@@ -79,8 +71,6 @@ const stats = [
 ];
 
 export const ShopifyDeepDiveSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-shopify">
       {/* Light background with green accent */}
@@ -93,11 +83,10 @@ export const ShopifyDeepDiveSlide = () => {
         <div className="max-w-6xl w-full">
           {/* Header */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-12"
           >
             <div className="flex items-center justify-center gap-4 mb-4">
@@ -114,17 +103,16 @@ export const ShopifyDeepDiveSlide = () => {
 
           {/* Stats grid */}
           <motion.div
-            variants={getExportSafeVariants(staggerContainer, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                variants={getExportSafeVariants(scaleIn, isExporting)}
+                variants={scaleIn}
                 className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 text-center"
               >
                 <div className={`w-14 h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center mx-auto mb-4`}>
@@ -146,11 +134,10 @@ export const ShopifyDeepDiveSlide = () => {
 
           {/* Bottom insight */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="mt-12"
           >
             <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">

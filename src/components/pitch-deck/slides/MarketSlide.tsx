@@ -1,22 +1,14 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
 import { TrendingUp, Building2, PieChart, DollarSign } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end: number; prefix?: string; suffix?: string; duration?: number }) => {
-  const { isExporting } = usePDFExportContext();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    // If exporting, immediately show final value
-    if (isExporting) {
-      setCount(end);
-      return;
-    }
-    
     if (isInView) {
       let start = 0;
       const increment = end / (duration * 60);
@@ -31,7 +23,7 @@ const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end:
       }, 1000 / 60);
       return () => clearInterval(timer);
     }
-  }, [isInView, end, duration, isExporting]);
+  }, [isInView, end, duration]);
 
   return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
 };
@@ -44,8 +36,6 @@ const supportingStats = [
 ];
 
 export const MarketSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-market">
       {/* Light background */}
@@ -55,11 +45,10 @@ export const MarketSlide = () => {
         <div className="max-w-7xl w-full">
           {/* Header */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-10"
           >
             <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">Market Opportunity</span>
@@ -71,39 +60,35 @@ export const MarketSlide = () => {
           <div className="grid lg:grid-cols-2 gap-8 items-start">
             {/* TAM SAM SOM - Left Side */}
             <motion.div
-              variants={getExportSafeVariants(fadeInUp, isExporting)}
-              initial={isExporting ? "visible" : "hidden"}
-              animate={isExporting ? "visible" : undefined}
-              whileInView={isExporting ? undefined : "visible"}
-              viewport={isExporting ? undefined : defaultViewport}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
               className="flex flex-col items-center"
             >
               <div className="relative">
                 {/* TAM */}
                 <motion.div
-                  variants={getExportSafeVariants(scaleIn, isExporting)}
-                  initial={isExporting ? "visible" : "hidden"}
-                  animate={isExporting ? "visible" : undefined}
-                  whileInView={isExporting ? undefined : "visible"}
-                  viewport={isExporting ? undefined : defaultViewport}
+                  variants={scaleIn}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={defaultViewport}
                   className="w-64 h-64 md:w-72 md:h-72 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
                 >
                   {/* SAM */}
                   <motion.div
-                    variants={getExportSafeVariants(scaleIn, isExporting)}
-                    initial={isExporting ? "visible" : "hidden"}
-                    animate={isExporting ? "visible" : undefined}
-                    whileInView={isExporting ? undefined : "visible"}
-                    viewport={isExporting ? undefined : defaultViewport}
+                    variants={scaleIn}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={defaultViewport}
                     className="w-44 h-44 md:w-52 md:h-52 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
                   >
                     {/* SOM */}
                     <motion.div
-                      variants={getExportSafeVariants(scaleIn, isExporting)}
-                      initial={isExporting ? "visible" : "hidden"}
-                      animate={isExporting ? "visible" : undefined}
-                      whileInView={isExporting ? undefined : "visible"}
-                      viewport={isExporting ? undefined : defaultViewport}
+                      variants={scaleIn}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={defaultViewport}
                       className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
                     >
                       <div className="text-center">
@@ -130,14 +115,13 @@ export const MarketSlide = () => {
 
             {/* Breakdown - Right Side */}
             <motion.div
-              variants={getExportSafeVariants(staggerContainer, isExporting)}
-              initial={isExporting ? "visible" : "hidden"}
-              animate={isExporting ? "visible" : undefined}
-              whileInView={isExporting ? undefined : "visible"}
-              viewport={isExporting ? undefined : defaultViewport}
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={defaultViewport}
               className="space-y-4"
             >
-              <motion.div variants={getExportSafeVariants(scaleIn, isExporting)} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
+              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-teal-500"></div>
                   <span className="font-bold text-slate-900">TAM: $150B</span>
@@ -146,7 +130,7 @@ export const MarketSlide = () => {
                 <p className="text-slate-600 text-sm">Global AI Productivity & Automation Tools market. Sourced from Gartner, McKinsey, and CB Insights reports.</p>
               </motion.div>
 
-              <motion.div variants={getExportSafeVariants(scaleIn, isExporting)} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
+              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                   <span className="font-bold text-slate-900">SAM: $25B</span>
@@ -155,7 +139,7 @@ export const MarketSlide = () => {
                 <p className="text-slate-600 text-sm">SME AI Tools & Automation segment. Businesses with &lt;500 employees seeking affordable AI solutions.</p>
               </motion.div>
 
-              <motion.div variants={getExportSafeVariants(scaleIn, isExporting)} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
+              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-primary"></div>
                   <span className="font-bold text-slate-900">SOM: $500M</span>
@@ -168,17 +152,16 @@ export const MarketSlide = () => {
 
           {/* Supporting Stats */}
           <motion.div
-            variants={getExportSafeVariants(staggerContainer, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10"
           >
             {supportingStats.map((stat, index) => (
               <motion.div
                 key={index}
-                variants={getExportSafeVariants(scaleIn, isExporting)}
+                variants={scaleIn}
                 className="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm"
               >
                 <stat.icon className="w-6 h-6 text-teal-500 mx-auto mb-2" />

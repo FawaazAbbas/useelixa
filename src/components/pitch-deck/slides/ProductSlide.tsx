@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, defaultViewport } from "../slideAnimations";
 import { MessageSquare, Users, Puzzle, Layers, Mail, Calendar, FileText, Bell, Settings, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const sidebarItems = [
   { icon: MessageSquare, label: "Chat" },
@@ -21,8 +20,6 @@ const connectedTools = [
 ];
 
 export const ProductSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-product">
       {/* Light background */}
@@ -42,11 +39,10 @@ export const ProductSlide = () => {
         <div className="max-w-7xl w-full">
           {/* Header */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-12"
           >
             <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-medium">Product</span>
@@ -57,11 +53,10 @@ export const ProductSlide = () => {
 
           {/* Visual workspace mockup */}
           <motion.div
-            variants={getExportSafeVariants(scaleIn, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={scaleIn}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="bg-white rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 overflow-hidden"
           >
             <div className="flex h-[400px] md:h-[450px]">
@@ -140,11 +135,10 @@ export const ProductSlide = () => {
 
           {/* Feature badges */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="flex flex-wrap justify-center gap-4 mt-8"
           >
             {[
@@ -160,22 +154,20 @@ export const ProductSlide = () => {
             ))}
           </motion.div>
 
-          {/* CTA - hide during export */}
-          {!isExporting && (
-            <motion.div
-              variants={getExportSafeVariants(fadeInUp, isExporting)}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-              className="text-center mt-8"
-            >
-              <Link to="/chat">
-                <Button size="lg" className="text-lg px-8 py-6 rounded-xl">
-                  See it in action →
-                </Button>
-              </Link>
-            </motion.div>
-          )}
+          {/* CTA */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="text-center mt-8"
+          >
+            <Link to="/chat">
+              <Button size="lg" className="text-lg px-8 py-6 rounded-xl">
+                See it in action →
+              </Button>
+            </Link>
+          </motion.div>
         </div>
       </div>
     </section>

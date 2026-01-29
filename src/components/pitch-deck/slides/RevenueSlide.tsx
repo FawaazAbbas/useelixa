@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
 import { Calendar, Rocket, Users, Code, Layers, Target } from "lucide-react";
-import { usePDFExportContext } from "../PDFExportContext";
 
 const milestones = [
   {
@@ -64,8 +63,6 @@ const milestones = [
 ];
 
 export const RevenueSlide = () => {
-  const { isExporting } = usePDFExportContext();
-
   return (
     <section className="pitch-slide pitch-slide-revenue">
       {/* Light background */}
@@ -75,11 +72,10 @@ export const RevenueSlide = () => {
         <div className="max-w-7xl w-full">
           {/* Header */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="text-center mb-10"
           >
             <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-medium">Roadmap</span>
@@ -91,11 +87,10 @@ export const RevenueSlide = () => {
 
           {/* Timeline */}
           <motion.div
-            variants={getExportSafeVariants(staggerContainer, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="relative mb-8"
           >
             {/* Timeline line - desktop */}
@@ -107,7 +102,7 @@ export const RevenueSlide = () => {
               {milestones.map((milestone, index) => (
                 <motion.div
                   key={index}
-                  variants={getExportSafeVariants(scaleIn, isExporting)}
+                  variants={scaleIn}
                   className="flex flex-col items-center text-center"
                 >
                   {/* Icon circle */}
@@ -142,11 +137,10 @@ export const RevenueSlide = () => {
 
           {/* ARR Projection Summary */}
           <motion.div
-            variants={getExportSafeVariants(fadeInUp, isExporting)}
-            initial={isExporting ? "visible" : "hidden"}
-            animate={isExporting ? "visible" : undefined}
-            whileInView={isExporting ? undefined : "visible"}
-            viewport={isExporting ? undefined : defaultViewport}
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
             className="mt-12 bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 max-w-3xl mx-auto"
           >
             <div className="flex items-center justify-center gap-2 mb-4">
