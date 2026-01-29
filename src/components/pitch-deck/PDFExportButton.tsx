@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { PDFExportModal } from "./PDFExportModal";
@@ -168,10 +168,11 @@ export const PDFExportButton = () => {
 const ExportModeWrapper = ({ children }: { children: React.ReactNode }) => {
   const { setIsExporting } = usePDFExportContext();
 
-  // Set exporting to true immediately
-  useState(() => {
+  // Use useLayoutEffect for synchronous state update before render
+  useLayoutEffect(() => {
     setIsExporting(true);
-  });
+    return () => setIsExporting(false);
+  }, [setIsExporting]);
 
   return <>{children}</>;
 };

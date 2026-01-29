@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
 import { Store, Users, Globe, Megaphone } from "lucide-react";
+import { usePDFExportContext } from "../PDFExportContext";
 
 const strategies = [
   {
@@ -34,6 +35,8 @@ const strategies = [
 ];
 
 export const GTMSlide = () => {
+  const { isExporting } = usePDFExportContext();
+
   return (
     <section className="pitch-slide pitch-slide-gtm">
       {/* Light background */}
@@ -43,10 +46,11 @@ export const GTMSlide = () => {
         <div className="max-w-6xl w-full">
           {/* Header */}
           <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(fadeInUp, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="text-center mb-12"
           >
             <span className="text-purple-600 text-sm uppercase tracking-widest mb-4 block font-medium">Go-to-Market</span>
@@ -60,16 +64,17 @@ export const GTMSlide = () => {
 
           {/* Strategy grid */}
           <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(staggerContainer, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="grid md:grid-cols-2 gap-6"
           >
             {strategies.map((strategy, index) => (
               <motion.div
                 key={index}
-                variants={scaleIn}
+                variants={getExportSafeVariants(scaleIn, isExporting)}
                 className="bg-white border border-slate-200 rounded-2xl p-8 flex gap-6 shadow-lg shadow-slate-200/50"
               >
                 <div className={`w-14 h-14 rounded-2xl ${strategy.bgColor} flex items-center justify-center shrink-0`}>
@@ -85,10 +90,11 @@ export const GTMSlide = () => {
 
           {/* Shopify highlight */}
           <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(fadeInUp, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="mt-12 text-center"
           >
             <div className="inline-flex items-center gap-4 bg-green-50 border border-green-200 rounded-full px-6 py-3">

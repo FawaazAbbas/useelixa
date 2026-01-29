@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
-import { fadeInUp, slideInLeft, slideInRight, staggerContainer, defaultViewport } from "../slideAnimations";
+import { fadeInUp, slideInLeft, slideInRight, staggerContainer, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
 import { TrendingDown, Clock, DollarSign } from "lucide-react";
+import { usePDFExportContext } from "../PDFExportContext";
 
 const stats = [
   { icon: DollarSign, value: "£39,039", label: "Cost of ONE employee/year" },
@@ -9,6 +10,8 @@ const stats = [
 ];
 
 export const ProblemSlide = () => {
+  const { isExporting } = usePDFExportContext();
+
   return (
     <section className="pitch-slide pitch-slide-problem">
       {/* Light background with warm accent */}
@@ -19,10 +22,11 @@ export const ProblemSlide = () => {
         <div className="grid md:grid-cols-2 gap-12 lg:gap-24 max-w-7xl w-full">
           {/* Left: Story */}
           <motion.div
-            variants={slideInLeft}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(slideInLeft, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="flex flex-col justify-center"
           >
             <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 font-medium">The Problem</span>
@@ -39,16 +43,17 @@ export const ProblemSlide = () => {
 
           {/* Right: Stats */}
           <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(staggerContainer, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="flex flex-col gap-6 justify-center"
           >
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                variants={slideInRight}
+                variants={getExportSafeVariants(slideInRight, isExporting)}
                 className="bg-white border border-slate-200 rounded-2xl p-6 flex items-center gap-6 shadow-lg shadow-slate-200/50"
               >
                 <div className="w-14 h-14 rounded-xl bg-orange-100 flex items-center justify-center">

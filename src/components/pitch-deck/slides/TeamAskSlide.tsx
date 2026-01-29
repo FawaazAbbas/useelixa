@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
-import { fadeInUp, defaultViewport } from "../slideAnimations";
+import { fadeInUp, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
 import { ElixaMascot } from "@/components/ElixaMascot";
 import { Linkedin, Twitter, Mail, Code, TrendingUp, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { usePDFExportContext } from "../PDFExportContext";
 
 const team = [
   {
@@ -22,6 +23,8 @@ const useOfFunds = [
 ];
 
 export const TeamAskSlide = () => {
+  const { isExporting } = usePDFExportContext();
+
   return (
     <section className="pitch-slide pitch-slide-team-ask">
       {/* Light background with gradient to primary */}
@@ -35,10 +38,11 @@ export const TeamAskSlide = () => {
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
             {/* Left: Team */}
             <motion.div
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              variants={getExportSafeVariants(fadeInUp, isExporting)}
+              initial={isExporting ? "visible" : "hidden"}
+              animate={isExporting ? "visible" : undefined}
+              whileInView={isExporting ? undefined : "visible"}
+              viewport={isExporting ? undefined : defaultViewport}
             >
               <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-medium">The Team</span>
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8">
@@ -71,10 +75,11 @@ export const TeamAskSlide = () => {
 
             {/* Right: The Ask */}
             <motion.div
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              variants={getExportSafeVariants(fadeInUp, isExporting)}
+              initial={isExporting ? "visible" : "hidden"}
+              animate={isExporting ? "visible" : undefined}
+              whileInView={isExporting ? undefined : "visible"}
+              viewport={isExporting ? undefined : defaultViewport}
             >
               <span className="text-purple-600 text-sm uppercase tracking-widest mb-4 block font-medium">The Ask</span>
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8">
@@ -99,8 +104,9 @@ export const TeamAskSlide = () => {
                         </div>
                         <div className="h-2 bg-white rounded-full overflow-hidden">
                           <motion.div
-                            initial={{ width: 0 }}
-                            whileInView={{ width: `${item.percent}%` }}
+                            initial={isExporting ? { width: `${item.percent}%` } : { width: 0 }}
+                            animate={isExporting ? { width: `${item.percent}%` } : undefined}
+                            whileInView={isExporting ? undefined : { width: `${item.percent}%` }}
                             transition={{ duration: 1, delay: 0.5 }}
                             className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full"
                           />
@@ -111,32 +117,35 @@ export const TeamAskSlide = () => {
                 </div>
               </div>
 
-              {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/contact" className="flex-1">
-                  <Button size="lg" className="w-full text-lg">
-                    <Mail className="w-5 h-5 mr-2" />
-                    Get in Touch
-                  </Button>
-                </Link>
-                <Link to="/chat" className="flex-1">
-                  <Button size="lg" variant="outline" className="w-full text-lg border-slate-300 hover:bg-slate-100">
-                    Try Elixa
-                  </Button>
-                </Link>
-              </div>
+              {/* CTA - hide during export */}
+              {!isExporting && (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link to="/contact" className="flex-1">
+                    <Button size="lg" className="w-full text-lg">
+                      <Mail className="w-5 h-5 mr-2" />
+                      Get in Touch
+                    </Button>
+                  </Link>
+                  <Link to="/chat" className="flex-1">
+                    <Button size="lg" variant="outline" className="w-full text-lg border-slate-300 hover:bg-slate-100">
+                      Try Elixa
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </motion.div>
           </div>
 
           {/* Mascot */}
           <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(fadeInUp, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="absolute bottom-8 left-8 hidden lg:block"
           >
-            <ElixaMascot pose="celebrating" size="lg" animation="bounce" />
+            <ElixaMascot pose="celebrating" size="lg" animation={isExporting ? undefined : "bounce"} />
           </motion.div>
         </div>
       </div>
