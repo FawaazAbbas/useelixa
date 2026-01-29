@@ -1,7 +1,5 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { ElixaMascot } from "@/components/ElixaMascot";
-import { ElixaLogo } from "@/components/ElixaLogo";
 import { Users, Layers, Code } from "lucide-react";
 
 const roles = ["Bookkeeper", "Google PPC Marketer", "SEO Analyst", "Customer Support Agent", "Tax & Audit Supervisor"];
@@ -25,16 +23,7 @@ export const OurSolutionSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-12"
           >
-            {/* Logo and Mascot Row - larger and better spaced */}
-            <div className="flex items-center justify-center gap-12 mb-8">
-              <div className="flex flex-col items-center">
-                <ElixaLogo size={100} />
-              </div>
-              <div className="h-20 w-px bg-gradient-to-b from-transparent via-primary/30 to-transparent" />
-              <ElixaMascot pose="celebrating" size="2xl" animation="float" />
-            </div>
-
-            <span className="text-primary text-sm uppercase tracking-widest mb-3 block font-semibold">
+            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
               Our Solution
             </span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-5 leading-tight">
