@@ -112,3 +112,39 @@ export const EASING = {
   bounce: [0.68, -0.55, 0.27, 1.55],
   sharp: [0.4, 0, 0.2, 1]
 } as const;
+
+/**
+ * Export-safe variants - freeze animations at final state during PDF export
+ */
+export const staticVariants: Variants = {
+  hidden: { opacity: 1, y: 0, x: 0, scale: 1 },
+  visible: { opacity: 1, y: 0, x: 0, scale: 1 }
+};
+
+/**
+ * Get animation variants based on export mode
+ * When exporting, returns static variants to freeze animations
+ */
+export const getExportSafeVariants = (
+  normalVariants: Variants,
+  isExporting: boolean
+): Variants => {
+  if (isExporting) {
+    return staticVariants;
+  }
+  return normalVariants;
+};
+
+/**
+ * Get viewport settings based on export mode
+ * When exporting, trigger animations immediately
+ */
+export const getExportSafeViewport = (
+  normalViewport: { once: boolean; amount: number },
+  isExporting: boolean
+) => {
+  if (isExporting) {
+    return { once: true, amount: 0 };
+  }
+  return normalViewport;
+};
