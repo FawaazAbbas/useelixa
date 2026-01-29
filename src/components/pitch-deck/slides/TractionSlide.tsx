@@ -1,14 +1,22 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer, defaultViewport, getExportSafeVariants, getExportSafeViewport } from "../slideAnimations";
 import { TrendingUp, Users, Zap, Calendar } from "lucide-react";
+import { usePDFExportContext } from "../PDFExportContext";
 
 const AnimatedCounter = ({ end, suffix = "" }: { end: number; suffix?: string }) => {
+  const { isExporting } = usePDFExportContext();
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
 
   useEffect(() => {
+    // If exporting, immediately show final value
+    if (isExporting) {
+      setCount(end);
+      return;
+    }
+    
     if (isInView) {
       let start = 0;
       const increment = end / 120;
@@ -23,7 +31,7 @@ const AnimatedCounter = ({ end, suffix = "" }: { end: number; suffix?: string })
       }, 1000 / 60);
       return () => clearInterval(timer);
     }
-  }, [isInView, end]);
+  }, [isInView, end, isExporting]);
 
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 };
@@ -36,6 +44,8 @@ const milestones = [
 ];
 
 export const TractionSlide = () => {
+  const { isExporting } = usePDFExportContext();
+
   return (
     <section className="pitch-slide pitch-slide-traction">
       {/* Light background */}
@@ -48,10 +58,11 @@ export const TractionSlide = () => {
         <div className="max-w-5xl w-full text-center">
           {/* Header */}
           <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(fadeInUp, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="mb-12"
           >
             <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">Traction</span>
@@ -62,10 +73,11 @@ export const TractionSlide = () => {
 
           {/* Big numbers row */}
           <motion.div
-            variants={scaleIn}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(scaleIn, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="mb-12"
           >
             <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
@@ -95,16 +107,17 @@ export const TractionSlide = () => {
 
           {/* Milestones */}
           <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            variants={getExportSafeVariants(staggerContainer, isExporting)}
+            initial={isExporting ? "visible" : "hidden"}
+            animate={isExporting ? "visible" : undefined}
+            whileInView={isExporting ? undefined : "visible"}
+            viewport={isExporting ? undefined : defaultViewport}
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {milestones.map((milestone, index) => (
               <motion.div
                 key={index}
-                variants={scaleIn}
+                variants={getExportSafeVariants(scaleIn, isExporting)}
                 className={`bg-white border rounded-2xl p-5 shadow-lg shadow-slate-200/50 ${
                   milestone.done ? 'border-teal-300' : 'border-slate-200'
                 }`}

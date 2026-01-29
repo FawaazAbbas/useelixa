@@ -1,9 +1,12 @@
 import { motion } from "framer-motion";
 import { ElixaMascot } from "@/components/ElixaMascot";
-import { fadeInUp, floatUp, defaultViewport } from "../slideAnimations";
+import { fadeInUp, floatUp, defaultViewport, getExportSafeVariants, getExportSafeViewport, staticVariants } from "../slideAnimations";
 import { ChevronDown } from "lucide-react";
+import { usePDFExportContext } from "../PDFExportContext";
 
 export const TitleSlide = () => {
+  const { isExporting } = usePDFExportContext();
+
   return (
     <section className="pitch-slide pitch-slide-title">
       {/* Light background gradient */}
@@ -18,10 +21,11 @@ export const TitleSlide = () => {
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
         {/* Logo with subtle shadow */}
         <motion.div
-          variants={floatUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          variants={getExportSafeVariants(floatUp, isExporting)}
+          initial={isExporting ? "visible" : "hidden"}
+          animate={isExporting ? "visible" : undefined}
+          whileInView={isExporting ? undefined : "visible"}
+          viewport={isExporting ? undefined : defaultViewport}
           className="mb-8"
         >
           <div className="relative">
@@ -36,10 +40,11 @@ export const TitleSlide = () => {
 
         {/* Subtitle */}
         <motion.p
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          variants={getExportSafeVariants(fadeInUp, isExporting)}
+          initial={isExporting ? "visible" : "hidden"}
+          animate={isExporting ? "visible" : undefined}
+          whileInView={isExporting ? undefined : "visible"}
+          viewport={isExporting ? undefined : defaultViewport}
           className="text-2xl md:text-3xl text-slate-500 font-light tracking-widest uppercase mb-12"
         >
           Pre-Seed Deck
@@ -47,30 +52,33 @@ export const TitleSlide = () => {
 
         {/* Mascot */}
         <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          variants={getExportSafeVariants(fadeInUp, isExporting)}
+          initial={isExporting ? "visible" : "hidden"}
+          animate={isExporting ? "visible" : undefined}
+          whileInView={isExporting ? undefined : "visible"}
+          viewport={isExporting ? undefined : defaultViewport}
           className="mb-16"
         >
-          <ElixaMascot pose="waving" size="xl" animation="float" />
+          <ElixaMascot pose="waving" size="xl" animation={isExporting ? undefined : "float"} />
         </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.5 }}
-          className="absolute bottom-12 flex flex-col items-center gap-2 text-slate-400"
-        >
-          <span className="text-sm uppercase tracking-widest">Scroll to explore</span>
+        {/* Scroll indicator - hide during export */}
+        {!isExporting && (
           <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.5 }}
+            className="absolute bottom-12 flex flex-col items-center gap-2 text-slate-400"
           >
-            <ChevronDown className="w-6 h-6" />
+            <span className="text-sm uppercase tracking-widest">Scroll to explore</span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <ChevronDown className="w-6 h-6" />
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
       </div>
     </section>
   );
