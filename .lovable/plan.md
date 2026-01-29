@@ -1,244 +1,297 @@
 
-
-# Pitch Deck Fixes - 7 Issues
+# PDF Export Feature - Proper Slides with Correct Aspect Ratio
 
 ## Overview
 
-This plan addresses 7 specific issues with the pitch deck:
-
-1. **Problem Slide (Slide 2)** - Replace weak stats below avg salary
-2. **Solution Intro Slide (Slide 3)** - Motion logo not showing
-3. **Our Solution Slide (Slide 4)** - Poor design, needs improvement
-4. **Traction Slide** - Only shows 10k, needs more meaningful numbers
-5. **Competition Slide** - Positioning matrix axes wrong and bubble placement needs fixing
-6. **Timeline Slide** - Layout needs improvement
-7. **Sidebar Navigation** - Scroll-to-slide not working
+Implement a high-quality PDF export feature that generates presentation-style slides with correct 16:9 aspect ratio, proper page breaks, and professional output - not simple screenshots.
 
 ---
 
-## Issue 1: Problem Slide - Replace Weak Stats
+## Approach: Hybrid html2canvas + jsPDF
 
-**File:** `src/components/pitch-deck/slides/ProblemSlide.tsx`
+After researching the options, the best approach for this use case is:
 
-**Current State:**
-```
-- £39,039 Avg UK salary
-- +£5,106 Employer tax cost  
-- 120hrs Lost to admin yearly  ← weak
-```
+1. **html2canvas** - Captures each slide as a high-resolution image
+2. **jsPDF** - Creates a PDF with proper page dimensions (16:9 landscape)
+3. **Export Mode** - Special rendering mode that forces correct aspect ratio
 
-**Problem:** The two stats below avg salary (employer tax and 120hrs) don't strongly communicate the pain point. They feel disconnected.
+### Why Not Other Approaches?
 
-**Fix:** Replace with more impactful, relatable pain points:
-
-```
-- £39,039 - What hiring ONE employee costs
-- 24 days/year - Time lost on financial admin alone
-- 10-30% - Software budget wasted on unused tools
-```
-
-These stats are more emotionally resonant and directly tie to the solopreneur's pain.
+| Approach | Pros | Cons |
+|----------|------|------|
+| Browser Print | Simple | Poor quality, no aspect ratio control |
+| @react-pdf/renderer | Native PDF | Requires rewriting all slides in PDF components |
+| pdfmake | Good quality | Same - requires complete rewrite |
+| **html2canvas + jsPDF** | Uses existing slides | Best balance of quality and effort |
 
 ---
 
-## Issue 2: Motion Logo Missing
+## Architecture
 
-**File:** `src/components/pitch-deck/slides/SolutionIntroSlide.tsx`
-
-**Current State:**
-The Motion logo URL is set to:
-```javascript
-logo: "https://assets.usemotion.com/website-assets-v2/logo/motion-logo.svg"
-```
-
-**Problem:** This external SVG URL may be blocked by CORS or the path may have changed.
-
-**Fix:** Use a reliable fallback approach:
-- First try the external URL
-- If it fails, show the Motion name with styled text as fallback
-- Or use a generic icon with "Motion" text label
-
-Better approach: Use a local logo if available or create a styled text representation:
-```jsx
-<div className="h-12 flex items-center justify-center">
-  <span className="text-2xl font-bold text-slate-700">Motion</span>
-</div>
+```text
++------------------+     +-------------------+     +--------------+
+|   PitchDeck.tsx  | --> | PDFExportButton   | --> | Export Modal |
+|   (existing)     |     | (new component)   |     | with options |
++------------------+     +-------------------+     +--------------+
+                                   |
+                                   v
+                         +-------------------+
+                         | usePDFExport hook |
+                         | (export logic)    |
+                         +-------------------+
+                                   |
+                    +--------------+--------------+
+                    |              |              |
+                    v              v              v
+              +---------+   +-----------+   +----------+
+              | Prepare |   | Capture   |   | Generate |
+              | Slides  |   | Each Slide|   | PDF      |
+              +---------+   +-----------+   +----------+
 ```
 
 ---
 
-## Issue 3: Our Solution Slide - Design Issues
+## Implementation Details
 
-**File:** `src/components/pitch-deck/slides/OurSolutionSlide.tsx`
+### 1. New Dependencies
 
-**Current Problems:**
-1. The mascot and logo feel cramped together
-2. The 3-column layout cards are too dense
-3. Visual hierarchy is weak
-
-**Fixes:**
-1. Increase spacing between logo and mascot
-2. Make the header section larger and more prominent
-3. Add subtle visual polish to the cards (gradients, icons with better colors)
-4. Improve the role badges layout
-5. Add a subtle decorative element
-
-**Updated Layout:**
-```
-+--------------------------------------------------+
-|                                                   |
-|    [ELIXA LOGO - larger]    [MASCOT - larger]    |
-|                                                   |
-|    AI Employee Talent Pool + Workspace           |
-|    "Think Slack + App Store"                     |
-|                                                   |
-+--------------------------------------------------+
-|                                                   |
-|   [Card 1]        [Card 2]        [Card 3]       |
-|   Made by         Role-Specific   Unified        |
-|   Experts         AI Employees    Workspace      |
-|                                                   |
-+--------------------------------------------------+
+```json
+{
+  "html2canvas": "^1.4.1",
+  "jspdf": "^2.5.1"
+}
 ```
 
----
+### 2. PDF Export Hook (`src/hooks/usePDFExport.ts`)
 
-## Issue 4: Traction Slide - Only 10k
+Core logic for the export process:
 
-**File:** `src/components/pitch-deck/slides/TractionSlide.tsx`
+```typescript
+export const usePDFExport = () => {
+  const [isExporting, setIsExporting] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-**Current State:** Only shows "10,000 projected signups"
+  const exportToPDF = async (options: PDFExportOptions) => {
+    // 1. Create hidden container with fixed 16:9 dimensions
+    // 2. Clone and render each slide into container
+    // 3. Capture with html2canvas at high resolution
+    // 4. Add to jsPDF with landscape orientation
+    // 5. Repeat for all 13 slides
+    // 6. Save PDF
+  };
 
-**Problem:** One number isn't compelling enough. Need supporting metrics.
-
-**Fix:** Add milestone cards showing progress:
-
-| Milestone | Status |
-|-----------|--------|
-| MVP Live | Jan 2025 - Done |
-| Beta Users | 500+ - Done |
-| Projected Signups | 10,000 |
-| Target Date | Feb 2025 |
-
-This shows both achieved milestones and projections.
-
----
-
-## Issue 5: Competition Slide - Positioning Matrix
-
-**File:** `src/components/pitch-deck/slides/CompetitionSlide.tsx`
-
-**Current Axes:**
-- Vertical: "Smart" (top) to "Basic" (bottom) - CORRECT
-- Horizontal: "Simple" (left) to "Integrated" (right) - NEEDS CHANGE
-
-**User Request:** 
-- Y-axis: Smart to Basic (top to bottom) - keep
-- X-axis: Change from "Simple/Integrated" to "Cheap/Expensive"
-
-**Bubble Positioning Issues:**
-Current positioning doesn't make intuitive sense. Need to recalculate positions based on new axes.
-
-**New Positions (Cheap to Expensive, Smart to Basic):**
-
-| Competitor | X (Cheap→Expensive) | Y (Smart→Basic) |
-|------------|---------------------|-----------------|
-| ChatGPT | 30% | 85% | (Cheap, Very Smart)
-| N8N | 25% | 35% | (Very Cheap, Medium)
-| Motion | 35% | 30% | (Cheap-ish, Medium-Basic)
-| Lindy | 75% | 80% | (Expensive, Smart)
-| Salesforce | 95% | 60% | (Very Expensive, Medium-Smart)
-| Elixa | 25% | 80% | (Cheap, Smart) - Sweet spot
-
----
-
-## Issue 6: Timeline Slide Layout
-
-**File:** `src/components/pitch-deck/slides/RevenueSlide.tsx`
-
-**Current Problems:**
-- Timeline milestones cramped on mobile
-- Visual flow not clear
-- ARR projections not prominent
-
-**Fixes:**
-1. Horizontal timeline with clearer connections
-2. Larger milestone icons
-3. Better visual distinction between completed and future items
-4. ARR projection badges more prominent
-5. Improve grid layout for 6 milestones
-
----
-
-## Issue 7: Sidebar Navigation Not Working
-
-**File:** `src/components/pitch-deck/SlideProgressIndicator.tsx`
-
-**Current Implementation:**
-```javascript
-const scrollToSlide = (index: number) => {
-  const slides = document.querySelectorAll<HTMLElement>(".pitch-deck-wrapper section");
-  const targetSection = slides[index];
-
-  if (targetSection) {
-    targetSection.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    return;
-  }
-  // Fallback to window scroll
+  return { exportToPDF, isExporting, progress };
 };
 ```
 
-**Potential Issues:**
-1. The selector `.pitch-deck-wrapper section` may not be finding sections correctly
-2. `scrollIntoView` with scroll-snap can behave unpredictably
-3. The scroll container might be the wrapper, not the window
+**Key Configuration:**
+- Slide dimensions: 1920x1080 (16:9 HD)
+- PDF page size: Custom landscape (338.67mm x 190.5mm)
+- html2canvas scale: 2x for high DPI
+- Image format: PNG for quality
 
-**Fix:** Change to use direct scroll calculation and scroll the correct container:
+### 3. Export Container Component
 
-```javascript
-const scrollToSlide = (index: number) => {
-  const wrapper = document.querySelector('.pitch-deck-wrapper');
-  const slideHeight = window.innerHeight;
-  
-  if (wrapper) {
-    wrapper.scrollTo({
-      top: index * slideHeight,
-      behavior: 'smooth'
-    });
-  } else {
-    window.scrollTo({
-      top: index * slideHeight,
-      behavior: 'smooth'
-    });
-  }
+A hidden container that renders slides at exact 16:9 dimensions:
+
+```typescript
+const PDFExportContainer = forwardRef<HTMLDivElement, Props>(
+  ({ children, slideIndex }, ref) => (
+    <div
+      ref={ref}
+      style={{
+        width: 1920,
+        height: 1080,
+        position: 'fixed',
+        left: -9999,
+        top: 0,
+        overflow: 'hidden',
+      }}
+    >
+      {children}
+    </div>
+  )
+);
+```
+
+### 4. Slide Wrapper for Export Mode
+
+Each slide needs to know when it's being exported to:
+- Disable animations (freeze at final state)
+- Force exact dimensions
+- Hide scroll indicators
+
+```typescript
+// Context for export mode
+const PDFExportContext = createContext({ isExporting: false });
+
+// In each slide:
+const { isExporting } = usePDFExportContext();
+// Disable framer-motion animations when isExporting = true
+```
+
+### 5. Export Button Component (`src/components/pitch-deck/PDFExportButton.tsx`)
+
+Floating button that appears on the pitch deck:
+
+```typescript
+export const PDFExportButton = () => {
+  const { exportToPDF, isExporting, progress } = usePDFExport();
+
+  return (
+    <div className="fixed top-6 right-20 z-50 print:hidden">
+      <Button onClick={() => exportToPDF()}>
+        {isExporting ? (
+          <span>Exporting... {progress}%</span>
+        ) : (
+          <><Download /> Export PDF</>
+        )}
+      </Button>
+    </div>
+  );
 };
 ```
 
-Also need to check if `pitch-deck-wrapper` has the scroll container or if it's the window.
+### 6. Export Options Modal
+
+Allow users to configure:
+- Quality level (Standard / High / Ultra)
+- Include slide numbers (Yes / No)
+- Filename
+
+```typescript
+interface PDFExportOptions {
+  quality: 'standard' | 'high' | 'ultra'; // 1x, 2x, 3x scale
+  includeSlideNumbers: boolean;
+  filename: string;
+}
+```
+
+### 7. Handling Animations
+
+The challenge: Framer Motion animations need to be "frozen" at their final state during export.
+
+**Solution:** Add an `isExporting` prop/context that slides check:
+
+```typescript
+// slideAnimations.ts - add export variants
+export const getExportVariants = (isExporting: boolean): Variants => {
+  if (isExporting) {
+    return {
+      hidden: { opacity: 1, y: 0 }, // Already visible
+      visible: { opacity: 1, y: 0 },
+    };
+  }
+  return fadeInUp; // Normal animation
+};
+```
+
+### 8. Handling Images and Assets
+
+- All local images (mascot, logos) will be captured correctly
+- External images may need CORS handling
+- Assets already use local paths (`/logos/...`) which is good
 
 ---
+
+## Export Process Flow
+
+```text
+1. User clicks "Export PDF"
+2. Show progress modal
+3. Create off-screen container (1920x1080)
+4. For each slide (1-13):
+   a. Render slide in container with isExporting=true
+   b. Wait for images to load
+   c. Capture with html2canvas
+   d. Add page to jsPDF
+   e. Update progress
+5. Save PDF file
+6. Close modal
+```
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/hooks/usePDFExport.ts` | Export logic and state management |
+| `src/components/pitch-deck/PDFExportButton.tsx` | Export trigger UI |
+| `src/components/pitch-deck/PDFExportModal.tsx` | Progress and options dialog |
+| `src/components/pitch-deck/PDFExportContext.tsx` | Context for export mode |
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/pitch-deck/slides/ProblemSlide.tsx` | Replace stats with more impactful ones |
-| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Fix Motion logo display |
-| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Improve design and spacing |
-| `src/components/pitch-deck/slides/TractionSlide.tsx` | Add milestone cards |
-| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Fix axes (Cheap/Expensive) and bubble positions |
-| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Improve timeline layout |
-| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Fix scroll-to-slide functionality |
+| `package.json` | Add html2canvas, jspdf dependencies |
+| `src/pages/PitchDeck.tsx` | Add PDFExportButton and Context provider |
+| `src/components/pitch-deck/slideAnimations.ts` | Add export-safe variants |
+| All slide components | Use export context to disable animations |
 
 ---
 
-## Technical Notes
+## Technical Considerations
 
-- All changes maintain the light mode theme
-- Framer Motion animations preserved
-- Responsive layouts maintained
-- Motion logo fallback handles CORS issues
+### Quality vs File Size
+
+| Quality | Scale | ~File Size | Resolution |
+|---------|-------|------------|------------|
+| Standard | 1x | ~5MB | 1920x1080 |
+| High | 2x | ~15MB | 3840x2160 |
+| Ultra | 3x | ~30MB | 5760x3240 |
+
+### Browser Limitations
+
+- html2canvas has a ~16384px canvas limit in some browsers
+- Will use 2x scale by default (safe for all browsers)
+- Option for ultra quality for modern browsers
+
+### Performance
+
+- Export takes ~10-20 seconds for 13 slides
+- Progress bar shows real-time feedback
+- Non-blocking (async operation)
+
+---
+
+## Slide-Specific Handling
+
+Some slides need special attention:
+
+1. **Animated Counters** (MarketSlide, TractionSlide)
+   - Force to final value during export
+
+2. **Positioning Matrix** (CompetitionSlide)
+   - Ensure bubbles are at final positions
+
+3. **Mascot with float animation** (TitleSlide)
+   - Freeze at center position
+
+4. **Gradients and blurs**
+   - html2canvas handles these well with `useCORS: true`
+
+---
+
+## PDF Output Specifications
+
+- **Format**: PDF/A (archival quality)
+- **Page Size**: 338.67mm x 190.5mm (16:9 at 96 DPI equivalent)
+- **Orientation**: Landscape
+- **Color**: RGB (for screen viewing)
+- **Compression**: Medium (balance quality/size)
+- **Metadata**: Title, Author, Creation date
+
+---
+
+## User Experience
+
+1. Button visible but unobtrusive (top-right corner)
+2. Click shows options modal
+3. Select quality and options
+4. Click "Export"
+5. See progress with slide thumbnails
+6. File downloads automatically
+7. Toast notification on completion
 
