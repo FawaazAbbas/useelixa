@@ -1,31 +1,42 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, floatUp, defaultViewport } from "../slideAnimations";
-import { Flame, TrendingDown, PoundSterling, ArrowRight, Briefcase, Scale, Users, HeadphonesIcon, Truck, Gavel } from "lucide-react";
+import {
+  Flame,
+  TrendingDown,
+  PoundSterling,
+  ArrowRight,
+  Briefcase,
+  Scale,
+  Users,
+  HeadphonesIcon,
+  Truck,
+  Gavel,
+} from "lucide-react";
 
 const painPoints = [
-  { 
+  {
     icon: Flame,
     category: "BURNOUT",
     accentColor: "orange",
     statValue: "46%",
     statLabel: "of small business owners report burnout",
-    detail: "Nearly half of UK SMEs are burning out from wearing every hat."
+    detail: "Nearly half of UK SMEs are burning out from wearing every hat.",
   },
-  { 
+  {
     icon: TrendingDown,
     category: "STUCK",
     accentColor: "blue",
     statValue: "32%",
     statLabel: "can't grow—they're too busy",
-    detail: "1 in 3 say daily operations block hiring or expansion."
+    detail: "1 in 3 say daily operations block hiring or expansion.",
   },
-  { 
+  {
     icon: PoundSterling,
     category: "UNAFFORDABLE",
     accentColor: "emerald",
     statValue: "£30,800",
     statLabel: "to hire just one employee",
-    detail: "Average UK salary—before NI, pension, and recruitment."
+    detail: "Average UK salary—before NI, pension, and recruitment.",
   },
 ];
 
@@ -51,20 +62,20 @@ const getAccentStyles = (color: string) => {
       border: "border-t-4 border-orange-500",
       bg: "bg-gradient-to-b from-orange-50/80 to-white",
       iconBg: "bg-orange-100",
-      text: "text-orange-600"
+      text: "text-orange-600",
     },
     blue: {
       border: "border-t-4 border-blue-500",
       bg: "bg-gradient-to-b from-blue-50/80 to-white",
       iconBg: "bg-blue-100",
-      text: "text-blue-600"
+      text: "text-blue-600",
     },
     emerald: {
       border: "border-t-4 border-emerald-500",
       bg: "bg-gradient-to-b from-emerald-50/80 to-white",
       iconBg: "bg-emerald-100",
-      text: "text-emerald-600"
-    }
+      text: "text-emerald-600",
+    },
   };
   return styles[color] || styles.orange;
 };
@@ -75,19 +86,13 @@ export const ProblemSlide = () => {
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-orange-50/30" />
       <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-100/30 to-transparent" />
-      
+
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-12 lg:px-20 py-8">
         <div className="max-w-7xl w-full">
-          
           {/* Header Section */}
           <div className="grid lg:grid-cols-2 gap-8 mb-6">
             {/* Left: Title & Hook */}
-            <motion.div
-              variants={floatUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-            >
+            <motion.div variants={floatUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
               <span className="text-orange-500 text-xs uppercase tracking-widest font-semibold mb-2 block">
                 The Challenge
               </span>
@@ -98,7 +103,7 @@ export const ProblemSlide = () => {
                 </span>{" "}
                 In Their Own Business
               </h2>
-              
+
               {/* Visual: Responsibility Tags */}
               <div className="flex flex-wrap gap-2 mt-4">
                 {responsibilities.map((item, idx) => (
@@ -127,12 +132,12 @@ export const ProblemSlide = () => {
             >
               <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-5 shadow-sm">
                 <p className="text-sm md:text-base text-slate-600 leading-relaxed">
-                  Most founders begin <span className="font-semibold text-slate-800">without a team</span>, 
-                  handling every function themselves. Each role demands new tools and processes, consuming 
-                  significant time and effort. With <span className="font-semibold text-orange-600">limited capital</span>, 
-                  hiring specialists isn't an option. So founders manage daily tasks instead of focusing on 
-                  <span className="font-semibold text-slate-800"> strategy and growth</span>—making it 
-                  harder to move the business forward.
+                  Most founders begin <span className="font-semibold text-slate-800">without a team</span>, handling
+                  every function themselves. Each role demands new tools and processes, consuming significant time and
+                  effort. With <span className="font-semibold text-orange-600">limited capital</span>, hiring
+                  specialists isn't an option. So founders manage daily tasks instead of focusing on
+                  <span className="font-semibold text-slate-800"> strategy and growth</span>—making it harder to move
+                  the business forward.
                 </p>
               </div>
             </motion.div>
@@ -154,45 +159,24 @@ export const ProblemSlide = () => {
                   variants={scaleIn}
                   className={`${styles.border} ${styles.bg} rounded-xl p-5 shadow-md hover:shadow-lg transition-all duration-300`}
                 >
-                  {/* Icon + Category */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={`w-8 h-8 rounded-lg ${styles.iconBg} flex items-center justify-center`}>
-                      <point.icon className={`w-4 h-4 ${styles.text}`} />
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${styles.text}`}>
-                      {point.category}
-                    </span>
-                  </div>
-                  
                   {/* Stat */}
                   <div className="mb-2">
-                    <span className="text-3xl md:text-4xl font-bold text-slate-900">
-                      {point.statValue}
-                    </span>
+                    <span className="text-3xl md:text-4xl font-bold text-slate-900">{point.statValue}</span>
                   </div>
-                  
+
                   {/* Label */}
-                  <p className="text-slate-700 font-medium text-xs mb-2">
-                    {point.statLabel}
-                  </p>
-                  
+                  <p className="text-slate-700 font-medium text-xs mb-2">{point.statLabel}</p>
+
                   {/* Divider + Detail */}
                   <div className="w-full h-px bg-slate-200 mb-2" />
-                  <p className="text-slate-500 text-[11px] leading-relaxed">
-                    {point.detail}
-                  </p>
+                  <p className="text-slate-500 text-[11px] leading-relaxed">{point.detail}</p>
                 </motion.div>
               );
             })}
           </motion.div>
 
           {/* Vicious Cycle */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-          >
+          <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
             <div className="bg-gradient-to-r from-slate-50 via-white to-orange-50/50 border border-slate-200 rounded-xl p-5">
               <div className="flex flex-col md:flex-row md:items-center gap-4">
                 {/* Left: Title */}
@@ -205,7 +189,7 @@ export const ProblemSlide = () => {
                     <p className="text-[10px] text-slate-500">The trap founders can't escape</p>
                   </div>
                 </div>
-                
+
                 {/* Center: Cycle Flow */}
                 <div className="flex-1 flex flex-wrap items-center justify-center gap-2">
                   {cycleSteps.map((step, index) => (
@@ -213,9 +197,7 @@ export const ProblemSlide = () => {
                       <div className={`px-3 py-1.5 rounded-lg border ${step.color}`}>
                         <span className="text-xs font-semibold">{step.label}</span>
                       </div>
-                      {index < cycleSteps.length - 1 && (
-                        <ArrowRight className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                      )}
+                      {index < cycleSteps.length - 1 && <ArrowRight className="w-3 h-3 text-slate-400 flex-shrink-0" />}
                     </div>
                   ))}
                   <div className="flex items-center gap-1.5 text-slate-400">
@@ -223,10 +205,11 @@ export const ProblemSlide = () => {
                     <span className="text-xs font-medium">↺</span>
                   </div>
                 </div>
-                
+
                 {/* Right: Tagline */}
                 <p className="text-xs text-slate-600 italic text-center md:text-right md:max-w-[200px]">
-                  Trapped between <span className="font-semibold text-slate-800">needing support</span> and <span className="font-semibold text-slate-800">not affording it</span>.
+                  Trapped between <span className="font-semibold text-slate-800">needing support</span> and{" "}
+                  <span className="font-semibold text-slate-800">not affording it</span>.
                 </p>
               </div>
             </div>
