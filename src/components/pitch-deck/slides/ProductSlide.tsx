@@ -52,7 +52,7 @@ export const ProductSlide = () => {
               The future is finally here
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900">
-              <span className="text-primary">We've already built the Elixa demo</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500"We've already built the Elixa demo</span>
             </h2>
           </motion.div>
 
