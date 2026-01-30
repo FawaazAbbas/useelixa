@@ -1,32 +1,32 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { Brain, Zap, Database, MessageCircle } from "lucide-react";
+import { Shield, Target, Network } from "lucide-react";
 
 const pillars = [
   {
-    icon: Brain,
-    title: "Experts Built These",
-    subtitle: "THINK",
-    description: "Created by specialists who've spent years in accounting, marketing, and law. Not generic bots—real expertise encoded.",
-    gradient: "from-green-100 to-emerald-100",
-    iconColor: "text-green-600",
-    accentColor: "text-green-600",
+    icon: Shield,
+    title: "Built by Experts",
+    subtitle: "QUALITY",
+    description: "Every Elixa agent is created by a vetted private developer, not a generic AI factory. Real-world know-how, reliability, and performance you can trust—at a price small businesses can actually afford.",
+    gradient: "from-amber-100 to-orange-100",
+    iconColor: "text-amber-600",
+    accentColor: "text-amber-600",
   },
   {
-    icon: Zap,
-    title: "Real Specialists",
-    subtitle: "EXECUTE",
-    description: "Not 'a marketer'—a Google Ads specialist, an SEO analyst, a bookkeeper. Each AI does ONE thing exceptionally well.",
+    icon: Target,
+    title: "Role-Specific Specialists",
+    subtitle: "SPECIALISTS",
+    description: "Each agent is a true specialist—a Google Ads marketer, an SEO analyst, a bookkeeper, a customer support agent. Designed to execute with the depth and nuance of a real teammate.",
     gradient: "from-primary/10 to-blue-100",
     iconColor: "text-primary",
     accentColor: "text-primary",
     featured: true,
   },
   {
-    icon: Database,
-    title: "They Know You",
-    subtitle: "REMEMBER",
-    description: "Every AI shares one memory of your business. Ask once, they all know. No more repeating yourself.",
+    icon: Network,
+    title: "Unified Workspace",
+    subtitle: "COLLABORATIVE",
+    description: "All AI employees work together in one workspace. Every agent shares context, communicates seamlessly, and connects to 90+ tools—automate work without the chaos of disconnected apps.",
     gradient: "from-purple-100 to-violet-100",
     iconColor: "text-purple-600",
     accentColor: "text-purple-600",
@@ -44,7 +44,7 @@ export const OurSolutionSlide = () => {
 
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-12">
         <div className="max-w-7xl w-full">
-          {/* The Big Reveal */}
+          {/* Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
@@ -62,18 +62,22 @@ export const OurSolutionSlide = () => {
             </h2>
           </motion.div>
 
-          {/* The Vision */}
+          {/* Marketplace Description - Glassmorphic Card */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="max-w-3xl mx-auto mb-8"
+            className="max-w-4xl mx-auto mb-8"
           >
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
-              Imagine Slack, but every conversation is with an AI expert 
-              who knows your <span className="font-semibold text-slate-900">entire business</span>.
-            </p>
+            <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 text-center shadow-sm">
+              <p className="text-lg text-slate-700 leading-relaxed">
+                Elixa is more than just another "AI assistant." It's a{" "}
+                <span className="font-semibold text-primary">marketplace of real AI employees</span>,{" "}
+                each created by specialist developers, trained for a specific business role,{" "}
+                and ready to work together in a unified, fully connected workspace.
+              </p>
+            </div>
           </motion.div>
 
           {/* Three Pillars */}
@@ -115,34 +119,22 @@ export const OurSolutionSlide = () => {
             ))}
           </motion.div>
 
-          {/* The Context Problem - Dramatic Version */}
+          {/* Bottom Tagline */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="max-w-4xl mx-auto"
+            className="max-w-3xl mx-auto"
           >
-            <div className="bg-slate-900 rounded-2xl p-6 md:p-8">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <MessageCircle className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white mb-3">The Problem With Every Other AI</h3>
-                  <p className="text-slate-300 leading-relaxed mb-4">
-                    You tell ChatGPT about your business. Tomorrow, you ask it something—and it's forgotten everything. 
-                    You're explaining your business <span className="text-white font-semibold">over and over again</span>.
-                  </p>
-                  <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-                    <p className="text-white font-medium">
-                      <span className="text-primary">Elixa is different.</span> Tell us once. Our AI employees share a knowledge base. 
-                      Your Google Ads specialist knows what your bookkeeper knows. Your SEO analyst can reference 
-                      your customer support conversations.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="bg-gradient-to-r from-primary/5 via-purple-50/50 to-primary/5 border border-primary/20 rounded-xl p-6 text-center">
+              <p className="text-xl md:text-2xl font-semibold text-slate-800">
+                AI employees that{" "}
+                <span className="text-primary">think</span>,{" "}
+                <span className="text-purple-600">remember</span>, and{" "}
+                <span className="text-blue-600">execute</span>—
+                <span className="text-slate-600 font-normal">built for the way you actually work.</span>
+              </p>
             </div>
           </motion.div>
         </div>
