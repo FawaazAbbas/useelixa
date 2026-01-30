@@ -185,7 +185,7 @@ export const ProblemSlide = () => {
                     <span className="text-base">⚠️</span>
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">The Vicious Cycle</h3>
+                    <h3 className="text-sm font-bold text-slate-900">The Catch-22 Situation</h3>
                     <p className="text-[10px] text-slate-500">The trap founders can't escape</p>
                   </div>
                 </div>
