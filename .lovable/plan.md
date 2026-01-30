@@ -1,177 +1,247 @@
 
 
-# Redesign Problem Slide (Slide 2) - Complete Overhaul
+# Redesign SolutionIntroSlide (Slide 3) - Same Palette, Fresh Layout
 
-## Current Issues
+## Design Philosophy
 
-1. **Stats lack immediate clarity** - The inline sentence format is confusing; viewers have to parse grammar to understand the data
-2. **Visual hierarchy is weak** - Everything looks the same weight; nothing "pops"
-3. **Lacks emotional punch** - Feels like a report, not a story
-4. **Too text-heavy** - The story paragraph is a wall of text
-5. **Cards are bland** - Generic white cards with no visual interest
+**"Visual cousins, not twins"**
+
+Slide 2 is dense and data-heavy (stats, tags, cycles). Slide 3 should feel **lighter and more dramatic** - it's the "false hope" moment before revealing the solution. We'll use the same colors but with a completely different visual rhythm.
 
 ---
 
-## New Design Philosophy
+## Layout Comparison
 
-**"Feel the pain, then understand the data"**
-
-The slide should hit viewers emotionally first, then back it up with data. We'll use:
-- A bold, provocative headline that creates tension
-- Visual metaphors (icons, color) to convey emotion before reading
-- Large, scannable statistics with clear labels
-- A dramatic "vicious cycle" visualization
+| Slide 2 (Problem) | Slide 3 (Solution Intro) |
+|-------------------|-------------------------|
+| Two-column header | Full-width centered hero |
+| 3-card grid (horizontal) | 3-card "courtroom" layout (staggered/angled) |
+| Compact stat cards | Larger "strike-through" failure cards |
+| Horizontal cycle flow | Centered hope callout with glow effect |
+| Data-heavy, busy | Spacious, theatrical |
 
 ---
 
-## Redesigned Layout
+## New Layout for Slide 3
 
 ```text
 +------------------------------------------------------------------+
+|  Background: Warm → Cool transition                              |
+|  (Orange glow fading to slate - visual bridge from Slide 2)      |
 |                                                                  |
-|  THE CHALLENGE                                                   |
+|  ┌────────────────────────────────────────────────────────────┐  |
+|  │              THE PROMISE LAND                               │  |
+|  │                                                             │  |
+|  │      AI employees were supposed to                          │  |
+|  │         CHANGE EVERYTHING                                   │  |
+|  │                                                             │  |
+|  │      "But the options available today?                      │  |
+|  │       They all fail in different ways."                     │  |
+|  └────────────────────────────────────────────────────────────┘  |
 |                                                                  |
-|     "Founders Are Drowning In Their Own Business"               |
+|      ┌──────────┐    ┌──────────┐    ┌──────────┐              |
+|      │ ❌ £500+ │    │ ❌ £24/mo│    │ ❌ £35/mo│              |
+|      │          │    │          │    │          │              |
+|      │ TOO      │    │ TOO      │    │ TOO      │              |
+|      │ EXPENSIVE│    │ TECHNICAL│    │ GENERIC  │              |
+|      │          │    │          │    │          │              |
+|      │ [logo]   │    │ [logo]   │    │ [logo]   │              |
+|      │ [story]  │    │ [story]  │    │ [story]  │              |
+|      └──────────┘    └──────────┘    └──────────┘              |
 |                                                                  |
-|  [Short 2-line hook paragraph - not a wall of text]             |
-|                                                                  |
-|  +----------------+ +----------------+ +------------------+      |
-|  | 🔥 BURNOUT     | | 📉 STUCK       | | 💰 UNAFFORDABLE  |      |
-|  |    46%         | |    32%         | |    £30,800       |      |
-|  | report burnout | | can't grow     | | cost to hire ONE |      |
-|  | [small detail] | | [small detail] | | [small detail]   |      |
-|  +----------------+ +----------------+ +------------------+      |
-|                                                                  |
-|  ┌─────────────────────────────────────────────────────────┐    |
-|  │  ⚠️ THE VICIOUS CYCLE                                   │    |
-|  │  No help → Work harder → Burnout → No growth → Repeat   │    |
-|  └─────────────────────────────────────────────────────────┘    |
+|  ╔════════════════════════════════════════════════════════════╗  |
+|  ║  ✨ What if there was another way?                         ║  |
+|  ║                                                             ║  |
+|  ║  Affordable • No Code Required • Specialized for YOU       ║  |
+|  ╚════════════════════════════════════════════════════════════╝  |
 |                                                                  |
 +------------------------------------------------------------------+
 ```
 
 ---
 
-## Key Changes
+## Key Design Differences from Slide 2
 
-### 1. Headline - Make It Hit Hard
+### 1. Background - Warm-to-Cool Gradient Bridge
+**Slide 2**: `from-white via-slate-50 to-orange-50/30` (warm throughout)
+**Slide 3**: `from-orange-50/20 via-slate-50 to-white` (starts warm, cools down)
 
-**Before**: "Founders are stretched thin managing every part of the business"
+This creates a visual "cooling off" effect - the heat of the problem fading as we look for hope.
 
-**After**: "Founders Are Drowning In Their Own Business"
+### 2. Header - Full-Width Centered Hero (Not Two-Column)
+Instead of the busy two-column layout of Slide 2, use a dramatic centered hero with:
+- Same uppercase chapter label style (`text-orange-500 tracking-widest`)
+- Headline with `from-slate-600 to-slate-400` gradient (muted, disappointed)
+- Subtitle as a stylized quote in italics
 
-- Shorter, punchier, more emotional
-- "Drowning" creates visceral imagery
+### 3. Competitor Cards - "Verdict First" Design
+Instead of Slide 2's stat-focused cards, these are **failure verdict cards**:
+- Large X mark with price crossed out
+- Verdict badge is HUGE and prominent
+- Logo/icon smaller, at the bottom
+- Story text as the supporting detail
 
-### 2. Story Paragraph - Trim to 2 Impactful Lines
-
-**Before** (4 lines of dense text):
-> "Most founders start without a team—taking on marketing, finance, operations, customer support, and legal matters alone. Each function demands new tools and processes..."
-
-**After** (2 lines, emotional):
-> "Marketing. Finance. Operations. Support. Legal. Most founders handle it all alone—not because they want to, but because they can't afford not to."
-
-### 3. Stat Cards - Bold, Scannable Format
-
-Each card will follow this structure:
-
-```text
-┌─────────────────────────────┐
-│  [Colored Icon Badge]       │
-│  "BURNOUT"                  │  ← Category label (uppercase, bold)
-│                             │
-│       46%                   │  ← HUGE number (6xl)
-│                             │
-│  of small business owners   │  ← What the stat measures
-│  report burnout             │
-│                             │
-│  ─────────────────────────  │  ← Divider
-│  Nearly half of UK SMEs...  │  ← Supporting context (smaller)
-└─────────────────────────────┘
+Card style uses same border-t-4 architecture but with **left border accent** instead (visual distinction):
+```
+border-l-4 border-red-500  (not border-t-4)
 ```
 
-**Visual Enhancements:**
-- Each card gets a unique accent color (orange for burnout, blue for stuck, green for cost)
-- Icons are larger and more prominent
-- Numbers are MASSIVE (text-5xl or text-6xl)
-- Clear hierarchy: Label → Stat → Context → Detail
+### 4. Card Colors - Failure Palette (Still Warm-Adjacent)
+- **Developers**: `border-l-4 border-red-500`, `from-red-50/60 to-white`
+- **N8N**: `border-l-4 border-amber-500`, `from-amber-50/60 to-white`
+- **Motion**: `border-l-4 border-slate-400`, `from-slate-50/60 to-white`
 
-### 4. Card Styling - Glassmorphism + Color Accents
-
-**Current**: Plain white cards with subtle shadows
-
-**New**: Each card gets a gradient accent and colored top border
-
-```text
-Card 1 (Burnout):   border-t-4 border-orange-500, bg-gradient-to-b from-orange-50/50
-Card 2 (Stuck):     border-t-4 border-blue-500, bg-gradient-to-b from-blue-50/50
-Card 3 (Cost):      border-t-4 border-emerald-500, bg-gradient-to-b from-emerald-50/50
-```
-
-### 5. Vicious Cycle - Visual Flow Diagram
-
-Transform from text-only callout to a visual cycle:
-
-```text
-┌──────────────────────────────────────────────────────────────┐
-│  ⚠️ THE VICIOUS CYCLE                                        │
-│                                                              │
-│    ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────┐  │
-│    │ No Help │ ──▶ │  Work   │ ──▶ │ Burnout │ ──▶ │ No  │  │
-│    │         │     │ Harder  │     │         │     │Growth│  │
-│    └─────────┘     └─────────┘     └─────────┘     └──┬──┘  │
-│         ▲                                             │      │
-│         └─────────────────────────────────────────────┘      │
-│                                                              │
-│    "Trapped between needing support and not affording it"   │
-└──────────────────────────────────────────────────────────────┘
-```
+### 5. Bottom Callout - Hope Glow (Not Horizontal Flow)
+Instead of Slide 2's horizontal cycle, use a **centered "hope moment"** with:
+- Subtle glow effect (`shadow-lg shadow-orange-100/50`)
+- Sparkle icon
+- Three benefit pills in a row: `Affordable` • `No Code` • `Specialized`
+- Gradient border that hints at the solution
 
 ---
 
-## Data Structure Update
+## Technical Implementation
+
+### Data Structure Update
 
 ```typescript
-const painPoints = [
-  { 
-    icon: Flame,
-    category: "BURNOUT",
-    accentColor: "orange",
-    statValue: "46%",
-    statLabel: "of small business owners report burnout",
-    detail: "Nearly half of UK businesses with 1-9 employees are burning out from wearing every hat."
+const competitors = [
+  {
+    name: "Private Developers",
+    price: "£500+",
+    verdict: "TOO EXPENSIVE",
+    accentColor: "red",
+    icon: Code,
+    failure: "Building tools for the rich. The businesses who need help most can't afford them.",
   },
-  { 
-    icon: TrendingDown,
-    category: "STUCK",
-    accentColor: "blue",
-    statValue: "32%",
-    statLabel: "can't grow—they're too busy",
-    detail: "1 in 3 owners say daily operations prevent them from hiring or expanding."
+  {
+    name: "N8N",
+    price: "£24/month",
+    verdict: "TOO TECHNICAL",
+    accentColor: "amber",
+    logo: "/logos/n8nLogo.png",
+    failure: "Brilliant if you're a developer. But most founders came to build businesses, not write code.",
   },
-  { 
-    icon: PoundSterling,
-    category: "UNAFFORDABLE",
-    accentColor: "emerald",
-    statValue: "£30,800",
-    statLabel: "to hire just one employee",
-    detail: "Average UK salary—before NI, pension, and recruitment costs."
+  {
+    name: "Motion",
+    price: "£35/month",
+    verdict: "TOO GENERIC",
+    accentColor: "slate",
+    logo: "/logos/MotionLogo.png",
+    failure: "One-size-fits-all AI. Your bookkeeper and marketer can't be the same 'assistant.'",
   },
 ];
+
+const getFailureStyles = (color: string) => ({
+  red: { 
+    border: "border-l-4 border-red-500", 
+    bg: "bg-gradient-to-r from-red-50/60 to-white",
+    verdict: "text-red-600 bg-red-100",
+    x: "text-red-400"
+  },
+  amber: { 
+    border: "border-l-4 border-amber-500", 
+    bg: "bg-gradient-to-r from-amber-50/60 to-white",
+    verdict: "text-amber-600 bg-amber-100",
+    x: "text-amber-400"
+  },
+  slate: { 
+    border: "border-l-4 border-slate-400", 
+    bg: "bg-gradient-to-r from-slate-100/60 to-white",
+    verdict: "text-slate-600 bg-slate-200",
+    x: "text-slate-400"
+  },
+});
+```
+
+### Layout Structure
+
+```tsx
+<section className="pitch-slide">
+  {/* Background: Warm-to-cool bridge */}
+  <div className="absolute inset-0 bg-gradient-to-br from-orange-50/20 via-slate-50 to-white" />
+  <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-slate-100/50 to-transparent" />
+
+  <div className="relative z-10 h-full px-6 md:px-12 lg:px-20 py-8 flex flex-col justify-center">
+    
+    {/* Hero Header - Centered, not two-column */}
+    <div className="text-center mb-8">
+      <span className="text-orange-500 text-xs uppercase tracking-widest">The Promise Land</span>
+      <h2 className="text-4xl lg:text-5xl font-bold">
+        AI employees were supposed to 
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-400">
+          change everything
+        </span>
+      </h2>
+      <p className="text-lg text-slate-500 italic mt-4">
+        "But the options available today? They all fail in different ways."
+      </p>
+    </div>
+
+    {/* Failure Cards - Left-border accent style */}
+    <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-8">
+      {competitors.map(comp => (
+        <div className={`${styles.border} ${styles.bg} rounded-xl p-5`}>
+          {/* Price with strikethrough */}
+          <div className="flex items-center gap-2 mb-3">
+            <XCircle className={`w-5 h-5 ${styles.x}`} />
+            <span className="text-2xl font-bold text-slate-400 line-through">{comp.price}</span>
+          </div>
+          
+          {/* Verdict - LARGE */}
+          <div className={`${styles.verdict} rounded-lg py-2 px-4 inline-block mb-4`}>
+            <span className="text-sm font-bold uppercase tracking-wide">{comp.verdict}</span>
+          </div>
+          
+          {/* Logo + Story */}
+          <div className="flex items-start gap-3">
+            {comp.logo ? <img src={comp.logo} className="h-6" /> : <comp.icon className="w-6 h-6" />}
+            <p className="text-sm text-slate-600">{comp.failure}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {/* Hope Callout - Glow effect, centered */}
+    <div className="bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200/50 
+                    rounded-2xl p-6 max-w-3xl mx-auto shadow-lg shadow-orange-100/30">
+      <div className="flex items-center justify-center gap-2 mb-3">
+        <Sparkles className="w-5 h-5 text-orange-500" />
+        <span className="text-sm font-medium text-slate-500">What if there was another way?</span>
+      </div>
+      <div className="flex items-center justify-center gap-4 flex-wrap">
+        <span className="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">Affordable</span>
+        <span className="px-4 py-2 bg-slate-100 text-slate-700 rounded-full text-sm font-semibold">No Code Required</span>
+        <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">Specialized for YOU</span>
+      </div>
+    </div>
+  </div>
+</section>
 ```
 
 ---
 
-## Animation Enhancements
+## Animation Approach
 
-| Element | Animation |
-|---------|-----------|
-| Chapter label | `fadeInUp` with slight delay |
-| Headline | `floatUp` for dramatic entrance |
-| Story paragraph | `fadeInUp` |
-| Stat cards | `staggerContainer` with `scaleIn` children (stagger 0.2s) |
-| Card numbers | Optional: `AnimatedCounter` for live counting effect |
-| Vicious cycle | `slideInRight` or `fadeInUp` with delay |
+| Element | Animation | Difference from Slide 2 |
+|---------|-----------|------------------------|
+| Header | `fadeInUp` (not `floatUp`) | Calmer entrance for disappointment tone |
+| Subtitle | `fadeInUp` with delay | Builds tension |
+| Cards | `staggerContainer` + `scaleIn` | Same pattern, different card design |
+| Hope callout | `fadeInUp` with glow pulse | Subtle pulse animation on the glow |
+
+---
+
+## Visual Cohesion Checklist
+
+| Element | Slide 2 | Slide 3 | Connection |
+|---------|---------|---------|------------|
+| Chapter label | `text-orange-500 uppercase` | `text-orange-500 uppercase` | Same |
+| Background | Warm gradient | Warm → cool gradient | Transition |
+| Card borders | `border-t-4` | `border-l-4` | Similar but distinct |
+| Card colors | Orange family | Red/Amber/Slate | Warm adjacent |
+| Callout style | Horizontal flow | Centered glow | Different structure |
+| Typography | Bold stats | Bold verdicts | Same weight, different content |
 
 ---
 
@@ -179,18 +249,14 @@ const painPoints = [
 
 | File | Changes |
 |------|---------|
-| `ProblemSlide.tsx` | Complete rewrite with new layout, stat card design, and visual cycle |
+| `SolutionIntroSlide.tsx` | Complete redesign with centered hero, left-border cards, and glow callout |
 
 ---
 
 ## Expected Result
 
-**Before**: "Here are some statistics about business struggles"
-**After**: "OH. This is MY problem. I feel this."
+**Slide 2**: Dense, data-driven, urgent warmth
+**Slide 3**: Spacious, dramatic, cooling disappointment → spark of hope
 
-The redesigned slide will:
-1. Hit emotionally with the headline
-2. Be scannable in 3 seconds (see cards, get the point)
-3. Back up claims with clear, contextual data
-4. Close with the "trap" visualization that sets up the solution slide
+They share the same DNA (orange accents, card architecture, typography) but tell different parts of the story with distinct visual rhythms.
 
