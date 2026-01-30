@@ -13,7 +13,7 @@ const competitors = [
     logo: null,
     icon: Code,
     iconColor: "text-red-500",
-    useTextLogo: false,
+    story: "Typically charge around £500 per developer to create an AI agent—very costly for SMEs.",
   },
   {
     name: "N8N",
@@ -25,19 +25,19 @@ const competitors = [
     logo: "/logos/n8nLogo.png",
     icon: null,
     iconColor: null,
-    useTextLogo: false,
+    story: "A DIY solution where you build the AI yourself. Affordable, but unsuitable because most founders lack the necessary technical skills.",
   },
   {
     name: "Motion",
     price: "£35/month",
-    caption: "NOT VERY SMART",
+    caption: "TOO GENERIC",
     captionColor: "text-slate-600",
     bgColor: "bg-slate-50",
     borderColor: "border-slate-200",
     logo: "/logos/MotionLogo.png",
     icon: null,
     iconColor: null,
-    useTextLogo: false,
+    story: "The AI agents are merely generic 'marketer' types—not specific enough for detailed tasks like Google Ads or Meta campaigns.",
   },
 ];
 
@@ -48,14 +48,14 @@ export const SolutionIntroSlide = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
 
       <div className="relative z-10 flex items-center justify-center h-full px-6">
-        <div className="max-w-6xl w-full text-center">
-          {/* Question */}
+        <div className="max-w-6xl w-full">
+          {/* Narrative Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mb-8"
+            className="text-center mb-6"
           >
             <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">The Promise</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight">
@@ -66,15 +66,17 @@ export const SolutionIntroSlide = () => {
             </h2>
           </motion.div>
 
-          {/* But... */}
+          {/* Story Text */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mb-12"
+            className="text-center mb-10"
           >
-            <p className="text-2xl md:text-3xl text-slate-500">But where are they? What are the options?</p>
+            <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
+              But the availability and realistic options need consideration. Let's look at what's out there...
+            </p>
           </motion.div>
 
           {/* Competitor comparison boxes */}
@@ -83,41 +85,39 @@ export const SolutionIntroSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+            className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
           >
             {competitors.map((comp, index) => (
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className={`${comp.bgColor} border-2 ${comp.borderColor} rounded-2xl p-6 text-center shadow-lg`}
+                className={`${comp.bgColor} border-2 ${comp.borderColor} rounded-2xl p-6 text-center shadow-lg flex flex-col`}
               >
                 {/* Logo or Icon */}
-                <div className="h-16 flex items-center justify-center mb-4">
+                <div className="h-14 flex items-center justify-center mb-3">
                   {comp.logo ? (
-                    <img src={comp.logo} alt={`${comp.name} logo`} className="h-12 w-auto object-contain" />
-                  ) : comp.useTextLogo ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">M</span>
-                      </div>
-                      <span className="text-2xl font-bold text-slate-700">Motion</span>
-                    </div>
+                    <img src={comp.logo} alt={`${comp.name} logo`} className="h-10 w-auto object-contain" />
                   ) : comp.icon ? (
                     <div
-                      className={`w-14 h-14 rounded-xl ${comp.bgColor} border ${comp.borderColor} flex items-center justify-center`}
+                      className={`w-12 h-12 rounded-xl ${comp.bgColor} border ${comp.borderColor} flex items-center justify-center`}
                     >
-                      <comp.icon className={`w-7 h-7 ${comp.iconColor}`} />
+                      <comp.icon className={`w-6 h-6 ${comp.iconColor}`} />
                     </div>
                   ) : null}
                 </div>
 
-                <h3 className="text-lg font-semibold text-slate-800 mb-3">{comp.name}</h3>
-                <div className={`text-3xl font-bold ${comp.captionColor} mb-4`}>{comp.price}</div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">{comp.name}</h3>
+                <div className={`text-2xl font-bold ${comp.captionColor} mb-3`}>{comp.price}</div>
 
-                {/* Prominent caption */}
-                <div className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-2 px-4 inline-block`}>
-                  <p className={`text-lg font-bold uppercase tracking-wide ${comp.captionColor}`}>"{comp.caption}"</p>
+                {/* Caption badge */}
+                <div className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-1.5 px-3 inline-block mb-4`}>
+                  <p className={`text-sm font-bold uppercase tracking-wide ${comp.captionColor}`}>"{comp.caption}"</p>
                 </div>
+
+                {/* Story text */}
+                <p className="text-sm text-slate-600 leading-relaxed mt-auto">
+                  {comp.story}
+                </p>
               </motion.div>
             ))}
           </motion.div>
