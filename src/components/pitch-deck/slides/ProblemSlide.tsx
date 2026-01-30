@@ -1,25 +1,25 @@
 import { motion } from "framer-motion";
-import { fadeInUp, slideInRight, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { TrendingDown, Clock, DollarSign, AlertTriangle, ArrowDown } from "lucide-react";
+import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
+import { Users, TrendingDown, PoundSterling, AlertTriangle } from "lucide-react";
 
 const painPoints = [
   { 
-    icon: DollarSign, 
-    value: "£39,039", 
-    emotionalLabel: "The salary you can't afford",
-    context: "Average UK employee cost per year"
-  },
-  { 
-    icon: Clock, 
-    value: "24 days", 
-    emotionalLabel: "Time stolen from growth",
-    context: "Lost to admin tasks annually"
+    icon: Users, 
+    value: "46%", 
+    emotionalLabel: "Burning out from wearing every hat",
+    context: "of smallest UK businesses report burnout from handling too many roles themselves"
   },
   { 
     icon: TrendingDown, 
-    value: "10-30%", 
-    emotionalLabel: "Money bleeding away",
-    context: "Wasted on unused software"
+    value: "32%", 
+    emotionalLabel: "Too busy to grow",
+    context: "can't hire or expand because they're drowning in operational duties"
+  },
+  { 
+    icon: PoundSterling, 
+    value: "£30,800", 
+    emotionalLabel: "The cost of one hire",
+    context: "average UK salary—before NI, pension, and recruitment costs"
   },
 ];
 
@@ -32,7 +32,18 @@ export const ProblemSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16 lg:px-24">
         <div className="max-w-6xl w-full">
-          {/* Hook Question */}
+          {/* Chapter Label */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="text-center mb-4"
+          >
+            <span className="text-orange-500 text-sm uppercase tracking-widest font-medium">The Challenge</span>
+          </motion.div>
+
+          {/* Main Title */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
@@ -40,30 +51,31 @@ export const ProblemSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-6"
           >
-            <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-medium">The Challenge</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 leading-tight">
-              What if running your business costs{" "}
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
+              Founders are stretched thin{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">
-                more than you realize?
+                managing every part of the business
               </span>
             </h2>
           </motion.div>
 
-          {/* Story Lead */}
+          {/* Story Paragraph */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="max-w-3xl mx-auto mb-8"
+            className="max-w-4xl mx-auto mb-8"
           >
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
-              Every day, SME owners wake up to the same harsh reality: there's too much to do, 
-              not enough time, and definitely not enough money to hire the help they desperately need.
+              Most founders start without a team—taking on marketing, finance, operations, customer support, 
+              and legal matters alone. Each function demands new tools and processes. With limited capital, 
+              hiring specialists isn't an option. So founders spend their energy on daily tasks instead of 
+              strategy and growth, making it harder to move the business forward.
             </p>
           </motion.div>
 
-          {/* Emotional Pain Points */}
+          {/* Pain Point Cards */}
           <motion.div
             variants={staggerContainer}
             initial="hidden"
@@ -91,18 +103,18 @@ export const ProblemSlide = () => {
                 </div>
                 
                 {/* Context */}
-                <p className="text-slate-500 text-sm">{point.context}</p>
+                <p className="text-slate-500 text-sm leading-relaxed">{point.context}</p>
               </motion.div>
             ))}
           </motion.div>
 
-          {/* The Vicious Cycle */}
+          {/* The Vicious Cycle Callout */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="max-w-4xl mx-auto mb-6"
+            className="max-w-4xl mx-auto"
           >
             <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-2xl p-6">
               <div className="flex items-start gap-4">
@@ -112,28 +124,12 @@ export const ProblemSlide = () => {
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 mb-2">The Vicious Cycle</h3>
                   <p className="text-slate-700 leading-relaxed">
-                    Without help, you work harder. Working harder burns you out. 
-                    Burnout kills growth. And the cycle continues—leaving you trapped 
-                    between <span className="font-semibold">needing help</span> and <span className="font-semibold">not affording it</span>.
+                    Without help, you work harder. Working harder leads to burnout. 
+                    Burnout kills growth. And the cycle continues—leaving founders trapped 
+                    between <span className="font-semibold">needing support</span> and <span className="font-semibold">not being able to afford it</span>.
                   </p>
                 </div>
               </div>
-            </div>
-          </motion.div>
-
-          {/* Core Insight Callout */}
-          <motion.div
-            variants={slideInRight}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="bg-slate-900 rounded-2xl p-6 text-center">
-              <p className="text-white text-lg md:text-xl font-medium">
-                <span className="text-orange-400">The cruel irony:</span> You can't afford to get help, 
-                but you can't afford <span className="italic">not</span> to get help.
-              </p>
             </div>
           </motion.div>
         </div>
