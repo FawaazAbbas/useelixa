@@ -143,7 +143,7 @@ export const MarketSlide = () => {
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-teal-500"></div>
                   <span className="font-bold text-slate-900">TAM: £129.6B/yr</span>
-                  <span className="text-xs text-slate-400">(2030)</span>
+                  <span className="text-xs text-slate-400">(2026)</span>
                 </div>
                 <p className="text-slate-600 text-sm">
                   ~216M digitally-native SMBs - businesses with an online presence
