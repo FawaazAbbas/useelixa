@@ -108,7 +108,7 @@ export const MarketSlide = () => {
                     >
                       <div className="text-center">
                         <div className="text-base md:text-lg font-bold text-slate-900">
-                          £<AnimatedCounter end={56.2} suffix="M" />
+                          £<AnimatedCounter end={7.79} suffix="M" />
                         </div>
                         <div className="text-primary font-semibold text-xs">SOM</div>
                       </div>
@@ -118,12 +118,12 @@ export const MarketSlide = () => {
 
                 {/* TAM Label */}
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  TAM: £<AnimatedCounter end={339} suffix="B" />
+                  TAM: £<AnimatedCounter end={129.6} suffix="B" />
                 </div>
 
                 {/* SAM Label */}
                 <div className="absolute top-16 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  SAM: £<AnimatedCounter end={56} suffix="B" />
+                  SAM: £<AnimatedCounter end={7.79} suffix="B" />
                 </div>
               </div>
             </motion.div>
