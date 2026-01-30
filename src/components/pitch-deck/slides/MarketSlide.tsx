@@ -146,7 +146,7 @@ export const MarketSlide = () => {
                   <span className="text-xs text-slate-400">(2026)</span>
                 </div>
                 <p className="text-slate-600 text-sm">
-                  ~216M digitally-native SMBs - businesses with an online presence
+                  ~216M digitally-native SMBs — businesses with an online presence
                 </p>
               </motion.div>
 
@@ -160,7 +160,7 @@ export const MarketSlide = () => {
                   <span className="text-xs text-slate-400">(2026)</span>
                 </div>
                 <p className="text-slate-600 text-sm">
-                  ~12.98M e-commerce SMBs - businesses based around selling online goods
+                  ~12.98M e-commerce SMBs — businesses based around selling online goods
                 </p>
               </motion.div>
 
@@ -173,7 +173,7 @@ export const MarketSlide = () => {
                   <span className="font-bold text-slate-900">SOM: £77.9MM/yr</span>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">1% of SAM</span>
                 </div>
-                <p className="text-slate-600 text-sm">~129.9K customers — achievable with online store focus</p>
+                <p className="text-slate-600 text-sm">~129.9K customers — achievable within 5 years</p>
               </motion.div>
             </motion.div>
           </div>
