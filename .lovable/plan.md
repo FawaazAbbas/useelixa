@@ -1,140 +1,177 @@
 
 
-# Redesign Problem Slide Stats for Clarity
+# Redesign Problem Slide (Slide 2) - Complete Overhaul
 
-## Current Issue
+## Current Issues
 
-The stats currently display as:
-```
-"Burning out from wearing every hat"
-        46%
-"of smallest UK businesses report burnout..."
-```
-
-The percentage (46%, 32%) is visually dominant but meaningless without reading the small text. Viewers see "46%" and think "46% of what?"
+1. **Stats lack immediate clarity** - The inline sentence format is confusing; viewers have to parse grammar to understand the data
+2. **Visual hierarchy is weak** - Everything looks the same weight; nothing "pops"
+3. **Lacks emotional punch** - Feels like a report, not a story
+4. **Too text-heavy** - The story paragraph is a wall of text
+5. **Cards are bland** - Generic white cards with no visual interest
 
 ---
 
-## Solution: Inline Contextual Stats
+## New Design Philosophy
 
-Restructure each card so the stat is embedded within a readable sentence, making the meaning immediately clear.
+**"Feel the pain, then understand the data"**
+
+The slide should hit viewers emotionally first, then back it up with data. We'll use:
+- A bold, provocative headline that creates tension
+- Visual metaphors (icons, color) to convey emotion before reading
+- Large, scannable statistics with clear labels
+- A dramatic "vicious cycle" visualization
 
 ---
 
-## New Card Designs
-
-### Card 1: Burnout
-**Current:** `46%` with small text below  
-**New Layout:**
+## Redesigned Layout
 
 ```text
-┌─────────────────────────────────────┐
-│  [Icon]                             │
-│                                     │
-│  46% of small business              │
-│  owners report burnout              │
-│                                     │
-│  Nearly half of UK businesses with  │
-│  1-9 employees say they're burning  │
-│  out from wearing every hat.        │
-└─────────────────────────────────────┘
++------------------------------------------------------------------+
+|                                                                  |
+|  THE CHALLENGE                                                   |
+|                                                                  |
+|     "Founders Are Drowning In Their Own Business"               |
+|                                                                  |
+|  [Short 2-line hook paragraph - not a wall of text]             |
+|                                                                  |
+|  +----------------+ +----------------+ +------------------+      |
+|  | 🔥 BURNOUT     | | 📉 STUCK       | | 💰 UNAFFORDABLE  |      |
+|  |    46%         | |    32%         | |    £30,800       |      |
+|  | report burnout | | can't grow     | | cost to hire ONE |      |
+|  | [small detail] | | [small detail] | | [small detail]   |      |
+|  +----------------+ +----------------+ +------------------+      |
+|                                                                  |
+|  ┌─────────────────────────────────────────────────────────┐    |
+|  │  ⚠️ THE VICIOUS CYCLE                                   │    |
+|  │  No help → Work harder → Burnout → No growth → Repeat   │    |
+|  └─────────────────────────────────────────────────────────┘    |
+|                                                                  |
++------------------------------------------------------------------+
 ```
-
-**Visual Treatment:**
-- "46%" in bold gradient text (orange-red)
-- "of small business owners report burnout" in regular dark text
-- Creates a readable headline: "46% of small business owners report burnout"
 
 ---
 
-### Card 2: Growth Blocked
-**Current:** `32%` with small text below  
-**New Layout:**
+## Key Changes
+
+### 1. Headline - Make It Hit Hard
+
+**Before**: "Founders are stretched thin managing every part of the business"
+
+**After**: "Founders Are Drowning In Their Own Business"
+
+- Shorter, punchier, more emotional
+- "Drowning" creates visceral imagery
+
+### 2. Story Paragraph - Trim to 2 Impactful Lines
+
+**Before** (4 lines of dense text):
+> "Most founders start without a team—taking on marketing, finance, operations, customer support, and legal matters alone. Each function demands new tools and processes..."
+
+**After** (2 lines, emotional):
+> "Marketing. Finance. Operations. Support. Legal. Most founders handle it all alone—not because they want to, but because they can't afford not to."
+
+### 3. Stat Cards - Bold, Scannable Format
+
+Each card will follow this structure:
 
 ```text
-┌─────────────────────────────────────┐
-│  [Icon]                             │
-│                                     │
-│  32% can't grow because             │
-│  they're too busy                   │
-│                                     │
-│  Nearly 1 in 3 owners say daily     │
-│  operations prevent them from       │
-│  hiring or expanding.               │
-└─────────────────────────────────────┘
+┌─────────────────────────────┐
+│  [Colored Icon Badge]       │
+│  "BURNOUT"                  │  ← Category label (uppercase, bold)
+│                             │
+│       46%                   │  ← HUGE number (6xl)
+│                             │
+│  of small business owners   │  ← What the stat measures
+│  report burnout             │
+│                             │
+│  ─────────────────────────  │  ← Divider
+│  Nearly half of UK SMEs...  │  ← Supporting context (smaller)
+└─────────────────────────────┘
 ```
 
----
+**Visual Enhancements:**
+- Each card gets a unique accent color (orange for burnout, blue for stuck, green for cost)
+- Icons are larger and more prominent
+- Numbers are MASSIVE (text-5xl or text-6xl)
+- Clear hierarchy: Label → Stat → Context → Detail
 
-### Card 3: Hiring Cost
-**Current:** `£30,800` with small text below  
-**New Layout:**
+### 4. Card Styling - Glassmorphism + Color Accents
+
+**Current**: Plain white cards with subtle shadows
+
+**New**: Each card gets a gradient accent and colored top border
 
 ```text
-┌─────────────────────────────────────┐
-│  [Icon]                             │
-│                                     │
-│  £30,800 to hire                    │
-│  just one employee                  │
-│                                     │
-│  The average UK salary—before NI,   │
-│  pension, and recruitment costs.    │
-└─────────────────────────────────────┘
+Card 1 (Burnout):   border-t-4 border-orange-500, bg-gradient-to-b from-orange-50/50
+Card 2 (Stuck):     border-t-4 border-blue-500, bg-gradient-to-b from-blue-50/50
+Card 3 (Cost):      border-t-4 border-emerald-500, bg-gradient-to-b from-emerald-50/50
+```
+
+### 5. Vicious Cycle - Visual Flow Diagram
+
+Transform from text-only callout to a visual cycle:
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│  ⚠️ THE VICIOUS CYCLE                                        │
+│                                                              │
+│    ┌─────────┐     ┌─────────┐     ┌─────────┐     ┌─────┐  │
+│    │ No Help │ ──▶ │  Work   │ ──▶ │ Burnout │ ──▶ │ No  │  │
+│    │         │     │ Harder  │     │         │     │Growth│  │
+│    └─────────┘     └─────────┘     └─────────┘     └──┬──┘  │
+│         ▲                                             │      │
+│         └─────────────────────────────────────────────┘      │
+│                                                              │
+│    "Trapped between needing support and not affording it"   │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Technical Implementation
-
-### Data Structure Change
+## Data Structure Update
 
 ```typescript
 const painPoints = [
   { 
-    icon: Users, 
+    icon: Flame,
+    category: "BURNOUT",
+    accentColor: "orange",
     statValue: "46%",
-    statContext: "of small business owners",
-    headline: "report burnout",
-    detail: "Nearly half of UK businesses with 1-9 employees say they're burning out from wearing every hat."
+    statLabel: "of small business owners report burnout",
+    detail: "Nearly half of UK businesses with 1-9 employees are burning out from wearing every hat."
   },
   { 
-    icon: TrendingDown, 
+    icon: TrendingDown,
+    category: "STUCK",
+    accentColor: "blue",
     statValue: "32%",
-    statContext: "can't grow because",
-    headline: "they're too busy",
-    detail: "Nearly 1 in 3 owners say daily operations prevent them from hiring or expanding."
+    statLabel: "can't grow—they're too busy",
+    detail: "1 in 3 owners say daily operations prevent them from hiring or expanding."
   },
   { 
-    icon: PoundSterling, 
+    icon: PoundSterling,
+    category: "UNAFFORDABLE",
+    accentColor: "emerald",
     statValue: "£30,800",
-    statContext: "to hire just",
-    headline: "one employee",
-    detail: "The average UK salary—before NI, pension, and recruitment costs."
+    statLabel: "to hire just one employee",
+    detail: "Average UK salary—before NI, pension, and recruitment costs."
   },
 ];
 ```
 
-### Visual Hierarchy
+---
 
-| Element | Styling |
-|---------|---------|
-| **Stat Value** | `text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent` |
-| **Stat Context** | `text-xl md:text-2xl font-semibold text-slate-800` (same line as stat) |
-| **Headline** | `text-xl md:text-2xl font-semibold text-slate-800` (second line) |
-| **Detail** | `text-sm text-slate-500 mt-3` |
+## Animation Enhancements
 
-### Layout Change
-
-Switch from separate "stat + label + context" blocks to a **sentence-style layout** where the stat flows naturally into the meaning:
-
-```tsx
-<div className="text-center">
-  <span className="text-3xl font-bold text-gradient">46%</span>
-  <span className="text-xl text-slate-800"> of small business owners</span>
-  <br />
-  <span className="text-xl font-semibold text-slate-900">report burnout</span>
-</div>
-```
+| Element | Animation |
+|---------|-----------|
+| Chapter label | `fadeInUp` with slight delay |
+| Headline | `floatUp` for dramatic entrance |
+| Story paragraph | `fadeInUp` |
+| Stat cards | `staggerContainer` with `scaleIn` children (stagger 0.2s) |
+| Card numbers | Optional: `AnimatedCounter` for live counting effect |
+| Vicious cycle | `slideInRight` or `fadeInUp` with delay |
 
 ---
 
@@ -142,14 +179,18 @@ Switch from separate "stat + label + context" blocks to a **sentence-style layou
 
 | File | Changes |
 |------|---------|
-| `ProblemSlide.tsx` | Restructure `painPoints` array and card rendering to use inline contextual stats |
+| `ProblemSlide.tsx` | Complete rewrite with new layout, stat card design, and visual cycle |
 
 ---
 
 ## Expected Result
 
-Before: Viewer sees "46%" → confused → reads small text → understands  
-After: Viewer sees "46% of small business owners report burnout" → instantly understands
+**Before**: "Here are some statistics about business struggles"
+**After**: "OH. This is MY problem. I feel this."
 
-The stat becomes part of a readable statement, not a standalone number requiring interpretation.
+The redesigned slide will:
+1. Hit emotionally with the headline
+2. Be scannable in 3 seconds (see cards, get the point)
+3. Back up claims with clear, contextual data
+4. Close with the "trap" visualization that sets up the solution slide
 
