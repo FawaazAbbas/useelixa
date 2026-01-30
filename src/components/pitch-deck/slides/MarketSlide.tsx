@@ -1,7 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
-import { TrendingUp, Building2, PieChart, DollarSign } from "lucide-react";
+import { TrendingUp, Building2, ShoppingBag } from "lucide-react";
 
 const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end: number; prefix?: string; suffix?: string; duration?: number }) => {
   const ref = useRef(null);
@@ -28,20 +28,13 @@ const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end:
   return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
 };
 
-const supportingStats = [
-  { icon: TrendingUp, value: "35%", label: "CAGR", description: "Annual growth rate through 2030" },
-  { icon: Building2, value: "50M+", label: "SMEs", description: "Globally needing AI tools" },
-  { icon: PieChart, value: "64%", label: "UK SMEs", description: "Of UK businesses are SMEs" },
-  { icon: DollarSign, value: "$3.5k", label: "Wasted", description: "Average SaaS waste per SME" },
-];
-
 export const MarketSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-market">
       {/* Light background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
       
-      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
+      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-12">
         <div className="max-w-7xl w-full">
           {/* Header */}
           <motion.div
@@ -49,12 +42,15 @@ export const MarketSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-10"
+            className="text-center mb-6"
           >
             <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">Market Opportunity</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
-              Massive & Growing
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+              Significant Growth Opportunity
             </h2>
+            <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+              According to McKinsey and CB Insight reports, the market for AI productivity and automation globally represents massive opportunity.
+            </p>
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8 items-start">
@@ -73,7 +69,7 @@ export const MarketSlide = () => {
                   initial="hidden"
                   whileInView="visible"
                   viewport={defaultViewport}
-                  className="w-64 h-64 md:w-72 md:h-72 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
+                  className="w-56 h-56 md:w-64 md:h-64 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
                 >
                   {/* SAM */}
                   <motion.div
@@ -81,7 +77,7 @@ export const MarketSlide = () => {
                     initial="hidden"
                     whileInView="visible"
                     viewport={defaultViewport}
-                    className="w-44 h-44 md:w-52 md:h-52 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
+                    className="w-40 h-40 md:w-48 md:h-48 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
                   >
                     {/* SOM */}
                     <motion.div
@@ -89,13 +85,13 @@ export const MarketSlide = () => {
                       initial="hidden"
                       whileInView="visible"
                       viewport={defaultViewport}
-                      className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
+                      className="w-24 h-24 md:w-28 md:h-28 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
                     >
                       <div className="text-center">
-                        <div className="text-xl md:text-2xl font-bold text-slate-900">
+                        <div className="text-lg md:text-xl font-bold text-slate-900">
                           $<AnimatedCounter end={500} suffix="M" />
                         </div>
-                        <div className="text-primary font-semibold text-sm">SOM</div>
+                        <div className="text-primary font-semibold text-xs">SOM</div>
                       </div>
                     </motion.div>
                   </motion.div>
@@ -107,7 +103,7 @@ export const MarketSlide = () => {
                 </div>
                 
                 {/* SAM Label */}
-                <div className="absolute top-16 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                <div className="absolute top-14 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
                   SAM: $<AnimatedCounter end={25} suffix="B" />
                 </div>
               </div>
@@ -119,57 +115,76 @@ export const MarketSlide = () => {
               initial="hidden"
               whileInView="visible"
               viewport={defaultViewport}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
+              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-teal-500"></div>
                   <span className="font-bold text-slate-900">TAM: $150B</span>
-                  <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">Top-Down</span>
                 </div>
-                <p className="text-slate-600 text-sm">Global AI Productivity & Automation Tools market. Sourced from Gartner, McKinsey, and CB Insights reports.</p>
+                <p className="text-slate-600 text-sm">Global AI productivity and automation—from basic consumer apps to AI-powered workflow tools.</p>
               </motion.div>
 
-              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
+              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                   <span className="font-bold text-slate-900">SAM: $25B</span>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Focused</span>
                 </div>
-                <p className="text-slate-600 text-sm">SME AI Tools & Automation segment. Businesses with &lt;500 employees seeking affordable AI solutions.</p>
+                <p className="text-slate-600 text-sm">SME segment with fewer than 500 employees seeking affordable AI solutions.</p>
               </motion.div>
 
-              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-lg shadow-slate-200/50">
+              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-primary"></div>
                   <span className="font-bold text-slate-900">SOM: $500M</span>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Year 5 Target</span>
                 </div>
-                <p className="text-slate-600 text-sm">Realistic capture rate based on 2% market penetration of UK & US SME segment.</p>
+                <p className="text-slate-600 text-sm">2% market penetration of US and UK SME segment alone.</p>
               </motion.div>
             </motion.div>
           </div>
 
-          {/* Supporting Stats */}
+          {/* Shopify Insight Section */}
           <motion.div
-            variants={staggerContainer}
+            variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10"
+            className="mt-8"
           >
-            {supportingStats.map((stat, index) => (
-              <motion.div
-                key={index}
-                variants={scaleIn}
-                className="bg-white border border-slate-200 rounded-xl p-4 text-center shadow-sm"
-              >
-                <stat.icon className="w-6 h-6 text-teal-500 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
-                <div className="text-sm font-semibold text-teal-600">{stat.label}</div>
-                <div className="text-xs text-slate-500 mt-1">{stat.description}</div>
-              </motion.div>
-            ))}
+            <div className="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-2xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <ShoppingBag className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Our Benchmark: Shopify Merchants</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    <span className="font-semibold text-slate-800">5.5 million customers</span> spending 
+                    <span className="font-semibold text-slate-800"> $120/month on apps</span>, with 
+                    <span className="font-semibold text-slate-800"> 64% being small businesses</span>—
+                    contributing <span className="font-semibold text-green-600">$7.9B annually</span> to Shopify's ecosystem. 
+                    This is our primary target segment.
+                  </p>
+                </div>
+              </div>
+              
+              {/* Quick stats row */}
+              <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-green-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-slate-900">5.5M</div>
+                  <div className="text-xs text-slate-500">Shopify Customers</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-slate-900">$120</div>
+                  <div className="text-xs text-slate-500">Monthly App Spend</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">$7.9B</div>
+                  <div className="text-xs text-slate-500">Annual Revenue</div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
