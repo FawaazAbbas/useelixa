@@ -1,7 +1,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
-import { Store, DollarSign, Users, TrendingUp } from "lucide-react";
+import { Store, DollarSign, Users, TrendingUp, Lightbulb } from "lucide-react";
 
 const AnimatedCounter = ({ end, prefix = "", suffix = "", decimals = 0 }: { end: number; prefix?: string; suffix?: string; decimals?: number }) => {
   const ref = useRef(null);
@@ -81,23 +81,35 @@ export const ShopifyDeepDiveSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-6xl w-full">
-          {/* Header */}
+          {/* Narrative Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-12"
+            className="text-center mb-6"
           >
             <div className="flex items-center justify-center gap-4 mb-4">
               <img src="/logos/ShopifyLogo.svg" alt="Shopify" className="h-8 w-auto" />
-              <span className="text-green-600 text-sm uppercase tracking-widest font-medium">Deep Dive</span>
+              <span className="text-green-600 text-sm uppercase tracking-widest font-semibold">Deep Dive</span>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
-              Let's Zoom In: Shopify Merchants
+              Why Shopify Merchants First?
             </h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto">
-              Our beachhead market with massive untapped potential
+          </motion.div>
+
+          {/* Story Text */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-3xl mx-auto mb-10"
+          >
+            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
+              Our immediate benchmark customer segment is Shopify merchants. There are 5.5 million customers 
+              on Shopify who spend an average of $120 monthly on apps. Notably, <span className="font-semibold text-slate-900">64% of these are small businesses</span>—
+              exactly our target market.
             </p>
           </motion.div>
 
@@ -132,20 +144,45 @@ export const ShopifyDeepDiveSlide = () => {
             ))}
           </motion.div>
 
-          {/* Bottom insight */}
+          {/* Why Shopify Insight */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mt-12"
+            className="mt-10"
           >
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-              <p className="text-xl text-slate-700 mb-2">
+            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-6 flex gap-4 max-w-4xl mx-auto">
+              <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-base text-slate-700 mb-2">
+                  <span className="font-semibold text-slate-900">Why start here?</span> Shopify merchants already pay for apps, 
+                  already use fragmented tools, and are actively seeking ways to automate their business. They're the perfect first customers because:
+                </p>
+                <ul className="text-sm text-slate-600 space-y-1">
+                  <li>• Already spending $120/month on productivity tools</li>
+                  <li>• Small business owners doing everything themselves</li>
+                  <li>• Familiar with app-store style purchases</li>
+                  <li>• Clear ROI: time saved = money earned</li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Bottom highlight */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="mt-8"
+          >
+            <div className="bg-white border border-green-200 rounded-2xl p-6 text-center max-w-2xl mx-auto shadow-lg shadow-slate-200/50">
+              <p className="text-xl text-slate-700">
                 <span className="font-bold text-green-700">3.5M+ small business merchants</span> on Shopify alone
               </p>
-              <p className="text-slate-500">
-                Each spending money on fragmented tools. Elixa consolidates their tech stack into one AI-powered workspace.
+              <p className="text-slate-500 mt-1">
+                Contributing <span className="font-semibold">$7.9B annually</span> to the Shopify app ecosystem
               </p>
             </div>
           </motion.div>

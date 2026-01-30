@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { fadeInUp, defaultViewport } from "../slideAnimations";
 import { ElixaMascot } from "@/components/ElixaMascot";
-import { Linkedin, Twitter, Mail, Code, TrendingUp, Users } from "lucide-react";
+import { Linkedin, Twitter, Mail, Code, TrendingUp, Users, Lightbulb, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -32,29 +32,55 @@ export const TeamAskSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-6xl w-full">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Left: Team */}
+          {/* Narrative Header */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="text-center mb-8"
+          >
+            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">Join Us</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+              Let's Build the Future Together
+            </h2>
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
+              We're not just building another AI tool—we're creating the operating system for small businesses. 
+              Join us on this journey.
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
+            {/* Left: Team & Founder Story */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
               whileInView="visible"
               viewport={defaultViewport}
             >
-              <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-medium">The Team</span>
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8">
-                Meet the Founder
-              </h2>
+              <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <Heart className="w-6 h-6 text-primary" /> The Founder Story
+              </h3>
+              
+              {/* Founder Story Callout */}
+              <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mb-6">
+                <p className="text-base text-slate-700 leading-relaxed">
+                  "I've been on both sides—running a small fashion business and building tech. 
+                  I know the pain of doing everything yourself, of paying for tools that don't talk to each other, 
+                  of wishing you could clone yourself. <span className="font-semibold">Elixa is that clone.</span>"
+                </p>
+              </div>
               
               {team.map((member, index) => (
-                <div key={index} className="bg-white border border-slate-200 rounded-2xl p-8 shadow-lg shadow-slate-200/50">
-                  <div className="flex items-start gap-6">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-3xl font-bold text-white shrink-0">
+                <div key={index} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50">
+                  <div className="flex items-start gap-5">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-2xl font-bold text-white shrink-0">
                       {member.name.charAt(0)}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-slate-900">{member.name}</h3>
-                      <p className="text-primary mb-3">{member.role}</p>
-                      <p className="text-slate-600 mb-4">{member.bio}</p>
+                      <h4 className="text-xl font-bold text-slate-900">{member.name}</h4>
+                      <p className="text-primary mb-2">{member.role}</p>
+                      <p className="text-slate-600 text-sm mb-3">{member.bio}</p>
                       <div className="flex gap-3">
                         <a href={member.linkedin} className="text-slate-400 hover:text-primary transition-colors">
                           <Linkedin className="w-5 h-5" />
@@ -76,13 +102,10 @@ export const TeamAskSlide = () => {
               whileInView="visible"
               viewport={defaultViewport}
             >
-              <span className="text-purple-600 text-sm uppercase tracking-widest mb-4 block font-medium">The Ask</span>
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8">
-                Pre-Seed Round
-              </h2>
+              <h3 className="text-2xl font-bold text-slate-900 mb-6">Pre-Seed Round</h3>
               
-              <div className="bg-gradient-to-br from-primary/10 to-purple-100 border border-primary/30 rounded-2xl p-8 mb-8">
-                <div className="text-center mb-6">
+              <div className="bg-gradient-to-br from-primary/10 to-purple-100 border border-primary/30 rounded-2xl p-6 mb-6">
+                <div className="text-center mb-5">
                   <div className="text-5xl font-bold text-slate-900 mb-2">£250k</div>
                   <p className="text-slate-600">Target Raise</p>
                 </div>
@@ -109,6 +132,14 @@ export const TeamAskSlide = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Vision Insight */}
+              <div className="bg-slate-50 border-l-4 border-slate-400 rounded-r-xl p-4 mb-6">
+                <p className="text-sm text-slate-600">
+                  <span className="font-semibold text-slate-900">Our vision:</span> Become the default operating system 
+                  for small businesses—where every entrepreneur has access to the AI employees they need to compete with enterprise companies.
+                </p>
               </div>
 
               {/* CTA */}
