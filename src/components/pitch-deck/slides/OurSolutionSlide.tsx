@@ -1,8 +1,37 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { Users, Layers, Code, AlertCircle } from "lucide-react";
+import { Brain, Zap, Database, MessageCircle } from "lucide-react";
 
-const roles = ["Bookkeeper", "Google PPC Marketer", "SEO Analyst", "Customer Support Agent", "Tax & Audit Supervisor"];
+const pillars = [
+  {
+    icon: Brain,
+    title: "Experts Built These",
+    subtitle: "THINK",
+    description: "Created by specialists who've spent years in accounting, marketing, and law. Not generic bots—real expertise encoded.",
+    gradient: "from-green-100 to-emerald-100",
+    iconColor: "text-green-600",
+    accentColor: "text-green-600",
+  },
+  {
+    icon: Zap,
+    title: "Real Specialists",
+    subtitle: "EXECUTE",
+    description: "Not 'a marketer'—a Google Ads specialist, an SEO analyst, a bookkeeper. Each AI does ONE thing exceptionally well.",
+    gradient: "from-primary/10 to-blue-100",
+    iconColor: "text-primary",
+    accentColor: "text-primary",
+    featured: true,
+  },
+  {
+    icon: Database,
+    title: "They Know You",
+    subtitle: "REMEMBER",
+    description: "Every AI shares one memory of your business. Ask once, they all know. No more repeating yourself.",
+    gradient: "from-purple-100 to-violet-100",
+    iconColor: "text-purple-600",
+    accentColor: "text-purple-600",
+  },
+];
 
 export const OurSolutionSlide = () => {
   return (
@@ -15,27 +44,25 @@ export const OurSolutionSlide = () => {
 
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-12">
         <div className="max-w-7xl w-full">
-          {/* Narrative Header */}
+          {/* The Big Reveal */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-6"
+            className="text-center mb-4"
           >
             <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
               Our Solution
             </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 leading-tight">
-              AI Employee Talent Pool + Workspace
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 leading-tight">
+              Meet{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
+              AI employees that <span className="italic">actually</span> work
             </h2>
-            <p className="text-2xl md:text-3xl text-slate-500">
-              Think <span className="text-slate-900 font-semibold">"Slack + App Store"</span> — we call it{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 font-bold">Elixa</span>
-            </p>
           </motion.div>
 
-          {/* Context Problem Callout */}
+          {/* The Vision */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
@@ -43,86 +70,80 @@ export const OurSolutionSlide = () => {
             viewport={defaultViewport}
             className="max-w-3xl mx-auto mb-8"
           >
-            <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-xl p-5 flex gap-4">
-              <AlertCircle className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-base text-slate-700">
-                  <span className="font-semibold text-slate-900">The context problem:</span> Current AI like ChatGPT has limited context—
-                  requiring business owners to repeatedly explain their entire business just for minor questions. 
-                  Elixa solves this with a <span className="font-semibold">shared knowledge base</span>.
-                </p>
-              </div>
-            </div>
+            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
+              Imagine Slack, but every conversation is with an AI expert 
+              who knows your <span className="font-semibold text-slate-900">entire business</span>.
+            </p>
           </motion.div>
 
-          {/* Three columns - improved design */}
+          {/* Three Pillars */}
           <motion.div
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="grid md:grid-cols-3 gap-6"
+            className="grid md:grid-cols-3 gap-6 mb-8"
           >
-            {/* Made by Private Developers */}
-            <motion.div
-              variants={scaleIn}
-              className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:shadow-slate-200/70 transition-shadow duration-300"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center mb-5">
-                <Code className="w-7 h-7 text-green-600" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Made by Private Developers</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Expert developers specializing in niches like marketing, law, and accounting create these AI employees. 
-                They view Elixa as a marketing channel for their specialized agents.
-              </p>
-            </motion.div>
-
-            {/* Talent Pool */}
-            <motion.div
-              variants={scaleIn}
-              className="bg-white border-2 border-primary/20 rounded-3xl p-6 shadow-xl shadow-primary/10 hover:shadow-2xl hover:shadow-primary/20 transition-shadow duration-300 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
-              <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center mb-5">
-                  <Users className="w-7 h-7 text-primary" />
+            {pillars.map((pillar, index) => (
+              <motion.div
+                key={index}
+                variants={scaleIn}
+                className={`bg-white rounded-3xl p-6 shadow-xl transition-all duration-300 hover:shadow-2xl ${
+                  pillar.featured 
+                    ? 'border-2 border-primary/30 shadow-primary/10 hover:shadow-primary/20' 
+                    : 'border border-slate-200 shadow-slate-200/60 hover:shadow-slate-200/70'
+                }`}
+              >
+                {/* Subtitle Badge */}
+                <div className={`text-xs font-bold uppercase tracking-widest ${pillar.accentColor} mb-3`}>
+                  {pillar.subtitle}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">Role-Specific AI Employees</h3>
-                <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                  Not generic "a marketer" or "a law guy"—highly specific roles. Just like real employees with specializations:
+
+                {/* Icon */}
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${pillar.gradient} flex items-center justify-center mb-4`}>
+                  <pillar.icon className={`w-7 h-7 ${pillar.iconColor}`} />
+                </div>
+
+                {/* Title */}
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{pillar.title}</h3>
+
+                {/* Description */}
+                <p className="text-sm text-slate-600 leading-relaxed">
+                  {pillar.description}
                 </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {roles.slice(0, 4).map((role, index) => (
-                    <span
-                      key={index}
-                      className="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full font-medium"
-                    >
-                      {role}
-                    </span>
-                  ))}
-                  <span className="bg-slate-100 text-slate-500 text-xs px-2 py-1 rounded-full font-medium">
-                    +more
-                  </span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* The Context Problem - Dramatic Version */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-4xl mx-auto"
+          >
+            <div className="bg-slate-900 rounded-2xl p-6 md:p-8">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-3">The Problem With Every Other AI</h3>
+                  <p className="text-slate-300 leading-relaxed mb-4">
+                    You tell ChatGPT about your business. Tomorrow, you ask it something—and it's forgotten everything. 
+                    You're explaining your business <span className="text-white font-semibold">over and over again</span>.
+                  </p>
+                  <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
+                    <p className="text-white font-medium">
+                      <span className="text-primary">Elixa is different.</span> Tell us once. Our AI employees share a knowledge base. 
+                      Your Google Ads specialist knows what your bookkeeper knows. Your SEO analyst can reference 
+                      your customer support conversations.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </motion.div>
-
-            {/* Unified Workspace */}
-            <motion.div
-              variants={scaleIn}
-              className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl shadow-slate-200/60 hover:shadow-2xl hover:shadow-slate-200/70 transition-shadow duration-300"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mb-5">
-                <Layers className="w-7 h-7 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Unified Workspace</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                SMEs often have fragmented workspaces—Google Sheets here, notes there. 
-                Elixa provides a unified workspace with <span className="font-semibold">90+ integrations</span> to tools like 
-                Google Analytics, Slack, QuickBooks, and even HMRC.
-              </p>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </div>
