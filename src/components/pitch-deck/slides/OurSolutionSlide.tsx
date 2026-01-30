@@ -58,7 +58,7 @@ export const OurSolutionSlide = () => {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 leading-tight">
               Meet{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
-              AI employees that <span className="italic">actually</span> work
+              Your company,<br />staffed with AI.
             </h2>
           </motion.div>
 
