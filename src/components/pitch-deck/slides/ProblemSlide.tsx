@@ -97,18 +97,26 @@ export const ProblemSlide = () => {
             </h2>
           </motion.div>
 
-          {/* Short Hook Paragraph */}
+          {/* Story Paragraph */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="max-w-3xl mx-auto mb-8"
+            className="max-w-4xl mx-auto mb-8"
           >
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
-              Marketing. Finance. Operations. Support. Legal.{" "}
-              <span className="font-semibold text-slate-800">Most founders handle it all alone</span>—not because they want to, but because they can't afford not to.
-            </p>
+            <div className="bg-white/60 backdrop-blur-sm border border-slate-200/50 rounded-2xl p-6 shadow-sm">
+              <p className="text-base md:text-lg text-slate-600 leading-relaxed text-center">
+                Most founders begin without a team to support them, taking on{" "}
+                <span className="font-semibold text-slate-800">marketing, finance, operations, customer support, distribution, and legal</span>{" "}
+                matters themselves. Each function requires learning new tools and adapting to different processes, which demands significant time and effort. 
+                Because <span className="font-semibold text-orange-600">capital and resources are limited</span> in the early stages, hiring specialists or building a team is rarely an option. 
+                As a result, founders spend much of their energy managing daily responsibilities rather than focusing on{" "}
+                <span className="font-semibold text-slate-800">strategy or growth</span>. 
+                Over time, juggling all of these responsibilities divides attention and makes it{" "}
+                <span className="font-semibold text-orange-600">difficult to move the business forward</span> efficiently.
+              </p>
+            </div>
           </motion.div>
 
           {/* Stat Cards - Bold, Scannable Format */}
