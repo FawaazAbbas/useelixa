@@ -16,15 +16,17 @@ const messages = [
     sender: "PPC Specialist",
     time: "3:04 PM",
     avatar: "bg-blue-500",
-    content: "Pulled a 2-hour live comparison:\nWinners: \"The M1 Didn't Get Slower\" → CTR 4.9%, CPA £11.80\nLosers: Old \"Save on MacBooks\" → CPA £26+",
+    content:
+      'Pulled a 2-hour live comparison:\nWinners: "The M1 Didn\'t Get Slower" → CTR 4.9%, CPA £11.80\nLosers: Old "Save on MacBooks" → CPA £26+',
     hasFile: true,
     fileName: "macbook_ads_performance.xlsx",
   },
   {
-    sender: "Social Media Manager", 
+    sender: "Social Media Manager",
     time: "3:06 PM",
     avatar: "bg-pink-500",
-    content: "We've got 3 creators sending cuts now.\nThe \"I tested a refurbished MacBook\" video? First edit is solid.",
+    content:
+      'We\'ve got 3 creators sending cuts now.\nThe "I tested a refurbished MacBook" video? First edit is solid.',
     hasFile: true,
     fileName: "creator_ad_cut1.mp4",
   },
@@ -35,10 +37,9 @@ export const ProductSlide = () => {
     <section className="pitch-slide pitch-slide-product">
       {/* Light background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
-      
+
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-6xl w-full">
-          
           {/* Header */}
           <motion.div
             variants={fadeInUp}
@@ -48,10 +49,10 @@ export const ProductSlide = () => {
             className="text-center mb-6"
           >
             <span className="text-primary text-sm uppercase tracking-widest mb-3 block font-semibold">
-              The Proof
+              The future is finally here
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900">
-              See Elixa in <span className="text-primary">Action</span>
+              <span className="text-primary">We've already built the Elixa demo</span>
             </h2>
           </motion.div>
 
@@ -70,7 +71,10 @@ export const ProductSlide = () => {
                   <span className="text-white font-bold text-sm">E</span>
                 </div>
                 {[MessageSquare, CheckSquare, Calendar, FileText, BarChart3, Settings].map((Icon, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center ${i === 0 ? 'bg-primary/20 text-primary' : 'text-slate-500 hover:text-slate-300'}`}>
+                  <div
+                    key={i}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${i === 0 ? "bg-primary/20 text-primary" : "text-slate-500 hover:text-slate-300"}`}
+                  >
                     <Icon className="w-4 h-4" />
                   </div>
                 ))}
@@ -97,7 +101,10 @@ export const ProductSlide = () => {
                       <span className="text-xs font-medium text-primary">Marketing</span>
                     </div>
                     {["Product", "Customer Service", "Finance", "Development"].map((team, i) => (
-                      <div key={i} className="flex items-center gap-2 px-2 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg">
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 px-2 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"
+                      >
                         <Users className="w-3.5 h-3.5" />
                         <span className="text-xs">{team}</span>
                       </div>
@@ -105,7 +112,7 @@ export const ProductSlide = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Main chat area */}
               <div className="flex-1 flex flex-col min-w-0">
                 {/* Chat header */}
@@ -133,7 +140,9 @@ export const ProductSlide = () => {
                           <span className="text-xs font-semibold text-slate-900">{msg.sender}</span>
                           <span className="text-[10px] text-slate-400">{msg.time}</span>
                         </div>
-                        <p className="text-[11px] text-slate-600 mt-0.5 whitespace-pre-line leading-relaxed">{msg.content}</p>
+                        <p className="text-[11px] text-slate-600 mt-0.5 whitespace-pre-line leading-relaxed">
+                          {msg.content}
+                        </p>
                         {msg.hasFile && (
                           <div className="mt-1.5 inline-flex items-center gap-1.5 bg-slate-100 rounded-lg px-2 py-1">
                             <FileText className="w-3 h-3 text-slate-500" />
@@ -167,7 +176,9 @@ export const ProductSlide = () => {
                 </div>
                 <div className="mb-3">
                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Description</p>
-                  <p className="text-[11px] text-slate-600">Drives brand awareness, customer acquisition, and revenue growth</p>
+                  <p className="text-[11px] text-slate-600">
+                    Drives brand awareness, customer acquisition, and revenue growth
+                  </p>
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Team Members</p>
@@ -198,8 +209,8 @@ export const ProductSlide = () => {
             viewport={defaultViewport}
             className="text-center text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-6"
           >
-            A unified workspace where AI employees collaborate, share context, 
-            and connect to 90+ tools—all working together for your business.
+            A unified workspace where AI employees collaborate, share context, and connect to 90+ tools—all working
+            together for your business.
           </motion.p>
 
           {/* CTA Button */}
@@ -216,7 +227,6 @@ export const ProductSlide = () => {
               </Button>
             </Link>
           </motion.div>
-          
         </div>
       </div>
     </section>
