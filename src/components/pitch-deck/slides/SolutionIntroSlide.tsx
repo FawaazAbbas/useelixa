@@ -113,35 +113,35 @@ export const SolutionIntroSlide = () => {
                 variants={scaleIn}
                 className={`${styles.border} ${styles.bg} rounded-xl p-5 shadow-sm`}
               >
-                {/* Price with strikethrough */}
-                <div className="flex items-center gap-2 mb-3">
-                  <XCircle className={`w-5 h-5 ${styles.x}`} />
-                  <span className="text-2xl font-bold text-slate-400 line-through">
-                    {comp.price}
-                  </span>
-                </div>
-
-                {/* Verdict - LARGE */}
-                <div className={`${styles.verdict} rounded-lg py-2 px-4 inline-block mb-4`}>
-                  <span className="text-sm font-bold uppercase tracking-wide">{comp.verdict}</span>
-                </div>
-
-                {/* Logo/Icon + Story */}
-                <div className="flex items-start gap-3">
+                {/* Logo/Icon + Name - PROMINENT */}
+                <div className="flex items-center gap-3 mb-3">
                   {comp.logo ? (
                     <img
                       src={comp.logo}
                       alt={`${comp.name} logo`}
-                      className="h-6 w-auto object-contain flex-shrink-0 mt-0.5"
+                      className="h-8 w-auto object-contain"
                     />
                   ) : (
-                    <comp.icon className={`w-6 h-6 flex-shrink-0 mt-0.5 ${styles.icon}`} />
+                    <div className={`w-10 h-10 rounded-lg ${styles.verdict} flex items-center justify-center`}>
+                      <comp.icon className="w-5 h-5" />
+                    </div>
                   )}
                   <div>
-                    <p className="text-xs font-semibold text-slate-700 mb-1">{comp.name}</p>
-                    <p className="text-sm text-slate-600 leading-relaxed">{comp.failure}</p>
+                    <h3 className="text-lg font-bold text-slate-800">{comp.name}</h3>
+                    <span className="text-sm text-slate-400 line-through">{comp.price}</span>
                   </div>
                 </div>
+
+                {/* Verdict Badge */}
+                <div className="flex items-center gap-2 mb-3">
+                  <XCircle className={`w-4 h-4 ${styles.x}`} />
+                  <span className={`${styles.verdict} rounded-full py-1 px-3 text-xs font-bold uppercase tracking-wide`}>
+                    {comp.verdict}
+                  </span>
+                </div>
+
+                {/* Failure Story */}
+                <p className="text-sm text-slate-600 leading-relaxed">{comp.failure}</p>
               </motion.div>
             );
           })}
