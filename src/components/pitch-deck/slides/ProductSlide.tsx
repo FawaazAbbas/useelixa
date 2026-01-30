@@ -223,7 +223,7 @@ export const ProductSlide = () => {
             viewport={defaultViewport}
             className="text-center"
           >
-            <Link to="/chat">
+            <Link to="https://elixa.app/workspace">
               <Button size="lg" className="text-base px-8 py-6 rounded-xl">
                 Try the Demo →
               </Button>
