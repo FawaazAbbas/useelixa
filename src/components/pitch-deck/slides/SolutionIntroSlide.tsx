@@ -13,7 +13,8 @@ const competitors = [
     icon: Code,
     iconBg: "bg-red-100",
     iconColor: "text-red-500",
-    failure: "At £500+ per agent, they're building tools for the rich. The businesses who need help most can't afford them.",
+    failure:
+      "At £500+ per agent, they're building tools for the rich. The businesses who need help most can't afford them.",
   },
   {
     name: "N8N",
@@ -25,7 +26,8 @@ const competitors = [
     logo: "/logos/n8nLogo.png",
     iconBg: "bg-amber-100",
     iconColor: "text-amber-500",
-    failure: "A brilliant tool... if you're a developer. But most founders aren't. They came to build businesses, not write code.",
+    failure:
+      "A brilliant tool... if you're a developer. But most founders aren't. They came to build businesses, not write code.",
   },
   {
     name: "Motion",
@@ -37,7 +39,8 @@ const competitors = [
     logo: "/logos/MotionLogo.png",
     iconBg: "bg-slate-100",
     iconColor: "text-slate-500",
-    failure: "Generic AI that treats every business the same. Your bookkeeper and your marketer can't be the same 'AI assistant.'",
+    failure:
+      "Generic AI that treats every business the same. Your bookkeeper and your marketer can't be the same 'AI assistant.'",
   },
 ];
 
@@ -57,7 +60,9 @@ export const SolutionIntroSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-4"
           >
-            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">The Promise</span>
+            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">
+              The Promise Land
+            </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-4">
               AI employees were supposed to{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-500">
@@ -113,14 +118,14 @@ export const SolutionIntroSlide = () => {
                 <div className={`text-2xl font-bold ${comp.verdictColor} mb-2`}>{comp.price}</div>
 
                 {/* Verdict badge */}
-                <div className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-1.5 px-3 inline-block mb-4 w-fit`}>
+                <div
+                  className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-1.5 px-3 inline-block mb-4 w-fit`}
+                >
                   <p className={`text-xs font-bold uppercase tracking-wide ${comp.verdictColor}`}>{comp.verdict}</p>
                 </div>
 
                 {/* Failure narrative */}
-                <p className="text-sm text-slate-600 leading-relaxed mt-auto">
-                  {comp.failure}
-                </p>
+                <p className="text-sm text-slate-600 leading-relaxed mt-auto">{comp.failure}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -138,8 +143,7 @@ export const SolutionIntroSlide = () => {
                 <Sparkles className="w-6 h-6 text-teal-500" />
               </div>
               <p className="text-xl md:text-2xl font-semibold text-slate-900">
-                What if AI employees could be{" "}
-                <span className="text-teal-600">affordable</span>, require{" "}
+                What if AI employees could be <span className="text-teal-600">affordable</span>, require{" "}
                 <span className="text-blue-600">no technical skills</span>, AND be{" "}
                 <span className="text-purple-600">specialized</span> for your exact needs?
               </p>
