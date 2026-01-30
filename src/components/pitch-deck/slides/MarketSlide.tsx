@@ -49,7 +49,7 @@ export const MarketSlide = () => {
               Significant Growth Opportunity
             </h2>
             <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              According to McKinsey and CB Insight reports, the market for AI productivity and automation globally represents massive opportunity.
+              The AI software and SMB tools market represents a massive, fast-growing opportunity with hundreds of millions of potential customers.
             </p>
           </motion.div>
 
@@ -69,7 +69,7 @@ export const MarketSlide = () => {
                   initial="hidden"
                   whileInView="visible"
                   viewport={defaultViewport}
-                  className="w-56 h-56 md:w-64 md:h-64 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
+                  className="w-60 h-60 md:w-72 md:h-72 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
                 >
                   {/* SAM */}
                   <motion.div
@@ -77,7 +77,7 @@ export const MarketSlide = () => {
                     initial="hidden"
                     whileInView="visible"
                     viewport={defaultViewport}
-                    className="w-40 h-40 md:w-48 md:h-48 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
+                    className="w-44 h-44 md:w-52 md:h-52 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
                   >
                     {/* SOM */}
                     <motion.div
@@ -85,11 +85,11 @@ export const MarketSlide = () => {
                       initial="hidden"
                       whileInView="visible"
                       viewport={defaultViewport}
-                      className="w-24 h-24 md:w-28 md:h-28 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
+                      className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
                     >
                       <div className="text-center">
-                        <div className="text-lg md:text-xl font-bold text-slate-900">
-                          $<AnimatedCounter end={500} suffix="M" />
+                        <div className="text-base md:text-lg font-bold text-slate-900">
+                          £<AnimatedCounter end={56.2} suffix="M" />
                         </div>
                         <div className="text-primary font-semibold text-xs">SOM</div>
                       </div>
@@ -99,12 +99,12 @@ export const MarketSlide = () => {
                 
                 {/* TAM Label */}
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  TAM: $<AnimatedCounter end={150} suffix="B" />
+                  TAM: £<AnimatedCounter end={339} suffix="B" />
                 </div>
                 
                 {/* SAM Label */}
-                <div className="absolute top-14 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  SAM: $<AnimatedCounter end={25} suffix="B" />
+                <div className="absolute top-16 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
+                  SAM: £<AnimatedCounter end={56} suffix="B" />
                 </div>
               </div>
             </motion.div>
@@ -120,26 +120,28 @@ export const MarketSlide = () => {
               <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-                  <span className="font-bold text-slate-900">TAM: $150B</span>
+                  <span className="font-bold text-slate-900">TAM: £339B/yr</span>
+                  <span className="text-xs text-slate-400">(2030)</span>
                 </div>
-                <p className="text-slate-600 text-sm">Global AI productivity and automation—from basic consumer apps to AI-powered workflow tools.</p>
+                <p className="text-slate-600 text-sm">Global AI software & tools market—~565M potential customers at £50/mo average spend.</p>
               </motion.div>
 
               <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="font-bold text-slate-900">SAM: $25B</span>
+                  <span className="font-bold text-slate-900">SAM: £56B/yr</span>
+                  <span className="text-xs text-slate-400">(2026)</span>
                 </div>
-                <p className="text-slate-600 text-sm">SME segment with fewer than 500 employees seeking affordable AI solutions.</p>
+                <p className="text-slate-600 text-sm">SMB software & tools segment—~94M businesses seeking affordable AI solutions.</p>
               </motion.div>
 
               <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  <span className="font-bold text-slate-900">SOM: $500M</span>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Year 5 Target</span>
+                  <span className="font-bold text-slate-900">SOM: £56M/yr</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">0.1% of SAM</span>
                 </div>
-                <p className="text-slate-600 text-sm">2% market penetration of US and UK SME segment alone.</p>
+                <p className="text-slate-600 text-sm">~94K customers—achievable with focused UK/US market penetration.</p>
               </motion.div>
             </motion.div>
           </div>
