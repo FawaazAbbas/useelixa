@@ -1,223 +1,186 @@
 
 
-# Pitch Deck Fixes - 7 Issues
+# Pitch Deck Storytelling Enhancement
 
 ## Overview
 
-This plan addresses 7 specific issues with the pitch deck:
-
-1. **Problem Slide (Slide 2)** - Replace weak stats below avg salary
-2. **Solution Intro Slide (Slide 3)** - Motion logo not showing
-3. **Our Solution Slide (Slide 4)** - Poor design, needs improvement
-4. **Traction Slide** - Only shows 10k, needs more meaningful numbers
-5. **Competition Slide** - Positioning matrix axes wrong and bubble placement needs fixing
-6. **Timeline Slide** - Layout needs improvement
-7. **Sidebar Navigation** - Scroll-to-slide not working
+Transform the pitch deck slides from data-focused displays into narrative-driven presentations that tell a compelling story without requiring a presenter. Each slide will incorporate key talking points from your transcript as readable story blocks.
 
 ---
 
-## Issue 1: Problem Slide - Replace Weak Stats
+## Current Problem
 
-**File:** `src/components/pitch-deck/slides/ProblemSlide.tsx`
+The slides currently show:
+- **Numbers and statistics** without context
+- **Labels and captions** that don't explain the "why"
+- **Data points** that require verbal explanation
 
-**Current State:**
-```
-- £39,039 Avg UK salary
-- +£5,106 Employer tax cost  
-- 120hrs Lost to admin yearly  ← weak
-```
-
-**Problem:** The two stats below avg salary (employer tax and 120hrs) don't strongly communicate the pain point. They feel disconnected.
-
-**Fix:** Replace with more impactful, relatable pain points:
-
-```
-- £39,039 - What hiring ONE employee costs
-- 24 days/year - Time lost on financial admin alone
-- 10-30% - Software budget wasted on unused tools
-```
-
-These stats are more emotionally resonant and directly tie to the solopreneur's pain.
+Without you presenting, a viewer sees "£39,039" and "24 days" but doesn't understand the emotional weight or business implications.
 
 ---
 
-## Issue 2: Motion Logo Missing
+## Solution: Story-First Design
 
-**File:** `src/components/pitch-deck/slides/SolutionIntroSlide.tsx`
+Each affected slide will be restructured with:
 
-**Current State:**
-The Motion logo URL is set to:
-```javascript
-logo: "https://assets.usemotion.com/website-assets-v2/logo/motion-logo.svg"
-```
-
-**Problem:** This external SVG URL may be blocked by CORS or the path may have changed.
-
-**Fix:** Use a reliable fallback approach:
-- First try the external URL
-- If it fails, show the Motion name with styled text as fallback
-- Or use a generic icon with "Motion" text label
-
-Better approach: Use a local logo if available or create a styled text representation:
-```jsx
-<div className="h-12 flex items-center justify-center">
-  <span className="text-2xl font-bold text-slate-700">Motion</span>
-</div>
-```
+1. **Narrative Header** - A compelling statement that frames the story
+2. **Supporting Story Text** - 1-2 sentences explaining the context (from your transcript)
+3. **Visual Data** - The numbers/graphics that reinforce the story
+4. **Key Insight Callout** - A memorable takeaway line
 
 ---
 
-## Issue 3: Our Solution Slide - Design Issues
+## Slide-by-Slide Changes
 
-**File:** `src/components/pitch-deck/slides/OurSolutionSlide.tsx`
+### Slide 2: Problem Slide (`ProblemSlide.tsx`)
 
-**Current Problems:**
-1. The mascot and logo feel cramped together
-2. The 3-column layout cards are too dense
-3. Visual hierarchy is weak
+**Current:** Generic headline + 3 stat cards
 
-**Fixes:**
-1. Increase spacing between logo and mascot
-2. Make the header section larger and more prominent
-3. Add subtle visual polish to the cards (gradients, icons with better colors)
-4. Improve the role badges layout
-5. Add a subtle decorative element
+**New Structure:**
 
-**Updated Layout:**
-```
+| Section | Content |
+|---------|---------|
+| **Narrative Header** | "The primary struggle for SMEs and solo entrepreneurs is dealing with cost" |
+| **Story Text** | "Many lack sufficient funds to sustain their business or cover marketing expenses. The expense of hiring a new employee—paying another salary—is often simply unaffordable." |
+| **Stats** | Keep the 3 visual stat cards (£39k, 24 days, 10-30%) |
+| **Insight Callout** | "The overall problem: lack of funds to implement better solutions, hire employees to streamline processes, and insufficient capacity to produce better outcomes." |
+
+```text
+Layout:
 +--------------------------------------------------+
+| THE PROBLEM                                       |
 |                                                   |
-|    [ELIXA LOGO - larger]    [MASCOT - larger]    |
+| "The primary struggle is dealing with cost..."   |
 |                                                   |
-|    AI Employee Talent Pool + Workspace           |
-|    "Think Slack + App Store"                     |
+| [Narrative paragraph about affordability]         |
 |                                                   |
-+--------------------------------------------------+
+| +--------+ +--------+ +--------+                 |
+| |£39,039 | |24 days | |10-30% |                 |
+| +--------+ +--------+ +--------+                 |
 |                                                   |
-|   [Card 1]        [Card 2]        [Card 3]       |
-|   Made by         Role-Specific   Unified        |
-|   Experts         AI Employees    Workspace      |
-|                                                   |
+| [Insight callout box]                            |
 +--------------------------------------------------+
 ```
 
 ---
 
-## Issue 4: Traction Slide - Only 10k
+### Slide 3: Solution Intro (`SolutionIntroSlide.tsx`)
 
-**File:** `src/components/pitch-deck/slides/TractionSlide.tsx`
+**Current:** "The solution? AI employees" + competitor boxes with just prices
 
-**Current State:** Only shows "10,000 projected signups"
+**New Structure:**
 
-**Problem:** One number isn't compelling enough. Need supporting metrics.
+| Section | Content |
+|---------|---------|
+| **Narrative Header** | "The proposed solution to these challenges is AI employees" |
+| **Story Text** | "But the availability and realistic options need consideration. Let's look at what's out there..." |
+| **Competitor Cards** | Enhanced with explanation text from transcript |
 
-**Fix:** Add milestone cards showing progress:
+**Enhanced Competitor Cards:**
 
-| Milestone | Status |
-|-----------|--------|
-| MVP Live | Jan 2025 - Done |
-| Beta Users | 500+ - Done |
-| Projected Signups | 10,000 |
-| Target Date | Feb 2025 |
+| Competitor | Story Text Added |
+|------------|------------------|
+| **Private Developers** | "Typically charge around £500 per developer to create an AI agent—very costly for SMEs" |
+| **N8N** | "A DIY solution where you build the AI yourself. Affordable at £24/month, but unsuitable because most founders lack the necessary technical skills" |
+| **Motion** | "£35/month—not overly expensive, but the AI agents are merely generic 'marketer' types, not specific enough for detailed tasks like Google Ads or Meta" |
 
-This shows both achieved milestones and projections.
-
----
-
-## Issue 5: Competition Slide - Positioning Matrix
-
-**File:** `src/components/pitch-deck/slides/CompetitionSlide.tsx`
-
-**Current Axes:**
-- Vertical: "Smart" (top) to "Basic" (bottom) - CORRECT
-- Horizontal: "Simple" (left) to "Integrated" (right) - NEEDS CHANGE
-
-**User Request:** 
-- Y-axis: Smart to Basic (top to bottom) - keep
-- X-axis: Change from "Simple/Integrated" to "Cheap/Expensive"
-
-**Bubble Positioning Issues:**
-Current positioning doesn't make intuitive sense. Need to recalculate positions based on new axes.
-
-**New Positions (Cheap to Expensive, Smart to Basic):**
-
-| Competitor | X (Cheap→Expensive) | Y (Smart→Basic) |
-|------------|---------------------|-----------------|
-| ChatGPT | 30% | 85% | (Cheap, Very Smart)
-| N8N | 25% | 35% | (Very Cheap, Medium)
-| Motion | 35% | 30% | (Cheap-ish, Medium-Basic)
-| Lindy | 75% | 80% | (Expensive, Smart)
-| Salesforce | 95% | 60% | (Very Expensive, Medium-Smart)
-| Elixa | 25% | 80% | (Cheap, Smart) - Sweet spot
-
----
-
-## Issue 6: Timeline Slide Layout
-
-**File:** `src/components/pitch-deck/slides/RevenueSlide.tsx`
-
-**Current Problems:**
-- Timeline milestones cramped on mobile
-- Visual flow not clear
-- ARR projections not prominent
-
-**Fixes:**
-1. Horizontal timeline with clearer connections
-2. Larger milestone icons
-3. Better visual distinction between completed and future items
-4. ARR projection badges more prominent
-5. Improve grid layout for 6 milestones
-
----
-
-## Issue 7: Sidebar Navigation Not Working
-
-**File:** `src/components/pitch-deck/SlideProgressIndicator.tsx`
-
-**Current Implementation:**
-```javascript
-const scrollToSlide = (index: number) => {
-  const slides = document.querySelectorAll<HTMLElement>(".pitch-deck-wrapper section");
-  const targetSection = slides[index];
-
-  if (targetSection) {
-    targetSection.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    return;
-  }
-  // Fallback to window scroll
-};
+```text
+Layout:
++--------------------------------------------------+
+| THE PROMISE                                       |
+|                                                   |
+| "The solution to these challenges is AI employees"|
+| "But what are the realistic options?"            |
+|                                                   |
+| +------------+ +------------+ +------------+      |
+| | Dev Icon   | | N8N Logo   | | Motion     |      |
+| | £500+      | | £24/mo     | | £35/mo     |      |
+| |            | |            | |            |      |
+| | [Story     | | [Story     | | [Story     |      |
+| |  text]     | |  text]     | |  text]     |      |
+| +------------+ +------------+ +------------+      |
++--------------------------------------------------+
 ```
 
-**Potential Issues:**
-1. The selector `.pitch-deck-wrapper section` may not be finding sections correctly
-2. `scrollIntoView` with scroll-snap can behave unpredictably
-3. The scroll container might be the wrapper, not the window
+---
 
-**Fix:** Change to use direct scroll calculation and scroll the correct container:
+### Slide 4: Our Solution - Elixa (`OurSolutionSlide.tsx`)
 
-```javascript
-const scrollToSlide = (index: number) => {
-  const wrapper = document.querySelector('.pitch-deck-wrapper');
-  const slideHeight = window.innerHeight;
-  
-  if (wrapper) {
-    wrapper.scrollTo({
-      top: index * slideHeight,
-      behavior: 'smooth'
-    });
-  } else {
-    window.scrollTo({
-      top: index * slideHeight,
-      behavior: 'smooth'
-    });
-  }
-};
+**Current:** 3 feature cards without explanation
+
+**New Structure:**
+
+This is the most narrative-heavy slide. Add the key differentiation story.
+
+| Section | Content |
+|---------|---------|
+| **Narrative Header** | "Elixa: AI Employees in a Talent Pool + Workspace" |
+| **Core Story** | "Think Slack-style, AI-powered workspace with an app store for AI employees. They can Think, Execute, and maintain Continuous Context." |
+| **The Context Problem** | "A major problem with current AI like ChatGPT is limited context—requiring business owners to repeatedly explain their entire business just for minor questions. Elixa solves this with a shared knowledge base." |
+| **Feature Cards** | Enhanced with transcript explanations |
+
+**Enhanced Feature Cards:**
+
+| Card | Story Text Added |
+|------|------------------|
+| **Made by Private Developers** | "Expert developers specializing in niches like marketing, law, and accounting create these AI employees. They view Elixa as a marketing channel for their specialized agents." |
+| **Role-Specific Employees** | "Not generic 'a marketer' or 'a law guy'—highly specific roles like a Bookkeeper, Google PPC Marketer, SEO Analyst, or Customer Service Agent. Just like real employees with specializations." |
+| **Unified Workspace** | "SMEs often have fragmented workspaces—Google Sheets here, notes there. Elixa provides a unified workspace with 90+ integrations to tools like Google Analytics, Slack, QuickBooks, and even HMRC." |
+
+---
+
+### Slide 5: Market Opportunity (`MarketSlide.tsx`)
+
+**Current:** TAM/SAM/SOM circles + stat cards
+
+**New Structure:**
+
+| Section | Content |
+|---------|---------|
+| **Narrative Header** | "Significant Growth Opportunity" |
+| **Story Text** | "According to McKenzie and CB Insight reports, the market for AI productivity and automation globally represents massive opportunity." |
+| **TAM/SAM/SOM** | Keep visual but add story callouts |
+| **Shopify Insight** | "Our benchmark customer segment: Shopify merchants. 5.5 million customers spending $120/month on apps, with 64% being small businesses—contributing $7.9B annually to Shopify." |
+
+**Enhanced TAM/SAM/SOM Descriptions:**
+
+| Metric | Story Text |
+|--------|------------|
+| **TAM ($150B)** | "Global AI productivity and automation—from basic consumer apps to AI-powered workflow tools" |
+| **SAM ($25B)** | "SME segment with fewer than 500 employees seeking affordable AI solutions" |
+| **SOM ($500M)** | "Year 5 goal: 2% market penetration in US and UK alone" |
+
+---
+
+## Implementation Details
+
+### Story Text Component
+
+Create a reusable story text styling:
+
+```text
+- Font: text-lg md:text-xl
+- Color: text-slate-600 (good readability)
+- Line height: leading-relaxed
+- Max width: Constrained for readability
 ```
 
-Also need to check if `pitch-deck-wrapper` has the scroll container or if it's the window.
+### Insight Callout Component
+
+Create a highlighted callout box for key insights:
+
+```text
+- Background: bg-primary/5 or bg-orange-50
+- Border: border-l-4 border-primary
+- Padding: p-4 md:p-6
+- Font: text-base italic
+```
+
+### Animation Considerations
+
+- Story text blocks will use `fadeInUp` animation
+- Slight stagger between narrative sections
+- Data cards animate after story text is visible
 
 ---
 
@@ -225,20 +188,18 @@ Also need to check if `pitch-deck-wrapper` has the scroll container or if it's t
 
 | File | Changes |
 |------|---------|
-| `src/components/pitch-deck/slides/ProblemSlide.tsx` | Replace stats with more impactful ones |
-| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Fix Motion logo display |
-| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Improve design and spacing |
-| `src/components/pitch-deck/slides/TractionSlide.tsx` | Add milestone cards |
-| `src/components/pitch-deck/slides/CompetitionSlide.tsx` | Fix axes (Cheap/Expensive) and bubble positions |
-| `src/components/pitch-deck/slides/RevenueSlide.tsx` | Improve timeline layout |
-| `src/components/pitch-deck/SlideProgressIndicator.tsx` | Fix scroll-to-slide functionality |
+| `src/components/pitch-deck/slides/ProblemSlide.tsx` | Add narrative header, story text, insight callout |
+| `src/components/pitch-deck/slides/SolutionIntroSlide.tsx` | Add story intro, enhance competitor cards with explanations |
+| `src/components/pitch-deck/slides/OurSolutionSlide.tsx` | Add context problem story, enhance feature card descriptions |
+| `src/components/pitch-deck/slides/MarketSlide.tsx` | Add narrative framing, Shopify story section, enhance TAM/SAM/SOM descriptions |
 
 ---
 
 ## Technical Notes
 
-- All changes maintain the light mode theme
-- Framer Motion animations preserved
-- Responsive layouts maintained
-- Motion logo fallback handles CORS issues
+- All transcript text will be incorporated as styled paragraphs
+- Responsive design maintained with appropriate text sizing
+- Story sections animated with existing Framer Motion variants
+- Light mode theme preserved
+- Story text constrained to ~50-60 characters per line for readability
 
