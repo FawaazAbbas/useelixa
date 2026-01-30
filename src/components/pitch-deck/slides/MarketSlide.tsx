@@ -173,7 +173,7 @@ export const MarketSlide = () => {
                   <span className="font-bold text-slate-900">SOM: £77.9MM/yr</span>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">1% of SAM</span>
                 </div>
-                <p className="text-slate-600 text-sm">~129.9K customers — achievable with Eurasia focus</p>
+                <p className="text-slate-600 text-sm">~129.9K customers — achievable with online store focus</p>
               </motion.div>
             </motion.div>
           </div>
