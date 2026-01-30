@@ -48,7 +48,7 @@ export const ProductSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-6"
           >
-            <span className="text-primary text-sm uppercase tracking-widest mb-3 block font-semibold">
+            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
               The future is finally here
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900">
