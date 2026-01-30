@@ -7,149 +7,171 @@ const competitors = [
     name: "Private Developers",
     price: "£500+",
     verdict: "TOO EXPENSIVE",
-    verdictColor: "text-red-600",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
+    accentColor: "red" as const,
     icon: Code,
-    iconBg: "bg-red-100",
-    iconColor: "text-red-500",
     failure:
-      "At £500+ per agent, they're building tools for the rich. The businesses who need help most can't afford them.",
+      "Building tools for the rich. The businesses who need help most can't afford them.",
   },
   {
     name: "N8N",
     price: "£24/month",
     verdict: "TOO TECHNICAL",
-    verdictColor: "text-amber-600",
-    bgColor: "bg-amber-50",
-    borderColor: "border-amber-200",
+    accentColor: "amber" as const,
     logo: "/logos/n8nLogo.png",
-    iconBg: "bg-amber-100",
-    iconColor: "text-amber-500",
     failure:
-      "A brilliant tool... if you're a developer. But most founders aren't. They came to build businesses, not write code.",
+      "Brilliant if you're a developer. But most founders came to build businesses, not write code.",
   },
   {
     name: "Motion",
     price: "£35/month",
     verdict: "TOO GENERIC",
-    verdictColor: "text-slate-600",
-    bgColor: "bg-slate-50",
-    borderColor: "border-slate-200",
+    accentColor: "slate" as const,
     logo: "/logos/MotionLogo.png",
-    iconBg: "bg-slate-100",
-    iconColor: "text-slate-500",
     failure:
-      "Generic AI that treats every business the same. Your bookkeeper and your marketer can't be the same 'AI assistant.'",
+      "One-size-fits-all AI. Your bookkeeper and marketer can't be the same 'assistant.'",
   },
 ];
+
+const getFailureStyles = (color: "red" | "amber" | "slate") => {
+  const styles = {
+    red: {
+      border: "border-l-4 border-red-500",
+      bg: "bg-gradient-to-r from-red-50/60 to-white",
+      verdict: "text-red-600 bg-red-100",
+      x: "text-red-400",
+      icon: "text-red-500",
+    },
+    amber: {
+      border: "border-l-4 border-amber-500",
+      bg: "bg-gradient-to-r from-amber-50/60 to-white",
+      verdict: "text-amber-600 bg-amber-100",
+      x: "text-amber-400",
+      icon: "text-amber-500",
+    },
+    slate: {
+      border: "border-l-4 border-slate-400",
+      bg: "bg-gradient-to-r from-slate-100/60 to-white",
+      verdict: "text-slate-600 bg-slate-200",
+      x: "text-slate-400",
+      icon: "text-slate-500",
+    },
+  };
+  return styles[color];
+};
 
 export const SolutionIntroSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-solution-intro">
-      {/* Light background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
+      {/* Background: Warm-to-cool bridge from Slide 2 */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/20 via-slate-50 to-white" />
+      <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-slate-100/50 to-transparent" />
 
-      <div className="relative z-10 flex items-center justify-center h-full px-6">
-        <div className="max-w-6xl w-full">
-          {/* The Promise with Doubt */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="text-center mb-4"
-          >
-            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">
-              The Promise Land
+      <div className="relative z-10 h-full px-6 md:px-12 lg:px-20 py-8 flex flex-col justify-center">
+        {/* Hero Header - Centered, dramatic */}
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          className="text-center mb-6"
+        >
+          <span className="text-orange-500 text-xs uppercase tracking-widest font-semibold mb-3 block">
+            The Promise Land
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
+            AI employees were supposed to{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-400">
+              change everything
             </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight mb-4">
-              AI employees were supposed to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-blue-500">
-                change everything
-              </span>
-            </h2>
-          </motion.div>
+          </h2>
+        </motion.div>
 
-          {/* The But... */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="text-center mb-8"
-          >
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto">
-              But the options available today? They all fail in different ways.
-            </p>
-          </motion.div>
+        {/* Subtitle - Italic quote */}
+        <motion.p
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          className="text-lg md:text-xl text-slate-500 italic text-center mb-10 max-w-2xl mx-auto"
+        >
+          "But the options available today? They all fail in different ways."
+        </motion.p>
 
-          {/* Competitor Failure Cards */}
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-8"
-          >
-            {competitors.map((comp, index) => (
+        {/* Failure Cards - Left-border accent style */}
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10"
+        >
+          {competitors.map((comp, index) => {
+            const styles = getFailureStyles(comp.accentColor);
+            return (
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className={`${comp.bgColor} border-2 ${comp.borderColor} rounded-2xl p-6 shadow-lg flex flex-col relative overflow-hidden`}
+                className={`${styles.border} ${styles.bg} rounded-xl p-5 shadow-sm`}
               >
-                {/* X Mark */}
-                <div className="absolute top-3 right-3">
-                  <XCircle className={`w-6 h-6 ${comp.verdictColor} opacity-50`} />
+                {/* Price with strikethrough */}
+                <div className="flex items-center gap-2 mb-3">
+                  <XCircle className={`w-5 h-5 ${styles.x}`} />
+                  <span className="text-2xl font-bold text-slate-400 line-through">
+                    {comp.price}
+                  </span>
                 </div>
 
-                {/* Logo or Icon */}
-                <div className="h-12 flex items-center justify-start mb-4">
+                {/* Verdict - LARGE */}
+                <div className={`${styles.verdict} rounded-lg py-2 px-4 inline-block mb-4`}>
+                  <span className="text-sm font-bold uppercase tracking-wide">{comp.verdict}</span>
+                </div>
+
+                {/* Logo/Icon + Story */}
+                <div className="flex items-start gap-3">
                   {comp.logo ? (
-                    <img src={comp.logo} alt={`${comp.name} logo`} className="h-8 w-auto object-contain" />
+                    <img
+                      src={comp.logo}
+                      alt={`${comp.name} logo`}
+                      className="h-6 w-auto object-contain flex-shrink-0 mt-0.5"
+                    />
                   ) : (
-                    <div className={`w-10 h-10 rounded-xl ${comp.iconBg} flex items-center justify-center`}>
-                      <comp.icon className={`w-5 h-5 ${comp.iconColor}`} />
-                    </div>
+                    <comp.icon className={`w-6 h-6 flex-shrink-0 mt-0.5 ${styles.icon}`} />
                   )}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-700 mb-1">{comp.name}</p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{comp.failure}</p>
+                  </div>
                 </div>
-
-                <h3 className="text-lg font-semibold text-slate-800 mb-1">{comp.name}</h3>
-                <div className={`text-2xl font-bold ${comp.verdictColor} mb-2`}>{comp.price}</div>
-
-                {/* Verdict badge */}
-                <div
-                  className={`${comp.bgColor} border ${comp.borderColor} rounded-lg py-1.5 px-3 inline-block mb-4 w-fit`}
-                >
-                  <p className={`text-xs font-bold uppercase tracking-wide ${comp.verdictColor}`}>{comp.verdict}</p>
-                </div>
-
-                {/* Failure narrative */}
-                <p className="text-sm text-slate-600 leading-relaxed mt-auto">{comp.failure}</p>
               </motion.div>
-            ))}
-          </motion.div>
+            );
+          })}
+        </motion.div>
 
-          {/* Transition Question */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="text-center"
-          >
-            <div className="bg-gradient-to-r from-teal-50 to-blue-50 border border-teal-200 rounded-2xl p-6 max-w-3xl mx-auto">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                <Sparkles className="w-6 h-6 text-teal-500" />
-              </div>
-              <p className="text-xl md:text-2xl font-semibold text-slate-900">
-                What if AI employees could be <span className="text-teal-600">affordable</span>, require{" "}
-                <span className="text-blue-600">no technical skills</span>, AND be{" "}
-                <span className="text-purple-600">specialized</span> for your exact needs?
-              </p>
-            </div>
-          </motion.div>
-        </div>
+        {/* Hope Callout - Glow effect, centered */}
+        <motion.div
+          variants={fadeInUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={defaultViewport}
+          className="bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200/50 
+                     rounded-2xl p-6 max-w-3xl mx-auto shadow-lg shadow-orange-100/30"
+        >
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-orange-500" />
+            <span className="text-sm font-medium text-slate-500">What if there was another way?</span>
+          </div>
+          <div className="flex items-center justify-center gap-3 md:gap-4 flex-wrap">
+            <span className="px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+              Affordable
+            </span>
+            <span className="px-4 py-2 bg-slate-100 text-slate-700 rounded-full text-sm font-semibold">
+              No Code Required
+            </span>
+            <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+              Specialized for YOU
+            </span>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
