@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
-import { Check, X, Star } from "lucide-react";
+import { Check, X, Star, Lightbulb } from "lucide-react";
 
 const competitors = [
   { name: "ChatGPT", hasWorkspace: false, hasIntegrations: false, hasTalentPool: false, hasAffordable: true },
@@ -20,15 +20,13 @@ const Feature = ({ has, isUs }: { has: boolean; isUs?: boolean }) => {
 };
 
 // Positioning data for the 2x2 matrix (X: Cheap→Expensive, Y: Smart→Basic)
-// Y values: 100% = top (Smart), 0% = bottom (Basic)
-// X values: 0% = left (Cheap), 100% = right (Expensive)
 const positioningData = [
-  { name: "ChatGPT", x: 25, y: 85, size: "lg" },      // Cheap, Very Smart
-  { name: "N8N", x: 20, y: 40, size: "md" },          // Very Cheap, Medium-Basic
-  { name: "Motion", x: 35, y: 35, size: "md" },       // Cheap-ish, Basic
-  { name: "Lindy", x: 75, y: 80, size: "md" },        // Expensive, Smart
-  { name: "Einstein", x: 90, y: 65, size: "sm" },     // Very Expensive, Medium-Smart
-  { name: "Elixa", x: 22, y: 82, size: "lg", isUs: true }, // Cheap, Smart - Sweet spot!
+  { name: "ChatGPT", x: 25, y: 85, size: "lg" },
+  { name: "N8N", x: 20, y: 40, size: "md" },
+  { name: "Motion", x: 35, y: 35, size: "md" },
+  { name: "Lindy", x: 75, y: 80, size: "md" },
+  { name: "Einstein", x: 90, y: 65, size: "sm" },
+  { name: "Elixa", x: 22, y: 82, size: "lg", isUs: true },
 ];
 
 export const CompetitionSlide = () => {
@@ -39,21 +37,36 @@ export const CompetitionSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-7xl w-full">
-          {/* Header */}
+          {/* Narrative Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-8"
+            className="text-center mb-6"
           >
-            <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-medium">Competition</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
-              The Landscape
+            <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-semibold">Competition</span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+              Why We Win
             </h2>
           </motion.div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
+          {/* Story Text */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-3xl mx-auto mb-8"
+          >
+            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
+              The market is fragmented between expensive enterprise tools and basic free options. 
+              Elixa sits in the <span className="font-semibold text-slate-900">sweet spot</span>—smart AI with full integration, 
+              at a price SMEs can actually afford.
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-6">
             {/* 2x2 Positioning Matrix */}
             <motion.div
               variants={fadeInUp}
@@ -66,18 +79,14 @@ export const CompetitionSlide = () => {
               <div className="relative aspect-square max-w-sm mx-auto">
                 {/* Axes */}
                 <div className="absolute inset-0">
-                  {/* Vertical axis */}
                   <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300"></div>
-                  {/* Horizontal axis */}
                   <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-300"></div>
                   
-                  {/* Labels - Updated axes: Smart/Basic (Y), Cheap/Expensive (X) */}
                   <span className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Smart</span>
                   <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Basic</span>
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-green-600 uppercase tracking-wide">Cheap</span>
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-red-500 uppercase tracking-wide">Expensive</span>
                   
-                  {/* Quadrant shading - top-left is the sweet spot (Smart + Cheap) */}
                   <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-green-50/60 rounded-tl-xl"></div>
                 </div>
                 
@@ -166,16 +175,24 @@ export const CompetitionSlide = () => {
             </motion.div>
           </div>
 
-          {/* Highlight */}
-          <motion.p
+          {/* Positioning Insight */}
+          <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center text-xl text-slate-500 mt-8"
+            className="max-w-4xl mx-auto mt-8"
           >
-            Only <span className="text-primary font-semibold">Elixa</span> combines all four at an affordable price
-          </motion.p>
+            <div className="bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-5 flex gap-4">
+              <Lightbulb className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-base text-slate-700">
+                  <span className="font-semibold text-slate-900">The key insight:</span> Only Elixa combines a unified workspace, 
+                  90+ integrations, an AI talent pool, <em>and</em> pricing SMEs can afford. Others force you to choose between capability and cost.
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

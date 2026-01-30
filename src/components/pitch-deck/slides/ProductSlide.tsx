@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { fadeInUp, scaleIn, defaultViewport } from "../slideAnimations";
-import { MessageSquare, Users, Puzzle, Layers, Mail, Calendar, FileText, Bell, Settings, Search } from "lucide-react";
+import { MessageSquare, Users, Puzzle, Layers, Mail, Calendar, FileText, Bell, Settings, Search, Lightbulb } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -37,18 +37,33 @@ export const ProductSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-7xl w-full">
-          {/* Header */}
+          {/* Narrative Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-12"
+            className="text-center mb-6"
           >
-            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-medium">Product</span>
+            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">Product</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
-              The Complete AI Workspace
+              See It In Action
             </h2>
+          </motion.div>
+
+          {/* Story Text */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-3xl mx-auto mb-8"
+          >
+            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
+              Everything you need, in one workspace. Connect to Google Analytics, Slack, QuickBooks, 
+              and even HMRC. Your AI employees have <span className="font-semibold text-slate-900">full context</span> of your business 
+              without you explaining it every time.
+            </p>
           </motion.div>
 
           {/* Visual workspace mockup */}
@@ -59,7 +74,7 @@ export const ProductSlide = () => {
             viewport={defaultViewport}
             className="bg-white rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50 overflow-hidden"
           >
-            <div className="flex h-[400px] md:h-[450px]">
+            <div className="flex h-[350px] md:h-[400px]">
               {/* Sidebar */}
               <div className="w-16 md:w-20 bg-slate-900 flex flex-col items-center py-6 gap-4">
                 <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center mb-4">
@@ -133,13 +148,32 @@ export const ProductSlide = () => {
             </div>
           </motion.div>
 
+          {/* Integration Insight Callout */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-3xl mx-auto mt-8"
+          >
+            <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 flex gap-4">
+              <Lightbulb className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-base text-slate-700">
+                  <span className="font-semibold text-slate-900">90+ integrations:</span> From Google Analytics to HMRC, 
+                  from Slack to QuickBooks. Your AI employees work across all your tools seamlessly.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Feature badges */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="flex flex-wrap justify-center gap-4 mt-8"
+            className="flex flex-wrap justify-center gap-4 mt-6"
           >
             {[
               { icon: MessageSquare, label: "AI Team Chats" },
@@ -160,11 +194,11 @@ export const ProductSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mt-8"
+            className="text-center mt-6"
           >
             <Link to="/chat">
               <Button size="lg" className="text-lg px-8 py-6 rounded-xl">
-                See it in action →
+                Try it yourself →
               </Button>
             </Link>
           </motion.div>

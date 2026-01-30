@@ -1,25 +1,27 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
-import { Calendar, Rocket, Users, Code, Layers, Target } from "lucide-react";
+import { Calendar, Rocket, Users, Code, Layers, Target, Lightbulb } from "lucide-react";
 
 const milestones = [
   {
     month: "Jan",
     year: "2025",
     title: "Workspace MVP",
-    description: "Core platform",
+    description: "Core platform ready",
     icon: Layers,
     color: "bg-slate-500",
     done: true,
+    story: "Foundational workspace with AI chat, notes, and integrations"
   },
   {
     month: "Feb",
     year: "2025",
     title: "90+ Integrations",
-    description: "Connect tools",
+    description: "Connect all tools",
     icon: Code,
     color: "bg-blue-500",
     done: true,
+    story: "Google, Shopify, Slack, QuickBooks, HMRC, and more"
   },
   {
     month: "Mar",
@@ -30,6 +32,7 @@ const milestones = [
     color: "bg-teal-500",
     arr: "First Revenue",
     done: false,
+    story: "Onboarding first paying customers from beta"
   },
   {
     month: "Apr",
@@ -39,26 +42,29 @@ const milestones = [
     icon: Code,
     color: "bg-purple-500",
     done: false,
+    story: "Opening marketplace for developer-created AI employees"
   },
   {
     month: "May",
     year: "2025",
     title: "AI Employees",
-    description: "Talent pool",
+    description: "Talent pool live",
     icon: Users,
     color: "bg-primary",
     arr: "£50k ARR",
     done: false,
+    story: "Full AI employee marketplace with specialized agents"
   },
   {
     month: "Aug",
     year: "2025",
     title: "10k Users",
-    description: "Scale target",
+    description: "Scale milestone",
     icon: Target,
     color: "bg-green-500",
     arr: "£250k ARR",
     done: false,
+    story: "Proven product-market fit and scaling acquisition"
   },
 ];
 
@@ -70,19 +76,32 @@ export const RevenueSlide = () => {
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-7xl w-full">
-          {/* Header */}
+          {/* Narrative Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-10"
+            className="text-center mb-6"
           >
-            <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-medium">Roadmap</span>
+            <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-semibold">Roadmap</span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
-              Timeline & Projections
+              Our Path to 10k Users
             </h2>
-            <p className="text-xl text-slate-500">Our path from development to 10k users</p>
+          </motion.div>
+
+          {/* Story Text */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-3xl mx-auto mb-8"
+          >
+            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
+              This isn't just a list of milestones—it's a journey. Each step builds on the last, 
+              moving us from MVP to a scalable platform with proven product-market fit.
+            </p>
           </motion.div>
 
           {/* Timeline */}
@@ -122,14 +141,16 @@ export const RevenueSlide = () => {
                   
                   {/* Title */}
                   <h3 className="font-bold text-slate-900 text-xs md:text-sm mb-0.5 leading-tight">{milestone.title}</h3>
-                  <p className="text-[10px] md:text-xs text-slate-500 mb-1">{milestone.description}</p>
                   
                   {/* ARR Badge */}
                   {milestone.arr && (
-                    <div className="bg-green-100 text-green-700 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full">
+                    <div className="bg-green-100 text-green-700 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full mb-1">
                       {milestone.arr}
                     </div>
                   )}
+                  
+                  {/* Story text (hidden on very small screens) */}
+                  <p className="text-[10px] text-slate-500 hidden md:block leading-tight px-1">{milestone.story}</p>
                 </motion.div>
               ))}
             </div>
@@ -141,27 +162,46 @@ export const RevenueSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mt-12 bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 max-w-3xl mx-auto"
+            className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 max-w-3xl mx-auto mb-6"
           >
             <div className="flex items-center justify-center gap-2 mb-4">
               <Calendar className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-slate-900">ARR Projection</h3>
+              <h3 className="text-lg font-semibold text-slate-900">Revenue Projection</h3>
             </div>
             <div className="grid grid-cols-3 gap-6 text-center">
               <div>
                 <div className="text-sm text-slate-500 mb-1">Mar (Launch)</div>
-                <div className="text-2xl font-bold text-slate-900">First Revenue</div>
-                <div className="text-xs text-slate-400">Early adopters</div>
+                <div className="text-xl md:text-2xl font-bold text-slate-900">First Revenue</div>
+                <div className="text-xs text-slate-400">Validation point</div>
               </div>
               <div>
                 <div className="text-sm text-slate-500 mb-1">May (AI Employees)</div>
-                <div className="text-2xl font-bold text-primary">£50k ARR</div>
+                <div className="text-xl md:text-2xl font-bold text-primary">£50k ARR</div>
                 <div className="text-xs text-slate-400">~350 paying users</div>
               </div>
               <div>
                 <div className="text-sm text-slate-500 mb-1">Aug (Scale)</div>
-                <div className="text-2xl font-bold text-green-600">£250k ARR</div>
+                <div className="text-xl md:text-2xl font-bold text-green-600">£250k ARR</div>
                 <div className="text-xs text-slate-400">10k users @ ~£25/mo avg</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Growth Insight */}
+          <motion.div
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={defaultViewport}
+            className="max-w-3xl mx-auto"
+          >
+            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-5 flex gap-4">
+              <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-base text-slate-700">
+                  <span className="font-semibold text-slate-900">The growth logic:</span> Shopify merchants already pay $120/month for apps. 
+                  Converting just 0.2% of the 5.5M merchants to our £25/mo average would mean £250k ARR. That's our conservative target.
+                </p>
               </div>
             </div>
           </motion.div>
