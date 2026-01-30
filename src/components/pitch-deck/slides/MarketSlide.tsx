@@ -3,7 +3,17 @@ import { useRef, useEffect, useState } from "react";
 import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
 import { TrendingUp, Building2, ShoppingBag } from "lucide-react";
 
-const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end: number; prefix?: string; suffix?: string; duration?: number }) => {
+const AnimatedCounter = ({
+  end,
+  prefix = "",
+  suffix = "",
+  duration = 2,
+}: {
+  end: number;
+  prefix?: string;
+  suffix?: string;
+  duration?: number;
+}) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
@@ -25,7 +35,13 @@ const AnimatedCounter = ({ end, prefix = "", suffix = "", duration = 2 }: { end:
     }
   }, [isInView, end, duration]);
 
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
+  return (
+    <span ref={ref}>
+      {prefix}
+      {count.toLocaleString()}
+      {suffix}
+    </span>
+  );
 };
 
 export const MarketSlide = () => {
@@ -33,7 +49,7 @@ export const MarketSlide = () => {
     <section className="pitch-slide pitch-slide-market">
       {/* Light background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
-      
+
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-12">
         <div className="max-w-7xl w-full">
           {/* Header */}
@@ -44,12 +60,15 @@ export const MarketSlide = () => {
             viewport={defaultViewport}
             className="text-center mb-6"
           >
-            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">Market Opportunity</span>
+            <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">
+              Market Opportunity
+            </span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
               Significant Growth Opportunity
             </h2>
             <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              The AI software and SMB tools market represents a massive, fast-growing opportunity with hundreds of millions of potential customers.
+              The AI software and SMB tools market represents a massive, fast-growing opportunity with hundreds of
+              millions of potential customers.
             </p>
           </motion.div>
 
@@ -96,12 +115,12 @@ export const MarketSlide = () => {
                     </motion.div>
                   </motion.div>
                 </motion.div>
-                
+
                 {/* TAM Label */}
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-semibold">
                   TAM: £<AnimatedCounter end={339} suffix="B" />
                 </div>
-                
+
                 {/* SAM Label */}
                 <div className="absolute top-16 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
                   SAM: £<AnimatedCounter end={56} suffix="B" />
@@ -117,31 +136,44 @@ export const MarketSlide = () => {
               viewport={defaultViewport}
               className="space-y-3"
             >
-              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
+              <motion.div
+                variants={scaleIn}
+                className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50"
+              >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-                  <span className="font-bold text-slate-900">TAM: £339B/yr</span>
+                  <span className="font-bold text-slate-900">TAM: £129.6B/yr</span>
                   <span className="text-xs text-slate-400">(2030)</span>
                 </div>
-                <p className="text-slate-600 text-sm">Global AI software & tools market—~565M potential customers at £50/mo average spend.</p>
+                <p className="text-slate-600 text-sm">
+                  ~216M digitally-native SMBs - businesses with an online presence
+                </p>
               </motion.div>
 
-              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
+              <motion.div
+                variants={scaleIn}
+                className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50"
+              >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="font-bold text-slate-900">SAM: £56B/yr</span>
+                  <span className="font-bold text-slate-900">SAM: £7.79B/yr</span>
                   <span className="text-xs text-slate-400">(2026)</span>
                 </div>
-                <p className="text-slate-600 text-sm">SMB software & tools segment—~94M businesses seeking affordable AI solutions.</p>
+                <p className="text-slate-600 text-sm">
+                  ~12.98M e-commerce SMBs - businesses based around selling online goods
+                </p>
               </motion.div>
 
-              <motion.div variants={scaleIn} className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50">
+              <motion.div
+                variants={scaleIn}
+                className="bg-white border border-slate-200 rounded-xl p-4 shadow-lg shadow-slate-200/50"
+              >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  <span className="font-bold text-slate-900">SOM: £56M/yr</span>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">0.1% of SAM</span>
+                  <span className="font-bold text-slate-900">SOM: £77.9MM/yr</span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">1% of SAM</span>
                 </div>
-                <p className="text-slate-600 text-sm">~94K customers—achievable with focused UK/US market penetration.</p>
+                <p className="text-slate-600 text-sm">~129.9K customers — achievable with Eurasia focus</p>
               </motion.div>
             </motion.div>
           </div>
@@ -162,15 +194,15 @@ export const MarketSlide = () => {
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 mb-2">Our Benchmark: Shopify Merchants</h3>
                   <p className="text-slate-600 leading-relaxed">
-                    <span className="font-semibold text-slate-800">5.5 million customers</span> spending 
-                    <span className="font-semibold text-slate-800"> $120/month on apps</span>, with 
-                    <span className="font-semibold text-slate-800"> 64% being small businesses</span>—
-                    contributing <span className="font-semibold text-green-600">$7.9B annually</span> to Shopify's ecosystem. 
-                    This is our primary target segment.
+                    <span className="font-semibold text-slate-800">5.5 million customers</span> spending
+                    <span className="font-semibold text-slate-800"> $120/month on apps</span>, with
+                    <span className="font-semibold text-slate-800"> 64% being small businesses</span>— contributing{" "}
+                    <span className="font-semibold text-green-600">$7.9B annually</span> to Shopify's ecosystem. This is
+                    our primary target segment.
                   </p>
                 </div>
               </div>
-              
+
               {/* Quick stats row */}
               <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-green-200">
                 <div className="text-center">
