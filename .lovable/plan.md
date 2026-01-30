@@ -1,48 +1,42 @@
 
 
-# Redesign OurSolutionSlide (Slide 4) - New Content & Structure
+# Simplify ProductSlide (The Proof) - Basic Snapshot Layout
 
-## New Content Summary
+## Current State
 
-The user has provided updated copy that reframes Elixa as a **marketplace of AI employees** built by vetted developers. The three pillars now emphasize:
+The current ProductSlide is complex with:
+- A full interactive workspace mockup with sidebar, chat messages, connected tools panel
+- Multiple animated conversation steps
+- An "Aha Moment" callout box
+- Feature badges
+- Many moving parts
 
-1. **Built by Experts** - Quality from vetted private developers, not generic AI factories
-2. **Role-Specific Specialists** - True specialists (Google Ads, SEO, bookkeeper) not one-size-fits-all bots
-3. **Unified & Collaborative Workspace** - All agents share context, connect to 90+ tools, work together
+## New Simple Layout
 
-Plus a new bottom tagline: *"AI employees that think, remember, and execute—built for the way you actually work."*
-
----
-
-## Layout Design
+The user wants a clean, minimal approach:
 
 ```text
 +------------------------------------------------------------------+
-|  Background: Blue/purple gradient with central glow              |
+|  Background: Light gradient                                      |
+|                                                                  |
+|                      THE PROOF                                   |
+|                                                                  |
+|        See Elixa in Action                                       |
 |                                                                  |
 |  ┌────────────────────────────────────────────────────────────┐  |
-|  │              OUR SOLUTION                                   │  |
 |  │                                                             │  |
-|  │      Meet Elixa: AI employees that actually work           │  |
 |  │                                                             │  |
-|  │  [Marketplace description - glassmorphic card]              │  |
-|  │  "A marketplace of real AI employees, each created by..."   │  |
+|  │              [WORKSPACE SNAPSHOT IMAGE]                     │  |
+|  │                                                             │  |
+|  │           Static screenshot of Elixa workspace              │  |
+|  │                                                             │  |
+|  │                                                             │  |
 |  └────────────────────────────────────────────────────────────┘  |
 |                                                                  |
-|  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              |
-|  │ QUALITY     │  │ SPECIALISTS │  │ UNIFIED     │              |
-|  │ ⭐          │  │ 🎯          │  │ 🔗          │              |
-|  │             │  │ (featured)  │  │             │              |
-|  │ Built by    │  │ Role-       │  │ Unified &   │              |
-|  │ Experts     │  │ Specific    │  │ Collab      │              |
-|  │             │  │ Specialists │  │ Workspace   │              |
-|  │ [details]   │  │ [details]   │  │ [details]   │              |
-|  └─────────────┘  └─────────────┘  └─────────────┘              |
+|        A unified workspace where AI employees collaborate,       |
+|        share context, and connect to your tools.                 |
 |                                                                  |
-|  ╔════════════════════════════════════════════════════════════╗  |
-|  ║  "AI employees that think, remember, and execute—          ║  |
-|  ║   built for the way you actually work."                    ║  |
-|  ╚════════════════════════════════════════════════════════════╝  |
+|                    [ Try the Demo → ]                            |
 |                                                                  |
 +------------------------------------------------------------------+
 ```
@@ -51,112 +45,118 @@ Plus a new bottom tagline: *"AI employees that think, remember, and execute—bu
 
 ## Key Changes
 
-### 1. Updated Header Copy
-- Keep the "Meet Elixa" headline structure
-- Add a new subtitle card with the marketplace description in a glassmorphic container
+### 1. Remove Complex Elements
+- Remove the interactive sidebar mockup
+- Remove the animated conversation steps
+- Remove the "Aha Moment" callout
+- Remove the feature badges row
 
-### 2. Updated Three Pillars Data
+### 2. Keep Simple Structure
+- **Chapter label**: "THE PROOF" (uppercase, tracking-widest)
+- **Title**: "See Elixa in Action" or similar
+- **Snapshot**: A static workspace mockup image (simplified version of current mockup, or a placeholder that can be replaced with a real screenshot)
+- **Description**: 1-2 sentences about the workspace
+- **CTA Button**: "Try the Demo" linking to /chat
 
-| Current | New |
-|---------|-----|
-| "Experts Built These" / THINK | "Built by Experts" / QUALITY |
-| "Real Specialists" / EXECUTE | "Role-Specific Specialists" / SPECIALISTS |
-| "They Know You" / REMEMBER | "Unified & Collaborative Workspace" / UNIFIED |
+### 3. Workspace Snapshot Options
 
-### 3. Updated Pillar Icons
-- **Quality**: Shield or Star icon (vetted developers, trust)
-- **Specialists**: Target icon (precision, role-specific)
-- **Unified**: Link or Network icon (connected, collaborative)
+**Option A - Simplified Static Mockup**: Keep a basic visual representation of the workspace (sidebar + main area) but without the animated conversation. Just a clean, static preview.
 
-### 4. Replace Dark "Context Problem" Section
-Remove the current slate-900 box about "The Problem With Every Other AI" and replace with the new tagline in a styled callout bar.
+**Option B - Image Placeholder**: Use a placeholder div styled to look like a screenshot frame, ready to be replaced with an actual screenshot image later.
 
-### 5. New Bottom Tagline
-Add a centered, emphasized tagline with a subtle gradient background:
-*"AI employees that think, remember, and execute—built for the way you actually work."*
+I will use **Option A** - a simplified static mockup that shows the workspace layout without the complex animated conversation, giving a clean visual preview.
 
 ---
 
 ## Technical Implementation
 
-### Updated Pillars Array
-
-```typescript
-const pillars = [
-  {
-    icon: Shield, // or Star
-    title: "Built by Experts",
-    subtitle: "QUALITY",
-    description: "Every Elixa agent is created by a vetted private developer, not a generic AI factory. Real-world know-how, reliability, and performance you can trust—at a price small businesses can actually afford.",
-    gradient: "from-amber-100 to-orange-100",
-    iconColor: "text-amber-600",
-    accentColor: "text-amber-600",
-  },
-  {
-    icon: Target,
-    title: "Role-Specific Specialists",
-    subtitle: "SPECIALISTS",
-    description: "Each agent is a true specialist—a Google Ads marketer, an SEO analyst, a bookkeeper, a customer support agent. Designed to execute with the depth and nuance of a real teammate.",
-    gradient: "from-primary/10 to-blue-100",
-    iconColor: "text-primary",
-    accentColor: "text-primary",
-    featured: true,
-  },
-  {
-    icon: Network, // or Link2
-    title: "Unified Workspace",
-    subtitle: "COLLABORATIVE",
-    description: "All AI employees work together in one workspace. Every agent shares context, communicates seamlessly, and connects to 90+ tools—automate work without the chaos of disconnected apps.",
-    gradient: "from-purple-100 to-violet-100",
-    iconColor: "text-purple-600",
-    accentColor: "text-purple-600",
-  },
-];
-```
-
-### New Marketplace Description Card
-
 ```tsx
-{/* Marketplace Description */}
-<motion.div className="max-w-4xl mx-auto mb-8">
-  <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 text-center">
-    <p className="text-lg text-slate-700 leading-relaxed">
-      Elixa is more than just another "AI assistant." It's a 
-      <span className="font-semibold text-primary"> marketplace of real AI employees</span>, 
-      each created by specialist developers, trained for a specific business role, 
-      and ready to work together in a unified, fully connected workspace.
-    </p>
-  </div>
-</motion.div>
-```
+export const ProductSlide = () => {
+  return (
+    <section className="pitch-slide pitch-slide-product">
+      {/* Light background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+      
+      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
+        <div className="max-w-5xl w-full">
+          
+          {/* Header */}
+          <motion.div className="text-center mb-8">
+            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
+              The Proof
+            </span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900">
+              See Elixa in <span className="text-primary">Action</span>
+            </h2>
+          </motion.div>
 
-### New Bottom Tagline
+          {/* Workspace Snapshot - Simplified static mockup */}
+          <motion.div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden mb-8">
+            <div className="flex h-[320px] md:h-[380px]">
+              {/* Simple sidebar */}
+              <div className="w-16 bg-slate-900 flex flex-col items-center py-6 gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                  <span className="text-white font-bold">E</span>
+                </div>
+                {/* Simple icon placeholders */}
+                {[MessageSquare, Mail, Calendar, FileText].map((Icon, i) => (
+                  <div key={i} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-slate-400" />
+                  </div>
+                ))}
+              </div>
+              
+              {/* Main content - simplified */}
+              <div className="flex-1 flex flex-col">
+                <div className="h-12 border-b border-slate-200 flex items-center px-6">
+                  <div className="bg-slate-100 rounded-lg px-4 py-2 flex items-center gap-2 flex-1 max-w-md">
+                    <Search className="w-4 h-4 text-slate-400" />
+                    <span className="text-slate-400 text-sm">Ask Elixa anything...</span>
+                  </div>
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center text-slate-400">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">Your AI team is ready</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
-```tsx
-{/* Bottom Tagline */}
-<motion.div className="max-w-3xl mx-auto mt-8">
-  <div className="bg-gradient-to-r from-primary/5 via-purple-50/50 to-primary/5 
-                  border border-primary/20 rounded-xl p-6 text-center">
-    <p className="text-xl md:text-2xl font-semibold text-slate-800">
-      AI employees that <span className="text-primary">think</span>, 
-      <span className="text-purple-600"> remember</span>, and 
-      <span className="text-blue-600"> execute</span>—
-      <span className="text-slate-600 font-normal">built for the way you actually work.</span>
-    </p>
-  </div>
-</motion.div>
+          {/* Description */}
+          <motion.p className="text-center text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
+            A unified workspace where AI employees collaborate, share context, 
+            and connect to 90+ tools—all working together for your business.
+          </motion.p>
+
+          {/* CTA Button */}
+          <motion.div className="text-center">
+            <Link to="/chat">
+              <Button size="lg" className="text-base px-8 py-6 rounded-xl">
+                Try the Demo →
+              </Button>
+            </Link>
+          </motion.div>
+          
+        </div>
+      </div>
+    </section>
+  );
+};
 ```
 
 ---
 
-## Visual Palette Alignment
+## Removed Elements
 
-The slide maintains the existing blue/purple gradient background while using:
-- **Amber/Orange** for the "Quality" pillar (warm, trustworthy)
-- **Primary Blue** for the "Specialists" pillar (featured, central)
-- **Purple/Violet** for the "Unified" pillar (collaborative, connected)
-
-This provides visual variety while staying within the deck's established palette.
+| Element | Status |
+|---------|--------|
+| Animated conversation steps | Removed |
+| Connected tools panel | Removed |
+| "Aha Moment" callout | Removed |
+| Feature badges row | Removed |
+| Grid pattern background | Removed (optional, keep if desired) |
 
 ---
 
@@ -164,5 +164,5 @@ This provides visual variety while staying within the deck's established palette
 
 | File | Changes |
 |------|---------|
-| `OurSolutionSlide.tsx` | Update pillars data, add marketplace description, replace dark section with new tagline |
+| `ProductSlide.tsx` | Simplify to basic title + snapshot + description + CTA button layout |
 
