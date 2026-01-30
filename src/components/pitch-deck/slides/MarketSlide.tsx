@@ -108,7 +108,7 @@ export const MarketSlide = () => {
                     >
                       <div className="text-center">
                         <div className="text-base md:text-lg font-bold text-slate-900">
-                          £<AnimatedCounter end={7.79} suffix="M" />
+                          £<AnimatedCounter end={562} suffix="M" />
                         </div>
                         <div className="text-primary font-semibold text-xs">SOM</div>
                       </div>
@@ -118,12 +118,12 @@ export const MarketSlide = () => {
 
                 {/* TAM Label */}
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  TAM: £<AnimatedCounter end={129.6} suffix="B" />
+                  TAM: £<AnimatedCounter end={339} suffix="B" />
                 </div>
 
                 {/* SAM Label */}
                 <div className="absolute top-16 -right-4 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                  SAM: £<AnimatedCounter end={7.79} suffix="B" />
+                  SAM: £<AnimatedCounter end={56} suffix="B" />
                 </div>
               </div>
             </motion.div>
@@ -142,11 +142,11 @@ export const MarketSlide = () => {
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-                  <span className="font-bold text-slate-900">TAM: £129.6B/yr</span>
-                  <span className="text-xs text-slate-400">(2026)</span>
+                  <span className="font-bold text-slate-900">TAM: £339.3B/yr</span>
+                  <span className="text-xs text-slate-400">(2030)</span>
                 </div>
                 <p className="text-slate-600 text-sm">
-                  ~216M digitally-native SMBs — businesses with an online presence
+                  ~565.5M customers — AI software/tools market @ £50/mo
                 </p>
               </motion.div>
 
@@ -156,11 +156,11 @@ export const MarketSlide = () => {
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="font-bold text-slate-900">SAM: £7.79B/yr</span>
+                  <span className="font-bold text-slate-900">SAM: £56.2B/yr</span>
                   <span className="text-xs text-slate-400">(2026)</span>
                 </div>
                 <p className="text-slate-600 text-sm">
-                  ~12.98M e-commerce SMBs — businesses based around selling online goods
+                  ~93.7M customers — SMB software/tools market @ £50/mo
                 </p>
               </motion.div>
 
@@ -170,10 +170,10 @@ export const MarketSlide = () => {
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  <span className="font-bold text-slate-900">SOM: £77.9MM/yr</span>
+                  <span className="font-bold text-slate-900">SOM: £562M/yr</span>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">1% of SAM</span>
                 </div>
-                <p className="text-slate-600 text-sm">~129.9K customers — achievable within 5 years</p>
+                <p className="text-slate-600 text-sm">~937K customers — achievable with 1% market penetration</p>
               </motion.div>
             </motion.div>
           </div>
