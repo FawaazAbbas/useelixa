@@ -25,7 +25,7 @@ const painPoints = [
   {
     icon: TrendingDown,
     category: "STUCK",
-    accentColor: "blue",
+    accentColor: "orange",
     statValue: "32%",
     statLabel: "can't grow—they're too busy",
     detail: "1 in 3 say daily operations block hiring or expansion.",
@@ -33,7 +33,7 @@ const painPoints = [
   {
     icon: PoundSterling,
     category: "UNAFFORDABLE",
-    accentColor: "emerald",
+    accentColor: "orange",
     statValue: "£30,800",
     statLabel: "to hire just one employee",
     detail: "Average UK salary—before NI, pension, and recruitment.",
