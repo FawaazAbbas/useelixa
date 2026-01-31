@@ -36,8 +36,7 @@ const stats = [
     suffix: "M",
     label: "Merchants Globally",
     description: "Active Shopify stores worldwide",
-    color: "text-green-600",
-    bgColor: "bg-green-100",
+    gradient: "from-green-500 to-emerald-600",
   },
   {
     icon: DollarSign,
@@ -46,8 +45,7 @@ const stats = [
     suffix: "/mo",
     label: "Avg App Spend",
     description: "Per merchant on third-party apps",
-    color: "text-blue-600",
-    bgColor: "bg-blue-100",
+    gradient: "from-blue-500 to-blue-600",
   },
   {
     icon: Users,
@@ -55,8 +53,7 @@ const stats = [
     suffix: "%",
     label: "Small Businesses",
     description: "Exactly our target customer",
-    color: "text-purple-600",
-    bgColor: "bg-purple-100",
+    gradient: "from-purple-500 to-violet-600",
   },
   {
     icon: TrendingUp,
@@ -65,48 +62,35 @@ const stats = [
     suffix: "B",
     label: "TAM in Shopify",
     description: "Addressable market within Shopify alone",
-    color: "text-teal-600",
-    bgColor: "bg-teal-100",
+    gradient: "from-teal-500 to-cyan-600",
   },
 ];
 
 export const ShopifyDeepDiveSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-shopify">
-      {/* Light background with green accent */}
+      {/* Clean gradient with green accent */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-green-50/40 to-slate-50" />
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-green-100/30 to-transparent" />
       
-      {/* Shopify green accent */}
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-green-100/50 to-transparent" />
-      
-      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
+      <div className="relative z-10 flex items-center justify-center h-full px-8 md:px-16 lg:px-24">
         <div className="max-w-6xl w-full">
-          {/* Narrative Header */}
+          {/* Header with logo */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-6"
+            className="text-center mb-8"
           >
             <div className="flex items-center justify-center gap-4 mb-4">
               <img src="/logos/ShopifyLogo.svg" alt="Shopify" className="h-8 w-auto" />
-              <span className="text-green-600 text-sm uppercase tracking-widest font-semibold">Deep Dive</span>
+              <span className="text-green-600 text-xs uppercase tracking-[0.2em] font-semibold">Deep Dive</span>
             </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 leading-[1.1]">
               Why Shopify Merchants First?
             </h2>
-          </motion.div>
-
-          {/* Story Text */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="max-w-3xl mx-auto mb-10"
-          >
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
+            <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Our immediate benchmark customer segment is Shopify merchants. There are 5.5 million customers 
               on Shopify who spend an average of $120 monthly on apps. Notably, <span className="font-semibold text-slate-900">64% of these are small businesses</span>—
               exactly our target market.
@@ -119,18 +103,18 @@ export const ShopifyDeepDiveSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10"
           >
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 text-center"
+                className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all text-center"
               >
-                <div className={`w-14 h-14 rounded-2xl ${stat.bgColor} flex items-center justify-center mx-auto mb-4`}>
-                  <stat.icon className={`w-7 h-7 ${stat.color}`} />
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center mx-auto mb-4`}>
+                  <stat.icon className="w-7 h-7 text-white" />
                 </div>
-                <div className="text-4xl md:text-5xl font-bold text-slate-900 mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                   <AnimatedCounter 
                     end={stat.value} 
                     prefix={stat.prefix} 
@@ -138,8 +122,8 @@ export const ShopifyDeepDiveSlide = () => {
                     decimals={stat.value < 10 ? 1 : 0}
                   />
                 </div>
-                <div className={`font-semibold ${stat.color} mb-1`}>{stat.label}</div>
-                <div className="text-slate-500 text-sm">{stat.description}</div>
+                <div className="font-semibold text-slate-700 mb-1 text-sm">{stat.label}</div>
+                <div className="text-slate-500 text-xs">{stat.description}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -150,9 +134,9 @@ export const ShopifyDeepDiveSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mt-10"
+            className="mb-8"
           >
-            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-6 max-w-4xl mx-auto">
+            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-2xl p-6 max-w-4xl mx-auto">
               <div className="flex gap-4">
                 <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
@@ -174,13 +158,12 @@ export const ShopifyDeepDiveSlide = () => {
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="mt-8"
           >
-            <div className="bg-white border border-green-200 rounded-2xl p-6 text-center max-w-2xl mx-auto shadow-lg shadow-slate-200/50">
+            <div className="bg-white border border-green-200 rounded-2xl p-6 text-center max-w-2xl mx-auto shadow-sm">
               <p className="text-xl text-slate-700">
                 <span className="font-bold text-green-700">3.5M+ small business merchants</span> are waiting for a tool like Elixa
               </p>
-              <p className="text-slate-500 mt-1">
+              <p className="text-slate-500 mt-2">
                 They're already contributing <span className="font-semibold">$7.9B annually</span> to productivity apps—we just need to earn our share
               </p>
             </div>
