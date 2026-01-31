@@ -152,19 +152,18 @@ export const ShopifyDeepDiveSlide = () => {
             viewport={defaultViewport}
             className="mt-10"
           >
-            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-6 flex gap-4 max-w-4xl mx-auto">
-              <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-base text-slate-700 mb-2">
-                  <span className="font-semibold text-slate-900">Why start here?</span> Shopify merchants already pay for apps, 
-                  already use fragmented tools, and are actively seeking ways to automate their business. They're the perfect first customers because:
-                </p>
-                <ul className="text-sm text-slate-600 space-y-1">
-                  <li>• Already spending $120/month on productivity tools</li>
-                  <li>• Small business owners doing everything themselves</li>
-                  <li>• Familiar with app-store style purchases</li>
-                  <li>• Clear ROI: time saved = money earned</li>
-                </ul>
+            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-6 max-w-4xl mx-auto">
+              <div className="flex gap-4">
+                <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-base text-slate-700 leading-relaxed">
+                    <span className="font-semibold text-slate-900">Why start here?</span> These merchants already pay for apps, 
+                    already use fragmented tools, and are actively seeking ways to automate their business. They're spending 
+                    <span className="font-semibold text-green-700"> $120/month on productivity tools</span>, they're small business 
+                    owners doing everything themselves, they're familiar with app-store style purchases, and most importantly—
+                    <span className="font-semibold text-slate-900"> they understand that time saved equals money earned</span>.
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -179,10 +178,10 @@ export const ShopifyDeepDiveSlide = () => {
           >
             <div className="bg-white border border-green-200 rounded-2xl p-6 text-center max-w-2xl mx-auto shadow-lg shadow-slate-200/50">
               <p className="text-xl text-slate-700">
-                <span className="font-bold text-green-700">3.5M+ small business merchants</span> on Shopify alone
+                <span className="font-bold text-green-700">3.5M+ small business merchants</span> are waiting for a tool like Elixa
               </p>
               <p className="text-slate-500 mt-1">
-                Contributing <span className="font-semibold">$7.9B annually</span> to the Shopify app ecosystem
+                They're already contributing <span className="font-semibold">$7.9B annually</span> to productivity apps—we just need to earn our share
               </p>
             </div>
           </motion.div>
