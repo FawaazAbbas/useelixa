@@ -9,7 +9,6 @@ const plans = [
     period: "14 days",
     agents: 1,
     features: ["100 credits", "2 connectors", "Basic AI models", "Community support"],
-    highlight: false,
     story: "Try before you commit"
   },
   {
@@ -18,8 +17,7 @@ const plans = [
     period: "/month",
     agents: 2,
     features: ["1,000 credits/month", "Unlimited connectors", "Standard AI models", "Email support"],
-    highlight: false,
-    story: "For solo founders getting started"
+    story: "For solo founders"
   },
   {
     name: "Pro",
@@ -28,7 +26,7 @@ const plans = [
     agents: 6,
     features: ["5,000 credits/month", "GPT & Gemini Pro", "Priority support", "Advanced workflows"],
     highlight: true,
-    story: "For growing teams ready to scale"
+    story: "For growing teams"
   },
   {
     name: "Unlimited",
@@ -36,65 +34,40 @@ const plans = [
     period: "/month",
     agents: 12,
     features: ["Unlimited credits", "Premium models", "Dedicated support", "Custom integrations"],
-    highlight: false,
-    story: "For power users and agencies"
+    story: "For power users"
   },
 ];
 
 const additionalCosts = [
-  {
-    icon: Database,
-    title: "Storage",
-    price: "TBC",
-    description: "Additional storage pricing coming soon",
-  },
-  {
-    icon: Zap,
-    title: "Credits",
-    price: "6p per credit",
-    description: "Top up anytime for extra AI interactions",
-  },
-  {
-    icon: Users,
-    title: "Extra Agents",
-    price: "£10/month",
-    description: "Add more AI employees to your workspace",
-  },
+  { icon: Database, title: "Storage", price: "TBC", description: "Additional storage pricing coming soon" },
+  { icon: Zap, title: "Credits", price: "6p per credit", description: "Top up anytime for extra AI interactions" },
+  { icon: Users, title: "Extra Agents", price: "£10/month", description: "Add more AI employees to your workspace" },
 ];
 
 export const PricingSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-pricing">
-      {/* Light background */}
+      {/* Clean gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
       
-      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16 py-16">
+      <div className="relative z-10 flex items-center justify-center h-full px-8 md:px-16 lg:px-24 py-16">
         <div className="max-w-7xl w-full">
-          {/* Narrative Header */}
+          {/* Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-6"
+            className="text-center mb-8"
           >
-            <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-semibold">Pricing</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+            <span className="inline-block text-green-600 text-xs uppercase tracking-[0.2em] font-semibold mb-4">
+              Pricing
+            </span>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 leading-[1.1]">
               Accessible for Every Business
             </h2>
-          </motion.div>
-
-          {/* Story Text */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="max-w-3xl mx-auto mb-10"
-          >
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
-              We designed pricing for the SMEs who need us most. No hidden fees, no enterprise-only features. 
-              Every tier gives you the AI capabilities that would otherwise cost thousands in human hours.
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              We designed pricing for the SMEs who need us most. No hidden fees, no enterprise-only features.
             </p>
           </motion.div>
 
@@ -110,35 +83,37 @@ export const PricingSlide = () => {
               <motion.div
                 key={index}
                 variants={scaleIn}
-                className={`rounded-2xl p-6 ${
+                className={`rounded-2xl p-6 transition-all ${
                   plan.highlight
-                    ? 'bg-gradient-to-br from-primary/10 to-purple-100 border-2 border-primary relative shadow-lg'
-                    : 'bg-white border border-slate-200 shadow-lg shadow-slate-200/50'
+                    ? 'bg-gradient-to-br from-primary/10 to-purple-100 border-2 border-primary/30 shadow-lg shadow-primary/10 relative'
+                    : 'bg-white border border-slate-200 shadow-sm hover:shadow-md'
                 }`}
               >
                 {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-4 py-1 rounded-full flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Most Popular
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-semibold px-4 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
+                    <Sparkles className="w-3 h-3" /> Popular
                   </div>
                 )}
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">{plan.name}</h3>
-                  <p className="text-xs text-slate-500 mb-2">{plan.story}</p>
+                
+                <div className="text-center mb-5">
+                  <h3 className="text-lg font-bold text-slate-900 mb-0.5">{plan.name}</h3>
+                  <p className="text-xs text-slate-500 mb-3">{plan.story}</p>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
                     <span className="text-slate-500 text-sm">{plan.period}</span>
                   </div>
-                  <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+                  <div className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
                     plan.highlight ? 'bg-primary/20 text-primary' : 'bg-slate-100 text-slate-700'
                   }`}>
                     <Users className="w-4 h-4" />
                     {plan.agents} {plan.agents === 1 ? 'Agent' : 'Agents'}
                   </div>
                 </div>
-                <ul className="space-y-2">
+                
+                <ul className="space-y-2.5">
                   {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-slate-600 text-sm">
-                      <Check className={`w-4 h-4 ${plan.highlight ? 'text-primary' : 'text-green-500'}`} />
+                    <li key={i} className="flex items-center gap-2.5 text-slate-600 text-sm">
+                      <Check className={`w-4 h-4 flex-shrink-0 ${plan.highlight ? 'text-primary' : 'text-green-500'}`} />
                       {feature}
                     </li>
                   ))}
@@ -155,15 +130,15 @@ export const PricingSlide = () => {
             viewport={defaultViewport}
             className="mb-8"
           >
-            <h3 className="text-center text-lg font-semibold text-slate-700 mb-4">Additional Options</h3>
+            <h3 className="text-center text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Additional Options</h3>
             <div className="grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
               {additionalCosts.map((cost, index) => (
-                <div key={index} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                <div key={index} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
                     <cost.icon className="w-5 h-5 text-slate-600" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-900">{cost.title}</h4>
+                    <h4 className="font-semibold text-slate-900 text-sm">{cost.title}</h4>
                     <p className="text-base font-bold text-primary">{cost.price}</p>
                     <p className="text-xs text-slate-500">{cost.description}</p>
                   </div>
@@ -180,7 +155,7 @@ export const PricingSlide = () => {
             viewport={defaultViewport}
             className="max-w-3xl mx-auto"
           >
-            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-5 flex gap-4">
+            <div className="bg-green-50 border-l-4 border-green-500 rounded-r-2xl p-5 flex gap-4">
               <Lightbulb className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="text-base text-slate-700">
