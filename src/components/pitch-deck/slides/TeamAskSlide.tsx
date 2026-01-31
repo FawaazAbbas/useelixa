@@ -17,8 +17,9 @@ const team = [
 
 const useOfFunds = [
   { icon: Code, label: "Product Development", percent: 50 },
-  { icon: TrendingUp, label: "Growth & Marketing", percent: 30 },
-  { icon: Users, label: "Operations", percent: 20 },
+  { icon: TrendingUp, label: "Growth & Marketing", percent: 20 },
+  { icon: Users, label: "Savings", percent: 20 },
+  { icon: Users, label: "Operations", percent: 10 },
 ];
 
 export const TeamAskSlide = () => {
@@ -26,10 +27,10 @@ export const TeamAskSlide = () => {
     <section className="pitch-slide pitch-slide-team-ask">
       {/* Light background with gradient to primary */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/50 to-primary/10" />
-      
+
       {/* Accent glow */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
-      
+
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
         <div className="max-w-6xl w-full">
           {/* Narrative Header */}
@@ -45,34 +46,32 @@ export const TeamAskSlide = () => {
               Let's Build the Future Together
             </h2>
             <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
-              We're not just building another AI tool—we're creating the operating system for small businesses. 
-              Join us on this journey.
+              We're not just building another AI tool—we're creating the operating system for small businesses. Join us
+              on this journey.
             </p>
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
             {/* Left: Team & Founder Story */}
-            <motion.div
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-            >
+            <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
               <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <Heart className="w-6 h-6 text-primary" /> The Founder Story
               </h3>
-              
+
               {/* Founder Story Callout */}
               <div className="bg-primary/5 border-l-4 border-primary rounded-r-xl p-5 mb-6">
                 <p className="text-base text-slate-700 leading-relaxed">
-                  "I've been on both sides—running a small fashion business and building tech. 
-                  I know the pain of doing everything yourself, of paying for tools that don't talk to each other, 
-                  of wishing you could clone yourself. <span className="font-semibold">Elixa is that clone.</span>"
+                  "I've been on both sides—running a small fashion business and building tech. I know the pain of doing
+                  everything yourself, of paying for tools that don't talk to each other, of wishing you could clone
+                  yourself. <span className="font-semibold">Elixa is that clone.</span>"
                 </p>
               </div>
-              
+
               {team.map((member, index) => (
-                <div key={index} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50">
+                <div
+                  key={index}
+                  className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50"
+                >
                   <div className="flex items-start gap-5">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-2xl font-bold text-white shrink-0">
                       {member.name.charAt(0)}
@@ -96,20 +95,15 @@ export const TeamAskSlide = () => {
             </motion.div>
 
             {/* Right: The Ask */}
-            <motion.div
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
-            >
+            <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
               <h3 className="text-2xl font-bold text-slate-900 mb-6">Pre-Seed Round</h3>
-              
+
               <div className="bg-gradient-to-br from-primary/10 to-purple-100 border border-primary/30 rounded-2xl p-6 mb-6">
                 <div className="text-center mb-5">
-                  <div className="text-5xl font-bold text-slate-900 mb-2">£250k</div>
+                  <div className="text-5xl font-bold text-slate-900 mb-2">£500k</div>
                   <p className="text-slate-600">Target Raise</p>
                 </div>
-                
+
                 <h4 className="text-slate-900 font-semibold mb-4">Use of Funds</h4>
                 <div className="space-y-4">
                   {useOfFunds.map((item, index) => (
@@ -137,8 +131,9 @@ export const TeamAskSlide = () => {
               {/* Vision Insight */}
               <div className="bg-slate-50 border-l-4 border-slate-400 rounded-r-xl p-4 mb-6">
                 <p className="text-sm text-slate-600">
-                  <span className="font-semibold text-slate-900">Our vision:</span> Become the default operating system 
-                  for small businesses—where every entrepreneur has access to the AI employees they need to compete with enterprise companies.
+                  <span className="font-semibold text-slate-900">Our vision:</span> Become the default operating system
+                  for small businesses—where every entrepreneur has access to the AI employees they need to compete with
+                  enterprise companies.
                 </p>
               </div>
 
