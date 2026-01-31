@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { SlideProgressIndicator } from "@/components/pitch-deck/SlideProgressIndicator";
 import { TitleSlide } from "@/components/pitch-deck/slides/TitleSlide";
 import { ProblemSlide } from "@/components/pitch-deck/slides/ProblemSlide";
 import { SolutionIntroSlide } from "@/components/pitch-deck/slides/SolutionIntroSlide";
@@ -13,7 +12,10 @@ import { PricingSlide } from "@/components/pitch-deck/slides/PricingSlide";
 import { RevenueSlide } from "@/components/pitch-deck/slides/RevenueSlide";
 import { GTMSlide } from "@/components/pitch-deck/slides/GTMSlide";
 import { TeamAskSlide } from "@/components/pitch-deck/slides/TeamAskSlide";
+import { SlideNumber } from "@/components/pitch-deck/SlideNumber";
 import { trackPageView } from "@/utils/analytics";
+
+const TOTAL_SLIDES = 13;
 
 const PitchDeck = () => {
   // Keyboard navigation
@@ -52,21 +54,58 @@ const PitchDeck = () => {
 
   return (
     <div className="pitch-deck-wrapper pitch-deck-light">
-      <SlideProgressIndicator />
-      
-      <TitleSlide />
-      <ProblemSlide />
-      <SolutionIntroSlide />
-      <OurSolutionSlide />
-      <ProductSlide />
-      <MarketSlide />
-      <ShopifyDeepDiveSlide />
-      <TractionSlide />
-      <CompetitionSlide />
-      <PricingSlide />
-      <RevenueSlide />
-      <GTMSlide />
-      <TeamAskSlide />
+      <div className="relative">
+        <SlideNumber number={1} total={TOTAL_SLIDES} />
+        <TitleSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={2} total={TOTAL_SLIDES} />
+        <ProblemSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={3} total={TOTAL_SLIDES} />
+        <SolutionIntroSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={4} total={TOTAL_SLIDES} />
+        <OurSolutionSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={5} total={TOTAL_SLIDES} />
+        <ProductSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={6} total={TOTAL_SLIDES} />
+        <MarketSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={7} total={TOTAL_SLIDES} />
+        <ShopifyDeepDiveSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={8} total={TOTAL_SLIDES} />
+        <TractionSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={9} total={TOTAL_SLIDES} />
+        <CompetitionSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={10} total={TOTAL_SLIDES} />
+        <PricingSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={11} total={TOTAL_SLIDES} />
+        <RevenueSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={12} total={TOTAL_SLIDES} />
+        <GTMSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={13} total={TOTAL_SLIDES} />
+        <TeamAskSlide />
+      </div>
     </div>
   );
 };
