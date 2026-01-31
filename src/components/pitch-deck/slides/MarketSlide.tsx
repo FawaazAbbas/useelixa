@@ -64,11 +64,13 @@ export const MarketSlide = () => {
               Market Opportunity
             </span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
-              Significant Growth Opportunity
+              A Market That's Already Moving
             </h2>
             <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              The AI software and SMB tools market represents a massive, fast-growing opportunity with hundreds of
-              millions of potential customers.
+              The global wave of digital-native SMBs isn't waiting for tomorrow—they're already investing in tools 
+              that make them faster, leaner, and more competitive. With millions of these businesses now spending 
+              monthly on SaaS solutions, they're actively shaping a market worth tens of billions. The opportunity 
+              is immense because these businesses aren't just growing—they're transforming how they operate each day.
             </p>
           </motion.div>
 
