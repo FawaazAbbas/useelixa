@@ -113,8 +113,12 @@ export const TractionRoadmapSlide = () => {
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-4">
               From First Signup to First Million
             </h2>
-            <p className="text-lg md:text-xl text-slate-600 max-w-2xl">
-              We're not just building a product—we're building momentum.
+            <p className="text-lg md:text-xl text-slate-600 max-w-3xl leading-relaxed">
+              Before we wrote a single line of code, we tested the market. We put up a simple landing page 
+              and asked founders one question: <em>"Would you trust AI to run parts of your business?"</em> 
+              The response was immediate. Within weeks, thousands of founders had raised their hands—not 
+              just curious, but eager. That signal gave us the confidence to go all-in on building 
+              the platform they were asking for.
             </p>
           </motion.div>
 
