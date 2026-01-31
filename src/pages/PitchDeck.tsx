@@ -84,23 +84,23 @@ const PitchDeck = () => {
       </div>
       <div className="relative">
         <SlideNumber number={8} total={TOTAL_SLIDES} />
-        <TractionSlide />
+        <GTMSlide />
       </div>
       <div className="relative">
         <SlideNumber number={9} total={TOTAL_SLIDES} />
-        <CompetitionSlide />
-      </div>
-      <div className="relative">
-        <SlideNumber number={10} total={TOTAL_SLIDES} />
         <PricingSlide />
       </div>
       <div className="relative">
+        <SlideNumber number={10} total={TOTAL_SLIDES} />
+        <TractionSlide />
+      </div>
+      <div className="relative">
         <SlideNumber number={11} total={TOTAL_SLIDES} />
-        <RevenueSlide />
+        <CompetitionSlide />
       </div>
       <div className="relative">
         <SlideNumber number={12} total={TOTAL_SLIDES} />
-        <GTMSlide />
+        <RevenueSlide />
       </div>
       <div className="relative">
         <SlideNumber number={13} total={TOTAL_SLIDES} />
