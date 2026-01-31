@@ -1,162 +1,101 @@
 
 
-# Simplify ProductSlide (The Proof) - Basic Snapshot Layout
+# Enhance Storytelling for Slides 6, 7, and 8
 
-## Current State
+## Overview
 
-The current ProductSlide is complex with:
-- A full interactive workspace mockup with sidebar, chat messages, connected tools panel
-- Multiple animated conversation steps
-- An "Aha Moment" callout box
-- Feature badges
-- Many moving parts
-
-## New Simple Layout
-
-The user wants a clean, minimal approach:
-
-```text
-+------------------------------------------------------------------+
-|  Background: Light gradient                                      |
-|                                                                  |
-|                      THE PROOF                                   |
-|                                                                  |
-|        See Elixa in Action                                       |
-|                                                                  |
-|  ┌────────────────────────────────────────────────────────────┐  |
-|  │                                                             │  |
-|  │                                                             │  |
-|  │              [WORKSPACE SNAPSHOT IMAGE]                     │  |
-|  │                                                             │  |
-|  │           Static screenshot of Elixa workspace              │  |
-|  │                                                             │  |
-|  │                                                             │  |
-|  └────────────────────────────────────────────────────────────┘  |
-|                                                                  |
-|        A unified workspace where AI employees collaborate,       |
-|        share context, and connect to your tools.                 |
-|                                                                  |
-|                    [ Try the Demo → ]                            |
-|                                                                  |
-+------------------------------------------------------------------+
-```
+We need to embed compelling narrative content into three slides to make them more investor-ready and emotionally engaging. Each slide will have its story text updated while maintaining the visual structure.
 
 ---
 
-## Key Changes
+## Slide 6: Market Opportunity (MarketSlide.tsx)
 
-### 1. Remove Complex Elements
-- Remove the interactive sidebar mockup
-- Remove the animated conversation steps
-- Remove the "Aha Moment" callout
-- Remove the feature badges row
+### Current State
+- Generic header: "Significant Growth Opportunity"
+- Brief description about AI software and SMB tools market
 
-### 2. Keep Simple Structure
-- **Chapter label**: "THE PROOF" (uppercase, tracking-widest)
-- **Title**: "See Elixa in Action" or similar
-- **Snapshot**: A static workspace mockup image (simplified version of current mockup, or a placeholder that can be replaced with a real screenshot)
-- **Description**: 1-2 sentences about the workspace
-- **CTA Button**: "Try the Demo" linking to /chat
+### New Narrative
+Replace the header and description with the compelling story about digital-native SMBs actively transforming their operations:
 
-### 3. Workspace Snapshot Options
+**New Title:** "A Market That's Already Moving"
 
-**Option A - Simplified Static Mockup**: Keep a basic visual representation of the workspace (sidebar + main area) but without the animated conversation. Just a clean, static preview.
+**New Story Text:**
+> The global wave of digital-native SMBs isn't waiting for tomorrow—they're already investing in tools that make them faster, leaner, and more competitive. With millions of these businesses now spending monthly on SaaS solutions—whether for e-commerce, marketing, or operations—they're actively shaping a market worth tens of billions. The opportunity is immense because these businesses aren't just growing—they're transforming how they operate each day.
 
-**Option B - Image Placeholder**: Use a placeholder div styled to look like a screenshot frame, ready to be replaced with an actual screenshot image later.
-
-I will use **Option A** - a simplified static mockup that shows the workspace layout without the complex animated conversation, giving a clean visual preview.
+### Changes
+- Update header from "Significant Growth Opportunity" to "A Market That's Already Moving"
+- Replace the generic subtitle with the narrative paragraph
+- Ensure the text flows naturally with the TAM/SAM/SOM visual
 
 ---
 
-## Technical Implementation
+## Slide 7: Shopify Deep Dive (ShopifyDeepDiveSlide.tsx)
 
-```tsx
-export const ProductSlide = () => {
-  return (
-    <section className="pitch-slide pitch-slide-product">
-      {/* Light background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
-      
-      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
-        <div className="max-w-5xl w-full">
-          
-          {/* Header */}
-          <motion.div className="text-center mb-8">
-            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
-              The Proof
-            </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900">
-              See Elixa in <span className="text-primary">Action</span>
-            </h2>
-          </motion.div>
+### Current State
+- Good narrative exists but displayed as plain paragraphs
+- Bullet points at the bottom feel disconnected
 
-          {/* Workspace Snapshot - Simplified static mockup */}
-          <motion.div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden mb-8">
-            <div className="flex h-[320px] md:h-[380px]">
-              {/* Simple sidebar */}
-              <div className="w-16 bg-slate-900 flex flex-col items-center py-6 gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <span className="text-white font-bold">E</span>
-                </div>
-                {/* Simple icon placeholders */}
-                {[MessageSquare, Mail, Calendar, FileText].map((Icon, i) => (
-                  <div key={i} className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-slate-400" />
-                  </div>
-                ))}
-              </div>
-              
-              {/* Main content - simplified */}
-              <div className="flex-1 flex flex-col">
-                <div className="h-12 border-b border-slate-200 flex items-center px-6">
-                  <div className="bg-slate-100 rounded-lg px-4 py-2 flex items-center gap-2 flex-1 max-w-md">
-                    <Search className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-400 text-sm">Ask Elixa anything...</span>
-                  </div>
-                </div>
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center text-slate-400">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">Your AI team is ready</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+### Improvements
+Keep the existing narrative but restructure the display for better visual hierarchy:
 
-          {/* Description */}
-          <motion.p className="text-center text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
-            A unified workspace where AI employees collaborate, share context, 
-            and connect to 90+ tools—all working together for your business.
-          </motion.p>
+1. **Keep the intro paragraph** about Shopify merchants (5.5M customers, $120/mo, 64% small businesses)
 
-          {/* CTA Button */}
-          <motion.div className="text-center">
-            <Link to="/chat">
-              <Button size="lg" className="text-base px-8 py-6 rounded-xl">
-                Try the Demo →
-              </Button>
-            </Link>
-          </motion.div>
-          
-        </div>
-      </div>
-    </section>
-  );
-};
-```
+2. **Transform the "Why start here?" section** into a more compelling narrative format:
+   - Convert bullet points into a flowing sentence or two with visual emphasis on key benefits
+   - Make it feel like a continuation of the story rather than a list
+
+3. **Strengthen the bottom callout** with a more action-oriented message
+
+### Key Changes
+- Restructure the "Why start here?" insight box to flow as narrative prose instead of bullet points
+- Update the bottom highlight to emphasize the opportunity with stronger language
 
 ---
 
-## Removed Elements
+## Slide 8: Traction (TractionSlide.tsx)
 
-| Element | Status |
-|---------|--------|
-| Animated conversation steps | Removed |
-| Connected tools panel | Removed |
-| "Aha Moment" callout | Removed |
-| Feature badges row | Removed |
-| Grid pattern background | Removed (optional, keep if desired) |
+### Current State
+- Title: "Where We Are Today"
+- Generic story about MVP in 6 months
+- Static milestone cards
+- Big numbers for 10,000 target and £250k ARR
+
+### Major Redesign
+
+Based on the user's requirements, this slide needs significant updates:
+
+**New Title:** "Where We Are Today" (keep this)
+
+**New Visual 1 - Waitlist Progress Bar:**
+A dynamic animated progress bar showing waitlist growth:
+- From 0 (December) to 10K projected (March)
+- Visual representation of demand momentum
+
+**New Visual 2 - Timeline:**
+A horizontal development timeline:
+- November: MVP Development Starts
+- March: Launch Ready
+- Visual arrow showing progress
+
+**New Narrative Text:**
+> In less than a month, thousands of businesses have raised their hands for Elixa. While demand surges, our MVP—started in November—is racing toward launch in March. Market need and execution are moving in sync.
+
+### Detailed Implementation
+
+1. **Replace the current "Big numbers row"** with:
+   - A waitlist progress visualization (animated bar from 0 to 10K)
+   - Show "Dec" on left, "March" on right with projected 10K
+
+2. **Add a development timeline** showing:
+   - Nov: Started Development
+   - Apr: Launch Ready
+   - Use a horizontal timeline with nodes
+
+3. **Update milestones array:**
+   - Focus on: Waitlist momentum, MVP progress, Launch date
+   - Remove the old milestones that don't match the new narrative
+
+4. **Replace the bottom insight box** with the new narrative prose
 
 ---
 
@@ -164,5 +103,57 @@ export const ProductSlide = () => {
 
 | File | Changes |
 |------|---------|
-| `ProductSlide.tsx` | Simplify to basic title + snapshot + description + CTA button layout |
+| `MarketSlide.tsx` | Update title to "A Market That's Already Moving", replace subtitle with narrative paragraph about digital-native SMBs |
+| `ShopifyDeepDiveSlide.tsx` | Restructure the "Why start here?" section to flow as prose, update bottom callout |
+| `TractionSlide.tsx` | Add waitlist progress bar, add development timeline, update narrative text, restructure milestones |
+
+---
+
+## Visual Structure
+
+### Slide 8 New Layout
+
+```text
++------------------------------------------------------------------+
+|                         TRACTION                                  |
+|                    Where We Are Today                            |
+|                                                                  |
+|  ┌─────────────────────────────────────────────────────────────┐ |
+|  │                   WAITLIST MOMENTUM                         │ |
+|  │  Dec ━━━━━━━━━━━━━━━━━━━━━●━━━━━━━━━━━━━━━━━━━━━━ March     │ |
+|  │   0                      NOW                     10K Target  │ |
+|  └─────────────────────────────────────────────────────────────┘ |
+|                                                                  |
+|  ┌─────────────────────────────────────────────────────────────┐ |
+|  │                   MVP DEVELOPMENT                           │ |
+|  │  Nov ●━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━● March    │ |
+|  │  Started                                       Launch Ready  │ |
+|  └─────────────────────────────────────────────────────────────┘ |
+|                                                                  |
+|        "In less than a month, thousands of businesses have      |
+|         raised their hands for Elixa. While demand surges,      |
+|         our MVP is racing toward launch. Market need and        |
+|         execution are moving in sync."                          |
+|                                                                  |
++------------------------------------------------------------------+
+```
+
+---
+
+## Technical Notes
+
+### Slide 6 (MarketSlide)
+- Lines 66-72: Update title and subtitle text
+- Keep the TAM/SAM/SOM visualization unchanged
+
+### Slide 7 (ShopifyDeepDiveSlide)  
+- Lines 147-169: Restructure the insight box
+- Lines 172-188: Update bottom highlight
+- Convert bullet list to narrative prose
+
+### Slide 8 (TractionSlide)
+- Lines 31-36: Update milestones to match new timeline
+- Lines 77-108: Replace big numbers with waitlist progress bar
+- Lines 110-143: Replace milestone cards with timeline visualization
+- Lines 145-162: Update narrative text
 
