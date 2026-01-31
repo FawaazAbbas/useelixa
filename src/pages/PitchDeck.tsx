@@ -6,16 +6,15 @@ import { OurSolutionSlide } from "@/components/pitch-deck/slides/OurSolutionSlid
 import { ProductSlide } from "@/components/pitch-deck/slides/ProductSlide";
 import { MarketSlide } from "@/components/pitch-deck/slides/MarketSlide";
 import { ShopifyDeepDiveSlide } from "@/components/pitch-deck/slides/ShopifyDeepDiveSlide";
-import { TractionSlide } from "@/components/pitch-deck/slides/TractionSlide";
-import { CompetitionSlide } from "@/components/pitch-deck/slides/CompetitionSlide";
 import { PricingSlide } from "@/components/pitch-deck/slides/PricingSlide";
-import { RevenueSlide } from "@/components/pitch-deck/slides/RevenueSlide";
 import { GTMSlide } from "@/components/pitch-deck/slides/GTMSlide";
+import { TractionRoadmapSlide } from "@/components/pitch-deck/slides/TractionRoadmapSlide";
+import { CompetitionSlide } from "@/components/pitch-deck/slides/CompetitionSlide";
 import { TeamAskSlide } from "@/components/pitch-deck/slides/TeamAskSlide";
 import { SlideNumber } from "@/components/pitch-deck/SlideNumber";
 import { trackPageView } from "@/utils/analytics";
 
-const TOTAL_SLIDES = 13;
+const TOTAL_SLIDES = 12;
 
 const PitchDeck = () => {
   // Keyboard navigation
@@ -84,15 +83,15 @@ const PitchDeck = () => {
       </div>
       <div className="relative">
         <SlideNumber number={8} total={TOTAL_SLIDES} />
-        <GTMSlide />
-      </div>
-      <div className="relative">
-        <SlideNumber number={9} total={TOTAL_SLIDES} />
         <PricingSlide />
       </div>
       <div className="relative">
+        <SlideNumber number={9} total={TOTAL_SLIDES} />
+        <GTMSlide />
+      </div>
+      <div className="relative">
         <SlideNumber number={10} total={TOTAL_SLIDES} />
-        <TractionSlide />
+        <TractionRoadmapSlide />
       </div>
       <div className="relative">
         <SlideNumber number={11} total={TOTAL_SLIDES} />
@@ -100,10 +99,6 @@ const PitchDeck = () => {
       </div>
       <div className="relative">
         <SlideNumber number={12} total={TOTAL_SLIDES} />
-        <RevenueSlide />
-      </div>
-      <div className="relative">
-        <SlideNumber number={13} total={TOTAL_SLIDES} />
         <TeamAskSlide />
       </div>
     </div>
