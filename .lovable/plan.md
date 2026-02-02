@@ -1,227 +1,216 @@
 
 
-# Redesign: Traction & Roadmap Slide — Master Storytelling
+# Redesign: Three Pitch Deck Slides
 
-## Design Analysis: Current Deck Patterns
+## Overview
 
-After reviewing ProblemSlide, MarketSlide, GTMSlide, TeamAskSlide, and CompetitionSlide, the design language follows these consistent patterns:
-
-| Element | Pattern |
-|---------|---------|
-| **Headers** | Colored uppercase tracking-widest label → Bold 4-6xl title → Paragraph explanation |
-| **Cards** | White bg, `border-slate-200`, `rounded-2xl`, `shadow-lg shadow-slate-200/50` |
-| **Accent panels** | Colored left-border (`border-l-4`), rounded-r-xl, icon + text |
-| **Background** | Gradient `from-white via-[accent]/30 to-slate-50` |
-| **Grid layouts** | `lg:grid-cols-2` with clear visual hierarchy |
-| **Insights** | Bottom callout box with Lightbulb icon and insight text |
+This plan covers the redesign of three slides to improve narrative storytelling and visual balance:
+1. **Slide 1 (TitleSlide)** — Simplify for maximum impact
+2. **Slide 9 (GTMSlide)** — Replace with 8 new GTM strategies
+3. **Slide 11 (CompetitionSlide)** — Narrative left + quadrant right layout
 
 ---
 
-## The Problem with Current Design
+## Slide 1: TitleSlide — Simplification
 
-The current slide is:
-- **Too flat** — No visual hierarchy, just a list
-- **Missing key data** — 10K target, Developer Program
-- **Not aligned** — Doesn't match the card-based visual language
-- **Not storytelling** — Just dates and bullet points
+### Current Issues
+- Too many elements competing for attention (logo, tagline, value prop, badge, mascot, scroll indicator)
+- Value proposition paragraph is wordy
+- Mascot takes up significant space
 
----
+### New Design
 
-## New Design: "The Story of Momentum"
-
-Instead of two panels or a flat timeline, we tell the story in **three narrative acts** that flow naturally:
-
-### Act 1: "The Signal" (Waitlist demand)
-### Act 2: "The Build" (What we're creating)
-### Act 3: "The Path" (Where we're going)
-
----
-
-## Visual Layout
+A clean, minimal title slide with just the essentials:
 
 ```text
 +------------------------------------------------------------------+
-| THE JOURNEY                          [Teal accent like MarketSlide]|
 |                                                                  |
-| From First Signup to First Million                               |
 |                                                                  |
-| ┌──────────────────────────────────────────────────────────────┐ |
-| │ THE SIGNAL                                                    │ |
-| │                                                               │ |
-| │  "We launched a waitlist in December."                        │ |
-| │                                                               │ |
-| │   ┌─────────────┐                                            │ |
-| │   │    3,500+   │    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━     │ |
-| │   │  businesses │    Dec '24                     10K by Mar   │ |
-| │   │   signed up │                                            │ |
-| │   └─────────────┘    "On track to 10,000 by launch"          │ |
-| └──────────────────────────────────────────────────────────────┘ |
+|                          ELIXA                                   |
 |                                                                  |
-| ┌──────────────────────────────────────────────────────────────┐ |
-| │ THE PATH                                                      │ |
-| │                                                               │ |
-| │  Mar '25          Apr '25          May '25          Aug '25   │ |
-| │    ◉──────────────◉───────────────◉───────────────◉          │ |
-| │                                                               │ |
-| │  ┌────────┐    ┌────────┐     ┌────────┐     ┌────────┐     │ |
-| │  │ Soft   │    │ Dev    │     │ AI     │     │ Scale  │     │ |
-| │  │ Launch │    │ Program│     │ Market │     │ 10K    │     │ |
-| │  │        │    │ Opens  │     │ £50k   │     │ £250k  │     │ |
-| │  └────────┘    └────────┘     └────────┘     └────────┘     │ |
-| └──────────────────────────────────────────────────────────────┘ |
+|            AI Employees That Work For You                        |
 |                                                                  |
-| ┌ Lightbulb ───────────────────────────────────────────────────┐ |
-| │ "The demand is real. The timeline is aggressive.              │ |
-| │  And we're executing exactly on schedule."                    │ |
-| └──────────────────────────────────────────────────────────────┘ |
+|               Pre-Seed Deck • 2025                               |
+|                                                                  |
+|                      ↓ Scroll                                    |
+|                                                                  |
 +------------------------------------------------------------------+
 ```
 
----
-
-## Design Elements
-
-### Color Scheme
-- **Accent**: Teal (like MarketSlide) — represents growth and forward momentum
-- **Background**: `bg-gradient-to-br from-white via-teal-50/30 to-slate-50`
-- **Highlight color**: `text-teal-600` for labels
-
-### Section 1: "The Signal" — Left-Aligned Stat Card
-
-A prominent stat card (not centered blob) showing:
-- **3,500+** large number with animated counter
-- **"businesses signed up"** label
-- Horizontal progress bar: `Dec '24 ━━━●━━━━━━━━━━ 10K by Mar`
-- Subtext: "On track to 10,000 signups by launch"
-
-Style: Matches the `bg-white border-slate-200 rounded-2xl p-6 shadow-lg` pattern from other slides.
-
-### Section 2: "The Path" — Horizontal Milestone Cards
-
-Four milestone cards in a row (not blobs, not dots—actual cards):
-
-| Date | Milestone | Detail | Icon |
-|------|-----------|--------|------|
-| Mar '25 | Soft Launch | First paying customers | Rocket |
-| Apr '25 | Developer Program | Devs invited to build | Code |
-| May '25 | AI Marketplace | £50k ARR | Store |
-| Aug '25 | Scale | 10K users • £250k ARR | TrendingUp |
-
-Each card follows the deck's card pattern with:
-- Colored icon badge at top
-- Date as small label
-- Title as bold text
-- Detail as slate-600 text
-- Connected by a horizontal line between them
-
-### Section 3: Insight Callout
-
-Matches the pattern from GTMSlide and CompetitionSlide:
-- `bg-teal-50 border-l-4 border-teal-500 rounded-r-xl`
-- Lightbulb icon
-- The closing narrative quote
+### Changes
+- **Remove**: Value proposition paragraph, mascot, accent orbs
+- **Keep**: Logo, tagline, Pre-Seed badge, scroll indicator
+- **Simplify**: Cleaner background, tighter spacing
+- **Result**: Immediate brand recognition without distraction
 
 ---
 
-## Content to Include (Missing from Current)
+## Slide 9: GTMSlide — New Strategies
 
-- **10K waitlist target** by March — clearly visualized
-- **Developer Program** (April) — devs invited to build AI employees
-- **Progress visualization** — not just text, an actual bar showing where we are vs. target
-- **Milestone detail** — each milestone has icon + description, not just a date
+### Current GTMs (4 strategies)
+1. Shopify First
+2. Community-Led
+3. Content Marketing
+4. Strategic Partnerships
+
+### New GTMs (8 strategies)
+
+| Icon | Title | Description |
+|------|-------|-------------|
+| Users | Social Media Engagement | Growing and converting followers on LinkedIn, Twitter into early adopters |
+| Mail | Waitlist Mobilization | Converting waitlist into active users via targeted outreach and referral incentives |
+| MessageCircle | Community Engagement | Leverage Reddit, Indie Hackers, and Product Hunt |
+| Target | Paid Acquisition | Scale with a 17p cost-per-lead |
+| FileText | Content Marketing | SEO-driven guides and valuable SME content |
+| Handshake | Strategic Partnerships | Referrals through SME service providers |
+| Gift | Promotions & Influencers | Giveaways, influencer campaigns, and events |
+| Smartphone | Native Apps | Apps for Shopify, WooCommerce, WordPress, plus mobile and desktop apps |
+
+### New Layout
+
+Replace the 2x2 grid with a **4x2 compact grid** to fit 8 strategies:
+
+```text
++------------------------------------------------------------------+
+| GO-TO-MARKET                                                     |
+|                                                                  |
+| How We'll Reach Them                                             |
+|                                                                  |
+| "We're building multiple acquisition channels that compound..."  |
+|                                                                  |
+| ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐|
+| │ Social      │  │ Waitlist    │  │ Community   │  │ Paid        │|
+| │ Media       │  │ Mobilization│  │ Engagement  │  │ Acquisition │|
+| └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘|
+| ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐|
+| │ Content     │  │ Strategic   │  │ Promotions  │  │ Native      │|
+| │ Marketing   │  │ Partnerships│  │ & Influence │  │ Apps        │|
+| └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘|
+|                                                                  |
+| [Insight callout about multi-channel approach]                   |
++------------------------------------------------------------------+
+```
+
+### Card Design
+- Compact cards with icon + title + one-sentence description
+- 4 columns on desktop, 2 columns on mobile
+- Remove the "story" badges to fit more content
+- Keep consistent styling with other slides
+
+---
+
+## Slide 11: CompetitionSlide — Narrative + Quadrant
+
+### Current Issues
+- Cramped with both a positioning matrix AND a feature table
+- No clear narrative structure
+- Competitors listed don't match user's three categories
+
+### New Design: Two-Column Layout
+
+```text
++------------------------------------------------------------------+
+| COMPETITION                                                      |
+|                                                                  |
+| Why We Win                                                       |
+|                                                                  |
+| ┌────────────────────────┐  ┌─────────────────────────────────┐  |
+| │                        │  │                                 │  |
+| │  MARKETPLACE           │  │          CAPABILITY             │  |
+| │  (Agent.ai)            │  │     Basic ─────────── Advanced  │  |
+| │  "They help you find   │  │            │                    │  |
+| │   agents; we ensure    │  │  Affordable│   ★ELIXA           │  |
+| │   they persist in      │  │            │                    │  |
+| │   context."            │  │     COST   ├─────────────────   │  |
+| │                        │  │            │         Sintra     │  |
+| │  WORKFLOW AUTOMATION   │  │            │         Lindy      │  |
+| │  (n8n, Make)           │  │  Expensive │                    │  |
+| │  "They make you build  │  │            │                    │  |
+| │   workflows; we        │  │      n8n   │   Motion           │  |
+| │   provide ready AI     │  │            │                    │  |
+| │   employees."          │  │                                 │  |
+| │                        │  └─────────────────────────────────┘  |
+| │  IN-HOUSE AI           │                                       |
+| │  (Motion, Sintra)      │  "Elixa: Specialist AI employees     |
+| │  "They are broad;      │   with context, affordable for       |
+| │   we are role-         │   SMEs."                             |
+| │   specific."           │                                       |
+| │                        │                                       |
+| └────────────────────────┘                                       |
++------------------------------------------------------------------+
+```
+
+### Left Column: Three Competitor Categories
+Each section with:
+- **Header** (bold, with competitor examples in parentheses)
+- **One differentiating sentence** in quotes
+
+| Category | Header | Differentiator |
+|----------|--------|----------------|
+| 1 | Marketplace (Agent.ai) | "They help you find agents; we ensure they persist in context." |
+| 2 | Workflow Automation (n8n, Make) | "They make you build workflows; we provide ready AI employees." |
+| 3 | In-House AI (Motion, Sintra) | "They are broad; we are role-specific." |
+
+### Right Column: 2x2 Quadrant
+- **Axes**: "Capability" (Basic to Advanced) and "Cost" (Affordable to Expensive)
+- **Elixa position**: Advanced + Affordable quadrant (highlighted with star)
+- **Competitors plotted**:
+  - n8n: Basic + Affordable
+  - Motion: Basic + Expensive
+  - Sintra: Advanced + Expensive
+  - Lindy: Advanced + Expensive
+
+### Below Quadrant
+A single summary line: **"Elixa: Specialist AI employees with context, affordable for SMEs."**
+
+### Removal
+- Remove the feature comparison table (too busy)
+- Remove the insight callout box (summary line replaces it)
 
 ---
 
 ## Technical Implementation
 
-### Data Structures
-
-```tsx
-const demandStats = {
-  current: 3500,
-  target: 10000,
-  startDate: "Dec '24",
-  targetDate: "Mar '25",
-  progress: 35 // percentage
-};
-
-const milestones = [
-  { 
-    date: "Mar '25", 
-    title: "Soft Launch", 
-    detail: "First paying customers",
-    icon: Rocket,
-    color: "teal"
-  },
-  { 
-    date: "Apr '25", 
-    title: "Developer Program", 
-    detail: "Devs invited to build",
-    icon: Code,
-    color: "purple"
-  },
-  { 
-    date: "May '25", 
-    title: "AI Marketplace", 
-    detail: "£50k ARR",
-    icon: Store,
-    color: "blue"
-  },
-  { 
-    date: "Aug '25", 
-    title: "Scale", 
-    detail: "10K users • £250k ARR",
-    icon: TrendingUp,
-    color: "green"
-  },
-];
-```
-
-### Component Structure
-
-```text
-TractionRoadmapSlide
-├── Background gradient (teal accent)
-├── Header Section
-│   ├── "The Journey" label (teal, uppercase, tracking-widest)
-│   ├── Title: "From First Signup to First Million"
-│   └── Subtitle paragraph
-├── Grid (lg:grid-cols-2)
-│   ├── Left: "The Signal" Card
-│   │   ├── Opening narrative quote
-│   │   ├── Large stat (3,500+) with AnimatedCounter
-│   │   ├── Progress bar with markers
-│   │   └── "On track to 10K" subtext
-│   └── Right: "The Path" Timeline
-│       ├── Horizontal connecting line
-│       └── 4 Milestone cards (grid-cols-2 or flex)
-└── Insight Callout (bottom, full-width)
-    ├── Lightbulb icon
-    └── Narrative quote
-```
-
-### Animations
-- AnimatedCounter for 3,500 number
-- Progress bar animates from 0% to 35%
-- Milestone cards stagger in with `staggerContainer` and `scaleIn`
-- Standard `fadeInUp` for sections
-
----
-
-## Why This Design Works
-
-1. **Matches deck language** — Cards, shadows, borders, accents all consistent
-2. **Clear hierarchy** — Signal (what happened) → Path (what's coming)
-3. **Restores missing data** — 10K target and Developer Program are prominent
-4. **Not "two blobs"** — Uses the grid layout pattern from MarketSlide and CompetitionSlide
-5. **Storytelling** — Opens with a narrative quote, closes with an insight
-6. **Visual progress** — Progress bar shows momentum, not just numbers
-
----
-
-## Files to Modify
+### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `TractionRoadmapSlide.tsx` | Complete redesign with two-column grid, stat card, milestone cards, and insight callout |
+| `TitleSlide.tsx` | Remove mascot, value proposition paragraph, and accent orbs. Keep logo, tagline, badge, scroll indicator. |
+| `GTMSlide.tsx` | Replace 4 strategies with 8 new ones. Change grid from 2x2 to 4x2. Update narrative paragraph. |
+| `CompetitionSlide.tsx` | Complete restructure: left narrative column with 3 categories, right 2x2 quadrant, remove feature table. |
+
+### Component Updates
+
+**TitleSlide.tsx**
+- Remove `ElixaMascot` import and component
+- Remove value proposition `<p>` block
+- Remove accent orb divs
+- Reduce vertical spacing
+
+**GTMSlide.tsx**
+- New `strategies` array with 8 items
+- Icons: `Users`, `Mail`, `MessageCircle`, `Target`, `FileText`, `Handshake`, `Gift`, `Smartphone`
+- Grid: `md:grid-cols-2 lg:grid-cols-4`
+- Smaller card padding for compact fit
+- Updated narrative paragraph
+- Remove Shopify-specific insight box
+
+**CompetitionSlide.tsx**
+- New `competitorCategories` array with 3 narrative sections
+- Simplified `quadrantData` with only 4-5 competitors
+- Remove `competitors` table array
+- Grid: `lg:grid-cols-2` with narrative left, quadrant right
+- Summary text below quadrant
+- Remove feature table component entirely
+
+---
+
+## Visual Consistency
+
+All three slides will maintain the deck's design language:
+- Light gradient backgrounds
+- White cards with `border-slate-200 rounded-2xl shadow-lg`
+- Colored uppercase tracking-widest labels
+- Consistent typography scale
+- framer-motion animations (`fadeInUp`, `scaleIn`, `staggerContainer`)
 
