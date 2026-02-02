@@ -1,32 +1,38 @@
 import { motion } from "framer-motion";
 import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
-import { Check, X, Star, Lightbulb } from "lucide-react";
+import { Star } from "lucide-react";
 
-const competitors = [
-  { name: "ChatGPT", hasWorkspace: false, hasIntegrations: false, hasTalentPool: false, hasAffordable: true },
-  { name: "N8N", hasWorkspace: false, hasIntegrations: true, hasTalentPool: false, hasAffordable: true },
-  { name: "Motion", hasWorkspace: true, hasIntegrations: false, hasTalentPool: false, hasAffordable: true },
-  { name: "Sintra AI", hasWorkspace: false, hasIntegrations: false, hasTalentPool: true, hasAffordable: false },
-  { name: "Lindy AI", hasWorkspace: true, hasIntegrations: true, hasTalentPool: true, hasAffordable: false },
-  { name: "Salesforce Einstein", hasWorkspace: true, hasIntegrations: true, hasTalentPool: false, hasAffordable: false },
-  { name: "Elixa", hasWorkspace: true, hasIntegrations: true, hasTalentPool: true, hasAffordable: true, isUs: true },
+const competitorCategories = [
+  {
+    category: "Marketplace",
+    examples: "Agent.ai",
+    differentiator: "They help you find agents; we ensure they persist in context.",
+    color: "border-blue-500",
+    bgColor: "bg-blue-50",
+  },
+  {
+    category: "Workflow Automation",
+    examples: "n8n, Make",
+    differentiator: "They make you build workflows; we provide ready AI employees.",
+    color: "border-purple-500",
+    bgColor: "bg-purple-50",
+  },
+  {
+    category: "In-House AI",
+    examples: "Motion, Sintra",
+    differentiator: "They are broad; we are role-specific.",
+    color: "border-teal-500",
+    bgColor: "bg-teal-50",
+  },
 ];
 
-const Feature = ({ has, isUs }: { has: boolean; isUs?: boolean }) => {
-  if (has) {
-    return <Check className={`w-5 h-5 ${isUs ? 'text-primary' : 'text-green-500'}`} />;
-  }
-  return <X className="w-5 h-5 text-slate-300" />;
-};
-
-// Positioning data for the 2x2 matrix (X: Cheap→Expensive, Y: Smart→Basic)
-const positioningData = [
-  { name: "ChatGPT", x: 25, y: 85, size: "lg" },
-  { name: "N8N", x: 20, y: 40, size: "md" },
-  { name: "Motion", x: 35, y: 35, size: "md" },
-  { name: "Lindy", x: 75, y: 80, size: "md" },
-  { name: "Einstein", x: 90, y: 65, size: "sm" },
-  { name: "Elixa", x: 22, y: 82, size: "lg", isUs: true },
+// Positioning data for the 2x2 matrix (X: Affordable→Expensive, Y: Basic→Advanced)
+const quadrantData = [
+  { name: "n8n", x: 20, y: 35, size: "md" },
+  { name: "Motion", x: 75, y: 40, size: "md" },
+  { name: "Sintra", x: 80, y: 75, size: "md" },
+  { name: "Lindy", x: 70, y: 70, size: "sm" },
+  { name: "Elixa", x: 25, y: 80, size: "lg", isUs: true },
 ];
 
 export const CompetitionSlide = () => {
@@ -36,163 +42,107 @@ export const CompetitionSlide = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-white" />
       
       <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-16">
-        <div className="max-w-7xl w-full">
-          {/* Narrative Header */}
+        <div className="max-w-6xl w-full">
+          {/* Header */}
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             whileInView="visible"
             viewport={defaultViewport}
-            className="text-center mb-6"
+            className="text-center mb-10"
           >
             <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-semibold">Competition</span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900">
               Why We Win
             </h2>
           </motion.div>
 
-          {/* Story Text */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="max-w-3xl mx-auto mb-8"
-          >
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
-              The market is fragmented between expensive enterprise tools and basic free options. 
-              Elixa sits in the <span className="font-semibold text-slate-900">sweet spot</span>—smart AI with full integration, 
-              at a price SMEs can actually afford.
-            </p>
-          </motion.div>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* 2x2 Positioning Matrix */}
+          {/* Two-column layout */}
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Left: Narrative categories */}
             <motion.div
-              variants={fadeInUp}
+              variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
               viewport={defaultViewport}
-              className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50"
+              className="space-y-5"
             >
-              <h3 className="text-lg font-semibold text-slate-900 mb-4 text-center">Market Positioning</h3>
-              <div className="relative aspect-square max-w-sm mx-auto">
-                {/* Axes */}
-                <div className="absolute inset-0">
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300"></div>
-                  <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-300"></div>
-                  
-                  <span className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Smart</span>
-                  <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Basic</span>
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-green-600 uppercase tracking-wide">Cheap</span>
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-red-500 uppercase tracking-wide">Expensive</span>
-                  
-                  <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-green-50/60 rounded-tl-xl"></div>
-                </div>
-                
-                {/* Competitor bubbles */}
-                {positioningData.map((comp, index) => (
-                  <motion.div
-                    key={index}
-                    variants={scaleIn}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={defaultViewport}
-                    className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
-                      comp.isUs 
-                        ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                        : 'bg-white border border-slate-200 text-slate-700 shadow-md'
-                    } rounded-full flex items-center justify-center font-semibold ${
-                      comp.size === 'lg' ? 'w-16 h-16 text-xs' : comp.size === 'md' ? 'w-14 h-14 text-xs' : 'w-12 h-12 text-[10px]'
-                    }`}
-                    style={{ left: `${comp.x}%`, top: `${100 - comp.y}%` }}
-                  >
-                    {comp.isUs && <Star className="w-3 h-3 absolute -top-1 -right-1 text-yellow-400 fill-yellow-400" />}
-                    {comp.name}
-                  </motion.div>
-                ))}
-              </div>
-              <p className="text-center text-sm text-slate-500 mt-4">
-                <span className="inline-flex items-center gap-1">
-                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" /> Elixa sits in the <span className="font-semibold text-green-600">sweet spot</span>
-                </span>
-              </p>
+              {competitorCategories.map((item, index) => (
+                <motion.div
+                  key={index}
+                  variants={scaleIn}
+                  className={`${item.bgColor} border-l-4 ${item.color} rounded-r-xl p-5`}
+                >
+                  <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                    {item.category} <span className="font-normal text-slate-500">({item.examples})</span>
+                  </h3>
+                  <p className="text-slate-700 italic">"{item.differentiator}"</p>
+                </motion.div>
+              ))}
             </motion.div>
 
-            {/* Comparison table */}
+            {/* Right: 2x2 Quadrant */}
             <motion.div
               variants={fadeInUp}
               initial="hidden"
               whileInView="visible"
               viewport={defaultViewport}
-              className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50"
+              className="flex flex-col"
             >
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50">
-                    <th className="text-left p-3 text-slate-500 font-medium">Company</th>
-                    <th className="text-center p-3 text-slate-500 font-medium">Workspace</th>
-                    <th className="text-center p-3 text-slate-500 font-medium">90+ Integrations</th>
-                    <th className="text-center p-3 text-slate-500 font-medium">AI Talent Pool</th>
-                    <th className="text-center p-3 text-slate-500 font-medium">Affordable</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {competitors.map((competitor, index) => (
-                    <motion.tr
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 flex-1">
+                <h3 className="text-lg font-semibold text-slate-900 mb-4 text-center">Market Positioning</h3>
+                <div className="relative aspect-square max-w-xs mx-auto">
+                  {/* Axes */}
+                  <div className="absolute inset-0">
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300"></div>
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-300"></div>
+                    
+                    {/* Labels */}
+                    <span className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Advanced</span>
+                    <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Basic</span>
+                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-green-600 uppercase tracking-wide">Affordable</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-red-500 uppercase tracking-wide">Expensive</span>
+                    
+                    {/* Highlight Elixa's quadrant */}
+                    <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-green-50/60 rounded-tl-xl"></div>
+                  </div>
+                  
+                  {/* Competitor bubbles */}
+                  {quadrantData.map((comp, index) => (
+                    <motion.div
                       key={index}
                       variants={scaleIn}
-                      className={`border-b border-slate-100 ${competitor.isUs ? 'bg-primary/5' : ''}`}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={defaultViewport}
+                      className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
+                        comp.isUs 
+                          ? 'bg-primary text-white shadow-lg shadow-primary/30' 
+                          : 'bg-white border border-slate-200 text-slate-700 shadow-md'
+                      } rounded-full flex items-center justify-center font-semibold ${
+                        comp.size === 'lg' ? 'w-14 h-14 text-xs' : comp.size === 'md' ? 'w-12 h-12 text-[10px]' : 'w-10 h-10 text-[9px]'
+                      }`}
+                      style={{ left: `${comp.x}%`, top: `${100 - comp.y}%` }}
                     >
-                      <td className={`p-3 font-medium ${competitor.isUs ? 'text-primary' : 'text-slate-900'}`}>
-                        {competitor.name}
-                        {competitor.isUs && <span className="ml-2 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">Us</span>}
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex justify-center">
-                          <Feature has={competitor.hasWorkspace} isUs={competitor.isUs} />
-                        </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex justify-center">
-                          <Feature has={competitor.hasIntegrations} isUs={competitor.isUs} />
-                        </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex justify-center">
-                          <Feature has={competitor.hasTalentPool} isUs={competitor.isUs} />
-                        </div>
-                      </td>
-                      <td className="p-3 text-center">
-                        <div className="flex justify-center">
-                          <Feature has={competitor.hasAffordable} isUs={competitor.isUs} />
-                        </div>
-                      </td>
-                    </motion.tr>
+                      {comp.isUs && <Star className="w-3 h-3 absolute -top-1 -right-1 text-yellow-400 fill-yellow-400" />}
+                      {comp.name}
+                    </motion.div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              </div>
+
+              {/* Summary line */}
+              <motion.p
+                variants={fadeInUp}
+                initial="hidden"
+                whileInView="visible"
+                viewport={defaultViewport}
+                className="text-center text-slate-700 font-medium mt-4"
+              >
+                <span className="text-primary font-semibold">Elixa:</span> Specialist AI employees with context, affordable for SMEs.
+              </motion.p>
             </motion.div>
           </div>
-
-          {/* Positioning Insight */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
-            className="max-w-4xl mx-auto mt-8"
-          >
-            <div className="bg-orange-50 border-l-4 border-orange-500 rounded-r-xl p-5 flex gap-4">
-              <Lightbulb className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-base text-slate-700">
-                  <span className="font-semibold text-slate-900">The key insight:</span> Only Elixa combines a unified workspace, 
-                  90+ integrations, an AI talent pool, <em>and</em> pricing SMEs can afford. Others force you to choose between capability and cost.
-                </p>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </div>
     </section>
