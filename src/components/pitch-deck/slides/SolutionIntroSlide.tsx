@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer } from "../slideAnimations";
 import { Code, XCircle, Sparkles } from "lucide-react";
 
 const competitors = [
@@ -71,8 +71,7 @@ export const SolutionIntroSlide = () => {
         <motion.div
           variants={fadeInUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
           className="text-center mb-6"
         >
           <span className="text-orange-500 text-xs uppercase tracking-widest font-semibold mb-3 block">
@@ -90,8 +89,7 @@ export const SolutionIntroSlide = () => {
         <motion.p
           variants={fadeInUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
           className="text-lg md:text-xl text-slate-500 italic text-center mb-10 max-w-2xl mx-auto"
         >
           "But the options available today? They all fail in different ways."
@@ -101,8 +99,7 @@ export const SolutionIntroSlide = () => {
         <motion.div
           variants={staggerContainer}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
           className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10"
         >
           {competitors.map((comp, index) => {
@@ -151,8 +148,7 @@ export const SolutionIntroSlide = () => {
         <motion.div
           variants={fadeInUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
           className="bg-gradient-to-r from-orange-50 via-white to-slate-50 border border-orange-200/50 
                      rounded-2xl p-6 max-w-3xl mx-auto shadow-lg shadow-orange-100/30"
         >

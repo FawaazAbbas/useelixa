@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn } from "../slideAnimations";
 import { Shield, Target, Network } from "lucide-react";
 
 const pillars = [
@@ -51,8 +51,7 @@ export const OurSolutionSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-4"
           >
             <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
@@ -69,8 +68,7 @@ export const OurSolutionSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="max-w-4xl mx-auto mb-8"
           >
             <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 text-center shadow-sm">
@@ -87,8 +85,7 @@ export const OurSolutionSlide = () => {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="grid md:grid-cols-3 gap-6 mb-8"
           >
             {pillars.map((pillar, index) => (
@@ -126,8 +123,7 @@ export const OurSolutionSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="max-w-3xl mx-auto"
           >
             <div className="bg-gradient-to-r from-primary/5 via-purple-50/50 to-primary/5 border border-primary/20 rounded-xl p-6 text-center">

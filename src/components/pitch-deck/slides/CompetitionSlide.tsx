@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer } from "../slideAnimations";
 import { Star } from "lucide-react";
 
 const competitorCategories = [
@@ -47,8 +47,7 @@ export const CompetitionSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-10"
           >
             <span className="text-orange-500 text-sm uppercase tracking-widest mb-4 block font-semibold">Competition</span>
@@ -63,8 +62,7 @@ export const CompetitionSlide = () => {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="space-y-5"
             >
               {competitorCategories.map((item, index) => (
@@ -85,8 +83,7 @@ export const CompetitionSlide = () => {
             <motion.div
               variants={fadeInUp}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="flex flex-col"
             >
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50 flex-1">
@@ -113,8 +110,7 @@ export const CompetitionSlide = () => {
                       key={index}
                       variants={scaleIn}
                       initial="hidden"
-                      whileInView="visible"
-                      viewport={defaultViewport}
+                      animate="visible"
                       className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
                         comp.isUs 
                           ? 'bg-primary text-white shadow-lg shadow-primary/30' 
@@ -135,8 +131,7 @@ export const CompetitionSlide = () => {
               <motion.p
                 variants={fadeInUp}
                 initial="hidden"
-                whileInView="visible"
-                viewport={defaultViewport}
+                animate="visible"
                 className="text-center text-slate-700 font-medium mt-4"
               >
                 <span className="text-primary font-semibold">Elixa:</span> Specialist AI employees with context, affordable for SMEs.

@@ -1,15 +1,15 @@
-import { motion, useInView } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { fadeInUp, scaleIn, staggerContainer } from "../slideAnimations";
 import { Store, DollarSign, Users, TrendingUp, Lightbulb } from "lucide-react";
 
 const AnimatedCounter = ({ end, prefix = "", suffix = "", decimals = 0 }: { end: number; prefix?: string; suffix?: string; decimals?: number }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (isInView) {
+    if (!hasAnimated) {
+      setHasAnimated(true);
       let start = 0;
       const increment = end / 120;
       const timer = setInterval(() => {
@@ -23,10 +23,10 @@ const AnimatedCounter = ({ end, prefix = "", suffix = "", decimals = 0 }: { end:
       }, 1000 / 60);
       return () => clearInterval(timer);
     }
-  }, [isInView, end]);
+  }, [hasAnimated, end]);
 
   const displayValue = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString();
-  return <span ref={ref}>{prefix}{displayValue}{suffix}</span>;
+  return <span>{prefix}{displayValue}{suffix}</span>;
 };
 
 const stats = [
@@ -85,8 +85,7 @@ export const ShopifyDeepDiveSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-6"
           >
             <div className="flex items-center justify-center gap-4 mb-4">
@@ -102,8 +101,7 @@ export const ShopifyDeepDiveSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="max-w-3xl mx-auto mb-10"
           >
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
@@ -117,8 +115,7 @@ export const ShopifyDeepDiveSlide = () => {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {stats.map((stat, index) => (
@@ -148,8 +145,7 @@ export const ShopifyDeepDiveSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="mt-10"
           >
             <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-6 max-w-4xl mx-auto">
@@ -172,8 +168,7 @@ export const ShopifyDeepDiveSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="mt-8"
           >
             <div className="bg-white border border-green-200 rounded-2xl p-6 text-center max-w-2xl mx-auto shadow-lg shadow-slate-200/50">

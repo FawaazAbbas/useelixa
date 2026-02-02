@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, defaultViewport } from "../slideAnimations";
+import { fadeInUp } from "../slideAnimations";
 import { ElixaMascot } from "@/components/ElixaMascot";
 import { Linkedin, Twitter, Mail, Code, TrendingUp, Users, Lightbulb, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,8 +37,7 @@ export const TeamAskSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-8"
           >
             <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">Join Us</span>
@@ -53,7 +52,7 @@ export const TeamAskSlide = () => {
 
           <div className="grid lg:grid-cols-2 gap-10 lg:gap-12">
             {/* Left: Team & Founder Story */}
-            <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
+            <motion.div variants={fadeInUp} initial="hidden" animate="visible">
               <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <Heart className="w-6 h-6 text-primary" /> The Founder Story
               </h3>
@@ -95,7 +94,7 @@ export const TeamAskSlide = () => {
             </motion.div>
 
             {/* Right: The Ask */}
-            <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
+            <motion.div variants={fadeInUp} initial="hidden" animate="visible">
               <h3 className="text-2xl font-bold text-slate-900 mb-6">Pre-Seed Round</h3>
 
               <div className="bg-gradient-to-br from-primary/10 to-purple-100 border border-primary/30 rounded-2xl p-6 mb-6">
@@ -117,8 +116,8 @@ export const TeamAskSlide = () => {
                         <div className="h-2 bg-white rounded-full overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
-                            whileInView={{ width: `${item.percent}%` }}
-                            transition={{ duration: 1, delay: 0.5 }}
+                            animate={{ width: `${item.percent}%` }}
+                            transition={{ duration: 1, delay: 0.3 }}
                             className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full"
                           />
                         </div>
@@ -158,8 +157,7 @@ export const TeamAskSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="absolute bottom-8 left-8 hidden lg:block"
           >
             <ElixaMascot pose="celebrating" size="lg" animation="bounce" />

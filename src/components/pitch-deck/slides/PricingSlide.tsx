@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn } from "../slideAnimations";
 import { Check, Sparkles, Database, Zap, Users, Lightbulb } from "lucide-react";
 
 const plans = [
@@ -74,8 +74,7 @@ export const PricingSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-6"
           >
             <span className="text-green-600 text-sm uppercase tracking-widest mb-4 block font-semibold">Pricing</span>
@@ -88,8 +87,7 @@ export const PricingSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="max-w-3xl mx-auto mb-10"
           >
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
@@ -102,8 +100,7 @@ export const PricingSlide = () => {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
           >
             {plans.map((plan, index) => (
@@ -151,8 +148,7 @@ export const PricingSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="mb-8"
           >
             <h3 className="text-center text-lg font-semibold text-slate-700 mb-4">Additional Options</h3>
@@ -176,8 +172,7 @@ export const PricingSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="max-w-3xl mx-auto"
           >
             <div className="bg-green-50 border-l-4 border-green-500 rounded-r-xl p-5 flex gap-4">

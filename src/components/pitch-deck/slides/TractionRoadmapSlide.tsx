@@ -1,8 +1,8 @@
-import { motion, useInView } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
+import { motion } from "framer-motion";
+import { fadeInUp, staggerContainer, scaleIn } from "../slideAnimations";
 import { Rocket, Code, Store, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const demandStats = {
   current: 3500,
@@ -52,43 +52,39 @@ const colorClasses = {
 
 const AnimatedCounter = ({ target, duration = 2000 }: { target: number; duration?: number }) => {
   const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (!isInView) return;
-    
-    let startTime: number;
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+    if (!hasAnimated) {
+      setHasAnimated(true);
+      let startTime: number;
+      const animate = (currentTime: number) => {
+        if (!startTime) startTime = currentTime;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        setCount(Math.floor(easeOut * target));
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
       
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(easeOut * target));
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-    
-    requestAnimationFrame(animate);
-  }, [isInView, target, duration]);
+      requestAnimationFrame(animate);
+    }
+  }, [hasAnimated, target, duration]);
 
-  return <span ref={ref}>{count.toLocaleString()}</span>;
+  return <span>{count.toLocaleString()}</span>;
 };
 
 export const TractionRoadmapSlide = () => {
-  const progressRef = useRef<HTMLDivElement>(null);
-  const isProgressInView = useInView(progressRef, { once: true });
   const [progressValue, setProgressValue] = useState(0);
 
   useEffect(() => {
-    if (isProgressInView) {
-      const timer = setTimeout(() => setProgressValue(demandStats.progress), 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isProgressInView]);
+    const timer = setTimeout(() => setProgressValue(demandStats.progress), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <section className="pitch-slide pitch-slide-traction-roadmap">
@@ -105,8 +101,7 @@ export const TractionRoadmapSlide = () => {
             <motion.div
               variants={fadeInUp}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="lg:col-span-3 space-y-8"
             >
               <div>
@@ -144,7 +139,7 @@ export const TractionRoadmapSlide = () => {
                   <span className="text-slate-500">signups in weeks</span>
                 </div>
                 
-                <div ref={progressRef} className="space-y-2">
+                <div className="space-y-2">
                   <Progress 
                     value={progressValue} 
                     className="h-2 bg-slate-100"
@@ -166,8 +161,7 @@ export const TractionRoadmapSlide = () => {
             <motion.div
               variants={fadeInUp}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="lg:col-span-2"
             >
               <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-lg shadow-slate-200/50">
@@ -183,8 +177,7 @@ export const TractionRoadmapSlide = () => {
                   <motion.div
                     variants={staggerContainer}
                     initial="hidden"
-                    whileInView="visible"
-                    viewport={defaultViewport}
+                    animate="visible"
                     className="space-y-4"
                   >
                     {milestones.map((milestone, index) => {

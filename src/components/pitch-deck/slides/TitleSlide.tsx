@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, floatUp, defaultViewport } from "../slideAnimations";
+import { fadeInUp, floatUp } from "../slideAnimations";
 import { ChevronDown } from "lucide-react";
 
 export const TitleSlide = () => {
@@ -13,8 +13,7 @@ export const TitleSlide = () => {
         <motion.div
           variants={floatUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
           className="mb-8"
         >
           <div className="relative">
@@ -31,8 +30,7 @@ export const TitleSlide = () => {
         <motion.p
           variants={fadeInUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
           className="text-2xl md:text-3xl text-slate-600 font-medium mb-8"
         >
           AI Employees That Work For You
@@ -42,8 +40,7 @@ export const TitleSlide = () => {
         <motion.div
           variants={fadeInUp}
           initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
+          animate="visible"
         >
           <span className="inline-block bg-primary/10 text-primary px-6 py-2 rounded-full text-sm font-semibold uppercase tracking-widest">
             Pre-Seed Deck • 2025
@@ -54,7 +51,7 @@ export const TitleSlide = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5, duration: 0.5 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
           className="absolute bottom-12 flex flex-col items-center gap-2 text-slate-400"
         >
           <span className="text-sm uppercase tracking-widest">Scroll to explore</span>

@@ -1,6 +1,6 @@
-import { motion, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { fadeInUp, scaleIn, staggerContainer, defaultViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn, staggerContainer } from "../slideAnimations";
 import { TrendingUp, Building2, ShoppingBag } from "lucide-react";
 
 const AnimatedCounter = ({
@@ -14,12 +14,12 @@ const AnimatedCounter = ({
   suffix?: string;
   duration?: number;
 }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
   const [count, setCount] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (isInView) {
+    if (!hasAnimated) {
+      setHasAnimated(true);
       let start = 0;
       const increment = end / (duration * 60);
       const timer = setInterval(() => {
@@ -33,10 +33,10 @@ const AnimatedCounter = ({
       }, 1000 / 60);
       return () => clearInterval(timer);
     }
-  }, [isInView, end, duration]);
+  }, [hasAnimated, end, duration]);
 
   return (
-    <span ref={ref}>
+    <span>
       {prefix}
       {count.toLocaleString()}
       {suffix}
@@ -56,8 +56,7 @@ export const MarketSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-6"
           >
             <span className="text-teal-600 text-sm uppercase tracking-widest mb-4 block font-medium">
@@ -79,8 +78,7 @@ export const MarketSlide = () => {
             <motion.div
               variants={fadeInUp}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="flex flex-col items-center"
             >
               <div className="relative">
@@ -88,24 +86,21 @@ export const MarketSlide = () => {
                 <motion.div
                   variants={scaleIn}
                   initial="hidden"
-                  whileInView="visible"
-                  viewport={defaultViewport}
+                  animate="visible"
                   className="w-60 h-60 md:w-72 md:h-72 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
                 >
                   {/* SAM */}
                   <motion.div
                     variants={scaleIn}
                     initial="hidden"
-                    whileInView="visible"
-                    viewport={defaultViewport}
+                    animate="visible"
                     className="w-44 h-44 md:w-52 md:h-52 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
                   >
                     {/* SOM */}
                     <motion.div
                       variants={scaleIn}
                       initial="hidden"
-                      whileInView="visible"
-                      viewport={defaultViewport}
+                      animate="visible"
                       className="w-28 h-28 md:w-32 md:h-32 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
                     >
                       <div className="text-center">
@@ -134,8 +129,7 @@ export const MarketSlide = () => {
             <motion.div
               variants={staggerContainer}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="space-y-3"
             >
               <motion.div
@@ -183,8 +177,7 @@ export const MarketSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="mt-8"
           >
             <div className="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-2xl p-6">

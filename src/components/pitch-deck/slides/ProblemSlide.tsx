@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, floatUp, defaultViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn, floatUp } from "../slideAnimations";
 import {
   Flame,
   TrendingDown,
@@ -92,7 +92,7 @@ export const ProblemSlide = () => {
           {/* Header Section */}
           <div className="grid lg:grid-cols-2 gap-8 mb-6">
             {/* Left: Title & Hook */}
-            <motion.div variants={floatUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
+            <motion.div variants={floatUp} initial="hidden" animate="visible">
               <span className="text-orange-500 text-xs uppercase tracking-widest font-semibold mb-2 block">
                 The Challenge
               </span>
@@ -110,9 +110,8 @@ export const ProblemSlide = () => {
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    viewport={{ once: true }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-full shadow-sm"
                   >
                     <item.icon className="w-3.5 h-3.5 text-orange-500" />
@@ -126,8 +125,7 @@ export const ProblemSlide = () => {
             <motion.div
               variants={fadeInUp}
               initial="hidden"
-              whileInView="visible"
-              viewport={defaultViewport}
+              animate="visible"
               className="flex items-center"
             >
               <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-5 shadow-sm">
@@ -147,8 +145,7 @@ export const ProblemSlide = () => {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="grid md:grid-cols-3 gap-4 mb-6"
           >
             {painPoints.map((point, index) => {
@@ -176,7 +173,7 @@ export const ProblemSlide = () => {
           </motion.div>
 
           {/* Vicious Cycle */}
-          <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" viewport={defaultViewport}>
+          <motion.div variants={fadeInUp} initial="hidden" animate="visible">
             <div className="bg-gradient-to-r from-slate-50 via-white to-orange-50/50 border border-slate-200 rounded-xl p-5">
               <div className="flex flex-col md:flex-row md:items-center gap-4">
                 {/* Left: Title */}
