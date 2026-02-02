@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, scaleIn, defaultViewport } from "../slideAnimations";
+import { fadeInUp, scaleIn } from "../slideAnimations";
 import { MessageSquare, CheckSquare, Calendar, FileText, BarChart3, Settings, Users, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,8 +44,7 @@ export const ProductSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-6"
           >
             <span className="text-black-500 text-sm uppercase tracking-widest mb-4 block font-semibold">
@@ -62,8 +61,7 @@ export const ProductSlide = () => {
           <motion.div
             variants={scaleIn}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden mb-6"
           >
             <div className="flex h-[340px] md:h-[400px]">
@@ -207,8 +205,7 @@ export const ProductSlide = () => {
           <motion.p
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-6"
           >
             A unified workspace where AI employees collaborate, share context, and connect to 90+ tools—all working
@@ -219,8 +216,7 @@ export const ProductSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center"
           >
             <Link to="https://elixa.app/workspace">

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fadeInUp, staggerContainer, scaleIn, defaultViewport } from "../slideAnimations";
+import { fadeInUp, staggerContainer, scaleIn } from "../slideAnimations";
 import { Users, Mail, MessageCircle, Target, FileText, Handshake, Gift, Smartphone, Lightbulb } from "lucide-react";
 
 const strategies = [
@@ -73,8 +73,7 @@ export const GTMSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="text-center mb-6"
           >
             <span className="text-purple-600 text-sm uppercase tracking-widest mb-4 block font-semibold">Go-to-Market</span>
@@ -87,8 +86,7 @@ export const GTMSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="max-w-3xl mx-auto mb-8"
           >
             <p className="text-lg md:text-xl text-slate-600 leading-relaxed text-center">
@@ -101,8 +99,7 @@ export const GTMSlide = () => {
           <motion.div
             variants={staggerContainer}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="grid grid-cols-2 lg:grid-cols-4 gap-4"
           >
             {strategies.map((strategy, index) => (
@@ -124,8 +121,7 @@ export const GTMSlide = () => {
           <motion.div
             variants={fadeInUp}
             initial="hidden"
-            whileInView="visible"
-            viewport={defaultViewport}
+            animate="visible"
             className="mt-8 max-w-4xl mx-auto"
           >
             <div className="bg-purple-50 border-l-4 border-purple-500 rounded-r-xl p-4 flex gap-3">
