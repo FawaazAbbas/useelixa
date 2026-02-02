@@ -1,28 +1,21 @@
 import { motion } from "framer-motion";
-import { ElixaMascot } from "@/components/ElixaMascot";
 import { fadeInUp, floatUp, defaultViewport } from "../slideAnimations";
 import { ChevronDown } from "lucide-react";
 
 export const TitleSlide = () => {
   return (
     <section className="pitch-slide pitch-slide-title">
-      {/* Light background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-blue-50" />
-      
-      {/* Subtle accent orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-400/10 rounded-full blur-3xl" />
-      </div>
+      {/* Clean background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-blue-50/50" />
       
       <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
-        {/* Logo with subtle shadow */}
+        {/* Logo */}
         <motion.div
           variants={floatUp}
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}
-          className="mb-6"
+          className="mb-8"
         >
           <div className="relative">
             <h1 className="text-8xl md:text-9xl font-bold text-slate-900 tracking-tight">
@@ -40,45 +33,21 @@ export const TitleSlide = () => {
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}
-          className="text-2xl md:text-3xl text-slate-600 font-medium mb-4"
+          className="text-2xl md:text-3xl text-slate-600 font-medium mb-8"
         >
           AI Employees That Work For You
         </motion.p>
 
-        {/* Value proposition */}
-        <motion.p
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
-          className="text-lg md:text-xl text-slate-500 max-w-2xl mb-8 leading-relaxed"
-        >
-          A Slack-style workspace with an app store for AI employees. 
-          They think, execute, and remember your entire business.
-        </motion.p>
-
-        {/* Subtitle badge */}
+        {/* Pre-Seed badge */}
         <motion.div
           variants={fadeInUp}
           initial="hidden"
           whileInView="visible"
           viewport={defaultViewport}
-          className="mb-12"
         >
           <span className="inline-block bg-primary/10 text-primary px-6 py-2 rounded-full text-sm font-semibold uppercase tracking-widest">
             Pre-Seed Deck • 2025
           </span>
-        </motion.div>
-
-        {/* Mascot */}
-        <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={defaultViewport}
-          className="mb-16"
-        >
-          <ElixaMascot pose="waving" size="xl" animation="float" />
         </motion.div>
 
         {/* Scroll indicator */}
