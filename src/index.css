@@ -505,9 +505,7 @@ All colors MUST be HSL.
     width: 100%;
     position: relative;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
   }
 
   /* Progress indicator container */
