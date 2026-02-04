@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { fadeInUp, staggerContainer, scaleIn } from "../slideAnimations";
+import { SlideShell } from "../SlideShell";
 import { Shield, Target, Network } from "lucide-react";
 
 const pillars = [
@@ -38,104 +39,97 @@ const pillars = [
 
 export const OurSolutionSlide = () => {
   return (
-    <section className="pitch-slide pitch-slide-our-solution">
-      {/* Light background gradient */}
+    <SlideShell background="custom">
+      {/* Custom background */}
       <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20" />
-
-      {/* Accent glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
 
-      <div className="relative z-10 flex items-center justify-center h-full px-6 md:px-12">
-        <div className="max-w-7xl w-full">
-          {/* Header */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            className="text-center mb-4"
-          >
-            <span className="text-primary text-sm uppercase tracking-widest mb-4 block font-semibold">
-              Our Solution
-            </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-3 leading-tight">
-              Meet{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
-              Your company, staffed with AI.
-            </h2>
-          </motion.div>
+      {/* Section label (cols 1-4) */}
+      <motion.div 
+        variants={fadeInUp} 
+        initial="hidden" 
+        animate="visible" 
+        className="col-span-12 md:col-span-4"
+      >
+        <span className="pitch-label text-primary">Our Solution</span>
+      </motion.div>
 
-          {/* Marketplace Description - Glassmorphic Card */}
+      {/* H1 (cols 1-9) */}
+      <motion.h2 
+        variants={fadeInUp} 
+        initial="hidden" 
+        animate="visible" 
+        className="col-span-12 md:col-span-9 pitch-h1"
+      >
+        Meet{" "}
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
+        Your company, staffed with AI.
+      </motion.h2>
+
+      {/* Intro line (cols 1-10) */}
+      <motion.p 
+        variants={fadeInUp} 
+        initial="hidden" 
+        animate="visible" 
+        className="col-span-12 md:col-span-10 pitch-body"
+      >
+        A marketplace of real AI employees, each created by specialist developers, trained for a specific business role, 
+        and ready to work together in a unified, fully connected workspace.
+      </motion.p>
+
+      {/* 3 pillar cards (cols 1-4, 5-8, 9-12) */}
+      <motion.div 
+        variants={staggerContainer} 
+        initial="hidden" 
+        animate="visible" 
+        className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-4"
+      >
+        {pillars.map((pillar, index) => (
           <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            className="max-w-4xl mx-auto mb-8"
+            key={index}
+            variants={scaleIn}
+            className={`pitch-card transition-all duration-300 hover:shadow-xl ${
+              pillar.featured
+                ? 'border-2 border-primary/30 shadow-primary/10 hover:shadow-primary/20'
+                : 'hover:shadow-slate-200/70'
+            }`}
           >
-            <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-2xl p-6 text-center shadow-sm">
-              <p className="text-lg text-slate-700 leading-relaxed">
-                Elixa is more than just another "AI assistant." It's a{" "}
-                <span className="font-semibold text-primary">marketplace of real AI employees</span>, each created by
-                specialist developers, trained for a specific business role, and ready to work together in a unified,
-                fully connected workspace.
-              </p>
+            {/* Subtitle Badge */}
+            <div className={`text-xs font-bold uppercase tracking-widest ${pillar.accentColor} mb-3`}>
+              {pillar.subtitle}
             </div>
-          </motion.div>
 
-          {/* Three Pillars */}
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="grid md:grid-cols-3 gap-6 mb-8"
-          >
-            {pillars.map((pillar, index) => (
-              <motion.div
-                key={index}
-                variants={scaleIn}
-                className={`bg-white rounded-3xl p-6 shadow-xl transition-all duration-300 hover:shadow-2xl ${
-                  pillar.featured
-                    ? "border-2 border-primary/30 shadow-primary/10 hover:shadow-primary/20"
-                    : "border border-slate-200 shadow-slate-200/60 hover:shadow-slate-200/70"
-                }`}
-              >
-                {/* Subtitle Badge */}
-                <div className={`text-xs font-bold uppercase tracking-widest ${pillar.accentColor} mb-3`}>
-                  {pillar.subtitle}
-                </div>
-
-                {/* Icon */}
-                <div
-                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${pillar.gradient} flex items-center justify-center mb-4`}
-                >
-                  <pillar.icon className={`w-7 h-7 ${pillar.iconColor}`} />
-                </div>
-
-                {/* Title */}
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{pillar.title}</h3>
-
-                {/* Description */}
-                <p className="text-sm text-slate-600 leading-relaxed">{pillar.description}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Bottom Tagline */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            className="max-w-3xl mx-auto"
-          >
-            <div className="bg-gradient-to-r from-primary/5 via-purple-50/50 to-primary/5 border border-primary/20 rounded-xl p-6 text-center">
-              <p className="text-xl md:text-2xl font-semibold text-slate-800">
-                AI employees that <span className="text-primary">think</span>,{" "}
-                <span className="text-purple-600">remember</span>, and <span className="text-blue-600">execute</span>—
-                <span className="text-slate-600 font-normal">built for the way you actually work.</span>
-              </p>
+            {/* Icon */}
+            <div
+              className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${pillar.gradient} flex items-center justify-center mb-4`}
+            >
+              <pillar.icon className={`w-7 h-7 ${pillar.iconColor}`} />
             </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-bold text-slate-900 mb-3">{pillar.title}</h3>
+
+            {/* Description */}
+            <p className="text-sm text-slate-600 leading-relaxed">{pillar.description}</p>
           </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Bottom value strip (cols 1-12) */}
+      <motion.div 
+        variants={fadeInUp} 
+        initial="hidden" 
+        animate="visible" 
+        className="col-span-12"
+      >
+        <div className="pitch-card bg-gradient-to-r from-primary/5 via-purple-50/50 to-primary/5 border-primary/20 text-center">
+          <p className="text-xl md:text-2xl font-semibold text-slate-800">
+            AI employees that <span className="text-primary">think</span>,{" "}
+            <span className="text-purple-600">remember</span>, and <span className="text-blue-600">execute</span>—
+            <span className="text-slate-600 font-normal">built for the way you actually work.</span>
+          </p>
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </SlideShell>
   );
 };

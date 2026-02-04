@@ -11,10 +11,11 @@ import { GTMSlide } from "@/components/pitch-deck/slides/GTMSlide";
 import { TractionRoadmapSlide } from "@/components/pitch-deck/slides/TractionRoadmapSlide";
 import { CompetitionSlide } from "@/components/pitch-deck/slides/CompetitionSlide";
 import { TeamAskSlide } from "@/components/pitch-deck/slides/TeamAskSlide";
+import { ContactSlide } from "@/components/pitch-deck/slides/ContactSlide";
 import { SlideNumber } from "@/components/pitch-deck/SlideNumber";
 import { trackPageView } from "@/utils/analytics";
 
-const TOTAL_SLIDES = 12;
+const TOTAL_SLIDES = 13;
 
 const PitchDeck = () => {
   // Keyboard navigation
@@ -100,6 +101,10 @@ const PitchDeck = () => {
       <div className="relative">
         <SlideNumber number={12} total={TOTAL_SLIDES} />
         <TeamAskSlide />
+      </div>
+      <div className="relative">
+        <SlideNumber number={13} total={TOTAL_SLIDES} />
+        <ContactSlide />
       </div>
     </div>
   );

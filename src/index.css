@@ -453,6 +453,31 @@ All colors MUST be HSL.
      PITCH DECK STYLES
      ======================================== */
   
+  /* Design Tokens */
+  .pitch-card {
+    @apply rounded-3xl p-8 border border-slate-200 shadow-sm bg-white;
+  }
+
+  .pitch-h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight;
+  }
+
+  .pitch-h2 {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900;
+  }
+
+  .pitch-body {
+    @apply text-lg md:text-xl text-slate-600 leading-relaxed;
+  }
+
+  .pitch-label {
+    @apply text-xs md:text-sm uppercase tracking-widest font-semibold;
+  }
+
+  .pitch-grid {
+    @apply grid grid-cols-12 gap-4 md:gap-6;
+  }
+  
   /* Base slide styling */
   .pitch-deck-wrapper {
     scroll-snap-type: y mandatory;
