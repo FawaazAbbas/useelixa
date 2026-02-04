@@ -1,68 +1,60 @@
 import { motion } from "framer-motion";
 import { fadeInUp, floatUp } from "../slideAnimations";
-import { ChevronDown } from "lucide-react";
+import { SlideShell } from "../SlideShell";
 
 export const TitleSlide = () => {
   return (
-    <section className="pitch-slide pitch-slide-title">
-      {/* Clean background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-blue-50/50" />
-      
-      <div className="relative z-10 flex flex-col items-center justify-center h-full px-6 text-center">
-        {/* Logo */}
-        <motion.div
-          variants={floatUp}
-          initial="hidden"
-          animate="visible"
-          className="mb-8"
-        >
-          <div className="relative">
-            <h1 className="text-8xl md:text-9xl font-bold text-slate-900 tracking-tight">
-              ELIXA
-            </h1>
-            <div className="absolute inset-0 text-8xl md:text-9xl font-bold text-primary/20 blur-2xl">
-              ELIXA
-            </div>
+    <SlideShell background="gradient">
+      {/* Logo/Wordmark - centered (cols 4-9) */}
+      <motion.div
+        variants={floatUp}
+        initial="hidden"
+        animate="visible"
+        className="col-span-12 md:col-start-4 md:col-span-6 flex flex-col items-center justify-center pt-24 md:pt-32"
+      >
+        <div className="relative mb-8">
+          <h1 className="text-7xl md:text-8xl lg:text-9xl font-bold text-slate-900 tracking-tight">
+            ELIXA
+          </h1>
+          <div className="absolute inset-0 text-7xl md:text-8xl lg:text-9xl font-bold text-primary/20 blur-2xl pointer-events-none">
+            ELIXA
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Tagline */}
-        <motion.p
-          variants={fadeInUp}
-          initial="hidden"
-          animate="visible"
-          className="text-2xl md:text-3xl text-slate-600 font-medium mb-8"
-        >
-          AI Employees That Work For You
-        </motion.p>
+      {/* Tagline - centered (cols 3-10) */}
+      <motion.p
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="col-span-12 md:col-start-3 md:col-span-8 text-center text-2xl md:text-3xl text-slate-600 font-medium"
+      >
+        AI Employees That Work For You
+      </motion.p>
 
-        {/* Pre-Seed badge */}
-        <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          animate="visible"
-        >
-          <span className="inline-block bg-primary/10 text-primary px-6 py-2 rounded-full text-sm font-semibold uppercase tracking-widest">
-            Pre-Seed Deck • 2025
-          </span>
-        </motion.div>
+      {/* Pill/Badge - centered (cols 5-8) */}
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="col-span-12 md:col-start-5 md:col-span-4 flex justify-center mt-6"
+      >
+        <span className="inline-block bg-primary/10 text-primary px-6 py-2 rounded-full text-sm font-semibold uppercase tracking-widest">
+          Pre-Seed Deck • 2025
+        </span>
+      </motion.div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="absolute bottom-12 flex flex-col items-center gap-2 text-slate-400"
-        >
-          <span className="text-sm uppercase tracking-widest">Scroll to explore</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
-            <ChevronDown className="w-6 h-6" />
-          </motion.div>
-        </motion.div>
-      </div>
-    </section>
+      {/* Footer line - bottom */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+        className="col-span-12 flex items-end justify-center pb-4"
+      >
+        <p className="text-sm text-slate-400">
+          useelixa.com • hello@useelixa.com
+        </p>
+      </motion.div>
+    </SlideShell>
   );
 };

@@ -5,7 +5,7 @@ interface SlideNumberProps {
 
 export const SlideNumber = ({ number, total = 13 }: SlideNumberProps) => {
   return (
-    <div className="absolute bottom-6 left-6 z-20 print:hidden">
+    <div className="absolute bottom-[72px] left-6 md:left-12 lg:left-24 z-20 print:hidden">
       <div className="flex items-baseline gap-1 text-slate-400">
         <span className="text-2xl font-bold text-slate-600">
           {String(number).padStart(2, "0")}
