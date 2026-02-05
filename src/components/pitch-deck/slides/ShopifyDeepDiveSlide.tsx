@@ -95,7 +95,7 @@ export const ShopifyDeepDiveSlide = () => {
         variants={fadeInUp}
         initial="hidden"
         animate="visible"
-        className="col-span-12 md:col-span-1 flex items-center gap-4"
+        className="col-span-12 md:col-span-4 flex items-center gap-4"
       >
         <img src="/logos/ShopifyLogo.svg" alt="Shopify" className="h-6 w-auto" />
         <span className="pitch-label text-green-600">Deep Dive</span>

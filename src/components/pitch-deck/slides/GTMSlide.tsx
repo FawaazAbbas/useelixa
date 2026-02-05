@@ -63,7 +63,7 @@ export const GTMSlide = () => {
       <div className="absolute" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-1">
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-purple-600">Go-to-Market</span>
       </motion.div>
 
