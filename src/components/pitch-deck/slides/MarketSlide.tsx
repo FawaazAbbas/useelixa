@@ -106,7 +106,7 @@ export const MarketSlide = () => {
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="col-span-12 md:col-span-6 space-y-3"
+        className="col-span-12 md:col-span-6 space-y-2"
       >
         <motion.div variants={scaleIn} className="pitch-card">
           <div className="flex items-center gap-3 mb-2">

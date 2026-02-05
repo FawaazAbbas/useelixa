@@ -165,10 +165,18 @@ All colors MUST be HSL.
     margin-top: 0;
   }
 
-  .prose h1 { font-size: 1.5rem; }
-  .prose h2 { font-size: 1.3rem; }
-  .prose h3 { font-size: 1.15rem; }
-  .prose h4 { font-size: 1.05rem; }
+  .prose h1 {
+    font-size: 1.5rem;
+  }
+  .prose h2 {
+    font-size: 1.3rem;
+  }
+  .prose h3 {
+    font-size: 1.15rem;
+  }
+  .prose h4 {
+    font-size: 1.05rem;
+  }
 
   /* Lists */
   .prose ul,
@@ -316,7 +324,8 @@ All colors MUST be HSL.
 
   /* Premium animations for marketplace */
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
@@ -325,7 +334,8 @@ All colors MUST be HSL.
   }
 
   @keyframes gradient-shift {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
@@ -334,7 +344,8 @@ All colors MUST be HSL.
   }
 
   @keyframes glow-pulse {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
     }
     50% {
@@ -371,7 +382,7 @@ All colors MUST be HSL.
   [data-state="closed"] .collapsible-chevron {
     transform: rotate(-90deg);
   }
-  
+
   [data-state="open"] .collapsible-chevron {
     transform: rotate(0deg);
   }
@@ -452,10 +463,10 @@ All colors MUST be HSL.
   /* ========================================
      PITCH DECK STYLES
      ======================================== */
-  
+
   /* Design Tokens */
   .pitch-card {
-    @apply rounded-3xl p-8 border border-slate-200 shadow-sm bg-white;
+    @apply rounded-3xl p-1 border border-slate-200 shadow-sm bg-white;
   }
 
   .pitch-h1 {
@@ -477,7 +488,7 @@ All colors MUST be HSL.
   .pitch-grid {
     @apply grid grid-cols-12 gap-4 md:gap-6;
   }
-  
+
   /* Base slide styling */
   .pitch-deck-wrapper {
     scroll-snap-type: y mandatory;
