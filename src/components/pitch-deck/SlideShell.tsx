@@ -16,7 +16,7 @@ export const SlideShell = ({ children, className, background = "white" }: SlideS
       {/* Background */}
       {background !== "custom" && (
         <div className={cn(
-          "absolute inset-0",
+          "absolute inset-0 z-0",
           background === "white" ? "bg-white" : "bg-gradient-to-br from-white via-slate-50 to-white"
         )} />
       )}
