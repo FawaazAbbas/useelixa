@@ -466,7 +466,7 @@ All colors MUST be HSL.
 
   /* Design Tokens */
   .pitch-card {
-    @apply rounded-3xl p-4 border border-slate-200 shadow-sm bg-white;
+    @apply rounded-3xl p-6 border border-slate-200 shadow-sm bg-white;
   }
 
   .pitch-h1 {
