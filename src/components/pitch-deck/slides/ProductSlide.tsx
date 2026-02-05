@@ -40,12 +40,12 @@ export const ProductSlide = () => {
       <div className="absolute" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-1">
         <span className="pitch-label text-slate-900">The future is finally here</span>
       </motion.div>
 
       {/* H1 (cols 1-10) */}
-      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-10 pitch-h1">
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-12 pitch-h1">
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
           We've already built the Elixa demo
         </span>

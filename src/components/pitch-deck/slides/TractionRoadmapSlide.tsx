@@ -64,12 +64,12 @@ export const TractionRoadmapSlide = () => {
       <div className="absolute " />
 
       {/* Section label (cols 1-4) */}
-      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-1">
         <span className="pitch-label text-teal-600">The Journey</span>
       </motion.div>
 
       {/* H1 (cols 1-9) */}
-      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-h1">
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-12 pitch-h1">
         From First Signup to First Million
       </motion.h2>
 

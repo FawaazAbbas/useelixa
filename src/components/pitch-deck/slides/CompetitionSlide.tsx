@@ -43,12 +43,12 @@ export const CompetitionSlide = () => {
       <div className="absolute" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-1">
         <span className="pitch-label text-orange-500">Competition</span>
       </motion.div>
 
       {/* H1 (cols 1-8) */}
-      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-8 pitch-h1">
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-10 pitch-h1">
         Why We Win
       </motion.h2>
 

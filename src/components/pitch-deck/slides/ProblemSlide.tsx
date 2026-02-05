@@ -56,12 +56,12 @@ export const ProblemSlide = () => {
       <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-100/30 to-transparent" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-1">
         <span className="pitch-label text-orange-500">The Challenge</span>
       </motion.div>
 
       {/* H1 (cols 1-8) */}
-      <motion.h2 variants={floatUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-8 pitch-h1">
+      <motion.h2 variants={floatUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-12 pitch-h1">
         Founders Are{" "}
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Drowning</span> In
         Their Own Business

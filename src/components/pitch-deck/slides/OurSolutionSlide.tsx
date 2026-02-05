@@ -50,7 +50,7 @@ export const OurSolutionSlide = () => {
       </motion.div>
 
       {/* H1 (cols 1-9) */}
-      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-h1">
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-12 pitch-h1">
         Meet <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
         Your company, staffed with AI.
       </motion.h2>

@@ -30,7 +30,7 @@ export const TeamAskSlide = () => {
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
 
       {/* H1 (cols 1-9) */}
-      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-h1">
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-12 pitch-h1">
         Let's Build the Future Together
       </motion.h2>
 

@@ -59,12 +59,12 @@ export const SolutionIntroSlide = () => {
       <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-slate-100/50 to-transparent" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-1">
         <span className="pitch-label text-orange-500">The Promise Land</span>
       </motion.div>
 
       {/* H1 (cols 1-10) */}
-      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-10 pitch-h1">
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-12 pitch-h1">
         AI employees were supposed to{" "}
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-400">
           change everything
