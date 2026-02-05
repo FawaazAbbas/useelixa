@@ -40,7 +40,7 @@ export const CompetitionSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-
+      <div className="absolute" />
 
       {/* Section label (cols 1-4) */}
       <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
@@ -143,7 +143,7 @@ export const CompetitionSlide = () => {
             <span className="text-primary font-semibold">Elixa:</span> Specialist AI employees with context, affordable
             for SMEs.
           </p>
-
+        </div>
       </motion.div>
     </SlideShell>
   );
