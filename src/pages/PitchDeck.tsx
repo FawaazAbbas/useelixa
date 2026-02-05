@@ -54,55 +54,55 @@ const PitchDeck = () => {
 
   return (
     <div className="pitch-deck-wrapper pitch-deck-light">
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={1} total={TOTAL_SLIDES} />
         <TitleSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={2} total={TOTAL_SLIDES} />
         <ProblemSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={3} total={TOTAL_SLIDES} />
         <SolutionIntroSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={4} total={TOTAL_SLIDES} />
         <OurSolutionSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={5} total={TOTAL_SLIDES} />
         <ProductSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={6} total={TOTAL_SLIDES} />
         <MarketSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={7} total={TOTAL_SLIDES} />
         <ShopifyDeepDiveSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={8} total={TOTAL_SLIDES} />
         <PricingSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={9} total={TOTAL_SLIDES} />
         <GTMSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={10} total={TOTAL_SLIDES} />
         <TractionRoadmapSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={11} total={TOTAL_SLIDES} />
         <CompetitionSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={12} total={TOTAL_SLIDES} />
         <TeamAskSlide />
       </div>
-      <div className="relative">
+      <div className="relative min-h-screen">
         <SlideNumber number={13} total={TOTAL_SLIDES} />
         <ContactSlide />
       </div>
