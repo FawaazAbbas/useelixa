@@ -62,7 +62,12 @@ export const MarketSlide = () => {
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
+      <motion.p
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="col-span-12 md:col-span-12 pitch-body"
+      >
         Millions of digital-native SMBs are already investing in tools that make them faster and more competitive.
       </motion.p>
 
