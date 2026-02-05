@@ -40,51 +40,32 @@ export const CompetitionSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-white" />
+      <div className="absolute inset-9 bg-gradient-to-br from-white via-slate-50 to-white" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-orange-500">Competition</span>
       </motion.div>
 
       {/* H1 (cols 1-8) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-8 pitch-h1"
-      >
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-8 pitch-h1">
         Why We Win
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-body"
-      >
+      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
         Positioned in the sweet spot: Advanced capability at affordable prices.
       </motion.p>
 
       {/* Left - 3 claim cards (cols 1-6) */}
-      <motion.div 
-        variants={staggerContainer} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-6 space-y-3"
       >
         {competitorCategories.map((item, index) => (
-          <motion.div
-            key={index}
-            variants={scaleIn}
-            className={`pitch-card ${item.bgColor} border-l-4 ${item.color}`}
-          >
+          <motion.div key={index} variants={scaleIn} className={`pitch-card ${item.bgColor} border-l-4 ${item.color}`}>
             <h3 className="text-base font-semibold text-slate-900 mb-1">
               {item.category} <span className="font-normal text-slate-500">({item.examples})</span>
             </h3>
@@ -94,12 +75,7 @@ export const CompetitionSlide = () => {
       </motion.div>
 
       {/* Right - Matrix (cols 7-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-6"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-6">
         <div className="pitch-card h-full">
           <h3 className="text-base font-semibold text-slate-900 mb-4 text-center">Market Positioning</h3>
           <div className="relative aspect-square max-w-xs mx-auto">
@@ -107,17 +83,31 @@ export const CompetitionSlide = () => {
             <div className="absolute inset-0">
               <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300"></div>
               <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-300"></div>
-              
+
               {/* Labels INSIDE the container */}
-              <span className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Advanced</span>
-              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">Basic</span>
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-green-600 uppercase tracking-wide writing-mode-vertical" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg) translateX(50%)' }}>Affordable</span>
-              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-red-500 uppercase tracking-wide" style={{ writingMode: 'vertical-rl' }}>Expensive</span>
-              
+              <span className="absolute top-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Advanced
+              </span>
+              <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                Basic
+              </span>
+              <span
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-green-600 uppercase tracking-wide writing-mode-vertical"
+                style={{ writingMode: "vertical-rl", transform: "rotate(180deg) translateX(50%)" }}
+              >
+                Affordable
+              </span>
+              <span
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-semibold text-red-500 uppercase tracking-wide"
+                style={{ writingMode: "vertical-rl" }}
+              >
+                Expensive
+              </span>
+
               {/* Highlight Elixa's quadrant */}
               <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-green-50/60 rounded-tl-xl"></div>
             </div>
-            
+
             {/* Competitor bubbles */}
             {quadrantData.map((comp, index) => (
               <motion.div
@@ -126,11 +116,15 @@ export const CompetitionSlide = () => {
                 initial="hidden"
                 animate="visible"
                 className={`absolute transform -translate-x-1/2 -translate-y-1/2 ${
-                  comp.isUs 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                    : 'bg-white border border-slate-200 text-slate-700 shadow-md'
+                  comp.isUs
+                    ? "bg-primary text-white shadow-lg shadow-primary/30"
+                    : "bg-white border border-slate-200 text-slate-700 shadow-md"
                 } rounded-full flex items-center justify-center font-semibold ${
-                  comp.size === 'lg' ? 'w-12 h-12 text-[10px]' : comp.size === 'md' ? 'w-10 h-10 text-[9px]' : 'w-8 h-8 text-[8px]'
+                  comp.size === "lg"
+                    ? "w-12 h-12 text-[10px]"
+                    : comp.size === "md"
+                      ? "w-10 h-10 text-[9px]"
+                      : "w-8 h-8 text-[8px]"
                 }`}
                 style={{ left: `${comp.x}%`, top: `${100 - comp.y}%` }}
               >
@@ -143,15 +137,11 @@ export const CompetitionSlide = () => {
       </motion.div>
 
       {/* Summary line (cols 1-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12">
         <div className="pitch-card bg-slate-50 text-center">
           <p className="text-lg text-slate-700 font-medium">
-            <span className="text-primary font-semibold">Elixa:</span> Specialist AI employees with context, affordable for SMEs.
+            <span className="text-primary font-semibold">Elixa:</span> Specialist AI employees with context, affordable
+            for SMEs.
           </p>
         </div>
       </motion.div>
