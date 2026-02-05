@@ -107,7 +107,12 @@ export const ShopifyDeepDiveSlide = () => {
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
+      <motion.p
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="col-span-12 md:col-span-12 pitch-body"
+      >
         5.5 million customers who spend $120 monthly on apps.{" "}
         <span className="font-semibold text-slate-900">64% are small businesses</span>—exactly our target market.
       </motion.p>
