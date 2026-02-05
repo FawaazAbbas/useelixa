@@ -55,26 +55,16 @@ export const SolutionIntroSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/20 via-slate-50 to-white" />
+      <div className="absolute" />
       <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-slate-100/50 to-transparent" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-orange-500">The Promise Land</span>
       </motion.div>
 
       {/* H1 (cols 1-10) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-10 pitch-h1"
-      >
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-10 pitch-h1">
         AI employees were supposed to{" "}
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-500 to-slate-400">
           change everything
@@ -82,38 +72,30 @@ export const SolutionIntroSlide = () => {
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.p
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-9 pitch-body italic"
       >
         "But the options available today? They all fail in different ways."
       </motion.p>
 
       {/* 3 comparison cards (cols 1-4, 5-8, 9-12) */}
-      <motion.div 
-        variants={staggerContainer} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         {competitors.map((comp, index) => {
           const styles = getFailureStyles(comp.accentColor);
           return (
-            <motion.div
-              key={index}
-              variants={scaleIn}
-              className={`pitch-card ${styles.border} ${styles.bg}`}
-            >
+            <motion.div key={index} variants={scaleIn} className={`pitch-card ${styles.border} ${styles.bg}`}>
               {/* Logo/Icon + Name */}
               <div className="flex items-center gap-3 mb-3">
                 {comp.logo ? (
-                  <img
-                    src={comp.logo}
-                    alt={`${comp.name} logo`}
-                    className="h-8 w-auto object-contain"
-                  />
+                  <img src={comp.logo} alt={`${comp.name} logo`} className="h-8 w-auto object-contain" />
                 ) : (
                   <div className={`w-10 h-10 rounded-lg ${styles.verdict} flex items-center justify-center`}>
                     <comp.icon className="w-5 h-5" />
@@ -141,10 +123,10 @@ export const SolutionIntroSlide = () => {
       </motion.div>
 
       {/* Punchline card (cols 2-11, centered) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-start-2 md:col-span-10"
       >
         <div className="pitch-card bg-gradient-to-r from-orange-50 via-white to-slate-50 border-orange-200/50 shadow-lg shadow-orange-100/30">

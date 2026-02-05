@@ -41,47 +41,36 @@ export const OurSolutionSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20" />
+      <div className="absolute" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-primary">Our Solution</span>
       </motion.div>
 
       {/* H1 (cols 1-9) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-h1"
-      >
-        Meet{" "}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-h1">
+        Meet <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Elixa</span>:
         Your company, staffed with AI.
       </motion.h2>
 
       {/* Intro line (cols 1-10) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.p
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-10 pitch-body"
       >
-        A marketplace of real AI employees, each created by specialist developers, trained for a specific business role, 
+        A marketplace of real AI employees, each created by specialist developers, trained for a specific business role,
         and ready to work together in a unified, fully connected workspace.
       </motion.p>
 
       {/* 3 pillar cards (cols 1-4, 5-8, 9-12) */}
-      <motion.div 
-        variants={staggerContainer} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         {pillars.map((pillar, index) => (
@@ -90,8 +79,8 @@ export const OurSolutionSlide = () => {
             variants={scaleIn}
             className={`pitch-card transition-all duration-300 hover:shadow-xl ${
               pillar.featured
-                ? 'border-2 border-primary/30 shadow-primary/10 hover:shadow-primary/20'
-                : 'hover:shadow-slate-200/70'
+                ? "border-2 border-primary/30 shadow-primary/10 hover:shadow-primary/20"
+                : "hover:shadow-slate-200/70"
             }`}
           >
             {/* Subtitle Badge */}
@@ -116,12 +105,7 @@ export const OurSolutionSlide = () => {
       </motion.div>
 
       {/* Bottom value strip (cols 1-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12">
         <div className="pitch-card bg-gradient-to-r from-primary/5 via-purple-50/50 to-primary/5 border-primary/20 text-center">
           <p className="text-xl md:text-2xl font-semibold text-slate-800">
             AI employees that <span className="text-primary">think</span>,{" "}

@@ -52,38 +52,26 @@ export const ProblemSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-orange-50/30" />
+      <div className="absolute " />
       <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-100/30 to-transparent" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-orange-500">The Challenge</span>
       </motion.div>
 
       {/* H1 (cols 1-8) */}
-      <motion.h2 
-        variants={floatUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-8 pitch-h1"
-      >
+      <motion.h2 variants={floatUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-8 pitch-h1">
         Founders Are{" "}
-        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">
-          Drowning
-        </span>{" "}
-        In Their Own Business
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-500">Drowning</span> In
+        Their Own Business
       </motion.h2>
 
       {/* Role pills row (cols 1-8) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-8 flex flex-wrap gap-2"
       >
         {responsibilities.map((item, idx) => (
@@ -98,10 +86,10 @@ export const ProblemSlide = () => {
       </motion.div>
 
       {/* Left narrative (cols 1-7) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-7 hidden md:block"
       >
         <div className="space-y-2">
@@ -118,26 +106,21 @@ export const ProblemSlide = () => {
       </motion.div>
 
       {/* Right paragraph card (cols 8-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-5"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-5">
         <div className="pitch-card">
           <p className="text-sm text-slate-600 leading-relaxed">
             So founders manage daily tasks instead of focusing on
-            <span className="font-semibold text-slate-800"> strategy and growth</span>—making it harder to move
-            the business forward.
+            <span className="font-semibold text-slate-800"> strategy and growth</span>—making it harder to move the
+            business forward.
           </p>
         </div>
       </motion.div>
 
       {/* KPI cards (cols 1-4, 5-8, 9-12) */}
-      <motion.div 
-        variants={staggerContainer} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         {painPoints.map((point, index) => (
@@ -157,12 +140,7 @@ export const ProblemSlide = () => {
       </motion.div>
 
       {/* Catch-22 card (cols 1-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12">
         <div className="pitch-card bg-gradient-to-r from-slate-50 via-white to-orange-50/50">
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex items-center gap-2 md:min-w-[180px]">

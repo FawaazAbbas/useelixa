@@ -49,43 +49,28 @@ export const MarketSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/30 to-slate-50" />
+      <div className="absolute" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-teal-600">Market Opportunity</span>
       </motion.div>
 
       {/* H1 (cols 1-8) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-8 pitch-h1"
-      >
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-8 pitch-h1">
         A Market That's Already Moving
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-body"
-      >
+      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
         Millions of digital-native SMBs are already investing in tools that make them faster and more competitive.
       </motion.p>
 
       {/* TAM/SAM/SOM graphic (cols 1-6) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-6 flex items-center justify-center"
       >
         <div className="relative">
@@ -117,10 +102,10 @@ export const MarketSlide = () => {
       </motion.div>
 
       {/* Right cards - TAM, SAM, SOM (cols 7-12) */}
-      <motion.div 
-        variants={staggerContainer} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-6 space-y-3"
       >
         <motion.div variants={scaleIn} className="pitch-card">
@@ -151,12 +136,7 @@ export const MarketSlide = () => {
       </motion.div>
 
       {/* Benchmark strip (cols 1-12) with 4 KPI mini-tiles */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12">
         <div className="pitch-card bg-gradient-to-r from-green-50 to-teal-50 border-green-200">
           <div className="flex items-start gap-4 mb-4">
             <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">

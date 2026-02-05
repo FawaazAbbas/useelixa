@@ -37,47 +37,27 @@ export const ProductSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100" />
+      <div className="absolute" />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-slate-900">The future is finally here</span>
       </motion.div>
 
       {/* H1 (cols 1-10) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-10 pitch-h1"
-      >
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-10 pitch-h1">
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">
           We've already built the Elixa demo
         </span>
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-body"
-      >
+      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
         A unified workspace where AI employees collaborate, share context, and connect to 90+ tools.
       </motion.p>
 
       {/* Hero screenshot frame (cols 1-12) */}
-      <motion.div 
-        variants={scaleIn} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12"
-      >
+      <motion.div variants={scaleIn} initial="hidden" animate="visible" className="col-span-12">
         <div className="pitch-card p-0 overflow-hidden shadow-2xl">
           <div className="flex h-[280px] md:h-[340px]">
             {/* Nav sidebar */}
@@ -218,19 +198,19 @@ export const ProductSlide = () => {
       </motion.div>
 
       {/* Footer row: text left (cols 1-8), CTA right (cols 9-12) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.p
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-8 text-slate-600 flex items-center"
       >
         All working together for your business.
       </motion.p>
-      
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-4 flex justify-end"
       >
         <Link to="https://elixa.app/workspace">

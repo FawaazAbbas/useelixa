@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 const demandStats = {
   current: 3500,
   target: 10000,
-  progress: 35
+  progress: 35,
 };
 
 const milestones = [
@@ -61,50 +61,35 @@ export const TractionRoadmapSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-teal-50/20 to-slate-50" />
+      <div className="absolute " />
 
       {/* Section label (cols 1-4) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-4"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-4">
         <span className="pitch-label text-teal-600">The Journey</span>
       </motion.div>
 
       {/* H1 (cols 1-9) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-h1"
-      >
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-h1">
         From First Signup to First Million
       </motion.h2>
 
       {/* Subcopy (cols 1-9) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-body"
-      >
+      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
         Before writing code, we tested the market. The response was immediate.
       </motion.p>
 
       {/* Left column - Story + Traction (cols 1-7) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-7 space-y-4"
       >
         {/* Story card */}
         <div className="pitch-card">
           <p className="text-base text-slate-600 leading-relaxed">
-            We put up a simple landing page and asked founders: <em className="text-slate-800">"Would you 
-            trust AI to run parts of your business?"</em> Within weeks,{" "}
+            We put up a simple landing page and asked founders:{" "}
+            <em className="text-slate-800">"Would you trust AI to run parts of your business?"</em> Within weeks,{" "}
             <span className="font-semibold text-slate-900">thousands of founders</span> had raised their hands.
           </p>
         </div>
@@ -135,12 +120,7 @@ export const TractionRoadmapSlide = () => {
       </motion.div>
 
       {/* Right column - Roadmap timeline (cols 8-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-5"
-      >
+      <motion.div variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-5">
         <div className="pitch-card h-full">
           <span className="pitch-label text-teal-600 mb-4 block">The Roadmap</span>
 
@@ -148,17 +128,19 @@ export const TractionRoadmapSlide = () => {
           <div className="relative">
             {/* Vertical line */}
             <div className="absolute left-3 top-3 bottom-3 w-0.5 bg-gradient-to-b from-teal-400 via-purple-400 via-blue-400 to-green-400" />
-            
+
             <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-3">
               {milestones.map((milestone, index) => {
                 const IconComponent = milestone.icon;
                 return (
                   <motion.div key={index} variants={scaleIn} className="relative pl-10">
                     {/* Timeline dot */}
-                    <div className={`absolute left-0 top-1 w-6 h-6 rounded-full ${colorClasses[milestone.color as keyof typeof colorClasses]} flex items-center justify-center border-2 border-white shadow-sm`}>
+                    <div
+                      className={`absolute left-0 top-1 w-6 h-6 rounded-full ${colorClasses[milestone.color as keyof typeof colorClasses]} flex items-center justify-center border-2 border-white shadow-sm`}
+                    >
                       <IconComponent className="w-3 h-3" />
                     </div>
-                    
+
                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                       <div className="flex items-center justify-between mb-1">
                         <h4 className="font-semibold text-slate-900 text-sm">{milestone.title}</h4>

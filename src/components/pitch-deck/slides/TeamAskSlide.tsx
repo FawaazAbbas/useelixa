@@ -26,42 +26,32 @@ export const TeamAskSlide = () => {
   return (
     <SlideShell background="custom">
       {/* Custom background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white via-blue-50/50 to-primary/10" />
+      <div className="absolute " />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-3xl" />
 
       {/* H1 (cols 1-9) */}
-      <motion.h2 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-h1"
-      >
+      <motion.h2 variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-h1">
         Let's Build the Future Together
       </motion.h2>
 
       {/* Mission subcopy (cols 1-9) */}
-      <motion.p 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
-        className="col-span-12 md:col-span-9 pitch-body"
-      >
+      <motion.p variants={fadeInUp} initial="hidden" animate="visible" className="col-span-12 md:col-span-9 pitch-body">
         We're not just building another AI tool—we're creating the operating system for small businesses.
       </motion.p>
 
       {/* Left column - Founder story + profile (cols 1-6) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-6 space-y-4"
       >
         {/* Founder Story Callout */}
         <div className="pitch-card border-l-4 border-primary bg-primary/5">
           <p className="text-sm text-slate-700 leading-relaxed">
             "I've been on both sides—running a small fashion business and building tech. I know the pain of doing
-            everything yourself, of paying for tools that don't talk to each other, of wishing you could clone
-            yourself. <span className="font-semibold">Elixa is that clone.</span>"
+            everything yourself, of paying for tools that don't talk to each other, of wishing you could clone yourself.{" "}
+            <span className="font-semibold">Elixa is that clone.</span>"
           </p>
         </div>
 
@@ -91,10 +81,10 @@ export const TeamAskSlide = () => {
       </motion.div>
 
       {/* Right column - Raise + Use of funds (cols 7-12) */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 md:col-span-6 space-y-4"
       >
         {/* Raise card */}
@@ -131,17 +121,17 @@ export const TeamAskSlide = () => {
         {/* Use-of-funds vision card */}
         <div className="pitch-card bg-slate-50 border-l-4 border-slate-400">
           <p className="text-sm text-slate-600">
-            <span className="font-semibold text-slate-900">Our vision:</span> Become the default operating system
-            for small businesses—where every entrepreneur has access to AI employees.
+            <span className="font-semibold text-slate-900">Our vision:</span> Become the default operating system for
+            small businesses—where every entrepreneur has access to AI employees.
           </p>
         </div>
       </motion.div>
 
       {/* Optional bottom vision strip / CTAs */}
-      <motion.div 
-        variants={fadeInUp} 
-        initial="hidden" 
-        animate="visible" 
+      <motion.div
+        variants={fadeInUp}
+        initial="hidden"
+        animate="visible"
         className="col-span-12 flex flex-col sm:flex-row gap-4 justify-center"
       >
         <Link to="/contact">
