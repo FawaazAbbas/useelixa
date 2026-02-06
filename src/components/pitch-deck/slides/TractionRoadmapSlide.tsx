@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { fadeInUp, staggerContainer, scaleIn } from "../slideAnimations";
 import { SlideShell } from "../SlideShell";
+import { AnimatedCounter } from "../AnimatedCounter";
 import { Rocket, Code, Store, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { useEffect, useState } from "react";
 
 const demandStats = {
   current: 3500,
@@ -23,31 +24,6 @@ const colorClasses = {
   purple: "bg-purple-100 text-purple-600",
   blue: "bg-blue-100 text-blue-600",
   green: "bg-green-100 text-green-600",
-};
-
-const AnimatedCounter = ({ target, duration = 2000 }: { target: number; duration?: number }) => {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    if (!hasAnimated) {
-      setHasAnimated(true);
-      let startTime: number;
-      const animate = (currentTime: number) => {
-        if (!startTime) startTime = currentTime;
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        setCount(Math.floor(easeOut * target));
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-      requestAnimationFrame(animate);
-    }
-  }, [hasAnimated, target, duration]);
-
-  return <span>{count.toLocaleString()}</span>;
 };
 
 export const TractionRoadmapSlide = () => {
@@ -98,7 +74,7 @@ export const TractionRoadmapSlide = () => {
         <div className="pitch-card">
           <div className="flex items-baseline gap-3 mb-4">
             <span className="text-4xl font-bold text-slate-900">
-              <AnimatedCounter target={demandStats.current} />+
+              <AnimatedCounter end={demandStats.current} delay={800} />+
             </span>
             <span className="text-slate-500">signups in weeks</span>
           </div>
