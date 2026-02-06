@@ -41,13 +41,29 @@ export const MarketSlide = () => {
           {/* TAM */}
           <motion.div
             variants={scaleIn}
-            className="w-52 h-52 md:w-64 md:h-64 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
+            className="w-52 h-52 md:w-64 md:h-64 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50 relative"
           >
+            {/* TAM Label - positioned at top */}
+            <div className="absolute top-2 md:top-3 text-center">
+              <div className="text-xs md:text-sm font-bold text-slate-900">
+                £<AnimatedCounter end={129.6} suffix="B" decimals={1} delay={600} />
+              </div>
+              <div className="text-teal-600 font-semibold text-[10px] md:text-xs">TAM</div>
+            </div>
+            
             {/* SAM */}
             <motion.div
               variants={scaleIn}
-              className="w-40 h-40 md:w-48 md:h-48 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
+              className="w-40 h-40 md:w-48 md:h-48 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50 relative"
             >
+              {/* SAM Label - positioned at top */}
+              <div className="absolute top-2 md:top-3 text-center">
+                <div className="text-xs md:text-sm font-bold text-slate-900">
+                  £<AnimatedCounter end={7.79} suffix="B" decimals={2} delay={800} />
+                </div>
+                <div className="text-blue-600 font-semibold text-[10px] md:text-xs">SAM</div>
+              </div>
+              
               {/* SOM */}
               <motion.div
                 variants={scaleIn}
