@@ -1,49 +1,8 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { fadeInUp, scaleIn, staggerContainer } from "../slideAnimations";
 import { SlideShell } from "../SlideShell";
+import { AnimatedCounter } from "../AnimatedCounter";
 import { ShoppingBag } from "lucide-react";
-
-const AnimatedCounter = ({
-  end,
-  prefix = "",
-  suffix = "",
-  duration = 2,
-}: {
-  end: number;
-  prefix?: string;
-  suffix?: string;
-  duration?: number;
-}) => {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    if (!hasAnimated) {
-      setHasAnimated(true);
-      let start = 0;
-      const increment = end / (duration * 60);
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(Math.floor(start));
-        }
-      }, 1000 / 60);
-      return () => clearInterval(timer);
-    }
-  }, [hasAnimated, end, duration]);
-
-  return (
-    <span>
-      {prefix}
-      {count.toLocaleString()}
-      {suffix}
-    </span>
-  );
-};
 
 export const MarketSlide = () => {
   return (
@@ -96,7 +55,7 @@ export const MarketSlide = () => {
               >
                 <div className="text-center">
                   <div className="text-sm md:text-base font-bold text-slate-900">
-                    £<AnimatedCounter end={77.9} suffix="M" />
+                    £<AnimatedCounter end={77.9} suffix="M" decimals={1} delay={1000} />
                   </div>
                   <div className="text-primary font-semibold text-xs">SOM</div>
                 </div>

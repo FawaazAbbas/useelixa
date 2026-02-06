@@ -1,50 +1,8 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { fadeInUp, scaleIn, staggerContainer } from "../slideAnimations";
 import { SlideShell } from "../SlideShell";
+import { AnimatedCounter } from "../AnimatedCounter";
 import { Store, DollarSign, Users, TrendingUp, Lightbulb } from "lucide-react";
-
-const AnimatedCounter = ({
-  end,
-  prefix = "",
-  suffix = "",
-  decimals = 0,
-}: {
-  end: number;
-  prefix?: string;
-  suffix?: string;
-  decimals?: number;
-}) => {
-  const [count, setCount] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    if (!hasAnimated) {
-      setHasAnimated(true);
-      let start = 0;
-      const increment = end / 120;
-      const timer = setInterval(() => {
-        start += increment;
-        if (start >= end) {
-          setCount(end);
-          clearInterval(timer);
-        } else {
-          setCount(start);
-        }
-      }, 1000 / 60);
-      return () => clearInterval(timer);
-    }
-  }, [hasAnimated, end]);
-
-  const displayValue = decimals > 0 ? count.toFixed(decimals) : Math.floor(count).toLocaleString();
-  return (
-    <span>
-      {prefix}
-      {displayValue}
-      {suffix}
-    </span>
-  );
-};
 
 const stats = [
   {
@@ -135,6 +93,7 @@ export const ShopifyDeepDiveSlide = () => {
                 prefix={stat.prefix}
                 suffix={stat.suffix}
                 decimals={stat.value < 10 ? 1 : 0}
+                delay={800}
               />
             </div>
             <div className={`font-semibold ${stat.color} text-sm`}>{stat.label}</div>
