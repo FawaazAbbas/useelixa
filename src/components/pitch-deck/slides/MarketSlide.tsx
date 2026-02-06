@@ -37,21 +37,21 @@ export const MarketSlide = () => {
         animate="visible"
         className="col-span-12 md:col-span-6 flex items-center justify-center py-4"
       >
-        <div className="relative flex items-center justify-center">
+      <div className="relative flex items-center justify-center">
           {/* TAM - Outer ring */}
           <motion.div
             variants={scaleIn}
-            className="w-72 h-72 md:w-80 md:h-80 rounded-full border-[3px] border-teal-400 flex items-center justify-center bg-gradient-to-br from-teal-50 to-teal-100/50 shadow-lg"
+            className="w-72 h-72 md:w-80 md:h-80 rounded-full border-[3px] border-teal-400 flex items-center justify-center"
           >
             {/* SAM - Middle ring */}
             <motion.div
               variants={scaleIn}
-              className="w-52 h-52 md:w-56 md:h-56 rounded-full border-[3px] border-blue-400 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100/50 shadow-md"
+              className="w-52 h-52 md:w-56 md:h-56 rounded-full border-[3px] border-blue-400 flex items-center justify-center"
             >
               {/* SOM - Center */}
               <motion.div
                 variants={scaleIn}
-                className="w-28 h-28 md:w-32 md:h-32 rounded-full border-[3px] border-primary flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20 shadow-sm"
+                className="w-28 h-28 md:w-32 md:h-32 rounded-full border-[3px] border-primary flex items-center justify-center"
               >
                 <div className="text-center">
                   <div className="text-lg md:text-xl font-bold text-slate-900">
