@@ -30,99 +30,82 @@ export const MarketSlide = () => {
         Millions of digital-native SMBs are already investing in tools that make them faster and more competitive.
       </motion.p>
 
-      {/* TAM/SAM/SOM graphic (cols 1-6) */}
-      <motion.div
-        variants={fadeInUp}
-        initial="hidden"
-        animate="visible"
-        className="col-span-12 md:col-span-6 flex items-center justify-center"
-      >
-        <div className="relative">
-          {/* TAM - Outer ring */}
-          <motion.div
-            variants={scaleIn}
-            className="w-64 h-64 md:w-72 md:h-72 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
-          >
-            {/* SAM - Middle ring */}
-            <motion.div
-              variants={scaleIn}
-              className="w-44 h-44 md:w-52 md:h-52 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
-            >
-              {/* SOM - Center */}
-              <motion.div
-                variants={scaleIn}
-                className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
-              >
-                <div className="text-center">
-                  <div className="text-sm md:text-lg font-bold text-slate-900">
-                    £<AnimatedCounter end={77.9} suffix="M" decimals={1} delay={1000} />
-                  </div>
-                  <div className="text-primary font-semibold text-[10px] md:text-xs">SOM</div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-
-          {/* External labels with connector lines */}
-          {/* TAM Label - top right */}
-          <motion.div 
-            variants={fadeInUp}
-            className="absolute -top-2 -right-4 md:top-0 md:-right-8"
-          >
-            <div className="bg-white rounded-lg shadow-sm border border-teal-200 px-3 py-1.5">
-              <div className="text-xs md:text-sm font-bold text-slate-900">
-                £<AnimatedCounter end={129.6} suffix="B" decimals={1} delay={600} />
-              </div>
-              <div className="text-teal-600 font-semibold text-[10px]">TAM</div>
-            </div>
-          </motion.div>
-
-          {/* SAM Label - right middle */}
-          <motion.div 
-            variants={fadeInUp}
-            className="absolute top-1/2 -translate-y-1/2 -right-16 md:-right-20"
-          >
-            <div className="bg-white rounded-lg shadow-sm border border-blue-200 px-3 py-1.5">
-              <div className="text-xs md:text-sm font-bold text-slate-900">
-                £<AnimatedCounter end={7.79} suffix="B" decimals={2} delay={800} />
-              </div>
-              <div className="text-blue-600 font-semibold text-[10px]">SAM</div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Right cards - TAM, SAM, SOM (cols 7-12) */}
+      {/* TAM/SAM/SOM visualization - Full width elegant design */}
       <motion.div
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
-        className="col-span-12 md:col-span-6 space-y-2"
+        className="col-span-12 grid grid-cols-3 gap-6"
       >
-        <motion.div variants={scaleIn} className="pitch-card">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-            <span className="font-bold text-slate-900">TAM: £129.6B/yr</span>
+        {/* TAM */}
+        <motion.div variants={scaleIn} className="relative group">
+          <div className="pitch-card h-full border-t-4 border-teal-500 hover:shadow-lg transition-shadow">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-teal-500" />
+                <span className="text-sm font-semibold text-teal-600 uppercase tracking-wide">TAM</span>
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                £<AnimatedCounter end={129.6} suffix="B" decimals={1} delay={600} />
+                <span className="text-lg text-slate-400 font-normal">/yr</span>
+              </div>
+              <p className="text-slate-500 text-sm mt-auto">
+                ~216M digitally-native SMBs globally @ £50/mo
+              </p>
+            </div>
           </div>
-          <p className="text-slate-600 text-sm">~216M digitally-native SMBs (54% of 400M global SMEs) @ £50/mo</p>
+          {/* Connector arrow */}
+          <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 text-slate-300">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
         </motion.div>
 
-        <motion.div variants={scaleIn} className="pitch-card">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span className="font-bold text-slate-900">SAM: £7.79B/yr</span>
-            <span className="text-xs text-slate-400">(2026)</span>
+        {/* SAM */}
+        <motion.div variants={scaleIn} className="relative group">
+          <div className="pitch-card h-full border-t-4 border-blue-500 hover:shadow-lg transition-shadow">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-sm font-semibold text-blue-600 uppercase tracking-wide">SAM</span>
+                <span className="text-xs text-slate-400">(2026)</span>
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                £<AnimatedCounter end={7.79} suffix="B" decimals={2} delay={800} />
+                <span className="text-lg text-slate-400 font-normal">/yr</span>
+              </div>
+              <p className="text-slate-500 text-sm mt-auto">
+                ~12.99M online SMBs (global live stores)
+              </p>
+            </div>
           </div>
-          <p className="text-slate-600 text-sm">~12.99M online SMBs (global live stores) @ £50/mo</p>
+          {/* Connector arrow */}
+          <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 text-slate-300">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
         </motion.div>
 
-        <motion.div variants={scaleIn} className="pitch-card">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-3 h-3 rounded-full bg-primary"></div>
-            <span className="font-bold text-slate-900">SOM: £77.9M/yr</span>
-            <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">1% of SAM</span>
+        {/* SOM */}
+        <motion.div variants={scaleIn} className="group">
+          <div className="pitch-card h-full border-t-4 border-primary bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg transition-shadow">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-primary" />
+                <span className="text-sm font-semibold text-primary uppercase tracking-wide">SOM</span>
+                <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">Target</span>
+              </div>
+              <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                £<AnimatedCounter end={77.9} suffix="M" decimals={1} delay={1000} />
+                <span className="text-lg text-slate-400 font-normal">/yr</span>
+              </div>
+              <p className="text-slate-500 text-sm mt-auto">
+                ~129.9K online SMBs — <span className="text-primary font-medium">1% penetration</span>
+              </p>
+            </div>
           </div>
-          <p className="text-slate-600 text-sm">~129.9K online SMBs — achievable with 1% market penetration</p>
         </motion.div>
       </motion.div>
 
