@@ -38,45 +38,56 @@ export const MarketSlide = () => {
         className="col-span-12 md:col-span-6 flex items-center justify-center"
       >
         <div className="relative">
-          {/* TAM */}
+          {/* TAM - Outer ring */}
           <motion.div
             variants={scaleIn}
-            className="w-52 h-52 md:w-64 md:h-64 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50 relative"
+            className="w-64 h-64 md:w-72 md:h-72 rounded-full border-2 border-teal-300 flex items-center justify-center bg-teal-50/50"
           >
-            {/* TAM Label - positioned at top */}
-            <div className="absolute top-2 md:top-3 text-center">
-              <div className="text-xs md:text-sm font-bold text-slate-900">
-                £<AnimatedCounter end={129.6} suffix="B" decimals={1} delay={600} />
-              </div>
-              <div className="text-teal-600 font-semibold text-[10px] md:text-xs">TAM</div>
-            </div>
-            
-            {/* SAM */}
+            {/* SAM - Middle ring */}
             <motion.div
               variants={scaleIn}
-              className="w-40 h-40 md:w-48 md:h-48 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50 relative"
+              className="w-44 h-44 md:w-52 md:h-52 rounded-full border-2 border-blue-300 flex items-center justify-center bg-blue-50/50"
             >
-              {/* SAM Label - positioned at top */}
-              <div className="absolute top-2 md:top-3 text-center">
-                <div className="text-xs md:text-sm font-bold text-slate-900">
-                  £<AnimatedCounter end={7.79} suffix="B" decimals={2} delay={800} />
-                </div>
-                <div className="text-blue-600 font-semibold text-[10px] md:text-xs">SAM</div>
-              </div>
-              
-              {/* SOM */}
+              {/* SOM - Center */}
               <motion.div
                 variants={scaleIn}
-                className="w-24 h-24 md:w-28 md:h-28 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
+                className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-primary flex items-center justify-center bg-primary/10"
               >
                 <div className="text-center">
-                  <div className="text-sm md:text-base font-bold text-slate-900">
+                  <div className="text-sm md:text-lg font-bold text-slate-900">
                     £<AnimatedCounter end={77.9} suffix="M" decimals={1} delay={1000} />
                   </div>
-                  <div className="text-primary font-semibold text-xs">SOM</div>
+                  <div className="text-primary font-semibold text-[10px] md:text-xs">SOM</div>
                 </div>
               </motion.div>
             </motion.div>
+          </motion.div>
+
+          {/* External labels with connector lines */}
+          {/* TAM Label - top right */}
+          <motion.div 
+            variants={fadeInUp}
+            className="absolute -top-2 -right-4 md:top-0 md:-right-8"
+          >
+            <div className="bg-white rounded-lg shadow-sm border border-teal-200 px-3 py-1.5">
+              <div className="text-xs md:text-sm font-bold text-slate-900">
+                £<AnimatedCounter end={129.6} suffix="B" decimals={1} delay={600} />
+              </div>
+              <div className="text-teal-600 font-semibold text-[10px]">TAM</div>
+            </div>
+          </motion.div>
+
+          {/* SAM Label - right middle */}
+          <motion.div 
+            variants={fadeInUp}
+            className="absolute top-1/2 -translate-y-1/2 -right-16 md:-right-20"
+          >
+            <div className="bg-white rounded-lg shadow-sm border border-blue-200 px-3 py-1.5">
+              <div className="text-xs md:text-sm font-bold text-slate-900">
+                £<AnimatedCounter end={7.79} suffix="B" decimals={2} delay={800} />
+              </div>
+              <div className="text-blue-600 font-semibold text-[10px]">SAM</div>
+            </div>
           </motion.div>
         </div>
       </motion.div>
