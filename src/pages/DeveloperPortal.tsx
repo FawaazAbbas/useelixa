@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Code2, BarChart3, Bot, Plus, ScrollText, BookOpen, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useDeveloperPortal } from "@/hooks/useDeveloperPortal";
 import { DeveloperSidebar, type DeveloperSection } from "@/components/developer/DeveloperSidebar";
 import { DeveloperOverview } from "@/components/developer/DeveloperOverview";
@@ -11,14 +10,15 @@ import { AgentSubmissionForm } from "@/components/developer/AgentSubmissionForm"
 import { ExecutionLogs } from "@/components/developer/ExecutionLogs";
 import { ApiDocsPage } from "@/components/developer/ApiDocsPage";
 import { DeveloperSettings } from "@/components/developer/DeveloperSettings";
+import { Badge } from "@/components/ui/badge";
 
-const sectionTitles: Record<DeveloperSection, string> = {
-  overview: "Overview",
-  agents: "My Agents",
-  submit: "Submit Agent",
-  logs: "Execution Logs",
-  docs: "API Documentation",
-  settings: "Settings",
+const sectionMeta: Record<DeveloperSection, { title: string; icon: React.ElementType }> = {
+  overview: { title: "Overview", icon: BarChart3 },
+  agents: { title: "My Agents", icon: Bot },
+  submit: { title: "Submit Agent", icon: Plus },
+  logs: { title: "Execution Logs", icon: ScrollText },
+  docs: { title: "API Documentation", icon: BookOpen },
+  settings: { title: "Settings", icon: Settings },
 };
 
 const DeveloperPortal = () => {
@@ -46,7 +46,7 @@ const DeveloperPortal = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -57,23 +57,33 @@ const DeveloperPortal = () => {
     navigate("/developer/auth");
   };
 
+  const { title, icon: SectionIcon } = sectionMeta[activeSection];
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <DeveloperSidebar
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-          userEmail={user?.email}
-          onSignOut={handleSignOut}
-        />
-        <main className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center gap-3 px-6 py-4">
-              <SidebarTrigger />
-              <h1 className="font-semibold text-lg">{sectionTitles[activeSection]}</h1>
+    <div className="flex h-screen bg-background">
+      <DeveloperSidebar
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        userEmail={user?.email}
+        onSignOut={handleSignOut}
+      />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header — matches PageLayout pattern */}
+        <header className="flex-shrink-0 h-16 border-b bg-card/80 backdrop-blur-sm px-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+              <SectionIcon className="h-5 w-5 text-primary" />
             </div>
-          </header>
-          <div className="p-6">
+            <h1 className="text-xl font-semibold truncate">{title}</h1>
+            {activeSection === "agents" && agents.length > 0 && (
+              <Badge variant="secondary" className="flex-shrink-0">{agents.length}</Badge>
+            )}
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 overflow-auto p-6 pb-20 md:pb-6">
+          <div className="mx-auto max-w-6xl">
             {activeSection === "overview" && (
               <DeveloperOverview agents={agents} onNavigate={setActiveSection} />
             )}
@@ -93,7 +103,7 @@ const DeveloperPortal = () => {
           </div>
         </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 };
 

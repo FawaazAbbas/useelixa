@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Activity, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { ElixaMascot } from "@/components/ElixaMascot";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 
 interface ExecutionLog {
@@ -77,21 +78,21 @@ export const ExecutionLogs = ({ agents, developerId }: ExecutionLogsProps) => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Executions</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <div className="p-1.5 bg-muted rounded-lg"><Activity className="h-4 w-4 text-muted-foreground" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{totalExec}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Success Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <div className="p-1.5 bg-muted rounded-lg"><CheckCircle className="h-4 w-4 text-green-500" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{successRate}%</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Avg Duration</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <div className="p-1.5 bg-muted rounded-lg"><Clock className="h-4 w-4 text-muted-foreground" /></div>
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{avgDuration}ms</div></CardContent>
         </Card>
@@ -127,8 +128,8 @@ export const ExecutionLogs = ({ agents, developerId }: ExecutionLogsProps) => {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Activity className="h-10 w-10 text-muted-foreground mb-3" />
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <ElixaMascot pose="search" size="md" className="mb-3 opacity-60" />
               <p className="text-sm text-muted-foreground">No execution logs found</p>
             </div>
           ) : (
