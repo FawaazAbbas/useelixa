@@ -12,6 +12,7 @@ serve(async (req) => {
   }
 
   try {
+    const executionStartTime = Date.now();
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -104,11 +105,48 @@ serve(async (req) => {
       metadata: { tools_used: responseData.tools_used || [] },
     });
 
+    // Log execution for developer analytics
+    const executionEndTime = Date.now();
+    if (submission?.developer_id) {
+      await supabase.from("agent_execution_logs").insert({
+        agent_id: employeeId,
+        developer_id: submission.developer_id,
+        user_id: userId,
+        input_message: message,
+        output_response: responseData.response,
+        status: "success",
+        execution_time_ms: executionEndTime - executionStartTime,
+      }).then(() => {}).catch(() => {}); // fire-and-forget
+    }
+
     return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+    // Best-effort error log
+    try {
+      const supabaseForLog = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const body = await req.clone().json().catch(() => ({}));
+      if (body.employeeId) {
+        const { data: sub } = await supabaseForLog.from("agent_submissions").select("developer_id").eq("id", body.employeeId).maybeSingle();
+        if (sub?.developer_id) {
+          await supabaseForLog.from("agent_execution_logs").insert({
+            agent_id: body.employeeId,
+            developer_id: sub.developer_id,
+            user_id: body.userId || null,
+            input_message: body.message || null,
+            status: "error",
+            error_message: errorMessage,
+          });
+        }
+      }
+    } catch (_) { /* ignore logging errors */ }
+
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

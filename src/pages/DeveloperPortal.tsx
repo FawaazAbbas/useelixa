@@ -1,17 +1,29 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Code2, LogOut, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { useDeveloperPortal } from "@/hooks/useDeveloperPortal";
-import { DeveloperStats } from "@/components/developer/DeveloperStats";
+import { DeveloperSidebar, type DeveloperSection } from "@/components/developer/DeveloperSidebar";
+import { DeveloperOverview } from "@/components/developer/DeveloperOverview";
 import { AgentList } from "@/components/developer/AgentList";
 import { AgentSubmissionForm } from "@/components/developer/AgentSubmissionForm";
-import { DeveloperProfileForm } from "@/components/developer/DeveloperProfileForm";
+import { ExecutionLogs } from "@/components/developer/ExecutionLogs";
+import { ApiDocsPage } from "@/components/developer/ApiDocsPage";
+import { DeveloperSettings } from "@/components/developer/DeveloperSettings";
+
+const sectionTitles: Record<DeveloperSection, string> = {
+  overview: "Overview",
+  agents: "My Agents",
+  submit: "Submit Agent",
+  logs: "Execution Logs",
+  docs: "API Documentation",
+  settings: "Settings",
+};
 
 const DeveloperPortal = () => {
   const navigate = useNavigate();
+  const [activeSection, setActiveSection] = useState<DeveloperSection>("overview");
   const {
     user,
     profile,
@@ -25,15 +37,11 @@ const DeveloperPortal = () => {
   } = useDeveloperPortal();
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/developer/auth");
-    }
+    if (!loading && !user) navigate("/developer/auth");
   }, [loading, user, navigate]);
 
   useEffect(() => {
-    if (!loading && user && !isDeveloper) {
-      navigate("/developer/auth");
-    }
+    if (!loading && user && !isDeveloper) navigate("/developer/auth");
   }, [loading, user, isDeveloper, navigate]);
 
   if (loading) {
@@ -50,53 +58,42 @@ const DeveloperPortal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Code2 className="h-5 w-5 text-primary" />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <DeveloperSidebar
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+          userEmail={user?.email}
+          onSignOut={handleSignOut}
+        />
+        <main className="flex-1 overflow-auto">
+          <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex items-center gap-3 px-6 py-4">
+              <SidebarTrigger />
+              <h1 className="font-semibold text-lg">{sectionTitles[activeSection]}</h1>
             </div>
-            <div>
-              <h1 className="font-bold text-lg">Developer Portal</h1>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
-            </div>
+          </header>
+          <div className="p-6">
+            {activeSection === "overview" && (
+              <DeveloperOverview agents={agents} onNavigate={setActiveSection} />
+            )}
+            {activeSection === "agents" && (
+              <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} />
+            )}
+            {activeSection === "submit" && (
+              <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} />
+            )}
+            {activeSection === "logs" && profile && (
+              <ExecutionLogs agents={agents} developerId={profile.id} />
+            )}
+            {activeSection === "docs" && <ApiDocsPage />}
+            {activeSection === "settings" && (
+              <DeveloperSettings profile={profile} onUpdate={updateProfile} />
+            )}
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-1" /> Sign Out
-          </Button>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="agents">My Agents</TabsTrigger>
-            <TabsTrigger value="submit">Submit Agent</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <DeveloperStats agents={agents} />
-          </TabsContent>
-
-          <TabsContent value="agents">
-            <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} />
-          </TabsContent>
-
-          <TabsContent value="submit">
-            <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} />
-          </TabsContent>
-
-          <TabsContent value="profile">
-            <DeveloperProfileForm profile={profile} onUpdate={updateProfile} />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Trash2, Edit, Bot, Cloud, Server, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Send, Trash2, Bot, Cloud, Server, CheckCircle, Loader2, AlertCircle, Search, LayoutGrid, List } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AgentDetailSheet } from "./AgentDetailSheet";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 
 interface AgentListProps {
@@ -22,8 +24,13 @@ const statusColors: Record<string, string> = {
 
 export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProps) => {
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [selectedAgent, setSelectedAgent] = useState<AgentSubmission | null>(null);
 
-  const filtered = filter === "all" ? agents : agents.filter((a) => a.status === filter);
+  const filtered = agents
+    .filter((a) => filter === "all" || a.status === filter)
+    .filter((a) => !search || a.name.toLowerCase().includes(search.toLowerCase()));
 
   if (agents.length === 0) {
     return (
@@ -39,9 +46,14 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      {/* Toolbar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search agents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
         <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-44">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -52,11 +64,20 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
             <SelectItem value="rejected">Rejected</SelectItem>
           </SelectContent>
         </Select>
+        <div className="flex border rounded-md">
+          <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="rounded-r-none" onClick={() => setViewMode("list")}>
+            <List className="h-4 w-4" />
+          </Button>
+          <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="rounded-l-none" onClick={() => setViewMode("grid")}>
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4">
+      {/* Agent Cards */}
+      <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "grid gap-4"}>
         {filtered.map((agent) => (
-          <Card key={agent.id}>
+          <Card key={agent.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setSelectedAgent(agent)}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -75,35 +96,6 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
                         {agent.hosting_type === "self_hosted" ? <Server className="h-2.5 w-2.5" /> : <Cloud className="h-2.5 w-2.5" />}
                         {agent.hosting_type === "self_hosted" ? "Self-Hosted" : "Platform"}
                       </Badge>
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 capitalize">
-                        {agent.runtime || "python"}
-                      </Badge>
-                      {agent.hosting_type === "platform" && agent.code_file_url && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] px-1.5 py-0 h-4 gap-0.5 ${
-                                  agent.execution_status === "ready" ? "text-green-600 border-green-300" :
-                                  agent.execution_status === "error" ? "text-red-600 border-red-300" :
-                                  "text-yellow-600 border-yellow-300"
-                                }`}
-                              >
-                                {agent.execution_status === "ready" && <CheckCircle className="h-2.5 w-2.5" />}
-                                {agent.execution_status === "building" && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
-                                {agent.execution_status === "error" && <AlertCircle className="h-2.5 w-2.5" />}
-                                {agent.execution_status === "ready" ? "Ready" : agent.execution_status === "building" ? "Building" : "Error"}
-                              </Badge>
-                            </TooltipTrigger>
-                            {agent.execution_status === "error" && agent.execution_error && (
-                              <TooltipContent className="max-w-xs">
-                                <p className="text-xs">{agent.execution_error}</p>
-                              </TooltipContent>
-                            )}
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
                     </CardDescription>
                   </div>
                 </div>
@@ -113,16 +105,11 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{agent.description || "No description"}</p>
-              {agent.review_notes && agent.status === "rejected" && (
-                <p className="text-sm text-destructive mb-4 bg-destructive/5 rounded-md p-2">
-                  Review: {agent.review_notes}
-                </p>
-              )}
-              <div className="flex gap-2">
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{agent.description || "No description"}</p>
+              <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {agent.status === "draft" && (
                   <Button size="sm" onClick={() => onSubmitForReview(agent.id)}>
-                    <Send className="h-3 w-3 mr-1" /> Submit for Review
+                    <Send className="h-3 w-3 mr-1" /> Submit
                   </Button>
                 )}
                 {(agent.status === "draft" || agent.status === "rejected") && (
@@ -135,6 +122,15 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
           </Card>
         ))}
       </div>
+
+      {/* Detail Sheet */}
+      <AgentDetailSheet
+        agent={selectedAgent}
+        open={!!selectedAgent}
+        onOpenChange={(open) => { if (!open) setSelectedAgent(null); }}
+        onSubmitForReview={onSubmitForReview}
+        onDelete={onDelete}
+      />
     </div>
   );
 };
