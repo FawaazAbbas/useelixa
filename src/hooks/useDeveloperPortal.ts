@@ -35,6 +35,14 @@ export interface AgentSubmission {
   is_public: boolean;
   created_at: string;
   updated_at: string;
+  hosting_type: string;
+  runtime: string;
+  external_endpoint_url: string | null;
+  external_auth_header: string | null;
+  external_auth_token: string | null;
+  code_file_url: string | null;
+  requirements: string | null;
+  entry_function: string | null;
 }
 
 export const useDeveloperPortal = () => {

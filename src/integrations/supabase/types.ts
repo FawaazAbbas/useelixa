@@ -68,18 +68,26 @@ export type Database = {
         Row: {
           allowed_tools: string[] | null
           category: string | null
+          code_file_url: string | null
           config_file_url: string | null
           created_at: string
           description: string | null
           developer_id: string
           download_count: number
+          entry_function: string | null
+          external_auth_header: string | null
+          external_auth_token: string | null
+          external_endpoint_url: string | null
+          hosting_type: string
           icon_url: string | null
           id: string
           is_public: boolean
           name: string
+          requirements: string | null
           review_notes: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          runtime: string
           slug: string
           status: string
           submitted_at: string | null
@@ -90,18 +98,26 @@ export type Database = {
         Insert: {
           allowed_tools?: string[] | null
           category?: string | null
+          code_file_url?: string | null
           config_file_url?: string | null
           created_at?: string
           description?: string | null
           developer_id: string
           download_count?: number
+          entry_function?: string | null
+          external_auth_header?: string | null
+          external_auth_token?: string | null
+          external_endpoint_url?: string | null
+          hosting_type?: string
           icon_url?: string | null
           id?: string
           is_public?: boolean
           name: string
+          requirements?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          runtime?: string
           slug: string
           status?: string
           submitted_at?: string | null
@@ -112,18 +128,26 @@ export type Database = {
         Update: {
           allowed_tools?: string[] | null
           category?: string | null
+          code_file_url?: string | null
           config_file_url?: string | null
           created_at?: string
           description?: string | null
           developer_id?: string
           download_count?: number
+          entry_function?: string | null
+          external_auth_header?: string | null
+          external_auth_token?: string | null
+          external_endpoint_url?: string | null
+          hosting_type?: string
           icon_url?: string | null
           id?: string
           is_public?: boolean
           name?: string
+          requirements?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          runtime?: string
           slug?: string
           status?: string
           submitted_at?: string | null
