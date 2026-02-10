@@ -34,6 +34,8 @@ import Workflows from "./pages/Workflows";
 import AIEmployees from "./pages/AIEmployees";
 import Digest from "./pages/Digest";
 import PitchDeck from "./pages/PitchDeck";
+import DeveloperAuth from "./pages/DeveloperAuth";
+import DeveloperPortal from "./pages/DeveloperPortal";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -105,6 +107,8 @@ const AppContent = () => {
           <Route path="/blog/:slug" element={<BlogPost />} /> */}
           <Route path="/admin" element={<Admin />} />
           <Route path="/pitch-deck" element={<PitchDeck />} />
+          <Route path="/developer/auth" element={<DeveloperAuth />} />
+          <Route path="/developer" element={<DeveloperPortal />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

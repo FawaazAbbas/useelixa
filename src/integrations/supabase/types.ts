@@ -64,6 +64,83 @@ export type Database = {
           },
         ]
       }
+      agent_submissions: {
+        Row: {
+          allowed_tools: string[] | null
+          category: string | null
+          config_file_url: string | null
+          created_at: string
+          description: string | null
+          developer_id: string
+          download_count: number
+          icon_url: string | null
+          id: string
+          is_public: boolean
+          name: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          slug: string
+          status: string
+          submitted_at: string | null
+          system_prompt: string | null
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          allowed_tools?: string[] | null
+          category?: string | null
+          config_file_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer_id: string
+          download_count?: number
+          icon_url?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          slug: string
+          status?: string
+          submitted_at?: string | null
+          system_prompt?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          allowed_tools?: string[] | null
+          category?: string | null
+          config_file_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer_id?: string
+          download_count?: number
+          icon_url?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          slug?: string
+          status?: string
+          submitted_at?: string | null
+          system_prompt?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_submissions_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_employee_messages: {
         Row: {
           content: string
@@ -678,6 +755,39 @@ export type Database = {
           id?: string
           summary?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      developer_profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          developer_bio: string | null
+          id: string
+          is_verified: boolean
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          developer_bio?: string | null
+          id?: string
+          is_verified?: boolean
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          developer_bio?: string | null
+          id?: string
+          is_verified?: boolean
+          updated_at?: string
+          user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -2135,7 +2245,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "developer"
       integration_status: "connected" | "disconnected" | "error"
       org_role: "owner" | "admin" | "member"
     }
@@ -2265,7 +2375,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "developer"],
       integration_status: ["connected", "disconnected", "error"],
       org_role: ["owner", "admin", "member"],
     },
