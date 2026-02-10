@@ -19,27 +19,64 @@ serve(async (req) => {
 
     const { employeeId, message, userId } = await req.json();
 
-    // Fetch employee
+    // Fetch employee — check agent_submissions first for hosting info
+    const { data: submission } = await supabase
+      .from("agent_submissions")
+      .select("*")
+      .eq("id", employeeId)
+      .single();
+
+    // Fallback to ai_employees table
     const { data: employee } = await supabase
       .from("ai_employees")
       .select("*")
       .eq("id", employeeId)
       .single();
 
-    if (!employee) {
+    const agent = submission || employee;
+    if (!agent) {
       throw new Error("Employee not found");
     }
 
-    // Call main chat function with employee context
-    const { data, error } = await supabase.functions.invoke("chat", {
-      body: {
-        messages: [{ role: "user", content: message }],
-        systemPrompt: employee.system_prompt || `You are ${employee.name}, a ${employee.role}.`,
-        allowedTools: employee.allowed_tools || [],
-      },
-    });
+    let responseData: { response: string; tools_used?: string[] };
 
-    if (error) throw error;
+    // Route based on hosting type
+    const hostingType = submission?.hosting_type || "platform";
+
+    if (hostingType === "self_hosted" && submission?.external_endpoint_url) {
+      // Self-hosted: call the developer's external endpoint
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (submission.external_auth_header && submission.external_auth_token) {
+        headers[submission.external_auth_header] = submission.external_auth_token;
+      }
+
+      const externalRes = await fetch(submission.external_endpoint_url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ message, user_id: userId, context: {} }),
+      });
+
+      if (!externalRes.ok) {
+        throw new Error(`External agent returned ${externalRes.status}: ${await externalRes.text()}`);
+      }
+
+      responseData = await externalRes.json();
+    } else {
+      // Platform-hosted or native: use internal chat function
+      const systemPrompt = agent.system_prompt || `You are ${agent.name}, a ${agent.role || "helpful assistant"}.`;
+      const allowedTools = agent.allowed_tools || [];
+
+      const { data, error } = await supabase.functions.invoke("chat", {
+        body: {
+          messages: [{ role: "user", content: message }],
+          systemPrompt,
+          allowedTools,
+        },
+      });
+
+      if (error) throw error;
+      responseData = { response: data?.response || "I'm ready to help!", tools_used: data?.tools_used };
+    }
 
     // Log the interaction
     await supabase.from("ai_employee_messages").insert({
@@ -47,11 +84,11 @@ serve(async (req) => {
       to_employee_id: null,
       initiated_by_user: userId,
       message_type: "response",
-      content: data?.response || "",
-      metadata: { tools_used: data?.tools_used || [] },
+      content: responseData.response,
+      metadata: { tools_used: responseData.tools_used || [] },
     });
 
-    return new Response(JSON.stringify({ response: data?.response || "I'm ready to help!", tools_used: data?.tools_used }), {
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
