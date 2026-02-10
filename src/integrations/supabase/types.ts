@@ -64,6 +64,60 @@ export type Database = {
           },
         ]
       }
+      agent_execution_logs: {
+        Row: {
+          agent_id: string
+          created_at: string
+          developer_id: string
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_message: string | null
+          output_response: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          developer_id: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_message?: string | null
+          output_response?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          developer_id?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_message?: string | null
+          output_response?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_execution_logs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_execution_logs_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_submissions: {
         Row: {
           allowed_tools: string[] | null
