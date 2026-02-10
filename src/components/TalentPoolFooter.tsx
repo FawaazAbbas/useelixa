@@ -68,6 +68,14 @@ export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterPro
                     Connections
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    to="/developer/auth"
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Developer Portal
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

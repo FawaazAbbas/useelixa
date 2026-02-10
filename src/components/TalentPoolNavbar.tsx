@@ -68,6 +68,17 @@ export const TalentPoolNavbar = ({
 
             {/* Right: Navigation (Desktop/Tablet) */}
             <div className="hidden sm:flex items-center gap-2 shrink-0 ml-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  trackNavClick("Developers");
+                  navigate("/developer/auth");
+                }}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50 h-10 px-4 rounded-full font-medium"
+              >
+                Developers
+              </Button>
               {user ? (
                 <Button
                   onClick={() => {
