@@ -27,6 +27,17 @@ export const PlatformHostedFields = ({
   systemPrompt, onSystemPromptChange, selectedTools, onToggleTool, availableTools,
 }: PlatformHostedFieldsProps) => (
   <>
+    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+      <p className="text-sm font-medium text-primary">Your exact code will be executed</p>
+      <p className="text-xs text-muted-foreground">
+        When your agent is invoked, we call your entry function with a standardized JSON input. Your code runs in a secure sandboxed environment.
+      </p>
+      <pre className="text-xs bg-muted/50 rounded p-2 font-mono overflow-x-auto">
+{`def handle(input: dict) -> dict:
+    # input = { "message": "...", "user_id": "...", "context": {} }
+    # return { "response": "...", "tools_used": [] }`}
+      </pre>
+    </div>
     <div className="space-y-2">
       <Label>Runtime</Label>
       <Select value={runtime} onValueChange={onRuntimeChange}>

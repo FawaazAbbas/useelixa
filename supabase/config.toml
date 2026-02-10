@@ -104,3 +104,6 @@ verify_jwt = false
 
 [functions.google-places-integration]
 verify_jwt = false
+
+[functions.execute-python-agent]
+verify_jwt = false

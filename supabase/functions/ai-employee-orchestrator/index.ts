@@ -61,8 +61,24 @@ serve(async (req) => {
       }
 
       responseData = await externalRes.json();
+    } else if (hostingType === "platform" && submission?.code_file_url) {
+      // Platform-hosted with uploaded code: execute via Python runner
+      const { data, error } = await supabase.functions.invoke("execute-python-agent", {
+        body: {
+          code_file_url: submission.code_file_url,
+          entry_function: submission.entry_function || "handle",
+          requirements: submission.requirements || "",
+          message,
+          user_id: userId,
+          context: {},
+          agent_id: submission.id,
+        },
+      });
+
+      if (error) throw error;
+      responseData = { response: data?.response || "No response from agent.", tools_used: data?.tools_used };
     } else {
-      // Platform-hosted or native: use internal chat function
+      // Legacy platform-hosted (no code file) or native: use internal chat function
       const systemPrompt = agent.system_prompt || `You are ${agent.name}, a ${agent.role || "helpful assistant"}.`;
       const allowedTools = agent.allowed_tools || [];
 

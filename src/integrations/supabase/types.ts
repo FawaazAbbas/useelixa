@@ -75,6 +75,8 @@ export type Database = {
           developer_id: string
           download_count: number
           entry_function: string | null
+          execution_error: string | null
+          execution_status: string
           external_auth_header: string | null
           external_auth_token: string | null
           external_endpoint_url: string | null
@@ -105,6 +107,8 @@ export type Database = {
           developer_id: string
           download_count?: number
           entry_function?: string | null
+          execution_error?: string | null
+          execution_status?: string
           external_auth_header?: string | null
           external_auth_token?: string | null
           external_endpoint_url?: string | null
@@ -135,6 +139,8 @@ export type Database = {
           developer_id?: string
           download_count?: number
           entry_function?: string | null
+          execution_error?: string | null
+          execution_status?: string
           external_auth_header?: string | null
           external_auth_token?: string | null
           external_endpoint_url?: string | null

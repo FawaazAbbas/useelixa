@@ -43,6 +43,8 @@ export interface AgentSubmission {
   code_file_url: string | null;
   requirements: string | null;
   entry_function: string | null;
+  execution_status: string;
+  execution_error: string | null;
 }
 
 export const useDeveloperPortal = () => {
