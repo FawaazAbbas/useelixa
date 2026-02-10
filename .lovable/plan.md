@@ -1,130 +1,176 @@
 
 
-# Execute Developers' Exact Python Code on the Platform
+# Complete Developer Dashboard Build-Out
 
-## The Problem
+## Overview
 
-Currently, when a developer uploads Python code and selects "Host with Elixa," the orchestrator ignores their code and instead uses the system prompt + tools via the internal chat function. The uploaded file is just stored as a reference.
-
-## Solution: External Code Execution Service
-
-Since the platform runs on TypeScript/Deno (no Python runtime), we need a bridge to execute Python. The approach is to create a new edge function (`execute-python-agent`) that calls an external sandboxed Python execution API.
-
-### How It Works
-
-1. Developer uploads their `.py` or `.zip` code file during submission
-2. When the agent is invoked, the orchestrator detects `hosting_type = "platform"` and `code_file_url` is present
-3. The orchestrator calls the new `execute-python-agent` edge function
-4. That function downloads the developer's code from storage, sends it to a sandboxed Python execution service, and returns the result
-
-### Execution Service Options
-
-We'll use a **code execution API** (such as Piston, Judge0, or a self-hosted runner). The edge function will:
-- Download the developer's code from the `agent-assets` storage bucket
-- POST the code + the user's message to the execution API
-- The execution API runs the code in a sandboxed container with the specified requirements installed
-- Return the agent's response back through the orchestrator
-
-For the initial implementation, we'll use **Piston API** (open-source, supports Python, free to self-host) or a configurable endpoint so you can swap in any runner later.
+Transform the current minimal developer portal into a fully-featured dashboard with a proper sidebar navigation layout, rich overview analytics, detailed agent management, API documentation, execution logs, and a polished profile section.
 
 ---
 
-## Database Changes
+## Layout Overhaul
 
-Add a column to `agent_submissions`:
+Replace the current tabs-based layout with a **sidebar + content area** structure using the existing Sidebar component, matching the rest of the app's design system.
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| `execution_status` | text | "ready", "building", "error" -- tracks if the agent's environment is set up |
-| `execution_error` | text | Last error from code execution, for developer debugging |
+### Sidebar Navigation Items
+- **Overview** -- Stats, recent activity, quick actions
+- **My Agents** -- Agent list with filtering, search, and detail views
+- **Submit Agent** -- The existing multi-step wizard
+- **Logs** -- Execution logs for the developer's agents
+- **API Docs** -- Reference documentation for building agents
+- **Settings** -- Profile, API keys, notification preferences
 
 ---
 
-## New Edge Function: `execute-python-agent`
+## 1. Overview Tab (Enhanced)
 
-A new edge function that:
+Currently just 4 stat cards. Will be expanded to include:
 
-1. Receives: `{ code_file_url, entry_function, requirements, message, user_id, context }`
-2. Downloads the Python code from storage
-3. Wraps it with a runner script that:
-   - Calls the developer's `entry_function` (e.g., `handle`) with `{ "message": "...", "user_id": "...", "context": {} }`
-   - Captures stdout/return value as the response
-4. Sends the wrapped code to the Python execution API
-5. Returns `{ response, tools_used }` back to the orchestrator
+- **Stats Row** -- Total Agents, Approved, Pending, Downloads (existing, polished)
+- **Recent Activity Feed** -- Timeline of recent events (agent submitted, approved, rejected, new downloads) pulled from `agent_submissions` timestamps
+- **Quick Actions Card** -- Buttons to "Create New Agent", "View Documentation", "Edit Profile"
+- **Agent Status Breakdown** -- A small visual breakdown (colored bars or mini chart) showing draft vs pending vs approved vs rejected counts
 
-### Runner Wrapper (injected around developer code)
+---
 
-The execution service receives something like:
+## 2. My Agents Tab (Enhanced)
+
+Currently a flat list of cards. Enhancements:
+
+- **Search bar** to filter agents by name
+- **Grid/List view toggle**
+- **Agent Detail Drawer/Dialog** -- Click an agent card to open a side sheet with full details:
+  - All metadata (name, description, category, version, hosting type, runtime)
+  - Hosting config (endpoint URL or code file info)
+  - System prompt and allowed tools
+  - Review notes (if rejected)
+  - Execution status and errors
+  - Download count
+  - Timeline (created, submitted, reviewed dates)
+  - Edit button (for draft/rejected agents)
+  - Inline version history placeholder
+- **Bulk actions** -- Select multiple agents for deletion
+
+---
+
+## 3. Execution Logs Tab (New)
+
+A new section showing execution history for the developer's agents:
+
+- **Database**: New `agent_execution_logs` table with columns:
+  - `id` (uuid, PK)
+  - `agent_id` (uuid, FK to agent_submissions)
+  - `developer_id` (uuid, FK to developer_profiles)
+  - `user_id` (uuid, the user who invoked the agent)
+  - `input_message` (text)
+  - `output_response` (text)
+  - `status` (text: "success", "error", "timeout")
+  - `error_message` (text, nullable)
+  - `execution_time_ms` (integer)
+  - `created_at` (timestamptz)
+
+- **UI Components**:
+  - Filterable table with columns: Agent Name, Status, Duration, Timestamp
+  - Click a row to see full input/output
+  - Filter by agent, status, date range
+  - Simple stats at top: Total Executions, Success Rate, Avg Duration
+
+- **RLS**: Developer can only see logs for their own agents
+
+---
+
+## 4. API Documentation Tab (New)
+
+Static reference page built as a React component (no external docs site needed):
+
+- **Getting Started** section explaining the two hosting models
+- **Platform-Hosted** section:
+  - Function signature (`def handle(input: dict) -> dict`)
+  - Input/output JSON schema
+  - Available tools list
+  - Requirements format
+  - Code examples (Python)
+- **Self-Hosted** section:
+  - API contract (POST request/response format)
+  - Authentication setup
+  - Health check endpoint recommendation
+  - Code examples (Flask, FastAPI)
+- **Testing** section:
+  - How to test locally before submitting
+  - Expected response format
+
+---
+
+## 5. Settings Tab (Enhanced Profile)
+
+Expand the current basic profile form:
+
+- **Profile Section** (existing: company name, website, bio)
+- **API Keys Section** -- Display the developer's ID and any generated API keys for testing
+- **Notification Preferences** -- Toggle email notifications for: agent approved, agent rejected, new downloads milestone
+- **Danger Zone** -- Delete developer account option
+
+---
+
+## Technical Details
+
+### New Files
+- `src/components/developer/DeveloperSidebar.tsx` -- Sidebar navigation for the portal
+- `src/components/developer/DeveloperOverview.tsx` -- Enhanced overview with activity feed and quick actions
+- `src/components/developer/AgentDetailSheet.tsx` -- Side sheet for viewing/editing agent details
+- `src/components/developer/ExecutionLogs.tsx` -- Logs table and filters
+- `src/components/developer/ApiDocsPage.tsx` -- Static API documentation page
+- `src/components/developer/DeveloperSettings.tsx` -- Enhanced settings page
+
+### Modified Files
+- `src/pages/DeveloperPortal.tsx` -- Replace tabs with sidebar layout, route between sections
+- `src/components/developer/AgentList.tsx` -- Add search, grid/list toggle, click-to-detail
+- `src/components/developer/DeveloperStats.tsx` -- Enhanced with activity feed
+
+### Database Migration
+- Create `agent_execution_logs` table with RLS policies scoped to developer_id
+- Add logging calls in the orchestrator edge function to write execution results
+
+### Edge Function Updates
+- `supabase/functions/ai-employee-orchestrator/index.ts` -- Log execution results to `agent_execution_logs` after each invocation
+
+---
+
+## Component Architecture
 
 ```text
-# Developer's uploaded code is loaded here
-{developer_code}
-
-# Platform runner - calls their entry function
-import json
-_input = json.loads('''{input_json}''')
-_result = {entry_function}(_input)
-print(json.dumps(_result))
+DeveloperPortal (page)
+  +-- DeveloperSidebar
+  |     +-- Overview
+  |     +-- My Agents
+  |     +-- Submit Agent
+  |     +-- Logs
+  |     +-- API Docs
+  |     +-- Settings
+  +-- Content Area (switches based on active section)
+        +-- DeveloperOverview
+        |     +-- DeveloperStats (enhanced)
+        |     +-- RecentActivityFeed
+        |     +-- QuickActions
+        +-- AgentList (enhanced)
+        |     +-- AgentDetailSheet
+        +-- AgentSubmissionForm (existing)
+        +-- ExecutionLogs
+        +-- ApiDocsPage
+        +-- DeveloperSettings
 ```
 
-This ensures the developer's exact code runs -- we just call their specified entry function with the standardized input.
-
 ---
 
-## Orchestrator Changes
+## Summary of Scope
 
-Update the `platform` branch in `ai-employee-orchestrator`:
-
-- Instead of falling through to the internal `chat` function, check if `code_file_url` exists
-- If yes: invoke the `execute-python-agent` function with the code URL, entry function, requirements, and user message
-- If no code file (legacy agents): fall back to the existing system prompt + tools flow
-
----
-
-## Secret Required
-
-A new secret for the Python execution service:
-
-| Secret | Purpose |
-|--------|---------|
-| `PYTHON_EXECUTOR_URL` | Base URL of the code execution API (e.g., a Piston instance or custom runner) |
-| `PYTHON_EXECUTOR_API_KEY` | Optional API key for the execution service |
-
----
-
-## Frontend Changes
-
-### PlatformHostedFields.tsx
-- Add a note explaining: "Your exact code will be executed when your agent is invoked. We call your entry function with a standardized JSON input."
-- Show the expected function signature:
-  ```
-  def handle(input: dict) -> dict:
-      # input = { "message": "...", "user_id": "...", "context": {} }
-      # return { "response": "...", "tools_used": [] }
-  ```
-
-### AgentList.tsx
-- Show `execution_status` on agent cards (Ready / Building / Error)
-- If error, show a tooltip with `execution_error`
-
----
-
-## Files to Create/Modify
-
-- **New**: `supabase/functions/execute-python-agent/index.ts` -- the Python execution bridge
-- **New migration**: Add `execution_status` and `execution_error` columns to `agent_submissions`
-- **Modify**: `supabase/functions/ai-employee-orchestrator/index.ts` -- route platform-hosted agents with code to the new executor
-- **Modify**: `src/components/developer/PlatformHostedFields.tsx` -- add function signature docs
-- **Modify**: `src/components/developer/AgentList.tsx` -- show execution status
-- **Modify**: `src/hooks/useDeveloperPortal.ts` -- add new fields to the type
-
----
-
-## Security Considerations
-
-- Code runs in a sandboxed container (no access to platform infrastructure)
-- Execution timeout enforced (e.g., 30 seconds max)
-- Network access within the sandbox can be restricted
-- The execution service is external to the platform -- developer code never runs inside edge functions directly
-- Auth tokens for the execution API are stored as secrets, not exposed to developers
+| Section | Status | Work |
+|---------|--------|------|
+| Sidebar layout | New | Replace tabs with sidebar navigation |
+| Overview | Enhanced | Activity feed, quick actions, visual breakdown |
+| My Agents | Enhanced | Search, detail drawer, grid/list toggle |
+| Submit Agent | Existing | No changes needed |
+| Execution Logs | New | New table, new component, orchestrator logging |
+| API Docs | New | Static documentation component |
+| Settings | Enhanced | API keys display, notification prefs, danger zone |
 
