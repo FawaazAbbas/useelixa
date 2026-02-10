@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, CheckCircle, Clock, Download, Plus, BookOpen, User, Bot, Send, XCircle } from "lucide-react";
+import { Package, CheckCircle, Clock, Download, Plus, BookOpen, User, Send, XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { ElixaMascot } from "@/components/ElixaMascot";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import type { DeveloperSection } from "./DeveloperSidebar";
 
@@ -50,13 +51,33 @@ export const DeveloperOverview = ({ agents, onNavigate }: DeveloperOverviewProps
 
   return (
     <div className="space-y-6">
+      {/* Welcome */}
+      {total === 0 && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="flex items-center gap-6 py-6">
+            <ElixaMascot pose="waving" size="lg" animation="float" />
+            <div>
+              <h2 className="text-lg font-semibold mb-1">Welcome to the Developer Portal!</h2>
+              <p className="text-sm text-muted-foreground mb-3">
+                Build and deploy custom AI agents for the Elixa marketplace. Get started by submitting your first agent.
+              </p>
+              <Button size="sm" onClick={() => onNavigate("submit")}>
+                <Plus className="h-4 w-4 mr-1" /> Create Your First Agent
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{stat.label}</CardTitle>
-              <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              <div className="p-1.5 bg-muted rounded-lg">
+                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
@@ -68,7 +89,7 @@ export const DeveloperOverview = ({ agents, onNavigate }: DeveloperOverviewProps
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -86,7 +107,7 @@ export const DeveloperOverview = ({ agents, onNavigate }: DeveloperOverviewProps
 
         {/* Status Breakdown */}
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Agent Status Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -94,19 +115,19 @@ export const DeveloperOverview = ({ agents, onNavigate }: DeveloperOverviewProps
               <p className="text-sm text-muted-foreground">No agents yet</p>
             ) : (
               <>
-                <div className="flex h-3 rounded-full overflow-hidden bg-muted">
+                <div className="flex h-2.5 rounded-full overflow-hidden bg-muted">
                   {statusBreakdown.map((s) =>
                     s.count > 0 ? (
-                      <div key={s.label} className={`${s.color}`} style={{ width: `${(s.count / totalForBar) * 100}%` }} />
+                      <div key={s.label} className={`${s.color} transition-all`} style={{ width: `${(s.count / totalForBar) * 100}%` }} />
                     ) : null
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-y-2">
                   {statusBreakdown.map((s) => (
                     <div key={s.label} className="flex items-center gap-2 text-sm">
-                      <div className={`h-2.5 w-2.5 rounded-full ${s.color}`} />
+                      <div className={`h-2 w-2 rounded-full ${s.color}`} />
                       <span className="text-muted-foreground">{s.label}</span>
-                      <span className="font-medium ml-auto">{s.count}</span>
+                      <span className="font-medium ml-auto pr-4">{s.count}</span>
                     </div>
                   ))}
                 </div>
@@ -117,19 +138,24 @@ export const DeveloperOverview = ({ agents, onNavigate }: DeveloperOverviewProps
 
         {/* Recent Activity */}
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-3">
             <CardTitle className="text-base">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
             {activities.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No activity yet</p>
+              <div className="flex flex-col items-center py-4 text-center">
+                <ElixaMascot pose="search" size="sm" className="mb-2 opacity-60" />
+                <p className="text-sm text-muted-foreground">No activity yet</p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {activities.map((activity, i) => (
                   <div key={i} className="flex items-start gap-2.5 text-sm">
-                    <activity.icon className={`h-4 w-4 mt-0.5 shrink-0 ${activity.color}`} />
-                    <div className="min-w-0">
-                      <p className="truncate">{activity.text}</p>
+                    <div className="p-1 bg-muted rounded mt-0.5">
+                      <activity.icon className={`h-3 w-3 ${activity.color}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-foreground">{activity.text}</p>
                       <p className="text-xs text-muted-foreground">{format(new Date(activity.date), "MMM d, HH:mm")}</p>
                     </div>
                   </div>
