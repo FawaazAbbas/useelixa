@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Trash2, Edit, Bot, Cloud, Server } from "lucide-react";
+import { Send, Trash2, Edit, Bot, Cloud, Server, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 
 interface AgentListProps {
@@ -77,6 +78,32 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
                       <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 capitalize">
                         {agent.runtime || "python"}
                       </Badge>
+                      {agent.hosting_type === "platform" && agent.code_file_url && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] px-1.5 py-0 h-4 gap-0.5 ${
+                                  agent.execution_status === "ready" ? "text-green-600 border-green-300" :
+                                  agent.execution_status === "error" ? "text-red-600 border-red-300" :
+                                  "text-yellow-600 border-yellow-300"
+                                }`}
+                              >
+                                {agent.execution_status === "ready" && <CheckCircle className="h-2.5 w-2.5" />}
+                                {agent.execution_status === "building" && <Loader2 className="h-2.5 w-2.5 animate-spin" />}
+                                {agent.execution_status === "error" && <AlertCircle className="h-2.5 w-2.5" />}
+                                {agent.execution_status === "ready" ? "Ready" : agent.execution_status === "building" ? "Building" : "Error"}
+                              </Badge>
+                            </TooltipTrigger>
+                            {agent.execution_status === "error" && agent.execution_error && (
+                              <TooltipContent className="max-w-xs">
+                                <p className="text-xs">{agent.execution_error}</p>
+                              </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </CardDescription>
                   </div>
                 </div>
