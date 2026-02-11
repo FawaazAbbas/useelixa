@@ -107,3 +107,12 @@ verify_jwt = false
 
 [functions.execute-python-agent]
 verify_jwt = false
+
+[functions.endpoint-invoke]
+verify_jwt = false
+
+[functions.endpoint-health]
+verify_jwt = false
+
+[functions.tool-gateway]
+verify_jwt = false

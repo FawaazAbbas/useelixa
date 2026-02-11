@@ -41,10 +41,26 @@ serve(async (req) => {
 
     let responseData: { response: string; tools_used?: string[] };
 
-    // Route based on hosting type
+    // Route based on execution mode / hosting type
+    const executionMode = submission?.execution_mode || "native";
     const hostingType = submission?.hosting_type || "platform";
 
-    if (hostingType === "self_hosted" && submission?.external_endpoint_url) {
+    if (executionMode === "endpoint" && submission?.endpoint_base_url) {
+      // Endpoint agent: delegate to endpoint-invoke edge function
+      const { data, error } = await supabase.functions.invoke("endpoint-invoke", {
+        body: {
+          agentId: employeeId,
+          message,
+          userId,
+          workspaceId: null,
+          threadId: null,
+          installationId: null,
+        },
+      });
+
+      if (error) throw error;
+      responseData = { response: data?.response || "No response from endpoint agent.", tools_used: [] };
+    } else if (hostingType === "self_hosted" && submission?.external_endpoint_url) {
       // Self-hosted: call the developer's external endpoint
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (submission.external_auth_header && submission.external_auth_token) {

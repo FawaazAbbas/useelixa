@@ -19,18 +19,24 @@ const METHOD_COLORS: Record<string, string> = {
   PATCH: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
 };
 
+const SAMPLE_ENDPOINT_BODY = `{
+  "message": "Hello, what can you help me with?"
+}`;
+
 export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
   const actions = agent.actions || [];
-  const isSelfHosted = agent.hosting_type === "self_hosted";
-  const isPlatform = agent.hosting_type === "platform";
+  const isSelfHosted = agent.hosting_type === "self_hosted" && (agent.execution_mode || agent.hosting_type) !== "endpoint";
+  const isPlatform = agent.hosting_type === "platform" && (agent.execution_mode || agent.hosting_type) !== "endpoint";
+  const isEndpoint = (agent.execution_mode || agent.hosting_type) === "endpoint";
 
   const [selectedActionId, setSelectedActionId] = useState<string>(
     actions.length > 0 ? actions[0].id : "__default__"
   );
   const [requestBody, setRequestBody] = useState(
-    isPlatform ? '{\n  "message": "Hello"\n}' : '{\n  "message": "Hello"\n}'
+    isEndpoint ? SAMPLE_ENDPOINT_BODY : '{\n  "message": "Hello"\n}'
   );
   const [response, setResponse] = useState<string | null>(null);
+  const [parsedResponse, setParsedResponse] = useState<{ assistantMessage?: string; actions?: any[]; receipts?: any[] } | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState<number | null>(null);
@@ -41,13 +47,13 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
   const handleSendRequest = async () => {
     setLoading(true);
     setResponse(null);
+    setParsedResponse(null);
     setStatusCode(null);
     setElapsed(null);
 
     const start = performance.now();
 
     try {
-      // Validate JSON body first
       let parsedBody: any;
       try {
         parsedBody = JSON.parse(requestBody);
@@ -59,13 +65,39 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
         return;
       }
 
-      if (isPlatform) {
-        // Platform-hosted: call through edge function proxy
-        const { data, error } = await supabase.functions.invoke("test-agent", {
+      if (isEndpoint) {
+        // Endpoint agent: call through endpoint-invoke edge function
+        const { data, error } = await supabase.functions.invoke("endpoint-invoke", {
           body: {
-            agent_id: agent.id,
+            agentId: agent.id,
             message: parsedBody.message || JSON.stringify(parsedBody),
+            userId: null,
+            workspaceId: null,
+            threadId: null,
+            installationId: null,
           },
+        });
+
+        const elapsedMs = performance.now() - start;
+        setElapsed(elapsedMs);
+
+        if (error) {
+          setStatusCode(500);
+          setResponse(`Error: ${error.message}`);
+        } else {
+          setStatusCode(200);
+          setResponse(JSON.stringify(data, null, 2));
+          if (data?.response || data?.actions || data?.receipts) {
+            setParsedResponse({
+              assistantMessage: data.response,
+              actions: data.actions,
+              receipts: data.receipts,
+            });
+          }
+        }
+      } else if (isPlatform) {
+        const { data, error } = await supabase.functions.invoke("test-agent", {
+          body: { agent_id: agent.id, message: parsedBody.message || JSON.stringify(parsedBody) },
         });
 
         const elapsedMs = performance.now() - start;
@@ -97,10 +129,7 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
         }
 
         const fetchOptions: RequestInit = { method, headers };
-
-        if (method !== "GET" && method !== "HEAD") {
-          fetchOptions.body = requestBody;
-        }
+        if (method !== "GET" && method !== "HEAD") fetchOptions.body = requestBody;
 
         const res = await fetch(url, fetchOptions);
         const elapsedMs = performance.now() - start;
@@ -112,8 +141,7 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
           const json = await res.json();
           setResponse(JSON.stringify(json, null, 2));
         } else {
-          const text = await res.text();
-          setResponse(text);
+          setResponse(await res.text());
         }
       }
     } catch (err: any) {
@@ -137,16 +165,12 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Action</label>
           <Select value={selectedActionId} onValueChange={setSelectedActionId}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               {actions.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   <span className="flex items-center gap-2">
-                    <Badge className={`${METHOD_COLORS[a.method] || ""} text-[10px] px-1 py-0`}>
-                      {a.method}
-                    </Badge>
+                    <Badge className={`${METHOD_COLORS[a.method] || ""} text-[10px] px-1 py-0`}>{a.method}</Badge>
                     {a.action_name}
                     <span className="text-muted-foreground font-mono">{a.path}</span>
                   </span>
@@ -157,20 +181,22 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
         </div>
       )}
 
-      {/* Target URL/agent preview */}
+      {/* Target preview */}
       <div className="text-xs font-mono bg-muted rounded px-2 py-1.5 break-all text-muted-foreground">
-        {isPlatform
-          ? `POST → ${agent.name} (platform-hosted)`
-          : selectedAction
-            ? `${selectedAction.method} ${baseUrl}${selectedAction.path}`
-            : `POST ${baseUrl}`}
+        {isEndpoint
+          ? `POST → ${agent.endpoint_base_url || agent.name}${agent.endpoint_invoke_path || "/invoke"}`
+          : isPlatform
+            ? `POST → ${agent.name} (platform-hosted)`
+            : selectedAction
+              ? `${selectedAction.method} ${baseUrl}${selectedAction.path}`
+              : `POST ${baseUrl}`}
       </div>
 
       {/* Request body */}
       {(!selectedAction || selectedAction.method !== "GET") && (
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">
-            {isPlatform ? "Test Message (JSON)" : "Request Body (JSON)"}
+            {isEndpoint ? "Message (JSON)" : isPlatform ? "Test Message (JSON)" : "Request Body (JSON)"}
           </label>
           <Textarea
             value={requestBody}
@@ -181,22 +207,40 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
         </div>
       )}
 
-      {/* Send button */}
-      <Button
-        size="sm"
-        onClick={handleSendRequest}
-        disabled={loading || (!baseUrl && isSelfHosted)}
-        className="w-full"
-      >
-        {loading ? (
-          <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Sending...</>
-        ) : (
-          <><Play className="h-3 w-3 mr-1" /> Send Request</>
-        )}
+      <Button size="sm" onClick={handleSendRequest} disabled={loading} className="w-full">
+        {loading ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Sending...</> : <><Play className="h-3 w-3 mr-1" /> Send Request</>}
       </Button>
 
-      {/* Response */}
-      {response !== null && (
+      {/* Parsed endpoint response */}
+      {isEndpoint && parsedResponse && (
+        <div className="space-y-2">
+          {parsedResponse.assistantMessage && (
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Assistant Message</label>
+              <div className="text-sm bg-muted rounded-md p-2.5">{parsedResponse.assistantMessage}</div>
+            </div>
+          )}
+          {parsedResponse.actions && parsedResponse.actions.length > 0 && (
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Actions ({parsedResponse.actions.length})</label>
+              <pre className="text-xs bg-muted rounded-md p-2.5 overflow-auto max-h-32 font-mono">
+                {JSON.stringify(parsedResponse.actions, null, 2)}
+              </pre>
+            </div>
+          )}
+          {parsedResponse.receipts && parsedResponse.receipts.length > 0 && (
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Receipts ({parsedResponse.receipts.length})</label>
+              <pre className="text-xs bg-muted rounded-md p-2.5 overflow-auto max-h-32 font-mono">
+                {JSON.stringify(parsedResponse.receipts, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Raw response */}
+      {response !== null && !parsedResponse && (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-xs">
             {statusCode !== null && statusCode >= 200 && statusCode < 300 ? (
@@ -214,9 +258,27 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
               </span>
             )}
           </div>
-          <pre className="text-xs bg-muted rounded-md p-2.5 overflow-auto max-h-48 whitespace-pre-wrap font-mono">
-            {response}
-          </pre>
+          <pre className="text-xs bg-muted rounded-md p-2.5 overflow-auto max-h-48 whitespace-pre-wrap font-mono">{response}</pre>
+        </div>
+      )}
+
+      {/* Status bar for parsed responses */}
+      {response !== null && parsedResponse && (
+        <div className="flex items-center gap-2 text-xs">
+          {statusCode !== null && statusCode >= 200 && statusCode < 300 ? (
+            <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+          ) : (
+            <XCircle className="h-3.5 w-3.5 text-destructive" />
+          )}
+          <Badge variant={statusCode && statusCode >= 200 && statusCode < 300 ? "default" : "destructive"} className="text-[10px]">
+            {statusCode === 0 ? "ERR" : statusCode}
+          </Badge>
+          {elapsed !== null && (
+            <span className="text-muted-foreground flex items-center gap-0.5">
+              <Clock className="h-3 w-3" />
+              {elapsed < 1000 ? `${Math.round(elapsed)}ms` : `${(elapsed / 1000).toFixed(2)}s`}
+            </span>
+          )}
         </div>
       )}
     </div>

@@ -165,9 +165,108 @@ export type Database = {
           },
         ]
       }
+      agent_installations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          permissions: Json
+          requires_approval: boolean
+          risk_tier: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          requires_approval?: boolean
+          risk_tier?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          permissions?: Json
+          requires_approval?: boolean
+          risk_tier?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_installations_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_installations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_proposals: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          installation_id: string
+          request_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          id?: string
+          installation_id: string
+          request_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          installation_id?: string
+          request_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_proposals_installation_id_fkey"
+            columns: ["installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_submissions: {
         Row: {
           allowed_tools: string[] | null
+          capability_manifest: Json | null
           category: string | null
           code_file_url: string | null
           config_file_url: string | null
@@ -175,8 +274,14 @@ export type Database = {
           description: string | null
           developer_id: string
           download_count: number
+          endpoint_auth_type: string | null
+          endpoint_base_url: string | null
+          endpoint_health_path: string | null
+          endpoint_invoke_path: string | null
+          endpoint_secret: string | null
           entry_function: string | null
           execution_error: string | null
+          execution_mode: string
           execution_status: string
           external_auth_header: string | null
           external_auth_token: string | null
@@ -184,8 +289,10 @@ export type Database = {
           hosting_type: string
           icon_url: string | null
           id: string
+          input_schema: Json | null
           is_public: boolean
           name: string
+          output_schema: Json | null
           requirements: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -200,6 +307,7 @@ export type Database = {
         }
         Insert: {
           allowed_tools?: string[] | null
+          capability_manifest?: Json | null
           category?: string | null
           code_file_url?: string | null
           config_file_url?: string | null
@@ -207,8 +315,14 @@ export type Database = {
           description?: string | null
           developer_id: string
           download_count?: number
+          endpoint_auth_type?: string | null
+          endpoint_base_url?: string | null
+          endpoint_health_path?: string | null
+          endpoint_invoke_path?: string | null
+          endpoint_secret?: string | null
           entry_function?: string | null
           execution_error?: string | null
+          execution_mode?: string
           execution_status?: string
           external_auth_header?: string | null
           external_auth_token?: string | null
@@ -216,8 +330,10 @@ export type Database = {
           hosting_type?: string
           icon_url?: string | null
           id?: string
+          input_schema?: Json | null
           is_public?: boolean
           name: string
+          output_schema?: Json | null
           requirements?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -232,6 +348,7 @@ export type Database = {
         }
         Update: {
           allowed_tools?: string[] | null
+          capability_manifest?: Json | null
           category?: string | null
           code_file_url?: string | null
           config_file_url?: string | null
@@ -239,8 +356,14 @@ export type Database = {
           description?: string | null
           developer_id?: string
           download_count?: number
+          endpoint_auth_type?: string | null
+          endpoint_base_url?: string | null
+          endpoint_health_path?: string | null
+          endpoint_invoke_path?: string | null
+          endpoint_secret?: string | null
           entry_function?: string | null
           execution_error?: string | null
+          execution_mode?: string
           execution_status?: string
           external_auth_header?: string | null
           external_auth_token?: string | null
@@ -248,8 +371,10 @@ export type Database = {
           hosting_type?: string
           icon_url?: string | null
           id?: string
+          input_schema?: Json | null
           is_public?: boolean
           name?: string
+          output_schema?: Json | null
           requirements?: string | null
           review_notes?: string | null
           reviewed_at?: string | null

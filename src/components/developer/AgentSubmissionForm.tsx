@@ -6,12 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronRight, ChevronLeft, Check, Cloud, Server } from "lucide-react";
+import { Loader2, ChevronRight, ChevronLeft, Check, Cloud, Server, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { HostingTypeSelector } from "./HostingTypeSelector";
 import { PlatformHostedFields } from "./PlatformHostedFields";
 import { SelfHostedFields } from "./SelfHostedFields";
+import { EndpointAgentFields } from "./EndpointAgentFields";
 import { AgentActionsEditor, type AgentActionDraft } from "./AgentActionsEditor";
 
 interface AgentSubmissionFormProps {
@@ -46,7 +47,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [version, setVersion] = useState("1.0.0");
-  const [hostingType, setHostingType] = useState<"platform" | "self_hosted">("platform");
+  const [hostingType, setHostingType] = useState<"platform" | "self_hosted" | "endpoint">("platform");
 
   // Step 2: Configuration (Platform-hosted)
   const [systemPrompt, setSystemPrompt] = useState("");
@@ -61,6 +62,16 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [authHeader, setAuthHeader] = useState("");
   const [authToken, setAuthToken] = useState("");
 
+  // Step 2: Configuration (Endpoint agent)
+  const [epBaseUrl, setEpBaseUrl] = useState("");
+  const [epAuthType, setEpAuthType] = useState<"none" | "api_key" | "hmac">("none");
+  const [epSecret, setEpSecret] = useState("");
+  const [epInvokePath, setEpInvokePath] = useState("/invoke");
+  const [epHealthPath, setEpHealthPath] = useState("/health");
+  const [epToolsRequired, setEpToolsRequired] = useState<string[]>([]);
+  const [epCanMutate, setEpCanMutate] = useState(false);
+  const [epRiskTier, setEpRiskTier] = useState<"sandbox" | "verified" | "privileged">("sandbox");
+
   // Step 3 (self-hosted only): Actions
   const [actions, setActions] = useState<AgentActionDraft[]>([{ ...DEFAULT_ACTION }]);
 
@@ -69,12 +80,22 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [iconPreview, setIconPreview] = useState<string | null>(null);
 
   const isSelfHosted = hostingType === "self_hosted";
-  const totalSteps = isSelfHosted ? 5 : 4;
-  const iconStep = isSelfHosted ? 4 : 3;
-  const reviewStep = isSelfHosted ? 5 : 4;
+  const isEndpoint = hostingType === "endpoint";
+  const isPlatform = hostingType === "platform";
+
+  // Steps: platform=4, self_hosted=5, endpoint=3 (info, config, icon+review)
+  const totalSteps = isSelfHosted ? 5 : isEndpoint ? 3 : 4;
+  const iconStep = isSelfHosted ? 4 : isEndpoint ? 3 : 3;
+  const reviewStep = isSelfHosted ? 5 : isEndpoint ? 3 : 4;
 
   const toggleTool = (tool: string) => {
     setSelectedTools((prev) =>
+      prev.includes(tool) ? prev.filter((t) => t !== tool) : [...prev, tool]
+    );
+  };
+
+  const toggleEpTool = (tool: string) => {
+    setEpToolsRequired((prev) =>
       prev.includes(tool) ? prev.filter((t) => t !== tool) : [...prev, tool]
     );
   };
@@ -103,35 +124,61 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     let codeFileUrl: string | null = null;
 
     if (iconFile) iconUrl = await uploadFile(iconFile, "icons");
-    if (codeFile && !isSelfHosted) codeFileUrl = await uploadFile(codeFile, "code");
+    if (codeFile && isPlatform) codeFileUrl = await uploadFile(codeFile, "code");
 
-    await onSubmit(
-      {
-        name,
-        description,
-        category,
-        version,
-        hosting_type: hostingType,
+    const base: Partial<AgentSubmission> = {
+      name,
+      description,
+      category,
+      version,
+      icon_url: iconUrl,
+    };
+
+    if (isEndpoint) {
+      Object.assign(base, {
+        hosting_type: "endpoint",
+        execution_mode: "endpoint",
+        endpoint_base_url: epBaseUrl,
+        endpoint_invoke_path: epInvokePath,
+        endpoint_health_path: epHealthPath,
+        endpoint_auth_type: epAuthType,
+        endpoint_secret: epAuthType !== "none" ? epSecret : null,
+        capability_manifest: {
+          toolsRequired: epToolsRequired,
+          canMutate: epCanMutate,
+          riskTier: epRiskTier,
+        },
+        runtime: "endpoint",
+      });
+    } else if (isSelfHosted) {
+      Object.assign(base, {
+        hosting_type: "self_hosted",
+        runtime,
+        external_endpoint_url: endpointUrl,
+        external_auth_header: authHeader || null,
+        external_auth_token: authToken || null,
+      });
+    } else {
+      Object.assign(base, {
+        hosting_type: "platform",
         runtime,
         system_prompt: systemPrompt || null,
         allowed_tools: selectedTools.length > 0 ? selectedTools : null,
-        icon_url: iconUrl,
         code_file_url: codeFileUrl,
-        requirements: !isSelfHosted ? requirements || null : null,
-        entry_function: !isSelfHosted ? entryFunction : null,
-        external_endpoint_url: isSelfHosted ? endpointUrl : null,
-        external_auth_header: isSelfHosted ? authHeader || null : null,
-        external_auth_token: isSelfHosted ? authToken || null : null,
-      },
-      isSelfHosted ? actions : undefined,
-    );
+        requirements: requirements || null,
+        entry_function: entryFunction,
+      });
+    }
 
-    // Reset form
-    setStep(1);
-    setName(""); setDescription(""); setCategory(""); setVersion("1.0.0");
+    await onSubmit(base, isSelfHosted ? actions : undefined);
+
+    // Reset
+    setStep(1); setName(""); setDescription(""); setCategory(""); setVersion("1.0.0");
     setHostingType("platform"); setSystemPrompt(""); setSelectedTools([]);
     setCodeFile(null); setRequirements(""); setEntryFunction("handle"); setRuntime("python");
     setEndpointUrl(""); setAuthHeader(""); setAuthToken("");
+    setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
+    setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
     setActions([{ ...DEFAULT_ACTION }]);
     setIconFile(null); setIconPreview(null);
     setSaving(false);
@@ -141,6 +188,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     if (step === 1) return name.trim().length > 0;
     if (step === 2) {
       if (isSelfHosted) return endpointUrl.trim().length > 0;
+      if (isEndpoint) return epBaseUrl.trim().length > 0;
       return true;
     }
     if (step === 3 && isSelfHosted) {
@@ -190,7 +238,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           </>
         )}
 
-        {step === 2 && !isSelfHosted && (
+        {step === 2 && isPlatform && (
           <PlatformHostedFields
             codeFile={codeFile}
             onCodeFileChange={setCodeFile}
@@ -221,11 +269,34 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           />
         )}
 
+        {step === 2 && isEndpoint && (
+          <EndpointAgentFields
+            baseUrl={epBaseUrl}
+            onBaseUrlChange={setEpBaseUrl}
+            authType={epAuthType}
+            onAuthTypeChange={setEpAuthType}
+            endpointSecret={epSecret}
+            onEndpointSecretChange={setEpSecret}
+            invokePath={epInvokePath}
+            onInvokePathChange={setEpInvokePath}
+            healthPath={epHealthPath}
+            onHealthPathChange={setEpHealthPath}
+            toolsRequired={epToolsRequired}
+            onToggleTool={toggleEpTool}
+            availableTools={AVAILABLE_TOOLS}
+            canMutate={epCanMutate}
+            onCanMutateChange={setEpCanMutate}
+            riskTier={epRiskTier}
+            onRiskTierChange={setEpRiskTier}
+          />
+        )}
+
         {step === 3 && isSelfHosted && (
           <AgentActionsEditor actions={actions} onChange={setActions} baseUrl={endpointUrl} />
         )}
 
-        {step === iconStep && (
+        {/* Icon step: for endpoint it's combined with review at step 3 */}
+        {step === iconStep && !isEndpoint && (
           <div className="space-y-2">
             <Label>Agent Icon</Label>
             <Input type="file" accept="image/*" onChange={handleIconChange} />
@@ -237,6 +308,15 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
 
         {step === reviewStep && (
           <div className="space-y-3">
+            {isEndpoint && (
+              <div className="space-y-2">
+                <Label>Agent Icon</Label>
+                <Input type="file" accept="image/*" onChange={handleIconChange} />
+                {iconPreview && (
+                  <img src={iconPreview} alt="Preview" className="h-20 w-20 rounded-lg object-cover mt-2" />
+                )}
+              </div>
+            )}
             <h3 className="font-semibold">Review your agent</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <span className="text-muted-foreground">Name:</span><span className="font-medium">{name}</span>
@@ -244,23 +324,40 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
               <span className="text-muted-foreground">Version:</span><span>{version}</span>
               <span className="text-muted-foreground">Hosting:</span>
               <span className="flex items-center gap-1">
-                {!isSelfHosted ? <Cloud className="h-3 w-3" /> : <Server className="h-3 w-3" />}
-                {!isSelfHosted ? "Platform Hosted" : "Self-Hosted"}
+                {isPlatform ? <Cloud className="h-3 w-3" /> : isEndpoint ? <Globe className="h-3 w-3" /> : <Server className="h-3 w-3" />}
+                {isPlatform ? "Platform Hosted" : isEndpoint ? "Endpoint Agent" : "Self-Hosted"}
               </span>
-              <span className="text-muted-foreground">Runtime:</span><span className="capitalize">{runtime}</span>
+              {!isEndpoint && (
+                <>
+                  <span className="text-muted-foreground">Runtime:</span><span className="capitalize">{runtime}</span>
+                </>
+              )}
+              {isEndpoint && (
+                <>
+                  <span className="text-muted-foreground">Base URL:</span>
+                  <span className="truncate">{epBaseUrl}</span>
+                  <span className="text-muted-foreground">Auth:</span>
+                  <span className="capitalize">{epAuthType === "api_key" ? "API Key" : epAuthType === "hmac" ? "HMAC" : "None"}</span>
+                  <span className="text-muted-foreground">Invoke:</span>
+                  <span className="font-mono text-xs">{epInvokePath}</span>
+                  <span className="text-muted-foreground">Risk Tier:</span>
+                  <span className="capitalize">{epRiskTier}</span>
+                </>
+              )}
               {isSelfHosted && (
                 <>
                   <span className="text-muted-foreground">Base URL:</span>
                   <span className="truncate">{endpointUrl}</span>
                 </>
               )}
-              {!isSelfHosted && codeFile && (
+              {isPlatform && codeFile && (
                 <>
                   <span className="text-muted-foreground">Code File:</span>
                   <span>{codeFile.name}</span>
                 </>
               )}
-              <span className="text-muted-foreground">Tools:</span><span>{selectedTools.length > 0 ? selectedTools.join(", ") : "None"}</span>
+              <span className="text-muted-foreground">Tools:</span>
+              <span>{isEndpoint ? (epToolsRequired.length > 0 ? epToolsRequired.join(", ") : "None") : (selectedTools.length > 0 ? selectedTools.join(", ") : "None")}</span>
               <span className="text-muted-foreground">Icon:</span><span>{iconFile ? iconFile.name : "None"}</span>
             </div>
             {isSelfHosted && actions.length > 0 && (

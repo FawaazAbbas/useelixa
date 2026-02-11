@@ -58,6 +58,16 @@ export interface AgentSubmission {
   entry_function: string | null;
   execution_status: string;
   execution_error: string | null;
+  // Endpoint agent fields
+  execution_mode?: string;
+  endpoint_base_url?: string | null;
+  endpoint_invoke_path?: string | null;
+  endpoint_health_path?: string | null;
+  endpoint_auth_type?: string | null;
+  endpoint_secret?: string | null;
+  input_schema?: any;
+  output_schema?: any;
+  capability_manifest?: any;
   actions?: AgentAction[];
 }
 
@@ -161,7 +171,6 @@ export const useDeveloperPortal = () => {
 
   const validateAgent = async (agentId: string): Promise<{ success: boolean; error?: string; error_type?: string }> => {
     try {
-      // Set status to building
       await supabase
         .from("agent_submissions")
         .update({ execution_status: "building", execution_error: null } as any)
@@ -219,9 +228,13 @@ export const useDeveloperPortal = () => {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
 
+    // For endpoint agents, set execution_status to ready (no code validation needed)
+    const isEndpoint = (agent as any).execution_mode === "endpoint";
+    const executionStatus = isEndpoint ? "ready" : "building";
+
     const { data, error } = await supabase
       .from("agent_submissions")
-      .insert({ ...agent, developer_id: profile.id, slug, execution_status: "building" } as any)
+      .insert({ ...agent, developer_id: profile.id, slug, execution_status: executionStatus } as any)
       .select()
       .single();
 
@@ -248,12 +261,11 @@ export const useDeveloperPortal = () => {
       }
     }
 
-    toast({ title: "Agent created — validating..." });
+    toast({ title: isEndpoint ? "Endpoint agent created" : "Agent created — validating..." });
     await fetchAgents();
 
     // Auto-validate platform-hosted agents with code
-    if (data && agent.hosting_type !== "self_hosted" && (agent.code_file_url || data.code_file_url)) {
-      // Don't await — let it run in background so UI updates immediately
+    if (data && agent.hosting_type === "platform" && (agent.code_file_url || data.code_file_url)) {
       validateAgent(data.id);
     }
 
