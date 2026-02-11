@@ -7,6 +7,29 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function categorizedError(error_type: string, error_details: string, user_message: string) {
+  return { error: user_message, error_type, error_details };
+}
+
+function stripImportsExports(code: string): { cleaned: string; hadImports: boolean } {
+  let hadImports = false;
+  // Strip import statements
+  let cleaned = code.replace(/^\s*import\s+.*?from\s+['"].*?['"];?\s*$/gm, (m) => {
+    hadImports = true;
+    return `// [stripped] ${m.trim()}`;
+  });
+  cleaned = cleaned.replace(/^\s*import\s+['"].*?['"];?\s*$/gm, (m) => {
+    hadImports = true;
+    return `// [stripped] ${m.trim()}`;
+  });
+  // Strip export keywords but keep the declarations
+  cleaned = cleaned.replace(/^\s*export\s+(default\s+)?/gm, (m) => {
+    hadImports = true;
+    return "";
+  });
+  return { cleaned, hadImports };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -34,7 +57,6 @@ serve(async (req) => {
       throw new Error("agent_id is required");
     }
 
-    // Fetch agent with runtime info
     const { data: agent, error: agentError } = await supabase
       .from("agent_submissions")
       .select("*, developer_profiles!inner(user_id)")
@@ -50,80 +72,107 @@ serve(async (req) => {
     // --- TypeScript agents: execute directly in Deno ---
     if (runtime === "typescript") {
       if (!agent.code_file_url) {
-        throw new Error("No code file uploaded for this agent");
+        return new Response(JSON.stringify(categorizedError(
+          "missing_code", "No code_file_url set on agent record",
+          "No code file uploaded for this agent. Please upload a .ts or .zip file."
+        )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       // Download the code file
-      const codeResponse = await fetch(agent.code_file_url);
+      let codeResponse: Response;
+      try {
+        codeResponse = await fetch(agent.code_file_url);
+      } catch (e) {
+        return new Response(JSON.stringify(categorizedError(
+          "download_error", `Fetch error: ${e instanceof Error ? e.message : String(e)}`,
+          "Could not download your code file. Please re-upload."
+        )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       if (!codeResponse.ok) {
-        throw new Error(`Failed to download code file: ${codeResponse.status}`);
+        return new Response(JSON.stringify(categorizedError(
+          "download_error", `HTTP ${codeResponse.status} from storage`,
+          `Could not download your code file (HTTP ${codeResponse.status}). Please re-upload.`
+        )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       let code: string;
       const isZip = agent.code_file_url.toLowerCase().endsWith(".zip");
 
       if (isZip) {
-        // Extract code from ZIP archive
-        const zipBuffer = await codeResponse.arrayBuffer();
-        const zip = await JSZip.loadAsync(zipBuffer);
+        try {
+          const zipBuffer = await codeResponse.arrayBuffer();
+          const zip = await JSZip.loadAsync(zipBuffer);
 
-        const entryFnName = agent.entry_function || "handle";
-        // Look for common entry files
-        const candidates = [
-          "index.ts", "index.js", "main.ts", "main.js",
-          `${entryFnName}.ts`, `${entryFnName}.js`,
-        ];
+          const entryFnName = agent.entry_function || "handle";
+          const candidates = [
+            "index.ts", "index.js", "main.ts", "main.js",
+            `${entryFnName}.ts`, `${entryFnName}.js`,
+          ];
 
-        let entryFile: JSZip.JSZipObject | null = null;
+          let entryFile: JSZip.JSZipObject | null = null;
 
-        // First try exact matches at root level
-        for (const name of candidates) {
-          const f = zip.file(name);
-          if (f) { entryFile = f; break; }
+          for (const name of candidates) {
+            const f = zip.file(name);
+            if (f) { entryFile = f; break; }
+          }
+
+          if (!entryFile) {
+            zip.forEach((relativePath, file) => {
+              if (entryFile) return;
+              const fileName = relativePath.split("/").pop() || "";
+              if (candidates.includes(fileName)) {
+                entryFile = file;
+              }
+            });
+          }
+
+          if (!entryFile) {
+            zip.forEach((relativePath, file) => {
+              if (entryFile) return;
+              if (/\.(ts|js)$/.test(relativePath) && !file.dir) {
+                entryFile = file;
+              }
+            });
+          }
+
+          if (!entryFile) {
+            return new Response(JSON.stringify(categorizedError(
+              "zip_error", "No .ts or .js file found in archive",
+              "No TypeScript/JavaScript file found in your ZIP. Include an index.ts or main.ts."
+            )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+
+          code = await entryFile.async("string");
+        } catch (e) {
+          if ((e as any)?.error_type) throw e;
+          return new Response(JSON.stringify(categorizedError(
+            "zip_error", `ZIP parsing failed: ${e instanceof Error ? e.message : String(e)}`,
+            "Failed to extract your ZIP file. Make sure it's a valid ZIP archive."
+          )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-
-        // If not found, search recursively for any .ts/.js file matching candidates
-        if (!entryFile) {
-          zip.forEach((relativePath, file) => {
-            if (entryFile) return;
-            const fileName = relativePath.split("/").pop() || "";
-            if (candidates.includes(fileName)) {
-              entryFile = file;
-            }
-          });
-        }
-
-        // Last resort: first .ts or .js file found
-        if (!entryFile) {
-          zip.forEach((relativePath, file) => {
-            if (entryFile) return;
-            if (/\.(ts|js)$/.test(relativePath) && !file.dir) {
-              entryFile = file;
-            }
-          });
-        }
-
-        if (!entryFile) {
-          throw new Error("No TypeScript/JavaScript entry file found in ZIP archive");
-        }
-
-        code = await entryFile.async("string");
       } else {
         code = await codeResponse.text();
       }
 
+      // Strip imports/exports
+      const { cleaned, hadImports } = stripImportsExports(code);
+      const warnings: string[] = [];
+      if (hadImports) {
+        warnings.push("Import/export statements were stripped. Your agent should be self-contained or use only Deno globals.");
+      }
+
       const entryFn = agent.entry_function || "handle";
 
-      // Execute via AsyncFunction to run the agent code in-process
-      // Wrap the code so we can extract the entry function
+      // Construct the async function
       const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
       const wrappedCode = `
-        ${code}
+        ${cleaned}
         ;
         if (typeof ${entryFn} === "function") {
           return await ${entryFn}(__input__);
         } else {
-          throw new Error('Entry function "${entryFn}" not found in agent code.');
+          throw new Error('__MISSING_ENTRY__');
         }
       `;
 
@@ -133,20 +182,56 @@ serve(async (req) => {
         context: {},
       };
 
-      const fn = new AsyncFunction("__input__", wrappedCode);
-      const result = await fn(input);
+      let fn: any;
+      try {
+        fn = new AsyncFunction("__input__", wrappedCode);
+      } catch (e) {
+        return new Response(JSON.stringify(categorizedError(
+          "syntax_error", `${e instanceof Error ? e.message : String(e)}`,
+          `Your code has a syntax error: ${e instanceof Error ? e.message : String(e)}`
+        )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // Execute with timeout
+      let result: any;
+      try {
+        const timeoutMs = 10000;
+        result = await Promise.race([
+          fn(input),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("__TIMEOUT__")), timeoutMs)),
+        ]);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg === "__TIMEOUT__") {
+          return new Response(JSON.stringify(categorizedError(
+            "timeout", "Execution exceeded 10s",
+            "Your agent took too long to respond (>10s). Optimize your code or reduce processing."
+          )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        if (msg === "__MISSING_ENTRY__") {
+          return new Response(JSON.stringify(categorizedError(
+            "missing_entry", `Function '${entryFn}' not found after code execution`,
+            `Entry function '${entryFn}' not found in your code. Make sure you define a function called '${entryFn}'.`
+          )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        return new Response(JSON.stringify(categorizedError(
+          "runtime_error", msg,
+          `Your agent threw an error: ${msg}`
+        )), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
 
       // Normalize response
-      let responseData: { response: string; tools_used?: string[] };
+      let responseData: { response: string; tools_used?: string[]; warnings?: string[] };
       if (typeof result === "string") {
-        responseData = { response: result, tools_used: [] };
+        responseData = { response: result, tools_used: [], warnings };
       } else if (result && typeof result === "object") {
         responseData = {
           response: result.response ?? JSON.stringify(result),
           tools_used: result.tools_used ?? [],
+          warnings,
         };
       } else {
-        responseData = { response: String(result), tools_used: [] };
+        responseData = { response: String(result), tools_used: [], warnings };
       }
 
       return new Response(JSON.stringify(responseData), {
@@ -178,7 +263,7 @@ serve(async (req) => {
     const result = await execResponse.json();
 
     if (!execResponse.ok) {
-      return new Response(JSON.stringify({ error: result.error || "Execution failed" }), {
+      return new Response(JSON.stringify({ error: result.error || "Execution failed", error_type: "runtime_error", error_details: result.error || "Python execution failed" }), {
         status: execResponse.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -189,7 +274,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: errorMessage, error_type: "unknown", error_details: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

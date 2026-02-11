@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Cloud, Server, Send, Trash2, Bot, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { Cloud, Server, Send, Trash2, Bot, CheckCircle, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { AgentTestConsole } from "./AgentTestConsole";
@@ -28,10 +29,23 @@ interface AgentDetailSheetProps {
   onOpenChange: (open: boolean) => void;
   onSubmitForReview: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onValidate?: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview, onDelete }: AgentDetailSheetProps) => {
+export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview, onDelete, onValidate }: AgentDetailSheetProps) => {
+  const [validating, setValidating] = useState(false);
+
   if (!agent) return null;
+
+  const canSubmit = agent.status === "draft" && agent.execution_status !== "error";
+  const hasValidationError = agent.execution_status === "error";
+
+  const handleRevalidate = async () => {
+    if (!onValidate) return;
+    setValidating(true);
+    await onValidate(agent.id);
+    setValidating(false);
+  };
 
   const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="grid grid-cols-3 gap-2 text-sm py-1.5">
@@ -70,6 +84,41 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
               {agent.hosting_type === "self_hosted" ? "Self-Hosted" : "Platform"}
             </Badge>
           </div>
+
+          {/* Validation Status - Prominent section */}
+          {agent.hosting_type === "platform" && (
+            <>
+              <div className={`rounded-lg border p-3 space-y-2 ${
+                agent.execution_status === "ready" ? "border-green-500/30 bg-green-500/5" :
+                agent.execution_status === "error" ? "border-destructive/30 bg-destructive/5" :
+                agent.execution_status === "building" ? "border-yellow-500/30 bg-yellow-500/5" :
+                "border-border bg-muted/30"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {agent.execution_status === "ready" && <><CheckCircle className="h-4 w-4 text-green-500" /> Validation Passed</>}
+                    {agent.execution_status === "building" && <><Loader2 className="h-4 w-4 text-yellow-500 animate-spin" /> Validating...</>}
+                    {agent.execution_status === "error" && <><AlertCircle className="h-4 w-4 text-destructive" /> Validation Failed</>}
+                    {!["ready", "building", "error"].includes(agent.execution_status) && <><AlertCircle className="h-4 w-4 text-muted-foreground" /> Not Validated</>}
+                  </div>
+                  {onValidate && agent.execution_status !== "building" && (
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={handleRevalidate} disabled={validating}>
+                      {validating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                      Re-validate
+                    </Button>
+                  )}
+                </div>
+                {agent.execution_error && (
+                  <div className="text-xs text-destructive bg-destructive/10 p-2 rounded font-mono whitespace-pre-wrap">
+                    {agent.execution_error}
+                  </div>
+                )}
+                {hasValidationError && (
+                  <p className="text-xs text-muted-foreground">Fix the error above and re-validate before submitting for review.</p>
+                )}
+              </div>
+            </>
+          )}
 
           {agent.review_notes && agent.status === "rejected" && (
             <div className="bg-destructive/5 text-destructive text-sm rounded-md p-3">
@@ -136,24 +185,6 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
             </>
           )}
 
-          {/* Execution status */}
-          {agent.hosting_type === "platform" && agent.code_file_url && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold mb-2">Execution Status</h4>
-                <div className="flex items-center gap-2 text-sm">
-                  {agent.execution_status === "ready" && <><CheckCircle className="h-4 w-4 text-green-500" /> Ready</>}
-                  {agent.execution_status === "building" && <><Loader2 className="h-4 w-4 text-yellow-500 animate-spin" /> Building</>}
-                  {agent.execution_status === "error" && <><AlertCircle className="h-4 w-4 text-destructive" /> Error</>}
-                </div>
-                {agent.execution_error && (
-                  <p className="text-xs text-destructive mt-1 bg-destructive/5 p-2 rounded">{agent.execution_error}</p>
-                )}
-              </div>
-            </>
-          )}
-
           {/* System Prompt & Tools */}
           {(agent.system_prompt || (agent.allowed_tools && agent.allowed_tools.length > 0)) && (
             <>
@@ -203,9 +234,18 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
           <Separator />
           <div className="flex gap-2 pt-2">
             {agent.status === "draft" && (
-              <Button size="sm" onClick={() => { onSubmitForReview(agent.id); onOpenChange(false); }}>
-                <Send className="h-3 w-3 mr-1" /> Submit for Review
-              </Button>
+              <div className="flex flex-col gap-1.5">
+                <Button
+                  size="sm"
+                  onClick={() => { onSubmitForReview(agent.id); onOpenChange(false); }}
+                  disabled={!canSubmit}
+                >
+                  <Send className="h-3 w-3 mr-1" /> Submit for Review
+                </Button>
+                {hasValidationError && (
+                  <p className="text-xs text-destructive">Fix validation errors before submitting.</p>
+                )}
+              </div>
             )}
             {(agent.status === "draft" || agent.status === "rejected") && (
               <Button size="sm" variant="destructive" onClick={() => { onDelete(agent.id); onOpenChange(false); }}>
