@@ -1,51 +1,45 @@
 
 
-# Enable Test Console for Platform-Hosted Agents
+# Fix Test Console for TypeScript Agents
 
 ## Problem
-The Test Console is currently restricted to self-hosted agents only. Platform-hosted agents (like your "google Ads" agent) cannot be tested from the detail sheet.
+The test-agent edge function currently routes ALL platform-hosted agents through `execute-python-agent`, which requires an external Python sandbox (Piston). Your agent is TypeScript, so this path fails.
 
 ## Solution
-Extend the Test Console visibility to also cover platform-hosted agents that have a `code_file_url` and are in "ready" execution status. For platform-hosted agents, the console will call the agent through a backend function proxy (since the code runs server-side, not at a browser-accessible URL).
+Update the `test-agent` edge function to handle TypeScript agents directly. Since edge functions already run in a Deno/TypeScript environment, we can dynamically import and execute TypeScript agent code without any external service.
+
+For TypeScript agents, the function will:
+1. Download the agent's code file from storage
+2. Execute it inline using `eval` or dynamic import (with the standardized `handle` contract)
+3. Return the result directly
+
+For Python agents, the existing `execute-python-agent` path remains unchanged (for future use when Piston is configured).
 
 ## Changes
 
-### 1. Update `AgentDetailSheet.tsx`
-Change the visibility condition to also show the test console for platform-hosted agents with `execution_status === "ready"`:
+### File: `supabase/functions/test-agent/index.ts`
 
+Update the execution logic to branch by runtime:
+
+- **TypeScript agents** (`runtime === "typescript"`): Download the code, use dynamic import via a data URI to execute the entry function directly in the Deno runtime. No external service needed.
+- **Python agents** (`runtime === "python"`): Keep the existing proxy to `execute-python-agent` (requires `PYTHON_EXECUTOR_URL`).
+
+The agent lookup query will be updated to also fetch `runtime` from the `agent_submissions` table.
+
+### Execution Flow for TypeScript Agents
+
+```text
+1. Authenticate user, verify agent ownership
+2. Fetch agent record (including runtime, code_file_url, entry_function)
+3. If runtime === "typescript":
+   a. Download code from code_file_url
+   b. Create a Blob/data URI from the code
+   c. Dynamically import and call the entry function
+   d. Return the result
+4. If runtime === "python":
+   a. Proxy to execute-python-agent (existing flow)
 ```
-Before: self_hosted && external_endpoint_url
-After:  (self_hosted && external_endpoint_url) OR (platform && execution_status === "ready")
-```
 
-### 2. Update `AgentTestConsole.tsx`
-- For platform-hosted agents, send the test request through a backend function (`test-agent`) instead of directly to an external URL
-- Remove the action selector for platform agents (they only have the single `handle` entry point)
-- Show target as the agent name rather than a URL for platform agents
-
-### 3. Create Edge Function `supabase/functions/test-agent/index.ts`
-A new backend function that:
-- Accepts `{ agent_id, message }` in the request body
-- Looks up the agent's `code_file_url` and `entry_function` from the database
-- Executes the agent's code and returns the result
-- Requires authentication (developer must own the agent)
-
-## Technical Details
-
-### Files to Modify
-| File | Change |
-|------|--------|
-| `src/components/developer/AgentDetailSheet.tsx` | Expand test console visibility condition |
-| `src/components/developer/AgentTestConsole.tsx` | Add platform-hosted path using edge function proxy |
-
-### Files to Create
-| File | Purpose |
-|------|---------|
-| `supabase/functions/test-agent/index.ts` | Backend proxy to execute platform-hosted agent code for testing |
-
-### Test Console Behavior by Hosting Type
-
-**Self-Hosted**: No change -- sends requests directly to the agent's external URL with configured auth headers.
-
-**Platform-Hosted**: Sends a POST request to the `test-agent` backend function with the agent ID and test message. The backend function handles execution and returns the response.
+### No Frontend Changes Required
+The `AgentTestConsole.tsx` already sends requests to the `test-agent` function correctly -- only the backend logic changes.
 
