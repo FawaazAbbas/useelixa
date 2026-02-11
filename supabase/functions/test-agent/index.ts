@@ -61,45 +61,44 @@ serve(async (req) => {
 
       const entryFn = agent.entry_function || "handle";
 
-      // Dynamic import via data URI
-      const blob = new Blob([code], { type: "application/typescript" });
-      const url = URL.createObjectURL(blob);
-
-      try {
-        const mod = await import(url);
-        const handler = mod[entryFn] || mod.default;
-
-        if (typeof handler !== "function") {
-          throw new Error(`Entry function "${entryFn}" not found in agent code. Available exports: ${Object.keys(mod).join(", ")}`);
-        }
-
-        const input = {
-          message: message || "",
-          user_id: user.id,
-          context: {},
-        };
-
-        const result = await handler(input);
-
-        // Normalize response
-        let responseData: { response: string; tools_used?: string[] };
-        if (typeof result === "string") {
-          responseData = { response: result, tools_used: [] };
-        } else if (result && typeof result === "object") {
-          responseData = {
-            response: result.response ?? JSON.stringify(result),
-            tools_used: result.tools_used ?? [],
-          };
+      // Execute via AsyncFunction to run the agent code in-process
+      // Wrap the code so we can extract the entry function
+      const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+      const wrappedCode = `
+        ${code}
+        ;
+        if (typeof ${entryFn} === "function") {
+          return await ${entryFn}(__input__);
         } else {
-          responseData = { response: String(result), tools_used: [] };
+          throw new Error('Entry function "${entryFn}" not found in agent code.');
         }
+      `;
 
-        return new Response(JSON.stringify(responseData), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      } finally {
-        URL.revokeObjectURL(url);
+      const input = {
+        message: message || "",
+        user_id: user.id,
+        context: {},
+      };
+
+      const fn = new AsyncFunction("__input__", wrappedCode);
+      const result = await fn(input);
+
+      // Normalize response
+      let responseData: { response: string; tools_used?: string[] };
+      if (typeof result === "string") {
+        responseData = { response: result, tools_used: [] };
+      } else if (result && typeof result === "object") {
+        responseData = {
+          response: result.response ?? JSON.stringify(result),
+          tools_used: result.tools_used ?? [],
+        };
+      } else {
+        responseData = { response: String(result), tools_used: [] };
       }
+
+      return new Response(JSON.stringify(responseData), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // --- Python agents: proxy to execute-python-agent ---
