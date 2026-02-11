@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Cloud, Server, Globe, Send, Trash2, Bot, CheckCircle, Loader2, AlertCircle, RefreshCw, Heart, HeartCrack } from "lucide-react";
+import { Server, Globe, Send, Trash2, Bot, Loader2, RefreshCw, Heart, HeartCrack } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
@@ -101,41 +101,15 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
           <div className="flex items-center gap-2">
             <Badge className={statusColors[agent.status] || ""}>{agent.status.replace("_", " ")}</Badge>
             <Badge variant="outline" className="gap-1">
-              {isEndpoint ? <Globe className="h-3 w-3" /> : agent.hosting_type === "self_hosted" ? <Server className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
-              {isEndpoint ? "Endpoint" : agent.hosting_type === "self_hosted" ? "Self-Hosted" : "Platform"}
+              {isEndpoint ? <Globe className="h-3 w-3" /> : <Server className="h-3 w-3" />}
+              {isEndpoint ? "Endpoint" : "Legacy"}
             </Badge>
           </div>
 
-          {/* Validation Status - Platform only */}
-          {agent.hosting_type === "platform" && !isEndpoint && (
-            <div className={`rounded-lg border p-3 space-y-2 ${
-              agent.execution_status === "ready" ? "border-green-500/30 bg-green-500/5" :
-              agent.execution_status === "error" ? "border-destructive/30 bg-destructive/5" :
-              agent.execution_status === "building" ? "border-yellow-500/30 bg-yellow-500/5" :
-              "border-border bg-muted/30"
-            }`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  {agent.execution_status === "ready" && <><CheckCircle className="h-4 w-4 text-green-500" /> Validation Passed</>}
-                  {agent.execution_status === "building" && <><Loader2 className="h-4 w-4 text-yellow-500 animate-spin" /> Validating...</>}
-                  {agent.execution_status === "error" && <><AlertCircle className="h-4 w-4 text-destructive" /> Validation Failed</>}
-                  {!["ready", "building", "error"].includes(agent.execution_status) && <><AlertCircle className="h-4 w-4 text-muted-foreground" /> Not Validated</>}
-                </div>
-                {onValidate && agent.execution_status !== "building" && (
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={handleRevalidate} disabled={validating}>
-                    {validating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
-                    Re-validate
-                  </Button>
-                )}
-              </div>
-              {agent.execution_error && (
-                <div className="text-xs text-destructive bg-destructive/10 p-2 rounded font-mono whitespace-pre-wrap">
-                  {agent.execution_error}
-                </div>
-              )}
-              {hasValidationError && (
-                <p className="text-xs text-muted-foreground">Fix the error above and re-validate before submitting for review.</p>
-              )}
+          {/* Legacy validation status - shown only for non-endpoint agents */}
+          {!isEndpoint && agent.hosting_type === "platform" && agent.execution_status === "error" && agent.execution_error && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive font-mono whitespace-pre-wrap">
+              {agent.execution_error}
             </div>
           )}
 
@@ -213,16 +187,11 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
                   </>
                 )}
               </>
-            ) : agent.hosting_type === "self_hosted" ? (
-              <>
-                <DetailRow label="Base URL" value={agent.external_endpoint_url} />
-                <DetailRow label="Auth Header" value={agent.external_auth_header} />
-              </>
             ) : (
               <>
-                <DetailRow label="Code File" value={agent.code_file_url ? "Uploaded" : "None"} />
-                <DetailRow label="Entry Function" value={agent.entry_function} />
-                <DetailRow label="Requirements" value={agent.requirements} />
+                <DetailRow label="Type" value="Legacy agent" />
+                {agent.external_endpoint_url && <DetailRow label="URL" value={agent.external_endpoint_url} />}
+                {agent.code_file_url && <DetailRow label="Code" value="Uploaded" />}
               </>
             )}
           </div>
@@ -249,31 +218,6 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
             </>
           )}
 
-          {/* System Prompt & Tools */}
-          {!isEndpoint && (agent.system_prompt || (agent.allowed_tools && agent.allowed_tools.length > 0)) && (
-            <>
-              <Separator />
-              <div>
-                <h4 className="text-sm font-semibold mb-2">AI Configuration</h4>
-                {agent.system_prompt && (
-                  <div className="mb-2">
-                    <p className="text-xs text-muted-foreground mb-1">System Prompt</p>
-                    <p className="text-sm bg-muted p-2 rounded-md whitespace-pre-wrap max-h-32 overflow-y-auto">{agent.system_prompt}</p>
-                  </div>
-                )}
-                {agent.allowed_tools && agent.allowed_tools.length > 0 && (
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Allowed Tools</p>
-                    <div className="flex flex-wrap gap-1">
-                      {agent.allowed_tools.map((t) => (
-                        <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
 
           <Separator />
 
@@ -287,7 +231,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
           </div>
 
           {/* Test Console */}
-          {(isEndpoint || (agent.hosting_type === "self_hosted" && agent.external_endpoint_url) || (agent.hosting_type === "platform" && agent.execution_status === "ready")) && (
+          {(isEndpoint || agent.external_endpoint_url) && (
             <>
               <Separator />
               <AgentTestConsole agent={agent} />

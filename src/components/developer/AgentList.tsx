@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Trash2, Bot, Cloud, Server, Globe, CheckCircle, Loader2, AlertCircle, Search, LayoutGrid, List } from "lucide-react";
+import { Send, Trash2, Bot, Globe, Server, CheckCircle, Loader2, AlertCircle, Search, LayoutGrid, List } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ElixaMascot } from "@/components/ElixaMascot";
 import { AgentDetailSheet } from "./AgentDetailSheet";
@@ -24,16 +24,14 @@ const statusColors: Record<string, string> = {
   rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
-const hostingIcon = (type: string) => {
-  if (type === "endpoint") return <Globe className="h-2.5 w-2.5" />;
-  if (type === "self_hosted") return <Server className="h-2.5 w-2.5" />;
-  return <Cloud className="h-2.5 w-2.5" />;
-};
-
 const hostingLabel = (type: string) => {
   if (type === "endpoint") return "Endpoint";
-  if (type === "self_hosted") return "Self-Hosted";
-  return "Platform";
+  return "Legacy";
+};
+
+const hostingIcon = (type: string) => {
+  if (type === "endpoint") return <Globe className="h-2.5 w-2.5" />;
+  return <Server className="h-2.5 w-2.5" />;
 };
 
 export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: AgentListProps) => {
