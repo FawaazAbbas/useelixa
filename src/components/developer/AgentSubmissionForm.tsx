@@ -6,16 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Loader2, X, ChevronRight, ChevronLeft, Check, Cloud, Server, Code, ChevronDown } from "lucide-react";
+import { Loader2, ChevronRight, ChevronLeft, Check, Cloud, Server } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { HostingTypeSelector } from "./HostingTypeSelector";
 import { PlatformHostedFields } from "./PlatformHostedFields";
 import { SelfHostedFields } from "./SelfHostedFields";
+import { AgentActionsEditor, type AgentActionDraft } from "./AgentActionsEditor";
 
 interface AgentSubmissionFormProps {
-  onSubmit: (agent: Partial<AgentSubmission>) => Promise<any>;
+  onSubmit: (agent: Partial<AgentSubmission>, actions?: AgentActionDraft[]) => Promise<any>;
   userId?: string;
 }
 
@@ -26,6 +26,16 @@ const AVAILABLE_TOOLS = [
   "shopify", "stripe", "hubspot", "jira", "github",
   "salesforce", "asana", "clickup", "zendesk", "freshdesk",
 ];
+
+const DEFAULT_ACTION: AgentActionDraft = { action_name: "handle", path: "/handle", method: "POST", description: "" };
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  POST: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  PUT: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  DELETE: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  PATCH: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+};
 
 export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormProps) => {
   const [step, setStep] = useState(1);
@@ -51,9 +61,17 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [authHeader, setAuthHeader] = useState("");
   const [authToken, setAuthToken] = useState("");
 
-  // Step 3: Assets
+  // Step 3 (self-hosted only): Actions
+  const [actions, setActions] = useState<AgentActionDraft[]>([{ ...DEFAULT_ACTION }]);
+
+  // Icon
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+
+  const isSelfHosted = hostingType === "self_hosted";
+  const totalSteps = isSelfHosted ? 5 : 4;
+  const iconStep = isSelfHosted ? 4 : 3;
+  const reviewStep = isSelfHosted ? 5 : 4;
 
   const toggleTool = (tool: string) => {
     setSelectedTools((prev) =>
@@ -85,25 +103,28 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     let codeFileUrl: string | null = null;
 
     if (iconFile) iconUrl = await uploadFile(iconFile, "icons");
-    if (codeFile && hostingType === "platform") codeFileUrl = await uploadFile(codeFile, "code");
+    if (codeFile && !isSelfHosted) codeFileUrl = await uploadFile(codeFile, "code");
 
-    await onSubmit({
-      name,
-      description,
-      category,
-      version,
-      hosting_type: hostingType,
-      runtime,
-      system_prompt: systemPrompt || null,
-      allowed_tools: selectedTools.length > 0 ? selectedTools : null,
-      icon_url: iconUrl,
-      code_file_url: codeFileUrl,
-      requirements: hostingType === "platform" ? requirements || null : null,
-      entry_function: hostingType === "platform" ? entryFunction : null,
-      external_endpoint_url: hostingType === "self_hosted" ? endpointUrl : null,
-      external_auth_header: hostingType === "self_hosted" ? authHeader || null : null,
-      external_auth_token: hostingType === "self_hosted" ? authToken || null : null,
-    });
+    await onSubmit(
+      {
+        name,
+        description,
+        category,
+        version,
+        hosting_type: hostingType,
+        runtime,
+        system_prompt: systemPrompt || null,
+        allowed_tools: selectedTools.length > 0 ? selectedTools : null,
+        icon_url: iconUrl,
+        code_file_url: codeFileUrl,
+        requirements: !isSelfHosted ? requirements || null : null,
+        entry_function: !isSelfHosted ? entryFunction : null,
+        external_endpoint_url: isSelfHosted ? endpointUrl : null,
+        external_auth_header: isSelfHosted ? authHeader || null : null,
+        external_auth_token: isSelfHosted ? authToken || null : null,
+      },
+      isSelfHosted ? actions : undefined,
+    );
 
     // Reset form
     setStep(1);
@@ -111,6 +132,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     setHostingType("platform"); setSystemPrompt(""); setSelectedTools([]);
     setCodeFile(null); setRequirements(""); setEntryFunction("handle"); setRuntime("python");
     setEndpointUrl(""); setAuthHeader(""); setAuthToken("");
+    setActions([{ ...DEFAULT_ACTION }]);
     setIconFile(null); setIconPreview(null);
     setSaving(false);
   };
@@ -118,8 +140,11 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const canProceed = () => {
     if (step === 1) return name.trim().length > 0;
     if (step === 2) {
-      if (hostingType === "self_hosted") return endpointUrl.trim().length > 0;
+      if (isSelfHosted) return endpointUrl.trim().length > 0;
       return true;
+    }
+    if (step === 3 && isSelfHosted) {
+      return actions.length > 0 && actions.every((a) => a.action_name.trim() && a.path.trim());
     }
     return true;
   };
@@ -128,9 +153,9 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     <Card>
       <CardHeader>
         <CardTitle>Submit New Agent</CardTitle>
-        <CardDescription>Step {step} of 4</CardDescription>
+        <CardDescription>Step {step} of {totalSteps}</CardDescription>
         <div className="flex gap-1 mt-2">
-          {[1, 2, 3, 4].map((s) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
             <div key={s} className={`h-1.5 flex-1 rounded-full ${s <= step ? "bg-primary" : "bg-muted"}`} />
           ))}
         </div>
@@ -165,7 +190,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           </>
         )}
 
-        {step === 2 && hostingType === "platform" && (
+        {step === 2 && !isSelfHosted && (
           <PlatformHostedFields
             codeFile={codeFile}
             onCodeFileChange={setCodeFile}
@@ -183,7 +208,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           />
         )}
 
-        {step === 2 && hostingType === "self_hosted" && (
+        {step === 2 && isSelfHosted && (
           <SelfHostedFields
             endpointUrl={endpointUrl}
             onEndpointUrlChange={setEndpointUrl}
@@ -196,7 +221,11 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           />
         )}
 
-        {step === 3 && (
+        {step === 3 && isSelfHosted && (
+          <AgentActionsEditor actions={actions} onChange={setActions} baseUrl={endpointUrl} />
+        )}
+
+        {step === iconStep && (
           <div className="space-y-2">
             <Label>Agent Icon</Label>
             <Input type="file" accept="image/*" onChange={handleIconChange} />
@@ -206,7 +235,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           </div>
         )}
 
-        {step === 4 && (
+        {step === reviewStep && (
           <div className="space-y-3">
             <h3 className="font-semibold">Review your agent</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -215,17 +244,17 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
               <span className="text-muted-foreground">Version:</span><span>{version}</span>
               <span className="text-muted-foreground">Hosting:</span>
               <span className="flex items-center gap-1">
-                {hostingType === "platform" ? <Cloud className="h-3 w-3" /> : <Server className="h-3 w-3" />}
-                {hostingType === "platform" ? "Platform Hosted" : "Self-Hosted"}
+                {!isSelfHosted ? <Cloud className="h-3 w-3" /> : <Server className="h-3 w-3" />}
+                {!isSelfHosted ? "Platform Hosted" : "Self-Hosted"}
               </span>
               <span className="text-muted-foreground">Runtime:</span><span className="capitalize">{runtime}</span>
-              {hostingType === "self_hosted" && (
+              {isSelfHosted && (
                 <>
-                  <span className="text-muted-foreground">Endpoint:</span>
+                  <span className="text-muted-foreground">Base URL:</span>
                   <span className="truncate">{endpointUrl}</span>
                 </>
               )}
-              {hostingType === "platform" && codeFile && (
+              {!isSelfHosted && codeFile && (
                 <>
                   <span className="text-muted-foreground">Code File:</span>
                   <span>{codeFile.name}</span>
@@ -234,6 +263,20 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
               <span className="text-muted-foreground">Tools:</span><span>{selectedTools.length > 0 ? selectedTools.join(", ") : "None"}</span>
               <span className="text-muted-foreground">Icon:</span><span>{iconFile ? iconFile.name : "None"}</span>
             </div>
+            {isSelfHosted && actions.length > 0 && (
+              <div className="mt-3">
+                <p className="text-sm font-medium mb-2">Registered Actions ({actions.length})</p>
+                <div className="space-y-1.5">
+                  {actions.map((a, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <Badge className={`${METHOD_COLORS[a.method] || ""} text-[10px] px-1.5 py-0`}>{a.method}</Badge>
+                      <span className="font-mono text-muted-foreground">{a.path}</span>
+                      <span className="text-foreground">{a.action_name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {description && <p className="text-sm text-muted-foreground">{description}</p>}
           </div>
         )}
@@ -242,7 +285,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
           <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 1}>
             <ChevronLeft className="h-4 w-4 mr-1" /> Back
           </Button>
-          {step < 4 ? (
+          {step < reviewStep ? (
             <Button onClick={() => setStep((s) => s + 1)} disabled={!canProceed()}>
               Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>

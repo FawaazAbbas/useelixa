@@ -14,6 +14,19 @@ export interface DeveloperProfile {
   updated_at: string;
 }
 
+export interface AgentAction {
+  id: string;
+  agent_id: string;
+  action_name: string;
+  path: string;
+  method: string;
+  description: string | null;
+  request_schema: any;
+  response_schema: any;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface AgentSubmission {
   id: string;
   developer_id: string;
@@ -45,6 +58,7 @@ export interface AgentSubmission {
   entry_function: string | null;
   execution_status: string;
   execution_error: string | null;
+  actions?: AgentAction[];
 }
 
 export const useDeveloperPortal = () => {
@@ -110,7 +124,25 @@ export const useDeveloperPortal = () => {
       .select("*")
       .order("created_at", { ascending: false });
     
-    if (data) setAgents(data as AgentSubmission[]);
+    if (data) {
+      // Fetch actions for self-hosted agents
+      const selfHostedIds = data.filter((a: any) => a.hosting_type === "self_hosted").map((a: any) => a.id);
+      let actionsMap: Record<string, any[]> = {};
+      if (selfHostedIds.length > 0) {
+        const { data: actionsData } = await supabase
+          .from("agent_actions" as any)
+          .select("*")
+          .in("agent_id", selfHostedIds)
+          .order("sort_order", { ascending: true });
+        if (actionsData) {
+          for (const action of actionsData as any[]) {
+            if (!actionsMap[action.agent_id]) actionsMap[action.agent_id] = [];
+            actionsMap[action.agent_id].push(action);
+          }
+        }
+      }
+      setAgents(data.map((a: any) => ({ ...a, actions: actionsMap[a.id] || [] })) as AgentSubmission[]);
+    }
   };
 
   const updateProfile = async (updates: Partial<DeveloperProfile>) => {
@@ -128,7 +160,7 @@ export const useDeveloperPortal = () => {
     }
   };
 
-  const createAgent = async (agent: Partial<AgentSubmission>) => {
+  const createAgent = async (agent: Partial<AgentSubmission>, actions?: { action_name: string; path: string; method: string; description: string }[]) => {
     if (!profile) return null;
     const slug = agent.name
       ?.toLowerCase()
@@ -145,6 +177,25 @@ export const useDeveloperPortal = () => {
       toast({ variant: "destructive", title: "Error", description: error.message });
       return null;
     }
+
+    // Insert actions if provided
+    if (actions && actions.length > 0 && data) {
+      const actionRows = actions.map((a, i) => ({
+        agent_id: data.id,
+        action_name: a.action_name,
+        path: a.path,
+        method: a.method,
+        description: a.description || null,
+        sort_order: i,
+      }));
+      const { error: actionsError } = await supabase
+        .from("agent_actions" as any)
+        .insert(actionRows as any);
+      if (actionsError) {
+        toast({ variant: "destructive", title: "Error saving actions", description: actionsError.message });
+      }
+    }
+
     toast({ title: "Agent created" });
     await fetchAgents();
     return data;
