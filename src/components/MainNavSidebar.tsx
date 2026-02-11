@@ -27,6 +27,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: "AI Chat", path: "/chat", isMascot: true },
+  { icon: Users, label: "AI Employees", path: "/ai-employees" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
@@ -40,7 +41,6 @@ const navItems: NavItem[] = [
 const comingSoonItems = [
   { icon: Mail, label: "Emails", comingSoon: true },
   { icon: Workflow, label: "Workflows", comingSoon: true },
-  { icon: Users, label: "AI Employees", comingSoon: true },
   { icon: Table, label: "Lexi Sheets", comingSoon: true },
 ];
 

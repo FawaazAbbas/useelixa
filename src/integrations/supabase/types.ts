@@ -169,6 +169,7 @@ export type Database = {
         Row: {
           agent_id: string
           created_at: string
+          deployed_at: string | null
           id: string
           is_active: boolean
           permissions: Json
@@ -180,6 +181,7 @@ export type Database = {
         Insert: {
           agent_id: string
           created_at?: string
+          deployed_at?: string | null
           id?: string
           is_active?: boolean
           permissions?: Json
@@ -191,6 +193,7 @@ export type Database = {
         Update: {
           agent_id?: string
           created_at?: string
+          deployed_at?: string | null
           id?: string
           is_active?: boolean
           permissions?: Json
@@ -212,6 +215,47 @@ export type Database = {
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          installation_id: string
+          metadata: Json | null
+          request_id: string | null
+          role: string
+          workspace_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          installation_id: string
+          metadata?: Json | null
+          request_id?: string | null
+          role: string
+          workspace_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          installation_id?: string
+          metadata?: Json | null
+          request_id?: string | null
+          role?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_messages_installation_id_fkey"
+            columns: ["installation_id"]
+            isOneToOne: false
+            referencedRelation: "agent_installations"
             referencedColumns: ["id"]
           },
         ]
