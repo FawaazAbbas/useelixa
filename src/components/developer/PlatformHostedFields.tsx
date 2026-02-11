@@ -2,8 +2,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { X, Trash2 } from "lucide-react";
 
 interface PlatformHostedFieldsProps {
   codeFile: File | null;
@@ -62,15 +63,28 @@ export const PlatformHostedFields = ({
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
-        <Label>{fileLabel}</Label>
-        <Input
-          type="file"
-          accept={fileAccept}
-          onChange={(e) => onCodeFileChange(e.target.files?.[0] || null)}
-        />
-        {codeFile && <p className="text-xs text-muted-foreground">Selected: {codeFile.name}</p>}
-      </div>
+       <div className="space-y-2">
+         <Label>{fileLabel}</Label>
+         <Input
+           type="file"
+           accept={fileAccept}
+           onChange={(e) => onCodeFileChange(e.target.files?.[0] || null)}
+         />
+         {codeFile && (
+           <div className="flex items-center justify-between p-2 bg-muted rounded">
+             <p className="text-xs text-muted-foreground">Selected: {codeFile.name}</p>
+             <Button
+               variant="ghost"
+               size="sm"
+               onClick={() => onCodeFileChange(null)}
+               className="h-6 w-6 p-0"
+               title="Clear and re-upload"
+             >
+               <Trash2 className="h-3.5 w-3.5" />
+             </Button>
+           </div>
+         )}
+       </div>
       {!isTs && (
         <div className="space-y-2">
           <Label htmlFor="requirements">Requirements (paste requirements.txt)</Label>
