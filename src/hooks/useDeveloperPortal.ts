@@ -125,7 +125,6 @@ export const useDeveloperPortal = () => {
       .order("created_at", { ascending: false });
     
     if (data) {
-      // Fetch actions for self-hosted agents
       const selfHostedIds = data.filter((a: any) => a.hosting_type === "self_hosted").map((a: any) => a.id);
       let actionsMap: Record<string, any[]> = {};
       if (selfHostedIds.length > 0) {
@@ -160,6 +159,59 @@ export const useDeveloperPortal = () => {
     }
   };
 
+  const validateAgent = async (agentId: string): Promise<{ success: boolean; error?: string; error_type?: string }> => {
+    try {
+      // Set status to building
+      await supabase
+        .from("agent_submissions")
+        .update({ execution_status: "building", execution_error: null } as any)
+        .eq("id", agentId);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) return { success: false, error: "Not authenticated" };
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/test-agent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({ agent_id: agentId, message: "__validation_test__" }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        const errorMsg = result.error || "Validation failed";
+        await supabase
+          .from("agent_submissions")
+          .update({ execution_status: "error", execution_error: errorMsg } as any)
+          .eq("id", agentId);
+        await fetchAgents();
+        return { success: false, error: errorMsg, error_type: result.error_type };
+      }
+
+      await supabase
+        .from("agent_submissions")
+        .update({ execution_status: "ready", execution_error: null } as any)
+        .eq("id", agentId);
+      await fetchAgents();
+      return { success: true };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Validation failed";
+      await supabase
+        .from("agent_submissions")
+        .update({ execution_status: "error", execution_error: msg } as any)
+        .eq("id", agentId);
+      await fetchAgents();
+      return { success: false, error: msg };
+    }
+  };
+
   const createAgent = async (agent: Partial<AgentSubmission>, actions?: { action_name: string; path: string; method: string; description: string }[]) => {
     if (!profile) return null;
     const slug = agent.name
@@ -169,7 +221,7 @@ export const useDeveloperPortal = () => {
 
     const { data, error } = await supabase
       .from("agent_submissions")
-      .insert({ ...agent, developer_id: profile.id, slug } as any)
+      .insert({ ...agent, developer_id: profile.id, slug, execution_status: "building" } as any)
       .select()
       .single();
 
@@ -196,8 +248,15 @@ export const useDeveloperPortal = () => {
       }
     }
 
-    toast({ title: "Agent created" });
+    toast({ title: "Agent created — validating..." });
     await fetchAgents();
+
+    // Auto-validate platform-hosted agents with code
+    if (data && agent.hosting_type !== "self_hosted" && (agent.code_file_url || data.code_file_url)) {
+      // Don't await — let it run in background so UI updates immediately
+      validateAgent(data.id);
+    }
+
     return data;
   };
 
@@ -246,5 +305,6 @@ export const useDeveloperPortal = () => {
     submitForReview,
     deleteAgent,
     fetchAgents,
+    validateAgent,
   };
 };

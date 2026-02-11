@@ -14,6 +14,7 @@ interface AgentListProps {
   agents: AgentSubmission[];
   onSubmitForReview: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onValidate?: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const statusColors: Record<string, string> = {
@@ -23,7 +24,7 @@ const statusColors: Record<string, string> = {
   rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
-export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProps) => {
+export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: AgentListProps) => {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -125,6 +126,23 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 capitalize">
                       {agent.runtime || "python"}
                     </Badge>
+                    {/* Health indicator */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="flex items-center">
+                            {agent.execution_status === "ready" && <CheckCircle className="h-3.5 w-3.5 text-green-500" />}
+                            {agent.execution_status === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive" />}
+                            {agent.execution_status === "building" && <Loader2 className="h-3.5 w-3.5 text-yellow-500 animate-spin" />}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          {agent.execution_status === "ready" && "Agent validated successfully"}
+                          {agent.execution_status === "error" && (agent.execution_error || "Validation failed")}
+                          {agent.execution_status === "building" && "Validating..."}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                   <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
                     {agent.status === "draft" && (
@@ -152,6 +170,7 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete }: AgentListProp
         onOpenChange={(open) => { if (!open) setSelectedAgent(null); }}
         onSubmitForReview={onSubmitForReview}
         onDelete={onDelete}
+        onValidate={onValidate}
       />
     </div>
   );

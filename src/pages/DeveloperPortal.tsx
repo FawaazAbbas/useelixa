@@ -34,6 +34,7 @@ const DeveloperPortal = () => {
     createAgent,
     submitForReview,
     deleteAgent,
+    validateAgent,
   } = useDeveloperPortal();
 
   useEffect(() => {
@@ -88,7 +89,7 @@ const DeveloperPortal = () => {
               <DeveloperOverview agents={agents} onNavigate={setActiveSection} />
             )}
             {activeSection === "agents" && (
-              <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} />
+              <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} onValidate={validateAgent} />
             )}
             {activeSection === "submit" && (
               <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} />
