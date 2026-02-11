@@ -1,176 +1,144 @@
 
 
-# Complete Developer Dashboard Build-Out
+# Multi-Endpoint Self-Hosted Agents
 
 ## Overview
+Currently, self-hosted agents only support a single endpoint URL. This plan adds an **"actions"** concept so a single agent can register multiple operations (e.g., `/plan`, `/run-cycle`, `/monitor`), each with its own path, HTTP method, and description. This directly enables agents like the Google Ads Marketer to be fully represented in the portal.
 
-Transform the current minimal developer portal into a fully-featured dashboard with a proper sidebar navigation layout, rich overview analytics, detailed agent management, API documentation, execution logs, and a polished profile section.
+## What Changes
 
----
+### 1. Database: New `agent_actions` table
+A new table stores one row per action/operation for an agent:
 
-## Layout Overhaul
+```text
+agent_actions
+-------------------------------
+id              uuid (PK)
+agent_id        uuid (FK -> agent_submissions.id, ON DELETE CASCADE)
+action_name     text (e.g. "plan", "run-cycle", "monitor")
+path            text (e.g. "/plan")
+method          text (default "POST")
+description     text (optional)
+request_schema  jsonb (optional -- example request body)
+response_schema jsonb (optional -- example response body)
+sort_order      integer (default 0)
+created_at      timestamptz
+```
 
-Replace the current tabs-based layout with a **sidebar + content area** structure using the existing Sidebar component, matching the rest of the app's design system.
+RLS policies will mirror the `agent_submissions` pattern -- developers can manage actions for their own agents, admins can view all.
 
-### Sidebar Navigation Items
-- **Overview** -- Stats, recent activity, quick actions
-- **My Agents** -- Agent list with filtering, search, and detail views
-- **Submit Agent** -- The existing multi-step wizard
-- **Logs** -- Execution logs for the developer's agents
-- **API Docs** -- Reference documentation for building agents
-- **Settings** -- Profile, API keys, notification preferences
+### 2. Submission Form -- New Step for Self-Hosted Agents
+The existing 4-step wizard becomes **5 steps** when `self_hosted` is selected (the new step is inserted after the base URL/auth step):
 
----
+- **Step 2** (existing): Base URL, auth header/token, runtime -- the `external_endpoint_url` now serves as the **base URL** prefix
+- **Step 3** (new): **Actions Builder** -- a dynamic list where developers add actions:
+  - Each action row has: Action Name, Path (relative to base URL), HTTP Method (GET/POST/PUT/DELETE), Description
+  - Add/remove action buttons
+  - At least one action is required to proceed
+  - Pre-populated with a default `/handle` POST action
 
-## 1. Overview Tab (Enhanced)
+For platform-hosted agents, this step is skipped (they use the single `handle` entry function).
 
-Currently just 4 stat cards. Will be expanded to include:
+### 3. Self-Hosted Fields Update
+`SelfHostedFields.tsx` is simplified to only collect:
+- Runtime
+- Base URL (renamed from "Endpoint URL")
+- Auth Header / Auth Token
 
-- **Stats Row** -- Total Agents, Approved, Pending, Downloads (existing, polished)
-- **Recent Activity Feed** -- Timeline of recent events (agent submitted, approved, rejected, new downloads) pulled from `agent_submissions` timestamps
-- **Quick Actions Card** -- Buttons to "Create New Agent", "View Documentation", "Edit Profile"
-- **Agent Status Breakdown** -- A small visual breakdown (colored bars or mini chart) showing draft vs pending vs approved vs rejected counts
+The API contract collapsible is removed (replaced by per-action schemas in the actions step).
 
----
+### 4. New Component: `AgentActionsEditor.tsx`
+A new form component for step 3 of self-hosted submissions:
+- Renders a list of action cards
+- Each card: action name input, relative path input, method dropdown, description textarea
+- "Add Action" button at the bottom
+- Trash icon to remove actions
+- Validates that at least one action exists and each has a name + path
 
-## 2. My Agents Tab (Enhanced)
+### 5. Detail Sheet Update
+`AgentDetailSheet.tsx` gains a new **"Actions"** section (visible for self-hosted agents):
+- Lists each registered action as a small card showing method badge (color-coded GET/POST/PUT/DELETE), full URL (base + path), and description
+- Displayed between "Hosting Configuration" and "Execution Status"
 
-Currently a flat list of cards. Enhancements:
+### 6. Hook & Type Updates
+- `AgentSubmission` interface in `useDeveloperPortal.ts` gets an optional `actions?: AgentAction[]` field
+- New `AgentAction` interface exported from the hook
+- `createAgent` is updated to: first create the agent, then insert all actions into `agent_actions`
+- `fetchAgents` is updated to also fetch actions for each agent (or use a separate fetch in the detail sheet)
 
-- **Search bar** to filter agents by name
-- **Grid/List view toggle**
-- **Agent Detail Drawer/Dialog** -- Click an agent card to open a side sheet with full details:
-  - All metadata (name, description, category, version, hosting type, runtime)
-  - Hosting config (endpoint URL or code file info)
-  - System prompt and allowed tools
-  - Review notes (if rejected)
-  - Execution status and errors
-  - Download count
-  - Timeline (created, submitted, reviewed dates)
-  - Edit button (for draft/rejected agents)
-  - Inline version history placeholder
-- **Bulk actions** -- Select multiple agents for deletion
-
----
-
-## 3. Execution Logs Tab (New)
-
-A new section showing execution history for the developer's agents:
-
-- **Database**: New `agent_execution_logs` table with columns:
-  - `id` (uuid, PK)
-  - `agent_id` (uuid, FK to agent_submissions)
-  - `developer_id` (uuid, FK to developer_profiles)
-  - `user_id` (uuid, the user who invoked the agent)
-  - `input_message` (text)
-  - `output_response` (text)
-  - `status` (text: "success", "error", "timeout")
-  - `error_message` (text, nullable)
-  - `execution_time_ms` (integer)
-  - `created_at` (timestamptz)
-
-- **UI Components**:
-  - Filterable table with columns: Agent Name, Status, Duration, Timestamp
-  - Click a row to see full input/output
-  - Filter by agent, status, date range
-  - Simple stats at top: Total Executions, Success Rate, Avg Duration
-
-- **RLS**: Developer can only see logs for their own agents
-
----
-
-## 4. API Documentation Tab (New)
-
-Static reference page built as a React component (no external docs site needed):
-
-- **Getting Started** section explaining the two hosting models
-- **Platform-Hosted** section:
-  - Function signature (`def handle(input: dict) -> dict`)
-  - Input/output JSON schema
-  - Available tools list
-  - Requirements format
-  - Code examples (Python)
-- **Self-Hosted** section:
-  - API contract (POST request/response format)
-  - Authentication setup
-  - Health check endpoint recommendation
-  - Code examples (Flask, FastAPI)
-- **Testing** section:
-  - How to test locally before submitting
-  - Expected response format
-
----
-
-## 5. Settings Tab (Enhanced Profile)
-
-Expand the current basic profile form:
-
-- **Profile Section** (existing: company name, website, bio)
-- **API Keys Section** -- Display the developer's ID and any generated API keys for testing
-- **Notification Preferences** -- Toggle email notifications for: agent approved, agent rejected, new downloads milestone
-- **Danger Zone** -- Delete developer account option
-
----
+### 7. Review Summary Update
+Step 4 (review) of the submission form shows the list of registered actions for self-hosted agents instead of a single endpoint URL.
 
 ## Technical Details
 
-### New Files
-- `src/components/developer/DeveloperSidebar.tsx` -- Sidebar navigation for the portal
-- `src/components/developer/DeveloperOverview.tsx` -- Enhanced overview with activity feed and quick actions
-- `src/components/developer/AgentDetailSheet.tsx` -- Side sheet for viewing/editing agent details
-- `src/components/developer/ExecutionLogs.tsx` -- Logs table and filters
-- `src/components/developer/ApiDocsPage.tsx` -- Static API documentation page
-- `src/components/developer/DeveloperSettings.tsx` -- Enhanced settings page
+### Files to Create
+| File | Purpose |
+|------|---------|
+| `src/components/developer/AgentActionsEditor.tsx` | Dynamic form for adding/editing actions |
 
-### Modified Files
-- `src/pages/DeveloperPortal.tsx` -- Replace tabs with sidebar layout, route between sections
-- `src/components/developer/AgentList.tsx` -- Add search, grid/list toggle, click-to-detail
-- `src/components/developer/DeveloperStats.tsx` -- Enhanced with activity feed
+### Files to Modify
+| File | Change |
+|------|--------|
+| `src/hooks/useDeveloperPortal.ts` | Add `AgentAction` type, update `createAgent`/`fetchAgents` |
+| `src/components/developer/AgentSubmissionForm.tsx` | Add actions state, insert step 3 for self-hosted, update step count (4 or 5), pass actions to `onSubmit` |
+| `src/components/developer/SelfHostedFields.tsx` | Rename "Endpoint URL" to "Base URL", remove API contract collapsible |
+| `src/components/developer/AgentDetailSheet.tsx` | Add actions section with method badges |
 
 ### Database Migration
-- Create `agent_execution_logs` table with RLS policies scoped to developer_id
-- Add logging calls in the orchestrator edge function to write execution results
+```sql
+CREATE TABLE public.agent_actions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_id uuid NOT NULL REFERENCES public.agent_submissions(id) ON DELETE CASCADE,
+  action_name text NOT NULL,
+  path text NOT NULL,
+  method text NOT NULL DEFAULT 'POST',
+  description text,
+  request_schema jsonb,
+  response_schema jsonb,
+  sort_order integer DEFAULT 0,
+  created_at timestamptz DEFAULT now()
+);
 
-### Edge Function Updates
-- `supabase/functions/ai-employee-orchestrator/index.ts` -- Log execution results to `agent_execution_logs` after each invocation
+ALTER TABLE public.agent_actions ENABLE ROW LEVEL SECURITY;
 
----
+-- Developers can manage actions for their own agents
+CREATE POLICY "Developers can manage own agent actions" ON public.agent_actions
+  FOR ALL USING (
+    agent_id IN (
+      SELECT as2.id FROM agent_submissions as2
+      JOIN developer_profiles dp ON dp.id = as2.developer_id
+      WHERE dp.user_id = auth.uid()
+    )
+  );
 
-## Component Architecture
+-- Admins can view all
+CREATE POLICY "Admins can view all agent actions" ON public.agent_actions
+  FOR SELECT USING (has_role(auth.uid(), 'admin'::app_role));
 
-```text
-DeveloperPortal (page)
-  +-- DeveloperSidebar
-  |     +-- Overview
-  |     +-- My Agents
-  |     +-- Submit Agent
-  |     +-- Logs
-  |     +-- API Docs
-  |     +-- Settings
-  +-- Content Area (switches based on active section)
-        +-- DeveloperOverview
-        |     +-- DeveloperStats (enhanced)
-        |     +-- RecentActivityFeed
-        |     +-- QuickActions
-        +-- AgentList (enhanced)
-        |     +-- AgentDetailSheet
-        +-- AgentSubmissionForm (existing)
-        +-- ExecutionLogs
-        +-- ApiDocsPage
-        +-- DeveloperSettings
+-- Public can view actions of approved public agents
+CREATE POLICY "Public can view approved agent actions" ON public.agent_actions
+  FOR SELECT USING (
+    agent_id IN (
+      SELECT id FROM agent_submissions
+      WHERE status = 'approved' AND is_public = true
+    )
+  );
 ```
 
----
+### Submission Flow (Self-Hosted)
+```text
+Step 1: Name, description, category, version, hosting type
+Step 2: Base URL, auth header, auth token, runtime
+Step 3: Actions (name, path, method, description) -- NEW
+Step 4: Icon upload
+Step 5: Review & submit
+```
 
-## Summary of Scope
-
-| Section | Status | Work |
-|---------|--------|------|
-| Sidebar layout | New | Replace tabs with sidebar navigation |
-| Overview | Enhanced | Activity feed, quick actions, visual breakdown |
-| My Agents | Enhanced | Search, detail drawer, grid/list toggle |
-| Submit Agent | Existing | No changes needed |
-| Execution Logs | New | New table, new component, orchestrator logging |
-| API Docs | New | Static documentation component |
-| Settings | Enhanced | API keys display, notification prefs, danger zone |
+### Submission Flow (Platform-Hosted)
+```text
+Step 1: Name, description, category, version, hosting type
+Step 2: Code file, requirements, entry function, system prompt, tools
+Step 3: Icon upload
+Step 4: Review & submit
+```
 
