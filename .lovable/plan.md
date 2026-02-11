@@ -1,45 +1,36 @@
 
 
-# Fix Test Console for TypeScript Agents
+# Fix: Handle ZIP Code Files in Test Agent
 
 ## Problem
-The test-agent edge function currently routes ALL platform-hosted agents through `execute-python-agent`, which requires an external Python sandbox (Piston). Your agent is TypeScript, so this path fails.
+Your agent's code file is uploaded as a **`.zip`** archive (`1770836816546.zip`). The `test-agent` edge function downloads this file and tries to execute it directly as JavaScript/TypeScript using `AsyncFunction`. Since the downloaded content is raw ZIP binary data (not valid code), it throws **"Invalid or unexpected token"**.
 
 ## Solution
-Update the `test-agent` edge function to handle TypeScript agents directly. Since edge functions already run in a Deno/TypeScript environment, we can dynamically import and execute TypeScript agent code without any external service.
-
-For TypeScript agents, the function will:
-1. Download the agent's code file from storage
-2. Execute it inline using `eval` or dynamic import (with the standardized `handle` contract)
-3. Return the result directly
-
-For Python agents, the existing `execute-python-agent` path remains unchanged (for future use when Piston is configured).
+Update the `test-agent` edge function to detect `.zip` files and extract the entry TypeScript/JavaScript file before executing it.
 
 ## Changes
 
 ### File: `supabase/functions/test-agent/index.ts`
 
-Update the execution logic to branch by runtime:
+1. **Detect file type** from the `code_file_url` extension
+2. **If `.zip`**: use the JSZip library (available via CDN in Deno) to decompress, then locate the main entry file (e.g., `index.ts`, `main.ts`, or the file matching `entry_function`)
+3. **If `.ts` or `.js`**: execute directly as before (plain text code)
+4. After extracting the code text, proceed with the existing `AsyncFunction` execution logic
 
-- **TypeScript agents** (`runtime === "typescript"`): Download the code, use dynamic import via a data URI to execute the entry function directly in the Deno runtime. No external service needed.
-- **Python agents** (`runtime === "python"`): Keep the existing proxy to `execute-python-agent` (requires `PYTHON_EXECUTOR_URL`).
-
-The agent lookup query will be updated to also fetch `runtime` from the `agent_submissions` table.
-
-### Execution Flow for TypeScript Agents
+### ZIP Extraction Logic
 
 ```text
-1. Authenticate user, verify agent ownership
-2. Fetch agent record (including runtime, code_file_url, entry_function)
-3. If runtime === "typescript":
-   a. Download code from code_file_url
-   b. Create a Blob/data URI from the code
-   c. Dynamically import and call the entry function
-   d. Return the result
-4. If runtime === "python":
-   a. Proxy to execute-python-agent (existing flow)
+1. Download file from code_file_url
+2. Check if URL ends with .zip
+3. If ZIP:
+   a. Use JSZip to decompress
+   b. Search for index.ts, index.js, main.ts, or {entry_function}.ts
+   c. Extract text content of the matched file
+4. If plain file:
+   a. Use text content directly
+5. Execute via AsyncFunction as before
 ```
 
 ### No Frontend Changes Required
-The `AgentTestConsole.tsx` already sends requests to the `test-agent` function correctly -- only the backend logic changes.
+Only the backend edge function needs updating.
 
