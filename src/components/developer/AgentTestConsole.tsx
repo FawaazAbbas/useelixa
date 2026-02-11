@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Play, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { AgentSubmission, AgentAction } from "@/hooks/useDeveloperPortal";
 
 interface AgentTestConsoleProps {
@@ -21,11 +22,14 @@ const METHOD_COLORS: Record<string, string> = {
 export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
   const actions = agent.actions || [];
   const isSelfHosted = agent.hosting_type === "self_hosted";
+  const isPlatform = agent.hosting_type === "platform";
 
   const [selectedActionId, setSelectedActionId] = useState<string>(
     actions.length > 0 ? actions[0].id : "__default__"
   );
-  const [requestBody, setRequestBody] = useState('{\n  "message": "Hello"\n}');
+  const [requestBody, setRequestBody] = useState(
+    isPlatform ? '{\n  "message": "Hello"\n}' : '{\n  "message": "Hello"\n}'
+  );
   const [response, setResponse] = useState<string | null>(null);
   const [statusCode, setStatusCode] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,58 +47,74 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
     const start = performance.now();
 
     try {
-      let url: string;
-      let method: string;
-      let headers: Record<string, string> = { "Content-Type": "application/json" };
-
-      if (isSelfHosted && selectedAction) {
-        url = `${baseUrl}${selectedAction.path}`;
-        method = selectedAction.method;
-        if (agent.external_auth_header && agent.external_auth_token) {
-          headers[agent.external_auth_header] = agent.external_auth_token;
-        }
-      } else if (isSelfHosted) {
-        url = baseUrl;
-        method = "POST";
-        if (agent.external_auth_header && agent.external_auth_token) {
-          headers[agent.external_auth_header] = agent.external_auth_token;
-        }
-      } else {
-        // Platform-hosted — use a simple test endpoint
-        url = `${baseUrl}/handle`;
-        method = "POST";
+      // Validate JSON body first
+      let parsedBody: any;
+      try {
+        parsedBody = JSON.parse(requestBody);
+      } catch {
+        setResponse("Invalid JSON in request body");
+        setStatusCode(0);
+        setElapsed(performance.now() - start);
+        setLoading(false);
+        return;
       }
 
-      const fetchOptions: RequestInit = {
-        method,
-        headers,
-      };
+      if (isPlatform) {
+        // Platform-hosted: call through edge function proxy
+        const { data, error } = await supabase.functions.invoke("test-agent", {
+          body: {
+            agent_id: agent.id,
+            message: parsedBody.message || JSON.stringify(parsedBody),
+          },
+        });
 
-      if (method !== "GET" && method !== "HEAD") {
-        try {
-          JSON.parse(requestBody);
+        const elapsedMs = performance.now() - start;
+        setElapsed(elapsedMs);
+
+        if (error) {
+          setStatusCode(500);
+          setResponse(`Error: ${error.message}`);
+        } else {
+          setStatusCode(200);
+          setResponse(JSON.stringify(data, null, 2));
+        }
+      } else {
+        // Self-hosted: direct fetch
+        let url: string;
+        let method: string;
+        let headers: Record<string, string> = { "Content-Type": "application/json" };
+
+        if (selectedAction) {
+          url = `${baseUrl}${selectedAction.path}`;
+          method = selectedAction.method;
+        } else {
+          url = baseUrl;
+          method = "POST";
+        }
+
+        if (agent.external_auth_header && agent.external_auth_token) {
+          headers[agent.external_auth_header] = agent.external_auth_token;
+        }
+
+        const fetchOptions: RequestInit = { method, headers };
+
+        if (method !== "GET" && method !== "HEAD") {
           fetchOptions.body = requestBody;
-        } catch {
-          setResponse("Invalid JSON in request body");
-          setStatusCode(0);
-          setElapsed(performance.now() - start);
-          setLoading(false);
-          return;
         }
-      }
 
-      const res = await fetch(url, fetchOptions);
-      const elapsed = performance.now() - start;
-      setElapsed(elapsed);
-      setStatusCode(res.status);
+        const res = await fetch(url, fetchOptions);
+        const elapsedMs = performance.now() - start;
+        setElapsed(elapsedMs);
+        setStatusCode(res.status);
 
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const json = await res.json();
-        setResponse(JSON.stringify(json, null, 2));
-      } else {
-        const text = await res.text();
-        setResponse(text);
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const json = await res.json();
+          setResponse(JSON.stringify(json, null, 2));
+        } else {
+          const text = await res.text();
+          setResponse(text);
+        }
       }
     } catch (err: any) {
       setElapsed(performance.now() - start);
@@ -137,15 +157,21 @@ export const AgentTestConsole = ({ agent }: AgentTestConsoleProps) => {
         </div>
       )}
 
-      {/* Target URL preview */}
+      {/* Target URL/agent preview */}
       <div className="text-xs font-mono bg-muted rounded px-2 py-1.5 break-all text-muted-foreground">
-        {selectedAction ? `${selectedAction.method} ${baseUrl}${selectedAction.path}` : `POST ${baseUrl}`}
+        {isPlatform
+          ? `POST → ${agent.name} (platform-hosted)`
+          : selectedAction
+            ? `${selectedAction.method} ${baseUrl}${selectedAction.path}`
+            : `POST ${baseUrl}`}
       </div>
 
       {/* Request body */}
       {(!selectedAction || selectedAction.method !== "GET") && (
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Request Body (JSON)</label>
+          <label className="text-xs text-muted-foreground">
+            {isPlatform ? "Test Message (JSON)" : "Request Body (JSON)"}
+          </label>
           <Textarea
             value={requestBody}
             onChange={(e) => setRequestBody(e.target.value)}

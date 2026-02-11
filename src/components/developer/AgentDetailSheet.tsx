@@ -192,7 +192,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
           </div>
 
           {/* Test Console */}
-          {(agent.hosting_type === "self_hosted" && agent.external_endpoint_url) && (
+          {((agent.hosting_type === "self_hosted" && agent.external_endpoint_url) || (agent.hosting_type === "platform" && agent.execution_status === "ready")) && (
             <>
               <Separator />
               <AgentTestConsole agent={agent} />
