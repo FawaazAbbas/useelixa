@@ -96,10 +96,20 @@ export default function AIEmployees() {
     try {
       setLoading(true);
 
+      // Get user's org_id first
+      const { data: orgMember } = await supabase
+        .from("org_members")
+        .select("org_id")
+        .eq("user_id", user!.id)
+        .single();
+
+      const userOrgId = orgMember?.org_id;
+
       const [nativeResult, endpointResult, installationsResult] = await Promise.all([
         supabase
           .from("ai_employees")
           .select("*")
+          .eq("org_id", userOrgId)
           .order("created_at", { ascending: false }),
         supabase
           .from("agent_submissions")
