@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,12 +53,64 @@ serve(async (req) => {
         throw new Error("No code file uploaded for this agent");
       }
 
-      // Download the code
+      // Download the code file
       const codeResponse = await fetch(agent.code_file_url);
       if (!codeResponse.ok) {
         throw new Error(`Failed to download code file: ${codeResponse.status}`);
       }
-      const code = await codeResponse.text();
+
+      let code: string;
+      const isZip = agent.code_file_url.toLowerCase().endsWith(".zip");
+
+      if (isZip) {
+        // Extract code from ZIP archive
+        const zipBuffer = await codeResponse.arrayBuffer();
+        const zip = await JSZip.loadAsync(zipBuffer);
+
+        const entryFnName = agent.entry_function || "handle";
+        // Look for common entry files
+        const candidates = [
+          "index.ts", "index.js", "main.ts", "main.js",
+          `${entryFnName}.ts`, `${entryFnName}.js`,
+        ];
+
+        let entryFile: JSZip.JSZipObject | null = null;
+
+        // First try exact matches at root level
+        for (const name of candidates) {
+          const f = zip.file(name);
+          if (f) { entryFile = f; break; }
+        }
+
+        // If not found, search recursively for any .ts/.js file matching candidates
+        if (!entryFile) {
+          zip.forEach((relativePath, file) => {
+            if (entryFile) return;
+            const fileName = relativePath.split("/").pop() || "";
+            if (candidates.includes(fileName)) {
+              entryFile = file;
+            }
+          });
+        }
+
+        // Last resort: first .ts or .js file found
+        if (!entryFile) {
+          zip.forEach((relativePath, file) => {
+            if (entryFile) return;
+            if (/\.(ts|js)$/.test(relativePath) && !file.dir) {
+              entryFile = file;
+            }
+          });
+        }
+
+        if (!entryFile) {
+          throw new Error("No TypeScript/JavaScript entry file found in ZIP archive");
+        }
+
+        code = await entryFile.async("string");
+      } else {
+        code = await codeResponse.text();
+      }
 
       const entryFn = agent.entry_function || "handle";
 
