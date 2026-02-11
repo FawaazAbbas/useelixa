@@ -64,6 +64,53 @@ export type Database = {
           },
         ]
       }
+      agent_actions: {
+        Row: {
+          action_name: string
+          agent_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          method: string
+          path: string
+          request_schema: Json | null
+          response_schema: Json | null
+          sort_order: number | null
+        }
+        Insert: {
+          action_name: string
+          agent_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          method?: string
+          path: string
+          request_schema?: Json | null
+          response_schema?: Json | null
+          sort_order?: number | null
+        }
+        Update: {
+          action_name?: string
+          agent_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          method?: string
+          path?: string
+          request_schema?: Json | null
+          response_schema?: Json | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_actions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_execution_logs: {
         Row: {
           agent_id: string

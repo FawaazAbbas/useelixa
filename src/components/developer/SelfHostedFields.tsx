@@ -1,9 +1,6 @@
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Code } from "lucide-react";
 
 interface SelfHostedFieldsProps {
   endpointUrl: string;
@@ -22,8 +19,6 @@ export const SelfHostedFields = ({
   authToken, onAuthTokenChange,
   runtime, onRuntimeChange,
 }: SelfHostedFieldsProps) => {
-  const [contractOpen, setContractOpen] = useState(false);
-
   return (
     <>
       <div className="space-y-2">
@@ -38,14 +33,15 @@ export const SelfHostedFields = ({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="endpoint-url">Endpoint URL *</Label>
+        <Label htmlFor="endpoint-url">Base URL *</Label>
         <Input
           id="endpoint-url"
           type="url"
           value={endpointUrl}
           onChange={(e) => onEndpointUrlChange(e.target.value)}
-          placeholder="https://your-server.com/agent"
+          placeholder="https://your-server.com"
         />
+        <p className="text-xs text-muted-foreground">The root URL of your agent. Action paths will be appended to this.</p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="auth-header">Auth Header Name (optional)</Label>
@@ -66,33 +62,6 @@ export const SelfHostedFields = ({
           placeholder="Your secret token"
         />
       </div>
-
-      <Collapsible open={contractOpen} onOpenChange={setContractOpen}>
-        <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-          <Code className="h-4 w-4" />
-          <span>View API Contract</span>
-          <ChevronDown className={`h-3 w-3 transition-transform ${contractOpen ? "rotate-180" : ""}`} />
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="mt-3 rounded-lg bg-muted p-4 font-mono text-xs space-y-3">
-            <div>
-              <p className="font-semibold text-foreground mb-1">Request (POST):</p>
-              <pre className="text-muted-foreground">{`{
-  "message": "user message",
-  "user_id": "uuid",
-  "context": {}
-}`}</pre>
-            </div>
-            <div>
-              <p className="font-semibold text-foreground mb-1">Expected Response:</p>
-              <pre className="text-muted-foreground">{`{
-  "response": "agent reply",
-  "tools_used": []
-}`}</pre>
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
     </>
   );
 };

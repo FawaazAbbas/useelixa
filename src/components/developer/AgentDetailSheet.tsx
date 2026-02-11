@@ -13,6 +13,14 @@ const statusColors: Record<string, string> = {
   rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
+const METHOD_COLORS: Record<string, string> = {
+  GET: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  POST: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+  PUT: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+  DELETE: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  PATCH: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+};
+
 interface AgentDetailSheetProps {
   agent: AgentSubmission | null;
   open: boolean;
@@ -30,6 +38,8 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
       <span className="col-span-2 break-words">{value || "—"}</span>
     </div>
   );
+
+  const baseUrl = agent.external_endpoint_url?.replace(/\/$/, '') || '';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -85,7 +95,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
             <h4 className="text-sm font-semibold mb-2">Hosting Configuration</h4>
             {agent.hosting_type === "self_hosted" ? (
               <>
-                <DetailRow label="Endpoint" value={agent.external_endpoint_url} />
+                <DetailRow label="Base URL" value={agent.external_endpoint_url} />
                 <DetailRow label="Auth Header" value={agent.external_auth_header} />
               </>
             ) : (
@@ -96,6 +106,34 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
               </>
             )}
           </div>
+
+          {/* Actions (self-hosted) */}
+          {agent.hosting_type === "self_hosted" && agent.actions && agent.actions.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h4 className="text-sm font-semibold mb-2">Actions ({agent.actions.length})</h4>
+                <div className="space-y-2">
+                  {agent.actions.map((action) => (
+                    <div key={action.id} className="rounded-md border p-2.5 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge className={`${METHOD_COLORS[action.method] || ""} text-[10px] px-1.5 py-0`}>
+                          {action.method}
+                        </Badge>
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {baseUrl}{action.path}
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium">{action.action_name}</p>
+                      {action.description && (
+                        <p className="text-xs text-muted-foreground">{action.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Execution status */}
           {agent.hosting_type === "platform" && agent.code_file_url && (
