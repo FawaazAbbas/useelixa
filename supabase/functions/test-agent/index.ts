@@ -23,7 +23,6 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Get user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error("Unauthorized");
@@ -34,7 +33,7 @@ serve(async (req) => {
       throw new Error("agent_id is required");
     }
 
-    // Verify the developer owns this agent
+    // Fetch agent with runtime info
     const { data: agent, error: agentError } = await supabase
       .from("agent_submissions")
       .select("*, developer_profiles!inner(user_id)")
@@ -45,13 +44,65 @@ serve(async (req) => {
       throw new Error("Agent not found");
     }
 
-    // Use service role client for the actual execution
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const runtime = agent.runtime || "python";
 
-    // Call the execute-python-agent function
+    // --- TypeScript agents: execute directly in Deno ---
+    if (runtime === "typescript") {
+      if (!agent.code_file_url) {
+        throw new Error("No code file uploaded for this agent");
+      }
+
+      // Download the code
+      const codeResponse = await fetch(agent.code_file_url);
+      if (!codeResponse.ok) {
+        throw new Error(`Failed to download code file: ${codeResponse.status}`);
+      }
+      const code = await codeResponse.text();
+
+      const entryFn = agent.entry_function || "handle";
+
+      // Dynamic import via data URI
+      const blob = new Blob([code], { type: "application/typescript" });
+      const url = URL.createObjectURL(blob);
+
+      try {
+        const mod = await import(url);
+        const handler = mod[entryFn] || mod.default;
+
+        if (typeof handler !== "function") {
+          throw new Error(`Entry function "${entryFn}" not found in agent code. Available exports: ${Object.keys(mod).join(", ")}`);
+        }
+
+        const input = {
+          message: message || "",
+          user_id: user.id,
+          context: {},
+        };
+
+        const result = await handler(input);
+
+        // Normalize response
+        let responseData: { response: string; tools_used?: string[] };
+        if (typeof result === "string") {
+          responseData = { response: result, tools_used: [] };
+        } else if (result && typeof result === "object") {
+          responseData = {
+            response: result.response ?? JSON.stringify(result),
+            tools_used: result.tools_used ?? [],
+          };
+        } else {
+          responseData = { response: String(result), tools_used: [] };
+        }
+
+        return new Response(JSON.stringify(responseData), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    // --- Python agents: proxy to execute-python-agent ---
     const execResponse = await fetch(
       `${Deno.env.get("SUPABASE_URL")}/functions/v1/execute-python-agent`,
       {
