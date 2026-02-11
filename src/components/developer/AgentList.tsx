@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Send, Trash2, Bot, Cloud, Server, CheckCircle, Loader2, AlertCircle, Search, LayoutGrid, List } from "lucide-react";
+import { Send, Trash2, Bot, Cloud, Server, Globe, CheckCircle, Loader2, AlertCircle, Search, LayoutGrid, List } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ElixaMascot } from "@/components/ElixaMascot";
 import { AgentDetailSheet } from "./AgentDetailSheet";
@@ -22,6 +22,18 @@ const statusColors: Record<string, string> = {
   pending_review: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
   approved: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
   rejected: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+};
+
+const hostingIcon = (type: string) => {
+  if (type === "endpoint") return <Globe className="h-2.5 w-2.5" />;
+  if (type === "self_hosted") return <Server className="h-2.5 w-2.5" />;
+  return <Cloud className="h-2.5 w-2.5" />;
+};
+
+const hostingLabel = (type: string) => {
+  if (type === "endpoint") return "Endpoint";
+  if (type === "self_hosted") return "Self-Hosted";
+  return "Platform";
 };
 
 export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: AgentListProps) => {
@@ -48,16 +60,13 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: A
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search agents..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={filter} onValueChange={setFilter}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Filter by status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
@@ -67,12 +76,8 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: A
           </SelectContent>
         </Select>
         <div className="flex border rounded-lg overflow-hidden">
-          <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="rounded-none h-9 w-9" onClick={() => setViewMode("list")}>
-            <List className="h-4 w-4" />
-          </Button>
-          <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="rounded-none h-9 w-9" onClick={() => setViewMode("grid")}>
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
+          <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="rounded-none h-9 w-9" onClick={() => setViewMode("list")}><List className="h-4 w-4" /></Button>
+          <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="rounded-none h-9 w-9" onClick={() => setViewMode("grid")}><LayoutGrid className="h-4 w-4" /></Button>
         </div>
       </div>
 
@@ -86,11 +91,7 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: A
       ) : (
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" : "grid gap-3"}>
           {filtered.map((agent) => (
-            <Card
-              key={agent.id}
-              className="cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all"
-              onClick={() => setSelectedAgent(agent)}
-            >
+            <Card key={agent.id} className="cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all" onClick={() => setSelectedAgent(agent)}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0">
@@ -120,13 +121,14 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: A
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 gap-0.5">
-                      {agent.hosting_type === "self_hosted" ? <Server className="h-2.5 w-2.5" /> : <Cloud className="h-2.5 w-2.5" />}
-                      {agent.hosting_type === "self_hosted" ? "Self-Hosted" : "Platform"}
+                      {hostingIcon(agent.execution_mode || agent.hosting_type)}
+                      {hostingLabel(agent.execution_mode || agent.hosting_type)}
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 capitalize">
-                      {agent.runtime || "python"}
-                    </Badge>
-                    {/* Health indicator */}
+                    {(agent.execution_mode || agent.hosting_type) !== "endpoint" && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 capitalize">
+                        {agent.runtime || "python"}
+                      </Badge>
+                    )}
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -163,7 +165,6 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: A
         </div>
       )}
 
-      {/* Detail Sheet */}
       <AgentDetailSheet
         agent={selectedAgent}
         open={!!selectedAgent}
