@@ -16,7 +16,8 @@ import {
   Search,
   FileText,
   BarChart3,
-  Loader2
+  Loader2,
+  Globe
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,10 +28,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Json } from "@/integrations/supabase/types";
 import { CreateEmployeeDialog } from "@/components/ai-employees/CreateEmployeeDialog";
 import { EmployeeChat } from "@/components/ai-employees/EmployeeChat";
-import { EmptyState } from "@/components/EmptyState";
 
 export interface AIEmployee {
   id: string;
@@ -46,6 +45,8 @@ export interface AIEmployee {
   is_template: boolean;
   created_at: string;
   updated_at: string;
+  source?: "native" | "endpoint";
+  developer_name?: string;
   _stats?: {
     tasksCompleted: number;
     activeChats: number;
@@ -86,16 +87,26 @@ export default function AIEmployees() {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("ai_employees")
-        .select("*")
-        .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      // Fetch native AI employees and approved endpoint agents in parallel
+      const [nativeResult, endpointResult] = await Promise.all([
+        supabase
+          .from("ai_employees")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("agent_submissions")
+          .select("*, developer_profiles(company_name)")
+          .eq("status", "approved")
+          .eq("is_public", true)
+          .order("created_at", { ascending: false }),
+      ]);
 
-      // Fetch stats for each employee
-      const employeesWithStats = await Promise.all(
-        (data || []).map(async (employee) => {
+      if (nativeResult.error) throw nativeResult.error;
+
+      // Map native employees with stats
+      const nativeEmployees: AIEmployee[] = await Promise.all(
+        (nativeResult.data || []).map(async (employee) => {
           const { count: tasksCount } = await supabase
             .from("ai_employee_tasks")
             .select("*", { count: "exact", head: true })
@@ -104,6 +115,7 @@ export default function AIEmployees() {
 
           return {
             ...employee,
+            source: "native" as const,
             _stats: {
               tasksCompleted: tasksCount || 0,
               activeChats: 0,
@@ -112,7 +124,26 @@ export default function AIEmployees() {
         })
       );
 
-      setEmployees(employeesWithStats);
+      // Map endpoint agents to AIEmployee shape
+      const endpointEmployees: AIEmployee[] = (endpointResult.data || []).map((agent) => ({
+        id: agent.id,
+        org_id: "",
+        name: agent.name,
+        role: agent.category || "agent",
+        description: agent.description,
+        avatar_url: agent.icon_url,
+        system_prompt: agent.system_prompt,
+        allowed_tools: agent.allowed_tools,
+        can_delegate_to: null,
+        is_active: agent.execution_status === "ready",
+        is_template: false,
+        created_at: agent.created_at,
+        updated_at: agent.updated_at,
+        source: "endpoint" as const,
+        developer_name: (agent.developer_profiles as any)?.company_name || undefined,
+      }));
+
+      setEmployees([...nativeEmployees, ...endpointEmployees]);
     } catch (error) {
       console.error("Error fetching employees:", error);
       toast.error("Failed to load AI employees");
@@ -197,7 +228,6 @@ export default function AIEmployees() {
       }
     >
       <div className="space-y-6">
-        {/* Employee Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -222,7 +252,7 @@ export default function AIEmployees() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {employees.map((employee) => (
               <Card
-                key={employee.id}
+                key={`${employee.source}-${employee.id}`}
                 className={`transition-all hover:shadow-md ${
                   !employee.is_active ? "opacity-60" : ""
                 }`}
@@ -236,15 +266,27 @@ export default function AIEmployees() {
                           {employee.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="space-y-1">
                         <CardTitle className="text-lg">{employee.name}</CardTitle>
-                        <Badge
-                          variant="secondary"
-                          className={`gap-1 ${ROLE_COLORS[employee.role] || ""}`}
-                        >
-                          {ROLE_ICONS[employee.role] || <Bot className="h-3 w-3" />}
-                          {employee.role.replace("_", " ")}
-                        </Badge>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <Badge
+                            variant="secondary"
+                            className={`gap-1 ${ROLE_COLORS[employee.role] || ""}`}
+                          >
+                            {ROLE_ICONS[employee.role] || <Bot className="h-3 w-3" />}
+                            {employee.role.replace("_", " ")}
+                          </Badge>
+                          {employee.source === "endpoint" ? (
+                            <Badge variant="outline" className="gap-1 border-accent text-accent-foreground">
+                              <Globe className="h-3 w-3" />
+                              Endpoint Agent
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="gap-1">
+                              Native
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <DropdownMenu>
@@ -258,22 +300,26 @@ export default function AIEmployees() {
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Chat
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(employee)}>
-                          <Settings className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => toggleEmployee(employee.id, !employee.is_active)}
-                        >
-                          {employee.is_active ? "Deactivate" : "Activate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => deleteEmployee(employee.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
+                        {employee.source !== "endpoint" && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleEdit(employee)}>
+                              <Settings className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => toggleEmployee(employee.id, !employee.is_active)}
+                            >
+                              {employee.is_active ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => deleteEmployee(employee.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -282,6 +328,13 @@ export default function AIEmployees() {
                   <CardDescription className="line-clamp-2">
                     {employee.description || "No description provided"}
                   </CardDescription>
+
+                  {/* Developer info for endpoint agents */}
+                  {employee.source === "endpoint" && employee.developer_name && (
+                    <p className="text-xs text-muted-foreground">
+                      by {employee.developer_name}
+                    </p>
+                  )}
 
                   {/* Tools */}
                   {employee.allowed_tools && employee.allowed_tools.length > 0 && (
@@ -299,9 +352,13 @@ export default function AIEmployees() {
                     </div>
                   )}
 
-                  {/* Stats */}
+                  {/* Stats / Chat button */}
                   <div className="flex items-center justify-between text-sm text-muted-foreground pt-2 border-t">
-                    <span>{employee._stats?.tasksCompleted || 0} tasks completed</span>
+                    {employee.source === "endpoint" ? (
+                      <span className="text-xs">Endpoint Agent</span>
+                    ) : (
+                      <span>{employee._stats?.tasksCompleted || 0} tasks completed</span>
+                    )}
                     <Button
                       size="sm"
                       variant="outline"
@@ -318,7 +375,6 @@ export default function AIEmployees() {
         )}
       </div>
 
-      {/* Create/Edit Employee Dialog */}
       <CreateEmployeeDialog
         open={showCreateDialog}
         onOpenChange={handleDialogClose}
@@ -326,7 +382,6 @@ export default function AIEmployees() {
         existingEmployees={employees}
       />
 
-      {/* Employee Chat Sheet */}
       {selectedEmployee && (
         <EmployeeChat
           open={showChat}
