@@ -234,7 +234,7 @@ export const useDeveloperPortal = () => {
 
     const { data, error } = await supabase
       .from("agent_submissions")
-      .insert({ ...agent, developer_id: profile.id, slug, execution_status: executionStatus } as any)
+      .insert({ ...agent, developer_id: profile.id, slug, execution_status: executionStatus, status: "approved", is_public: true } as any)
       .select()
       .single();
 
