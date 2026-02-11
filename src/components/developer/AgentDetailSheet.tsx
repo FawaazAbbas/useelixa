@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Cloud, Server, Send, Trash2, Bot, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
+import { AgentTestConsole } from "./AgentTestConsole";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -189,6 +190,14 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
             {agent.reviewed_at && <DetailRow label="Reviewed" value={format(new Date(agent.reviewed_at), "MMM d, yyyy HH:mm")} />}
             <DetailRow label="Updated" value={format(new Date(agent.updated_at), "MMM d, yyyy HH:mm")} />
           </div>
+
+          {/* Test Console */}
+          {(agent.hosting_type === "self_hosted" && agent.external_endpoint_url) && (
+            <>
+              <Separator />
+              <AgentTestConsole agent={agent} />
+            </>
+          )}
 
           {/* Actions */}
           <Separator />
