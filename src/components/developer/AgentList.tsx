@@ -15,6 +15,7 @@ interface AgentListProps {
   onSubmitForReview: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onValidate?: (id: string) => Promise<{ success: boolean; error?: string }>;
+  onUpdate?: (id: string, updates: Partial<AgentSubmission>) => Promise<void>;
 }
 
 const statusColors: Record<string, string> = {
@@ -34,7 +35,7 @@ const hostingIcon = (type: string) => {
   return <Server className="h-2.5 w-2.5" />;
 };
 
-export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: AgentListProps) => {
+export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate, onUpdate }: AgentListProps) => {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -170,6 +171,7 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate }: A
         onSubmitForReview={onSubmitForReview}
         onDelete={onDelete}
         onValidate={onValidate}
+        onUpdate={onUpdate}
       />
     </div>
   );
