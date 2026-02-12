@@ -1,74 +1,77 @@
 
 
-## Single Mascot Avatar with True Color Selection
+## Fix Agent Avatar Recoloring -- Canvas-Based Approach
 
-### The SVG situation
+### The Problem
 
-The uploaded SVG is actually a raster image (PNG) embedded inside an SVG container -- it doesn't contain vector paths with `fill` attributes. This means we cannot directly change path colors via SVG fills.
+The current `mix-blend-mode: color` technique fails because the Elixa mascot is predominantly white/light. The `color` blend mode maps hue and saturation onto the image's existing luminosity -- but white pixels have maximum lightness, so the overlay color barely shows. This is why sliding the hue slider produces almost no visible change.
 
-### Solution: CSS `mix-blend-mode` for true recoloring
+### The Solution: Canvas Pixel Manipulation
 
-Instead of the current `hue-rotate` filter (which only shifts existing colors), we'll use a proven technique that produces **genuine color changes**:
+Instead of CSS blend modes, we will use an HTML Canvas to directly manipulate pixel colors. This approach works reliably regardless of the source image's brightness.
 
-1. Convert the mascot image to grayscale using `filter: grayscale(100%) brightness(1.1)`
-2. Overlay a colored `div` on top using `mix-blend-mode: color`
-3. The result maps the chosen color's hue and saturation onto the mascot's luminosity -- producing a true recolor effect
+**How it works:**
 
-This works with PNG/raster images and gives far better results than hue-rotate.
+1. Draw the mascot image onto an offscreen canvas
+2. Read all pixel data
+3. For each pixel, multiply its RGB channels by the target color's RGB percentages
+4. White pixels (255, 255, 255) become exactly the target color
+5. Darker pixels become darker shades of the target color
+6. Transparent pixels remain transparent (alpha channel preserved)
 
-### What changes
+This is the same technique used in game sprite recoloring and icon tinting -- it produces vivid, accurate results on white/light source images.
+
+### What Changes
 
 **File:** `src/components/developer/AgentSubmissionForm.tsx`
 
-1. **Remove all four mascot pose options** -- use only the single uploaded SVG mascot (copied to `src/assets/mascots/Elixa-Mascot-SVG.svg`)
+1. **Replace `RecoloredMascot` component** with a new `CanvasRecoloredMascot` component that:
+   - Loads the mascot SVG into an `Image` element
+   - Draws it onto a hidden `<canvas>`
+   - Reads pixel data with `getImageData`
+   - Multiplies each pixel's R, G, B by the chosen color's R, G, B (as 0-1 fractions)
+   - Writes the modified pixels back and renders the canvas
+   - When no color is selected (hue = 0), renders the original image unmodified
 
-2. **Replace the hue slider with a proper color picker** that maps to actual hex colors, but presented as a slider for simplicity. The slider will output HSL values converted to hex, giving developers a full spectrum of true colors.
+2. **Keep the existing hue slider** (0-360 range with "Original" at 0) and `hslToHex` helper -- these work fine, it's only the rendering that needs fixing
 
-3. **Recoloring technique** -- wrap the mascot image in a container:
+3. **Add hex-to-RGB helper** to convert the hex color to RGB fractions for the canvas multiplication
+
+4. **Everything else stays the same** -- the layout, review summary, data storage (`avatarSvgPath` + `avatarColor` in `capability_manifest`), and custom icon upload fallback
+
+### Technical Details
+
+**Canvas recoloring logic:**
 
 ```text
-+----------------------------+
-|  <div> (relative, overflow-hidden, rounded)
-|    <img> (grayscale filter)
-|    <div> (absolute overlay, chosen color bg, mix-blend-mode: color)
-+----------------------------+
+For each pixel (i = 0; i < data.length; i += 4):
+  data[i + 0] = data[i + 0] * (targetR / 255)   // Red
+  data[i + 1] = data[i + 1] * (targetG / 255)   // Green
+  data[i + 2] = data[i + 2] * (targetB / 255)   // Blue
+  data[i + 3] = data[i + 3]                      // Alpha unchanged
 ```
 
-4. **Left column** stays the same layout (no pose grid since there's only one mascot now, just the color controls and review summary)
+- White pixel (255,255,255) with target red (255,0,0) becomes (255,0,0) -- pure red
+- Gray pixel (128,128,128) with target red becomes (128,0,0) -- dark red
+- Transparent pixel stays transparent
 
-5. **Right column** shows the large recolored preview
+**New helper function:**
 
-6. **Data storage** -- save both `avatarSvgPath` (the SVG asset path) and `avatarColor` (hex value like `#FF5733`) in the `capability_manifest` JSON
-
-7. **State changes:**
-   - Remove `selectedMascot` state (only one mascot now)
-   - Change `avatarHue` (0-360) to `avatarColor` (hex string, default empty for original)
-   - Add a helper to convert slider position to HSL to hex
-
-### Technical details
-
-**New recolor component pattern:**
 ```text
-<div style="position: relative; overflow: hidden">
-  <img 
-    src={mascotSvg} 
-    style="filter: grayscale(100%) brightness(1.1)"
-  />
-  <div 
-    style="position: absolute; inset: 0; background: #chosen-color; mix-blend-mode: color; pointer-events: none"
-  />
-</div>
+hexToRgb("#FF5733") -> { r: 255, g: 87, b: 51 }
 ```
 
-When no color is selected (original), the overlay is hidden and the grayscale filter is removed, showing the mascot in its original colors.
+**Component structure:**
 
-**Slider to hex conversion:**
-- Slider outputs a hue value 0-360
-- Convert to HSL with fixed saturation (80%) and lightness (50%)
-- Convert HSL to hex for storage and display
-- Position 0 on the slider means "Original" (no recolor)
+```text
+CanvasRecoloredMascot:
+  - Uses useEffect to redraw canvas when avatarColor changes
+  - Uses useRef for canvas element
+  - Renders <canvas> with rounded corners matching current styling
+  - Falls back to plain <img> when avatarColor is empty (original)
+```
 
-**Files to modify:**
-- Copy `user-uploads://Elixa-Mascot-SVG.svg` to `src/assets/mascots/Elixa-Mascot-SVG.svg`
-- Edit `src/components/developer/AgentSubmissionForm.tsx` -- remove pose grid, implement mix-blend-mode recoloring, update data storage
+### Files to Modify
+
+- `src/components/developer/AgentSubmissionForm.tsx` -- replace RecoloredMascot with canvas-based version, add hexToRgb helper
 
