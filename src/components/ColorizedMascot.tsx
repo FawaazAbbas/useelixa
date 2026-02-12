@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import MascotDefault from "@/assets/mascots/Elixa-Mascot.png";
 
@@ -8,38 +8,57 @@ interface ColorizedMascotProps {
   className?: string;
 }
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
+// The original mascot is indigo/purple, approximately hue 240°
+const ORIGINAL_HUE = 240;
+
+function hexToHue(hex: string): number {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : { r: 79, g: 70, b: 229 }; // fallback indigo
+  if (!result) return ORIGINAL_HUE;
+
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0;
+
+  if (max !== min) {
+    const d = max - min;
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) * 60; break;
+      case g: h = ((b - r) / d + 2) * 60; break;
+      case b: h = ((r - g) / d + 4) * 60; break;
+    }
+  }
+  return h;
+}
+
+function hexToSaturation(hex: string): number {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return 1;
+
+  let r = parseInt(result[1], 16) / 255;
+  let g = parseInt(result[2], 16) / 255;
+  let b = parseInt(result[3], 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+
+  if (max === min) return 0;
+  const d = max - min;
+  return l > 0.5 ? d / (2 - max - min) : d / (max + min);
 }
 
 /**
- * Canvas-based colorizable mascot.
- * Multiplies the target color onto non-white, non-black pixels
- * to achieve genuine recoloring while preserving luminance detail.
+ * Simple CSS filter-based mascot colorizer.
+ * Uses hue-rotate to shift from the original indigo to the target color,
+ * and adjusts saturate/brightness for vibrancy.
  */
 export const ColorizedMascot = ({
   color,
   size = "md",
   className,
 }: ColorizedMascotProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [loaded, setLoaded] = useState(false);
-
-  const sizeMap = {
-    sm: 48,
-    md: 80,
-    lg: 128,
-    xl: 192,
-    "2xl": 256,
-  };
-
   const sizeClasses = {
     sm: "h-12 w-12",
     md: "h-20 w-20",
@@ -48,77 +67,28 @@ export const ColorizedMascot = ({
     "2xl": "h-64 w-64",
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const filterStyle = useMemo(() => {
+    if (!color) return {};
 
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
+    const targetHue = hexToHue(color);
+    const targetSat = hexToSaturation(color);
+    const rotation = targetHue - ORIGINAL_HUE;
+    // Boost saturation to compensate for the pastel source
+    const satBoost = Math.max(1, targetSat * 2.5);
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = MascotDefault;
-
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-
-      if (color) {
-        const { r: tr, g: tg, b: tb } = hexToRgb(color);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        const tintStrength = 0.75; // how much of the target color to apply
-
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const a = data[i + 3];
-
-          if (a < 10) continue; // skip transparent
-
-          // Calculate luminance
-          const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
-
-          // Skip very dark pixels (outlines, eyes, mouth)
-          if (lum < 0.15) continue;
-          // Skip very bright pixels (whites, highlights)
-          if (lum > 0.95) continue;
-
-          // Blend: multiply target color with luminance, mix with original
-          const newR = Math.round(
-            r * (1 - tintStrength) + tr * lum * tintStrength
-          );
-          const newG = Math.round(
-            g * (1 - tintStrength) + tg * lum * tintStrength
-          );
-          const newB = Math.round(
-            b * (1 - tintStrength) + tb * lum * tintStrength
-          );
-
-          data[i] = Math.min(255, newR);
-          data[i + 1] = Math.min(255, newG);
-          data[i + 2] = Math.min(255, newB);
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-      }
-
-      setLoaded(true);
+    return {
+      filter: `hue-rotate(${rotation}deg) saturate(${satBoost})`,
     };
   }, [color]);
 
   return (
-    <canvas
-      ref={canvasRef}
+    <img
+      src={MascotDefault}
+      alt="Elixa Mascot"
+      style={filterStyle}
       className={cn(
         sizeClasses[size],
         "object-contain",
-        !loaded && "opacity-0",
-        loaded && "opacity-100 transition-opacity duration-200",
         className
       )}
     />
