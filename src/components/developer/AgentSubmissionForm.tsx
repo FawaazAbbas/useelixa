@@ -12,7 +12,7 @@ import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { HostingTypeSelector } from "./HostingTypeSelector";
 import { EndpointAgentFields } from "./EndpointAgentFields";
 
-import ElixaMascotSvg from "@/assets/mascots/Elixa-Mascot-SVG.svg";
+import ElixaMascotSvg from "@/assets/mascots/Elixa-Mascot-ExactCopy.svg";
 
 interface AgentSubmissionFormProps {
   onSubmit: (agent: Partial<AgentSubmission>, actions?: any[]) => Promise<any>;
