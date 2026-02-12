@@ -5,6 +5,7 @@ import MascotDefault from "@/assets/mascots/Elixa-Mascot.png";
 interface ColorizedMascotProps {
   color?: string; // hex color like "#FF6B35"
   size?: "sm" | "md" | "lg" | "xl" | "2xl";
+  crop?: "head" | "full";
   className?: string;
 }
 
@@ -57,6 +58,7 @@ function hexToSaturation(hex: string): number {
 export const ColorizedMascot = ({
   color,
   size = "md",
+  crop = "full",
   className,
 }: ColorizedMascotProps) => {
   const sizeClasses = {
@@ -88,7 +90,9 @@ export const ColorizedMascot = ({
       style={filterStyle}
       className={cn(
         sizeClasses[size],
-        "object-contain",
+        crop === "head"
+          ? "object-cover object-[center_15%] scale-[1.6]"
+          : "object-contain",
         className
       )}
     />
