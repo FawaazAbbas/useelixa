@@ -141,7 +141,9 @@ serve(async (req) => {
       if (rawText.trim().length > 0) {
         responseData = { assistantMessage: rawText.trim() };
       } else {
-        throw new Error("Endpoint returned an empty response body");
+        // Return a graceful fallback instead of throwing
+        console.warn("Endpoint returned empty body – returning fallback message");
+        responseData = { assistantMessage: "The agent processed your request but didn't return a response. Please try again." };
       }
     }
 
