@@ -129,10 +129,22 @@ serve(async (req) => {
 
     const responseData = await endpointRes.json();
 
-    // Validate response shape
-    if (!responseData.assistantMessage || typeof responseData.assistantMessage !== "string") {
-      throw new Error("Endpoint response missing required 'assistantMessage' string field");
+    // Flexible response parsing: accept multiple common field names
+    const assistantMessage =
+      responseData.assistantMessage ||
+      responseData.response ||
+      responseData.output ||
+      responseData.message ||
+      responseData.text ||
+      (typeof responseData === "string" ? responseData : null);
+
+    if (!assistantMessage || typeof assistantMessage !== "string") {
+      console.error("Unexpected endpoint response shape:", JSON.stringify(responseData).slice(0, 500));
+      throw new Error("Endpoint response missing a recognizable message field (tried: assistantMessage, response, output, message, text)");
     }
+
+    // Normalize to assistantMessage
+    responseData.assistantMessage = assistantMessage;
 
     // Process proposals
     if (responseData.actions && Array.isArray(responseData.actions)) {
