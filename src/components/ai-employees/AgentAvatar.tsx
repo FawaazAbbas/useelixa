@@ -16,11 +16,14 @@ interface AgentAvatarProps {
 export function AgentAvatar({ name, avatarColor, iconUrl, className }: AgentAvatarProps) {
   if (avatarColor) {
     return (
-      <ColorizedMascot
-        color={avatarColor}
-        crop="head"
-        className={cn("rounded-full overflow-hidden", className)}
-      />
+      <div className={cn("rounded-full bg-muted flex items-center justify-center overflow-hidden", className)}>
+        <ColorizedMascot
+          color={avatarColor}
+          crop="head"
+          size="sm"
+          className="rounded-full overflow-hidden"
+        />
+      </div>
     );
   }
 
