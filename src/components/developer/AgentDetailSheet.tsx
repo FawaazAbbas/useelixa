@@ -171,58 +171,59 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
             </h4>
             {isEndpoint ? (
               <>
-                <div className="grid grid-cols-3 gap-2 text-sm py-1.5">
-                  <span className="text-muted-foreground">Base URL</span>
-                  <div className="col-span-2">
-                    {editingEndpoint ? (
-                      <div className="flex items-center gap-1">
-                        <Input
-                          value={endpointDraft}
-                          onChange={(e) => setEndpointDraft(e.target.value)}
-                          className="h-7 text-xs"
-                          placeholder="https://your-endpoint.com"
-                        />
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 flex-shrink-0"
-                          onClick={async () => {
-                            if (onUpdate) {
-                              await onUpdate(agent.id, { endpoint_base_url: endpointDraft } as any);
-                            }
-                            setEditingEndpoint(false);
-                            toast({ title: "Endpoint updated" });
-                          }}
-                        >
-                          <Check className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 flex-shrink-0"
-                          onClick={() => setEditingEndpoint(false)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 group">
-                        <span className="break-all">{agent.endpoint_base_url || "—"}</span>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          onClick={() => {
-                            setEndpointDraft(agent.endpoint_base_url || "");
-                            setEditingEndpoint(true);
-                          }}
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
+                {editingEndpoint ? (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2 mb-2">
+                    <label className="text-xs font-medium text-muted-foreground">Base URL</label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={endpointDraft}
+                        onChange={(e) => setEndpointDraft(e.target.value)}
+                        className="h-8 text-sm"
+                        placeholder="https://your-endpoint.com"
+                        autoFocus
+                      />
+                      <Button
+                        size="sm"
+                        className="h-8 px-3"
+                        onClick={async () => {
+                          if (onUpdate) {
+                            await onUpdate(agent.id, { endpoint_base_url: endpointDraft } as any);
+                          }
+                          setEditingEndpoint(false);
+                          toast({ title: "Endpoint updated" });
+                        }}
+                      >
+                        <Check className="h-3 w-3 mr-1" /> Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2"
+                        onClick={() => setEditingEndpoint(false)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between rounded-lg border p-2.5 mb-2">
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted-foreground block">Base URL</span>
+                      <span className="text-sm break-all">{agent.endpoint_base_url || "—"}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs px-2.5 ml-2 flex-shrink-0"
+                      onClick={() => {
+                        setEndpointDraft(agent.endpoint_base_url || "");
+                        setEditingEndpoint(true);
+                      }}
+                    >
+                      <Pencil className="h-3 w-3 mr-1" /> Edit
+                    </Button>
+                  </div>
+                )}
                 <DetailRow label="Invoke Path" value={agent.endpoint_invoke_path || "/invoke"} />
                 <DetailRow label="Health Path" value={agent.endpoint_health_path || "/health"} />
                 <DetailRow label="Auth Type" value={
