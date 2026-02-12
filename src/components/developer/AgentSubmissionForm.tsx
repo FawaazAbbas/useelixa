@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,29 +41,75 @@ function hslToHex(h: number, s: number, l: number): string {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-/** Reusable recolored mascot preview */
-const RecoloredMascot = ({
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : { r: 255, g: 255, b: 255 };
+}
+
+/** Canvas-based recolored mascot preview */
+const CanvasRecoloredMascot = ({
   avatarColor,
-  size = "h-48 w-48",
+  sizePx = 192,
+  className,
 }: {
   avatarColor: string;
-  size?: string;
-}) => (
-  <div className="relative overflow-hidden rounded-xl inline-block">
-    <img
-      src={ElixaMascotSvg}
-      alt="Agent avatar"
-      className={cn(size, "object-contain")}
-      style={avatarColor ? { filter: "grayscale(100%) brightness(1.1)" } : undefined}
+  sizePx?: number;
+  className?: string;
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    const img = imgRef.current;
+    if (!canvas || !img || !img.complete) return;
+
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+
+    if (avatarColor) {
+      const { r, g, b } = hexToRgb(avatarColor);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        data[i] = (data[i] * r) / 255;
+        data[i + 1] = (data[i + 1] * g) / 255;
+        data[i + 2] = (data[i + 2] * b) / 255;
+      }
+      ctx.putImageData(imageData, 0, 0);
+    }
+  }, [avatarColor]);
+
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      imgRef.current = img;
+      setLoaded(true);
+    };
+    img.src = ElixaMascotSvg;
+  }, []);
+
+  useEffect(() => {
+    if (loaded) draw();
+  }, [loaded, draw]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={cn("object-contain rounded-xl", className)}
+      style={{ width: sizePx, height: sizePx }}
     />
-    {avatarColor && (
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: avatarColor, mixBlendMode: "color" }}
-      />
-    )}
-  </div>
-);
+  );
+};
 
 export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormProps) => {
   const [step, setStep] = useState(1);
@@ -240,7 +286,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
 
                 {/* Small preview */}
                 <div className="flex justify-center py-2">
-                  <RecoloredMascot avatarColor={avatarColor} size="h-20 w-20" />
+                  <CanvasRecoloredMascot avatarColor={avatarColor} sizePx={80} />
                 </div>
 
                 {/* Hue slider */}
@@ -328,7 +374,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
                   className="h-48 w-48 object-contain drop-shadow-lg"
                 />
               ) : (
-                <RecoloredMascot avatarColor={avatarColor} size="h-48 w-48 drop-shadow-lg" />
+                <CanvasRecoloredMascot avatarColor={avatarColor} sizePx={192} className="drop-shadow-lg" />
               )}
               <div className="text-center">
                 <p className="text-lg font-semibold">{name || "Your Agent"}</p>
