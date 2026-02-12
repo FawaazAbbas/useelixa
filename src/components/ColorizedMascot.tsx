@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import MascotDefault from "@/assets/mascots/Elixa-Mascot.png";
 
 interface ColorizedMascotProps {
   color?: string; // hex color like "#FF6B35"
@@ -7,16 +8,37 @@ interface ColorizedMascotProps {
   className?: string;
 }
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 79, g: 70, b: 229 }; // fallback indigo
+}
+
 /**
- * SVG-based colorizable mascot that properly recolors the avatar
- * Preserves details like eyes, mouth, etc. while changing the body color
+ * Canvas-based colorizable mascot.
+ * Multiplies the target color onto non-white, non-black pixels
+ * to achieve genuine recoloring while preserving luminance detail.
  */
 export const ColorizedMascot = ({
-  color = "#4F46E5", // default indigo
+  color,
   size = "md",
   className,
 }: ColorizedMascotProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const sizeMap = {
+    sm: 48,
+    md: 80,
+    lg: 128,
+    xl: 192,
+    "2xl": 256,
+  };
 
   const sizeClasses = {
     sm: "h-12 w-12",
@@ -27,70 +49,76 @@ export const ColorizedMascot = ({
   };
 
   useEffect(() => {
-    const recolorSVG = async () => {
-      if (!containerRef.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-      try {
-        const response = await fetch(
-          new URL(
-            "@/assets/mascots/Elixa-Mascot-Colorizable.svg",
-            import.meta.url
-          ).href
-        );
-        const svgText = await response.text();
-        const parser = new DOMParser();
-        const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
 
-        if (svgDoc.documentElement.nodeName === "svg") {
-          const svg = svgDoc.documentElement as unknown as SVGSVGElement;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = MascotDefault;
 
-          // Find all elements with fill attributes that are not white/transparent/black outlines
-          const elementsToRecolor = svg.querySelectorAll("[fill]");
-          
-          elementsToRecolor.forEach((el) => {
-            const fill = el.getAttribute("fill");
-            if (!fill) return;
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
 
-            // Preserve whites, grays (outlines), transparency
-            const isWhiteOrGray =
-              fill.toLowerCase() === "#ffffff" ||
-              fill.toLowerCase() === "#f9f9f9" ||
-              fill.toLowerCase() === "#e5e5e5" ||
-              fill.toLowerCase() === "white" ||
-              fill.toLowerCase() === "none" ||
-              fill.startsWith("rgba(") ||
-              fill.startsWith("rgb(");
+      if (color) {
+        const { r: tr, g: tg, b: tb } = hexToRgb(color);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
 
-            // Preserve black and dark outlines
-            const isBlackOrDark =
-              fill.toLowerCase() === "#000000" ||
-              fill.toLowerCase() === "#1a1a1a" ||
-              fill.toLowerCase() === "black";
+        const tintStrength = 0.75; // how much of the target color to apply
 
-            if (!isWhiteOrGray && !isBlackOrDark) {
-              // This is a colorable element (body parts)
-              el.setAttribute("fill", color);
-            }
-          });
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
 
-          // Clear container and add the recolored SVG
-          containerRef.current.innerHTML = "";
-          containerRef.current.appendChild(svg);
+          if (a < 10) continue; // skip transparent
+
+          // Calculate luminance
+          const lum = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+
+          // Skip very dark pixels (outlines, eyes, mouth)
+          if (lum < 0.15) continue;
+          // Skip very bright pixels (whites, highlights)
+          if (lum > 0.95) continue;
+
+          // Blend: multiply target color with luminance, mix with original
+          const newR = Math.round(
+            r * (1 - tintStrength) + tr * lum * tintStrength
+          );
+          const newG = Math.round(
+            g * (1 - tintStrength) + tg * lum * tintStrength
+          );
+          const newB = Math.round(
+            b * (1 - tintStrength) + tb * lum * tintStrength
+          );
+
+          data[i] = Math.min(255, newR);
+          data[i + 1] = Math.min(255, newG);
+          data[i + 2] = Math.min(255, newB);
         }
-      } catch (err) {
-        console.error("Failed to load and colorize SVG:", err);
-      }
-    };
 
-    recolorSVG();
+        ctx.putImageData(imageData, 0, 0);
+      }
+
+      setLoaded(true);
+    };
   }, [color]);
 
   return (
-    <div
-      ref={containerRef}
+    <canvas
+      ref={canvasRef}
       className={cn(
-        "inline-block overflow-hidden",
         sizeClasses[size],
+        "object-contain",
+        !loaded && "opacity-0",
+        loaded && "opacity-100 transition-opacity duration-200",
         className
       )}
     />
