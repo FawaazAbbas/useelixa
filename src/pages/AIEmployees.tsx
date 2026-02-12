@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, Bot, Users, PanelRight } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
@@ -421,13 +423,21 @@ export default function AIEmployees() {
                       )}
                       <div
                         className={cn(
-                          "max-w-[75%] rounded-xl px-4 py-2.5 text-sm whitespace-pre-wrap",
+                          "max-w-[75%] rounded-xl px-4 py-2.5 text-sm",
                           msg.role === "user"
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-primary text-primary-foreground whitespace-pre-wrap"
                             : "bg-muted text-foreground"
                         )}
                       >
-                        {msg.content}
+                        {msg.role === "assistant" ? (
+                          <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-base [&>h2]:text-sm [&>h3]:text-sm [&>h1]:my-2 [&>h2]:my-1.5 [&>h3]:my-1 [&>li]:my-0.5">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {msg.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     </div>
 
