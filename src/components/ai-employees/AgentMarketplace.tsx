@@ -1,11 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Download, Check, Globe, Loader2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import type { AIEmployee } from "@/pages/AIEmployees";
+import { AgentAvatar } from "./AgentAvatar";
 
 interface AgentMarketplaceProps {
   agents: AIEmployee[];
@@ -70,12 +70,12 @@ export function AgentMarketplace({
               <Card key={agent.id} className="transition-all hover:shadow-md">
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={agent.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {agent.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AgentAvatar
+                      name={agent.name}
+                      avatarColor={(agent as any).avatarColor}
+                      iconUrl={agent.avatar_url}
+                      className="h-12 w-12"
+                    />
                     <div className="flex-1 min-w-0 space-y-1">
                       <CardTitle className="text-lg truncate">{agent.name}</CardTitle>
                       <div className="flex flex-wrap items-center gap-1">

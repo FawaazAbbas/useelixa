@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, Bot, Users, PanelRight } from "lucide-react";
@@ -16,6 +15,7 @@ import { ChatspaceSidebar, type InstalledAgent } from "@/components/ai-employees
 import { AgentSettingsPanel } from "@/components/ai-employees/AgentSettingsPanel";
 import { AgentMarketplace } from "@/components/ai-employees/AgentMarketplace";
 import { ProposalCard } from "@/components/ai-employees/ProposalCard";
+import { AgentAvatar } from "@/components/ai-employees/AgentAvatar";
 import { cn } from "@/lib/utils";
 
 export interface AIEmployee {
@@ -34,6 +34,7 @@ export interface AIEmployee {
   updated_at: string;
   source?: "native" | "endpoint";
   developer_name?: string;
+  avatarColor?: string | null;
 }
 
 interface AgentMessage {
@@ -134,6 +135,7 @@ export default function AIEmployees() {
         updated_at: agent.updated_at,
         source: "endpoint" as const,
         developer_name: (agent.developer_profiles as any)?.company_name || undefined,
+        avatarColor: (agent.capability_manifest as any)?.avatarColor || null,
       }));
       setAllAgents(agents);
     } catch (err) {
@@ -323,6 +325,7 @@ export default function AIEmployees() {
     agentId: i.agentId,
     name: i.name,
     iconUrl: i.iconUrl,
+    avatarColor: (i.capabilityManifest as any)?.avatarColor || null,
     category: i.category,
     executionStatus: i.executionStatus,
     deployedAt: i.deployedAt,
@@ -364,12 +367,12 @@ export default function AIEmployees() {
             {/* Chat header */}
             <div className="h-14 border-b flex items-center justify-between px-4 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={selected.iconUrl || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {selected.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <AgentAvatar
+                  name={selected.name}
+                  avatarColor={(selected.capabilityManifest as any)?.avatarColor}
+                  iconUrl={selected.iconUrl}
+                  className="h-8 w-8"
+                />
                 <div>
                   <p className="text-sm font-medium text-foreground">{selected.name}</p>
                   <p className="text-xs text-muted-foreground">
@@ -392,12 +395,12 @@ export default function AIEmployees() {
               <div className="space-y-4 max-w-3xl mx-auto">
                 {messages.length === 0 && !isLoading && (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <Avatar className="h-16 w-16 mb-4">
-                      <AvatarImage src={selected.iconUrl || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                        {selected.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AgentAvatar
+                      name={selected.name}
+                      avatarColor={(selected.capabilityManifest as any)?.avatarColor}
+                      iconUrl={selected.iconUrl}
+                      className="h-16 w-16 mb-4"
+                    />
                     <h3 className="text-lg font-medium text-foreground">{selected.name}</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                       {selected.description || "Start a conversation with this agent."}
@@ -414,12 +417,12 @@ export default function AIEmployees() {
                       )}
                     >
                       {msg.role === "assistant" && (
-                        <Avatar className="h-7 w-7 flex-shrink-0 mt-1">
-                          <AvatarImage src={selected.iconUrl || undefined} />
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {selected.name.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <AgentAvatar
+                          name={selected.name}
+                          avatarColor={(selected.capabilityManifest as any)?.avatarColor}
+                          iconUrl={selected.iconUrl}
+                          className="h-7 w-7 flex-shrink-0 mt-1"
+                        />
                       )}
                       <div
                         className={cn(
@@ -461,12 +464,12 @@ export default function AIEmployees() {
 
                 {isLoading && (
                   <div className="flex gap-3">
-                    <Avatar className="h-7 w-7 flex-shrink-0 mt-1">
-                      <AvatarImage src={selected.iconUrl || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                        {selected.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <AgentAvatar
+                      name={selected.name}
+                      avatarColor={(selected.capabilityManifest as any)?.avatarColor}
+                      iconUrl={selected.iconUrl}
+                      className="h-7 w-7 flex-shrink-0 mt-1"
+                    />
                     <div className="bg-muted rounded-xl px-4 py-2.5">
                       <div className="flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +6,7 @@ import { Trash2, Activity, Shield, Loader2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AgentAvatar } from "./AgentAvatar";
 
 interface AgentSettingsPanelProps {
   name: string;
@@ -70,12 +70,12 @@ export function AgentSettingsPanel({
         <div className="p-4 space-y-5">
           {/* Identity */}
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={iconUrl || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <AgentAvatar
+              name={name}
+              avatarColor={(capabilityManifest as any)?.avatarColor}
+              iconUrl={iconUrl}
+              className="h-12 w-12"
+            />
             <div>
               <p className="font-medium text-foreground">{name}</p>
               {category && (
