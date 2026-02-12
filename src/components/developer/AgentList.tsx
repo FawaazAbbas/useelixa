@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Send, Trash2, Bot, Globe, Server, CheckCircle, Loader2, AlertCircle, Search, LayoutGrid, List, MoreVertical, Copy, Pencil } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ElixaMascot } from "@/components/ElixaMascot";
+import { AgentAvatar } from "@/components/ai-employees/AgentAvatar";
 import { AgentDetailSheet } from "./AgentDetailSheet";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 
@@ -90,14 +91,8 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate, onU
             <Card key={agent.id} className="cursor-pointer hover:border-primary/40 hover:shadow-sm transition-all" onClick={() => setSelectedAgent(agent)}>
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {agent.icon_url ? (
-                      <img src={agent.icon_url} alt={agent.name} className="h-10 w-10 rounded-lg object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Bot className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
+                <div className="flex items-center gap-3 min-w-0">
+                    <AgentAvatar name={agent.name} avatarColor={agent.icon_url} iconUrl={agent.icon_url} className="h-10 w-10" />
                     <div className="min-w-0">
                       <CardTitle className="text-sm truncate">{agent.name}</CardTitle>
                       <CardDescription className="text-xs flex items-center gap-1.5 flex-wrap mt-0.5">

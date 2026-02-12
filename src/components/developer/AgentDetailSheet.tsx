@@ -10,12 +10,13 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Server, Globe, Send, Trash2, Bot, Loader2, RefreshCw, Heart, HeartCrack, ChevronDown, Copy, Save } from "lucide-react";
+import { Server, Globe, Send, Trash2, Bot, Loader2, RefreshCw, Heart, HeartCrack, ChevronDown, Copy, Save, Palette } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { AgentTestConsole } from "./AgentTestConsole";
+import { AgentAvatar } from "@/components/ai-employees/AgentAvatar";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -70,6 +71,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
   const [authSecret, setAuthSecret] = useState("");
   const [canMutate, setCanMutate] = useState(false);
   const [riskTier, setRiskTier] = useState("sandbox");
+  const [avatarColor, setAvatarColor] = useState("");
 
   // Reset fields when agent changes
   useEffect(() => {
@@ -86,6 +88,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
       const manifest = agent.capability_manifest as any;
       setCanMutate(manifest?.canMutate || false);
       setRiskTier(manifest?.riskTier || "sandbox");
+      setAvatarColor(agent.icon_url || "");
     }
   }, [agent]);
 
@@ -122,13 +125,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
-            {agent.icon_url ? (
-              <img src={agent.icon_url} alt={agent.name} className="h-12 w-12 rounded-xl object-cover" />
-            ) : (
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Bot className="h-6 w-6 text-primary" />
-              </div>
-            )}
+            <AgentAvatar name={agent.name} avatarColor={avatarColor} iconUrl={agent.icon_url} className="h-12 w-12" />
             <div>
               <SheetTitle>{agent.name}</SheetTitle>
               <SheetDescription>{agent.description || "No description"}</SheetDescription>
@@ -255,6 +252,35 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
               <Separator />
             </>
           )}
+
+          {/* Branding */}
+          <CollapsibleSection title="Branding">
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs mb-2 block">Avatar Color (Hex)</Label>
+                <div className="flex gap-2 items-end">
+                  <Input 
+                    value={avatarColor} 
+                    onChange={(e) => setAvatarColor(e.target.value)} 
+                    className="h-9" 
+                    placeholder="#6366f1"
+                    maxLength={7}
+                  />
+                  <AgentAvatar name={agent.name} avatarColor={avatarColor} iconUrl={agent.icon_url} className="h-12 w-12" />
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="w-full"
+                disabled={saving === "branding"}
+                onClick={() => handleSave("branding", { icon_url: avatarColor } as any)}
+              >
+                {saving === "branding" ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Palette className="h-3 w-3 mr-1" />}
+                Save Branding
+              </Button>
+            </div>
+          </CollapsibleSection>
+          <Separator />
 
           {/* Capability Manifest */}
           {isEndpoint && (
