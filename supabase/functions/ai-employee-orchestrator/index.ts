@@ -51,7 +51,12 @@ serve(async (req) => {
             workspaceId: installation.workspace_id,
           },
         });
-        if (error) throw error;
+        if (error) {
+          // Extract actual error message from the response
+          const errorDetail = data?.error || error?.message || String(error);
+          console.error("endpoint-invoke error:", errorDetail);
+          throw new Error(`Endpoint agent error: ${errorDetail}`);
+        }
         responseData = {
           response: data?.response || data?.assistantMessage || "No response from agent.",
           tools_used: [],
@@ -119,8 +124,12 @@ serve(async (req) => {
             installationId: null,
           },
         });
-        if (error) throw error;
-        responseData = { response: data?.response || "No response from endpoint agent.", tools_used: [] };
+        if (error) {
+          const errorDetail = data?.error || error?.message || String(error);
+          console.error("endpoint-invoke error (legacy):", errorDetail);
+          throw new Error(`Endpoint agent error: ${errorDetail}`);
+        }
+        responseData = { response: data?.response || data?.assistantMessage || "No response from endpoint agent.", tools_used: [] };
       } else if (hostingType === "self_hosted" && submission?.external_endpoint_url) {
         const headers: Record<string, string> = { "Content-Type": "application/json" };
         if (submission.external_auth_header && submission.external_auth_token) {

@@ -119,11 +119,14 @@ serve(async (req) => {
     }
 
     // Call endpoint
+    console.log("Calling endpoint:", invokeUrl);
     const endpointRes = await fetch(invokeUrl, { method: "POST", headers, body: rawBody });
     const endpointLatency = Date.now() - startTime;
+    console.log("Endpoint responded with status:", endpointRes.status, "latency:", endpointLatency, "ms");
 
     if (!endpointRes.ok) {
       const errText = await endpointRes.text();
+      console.error("Endpoint error response:", errText.slice(0, 500));
       throw new Error(`Endpoint returned ${endpointRes.status}: ${errText}`);
     }
 
