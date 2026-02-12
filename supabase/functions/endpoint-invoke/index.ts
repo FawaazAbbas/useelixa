@@ -130,7 +130,20 @@ serve(async (req) => {
       throw new Error(`Endpoint returned ${endpointRes.status}: ${errText}`);
     }
 
-    const responseData = await endpointRes.json();
+    const rawText = await endpointRes.text();
+    console.log("Endpoint raw response (first 500 chars):", rawText.slice(0, 500));
+
+    let responseData: any;
+    try {
+      responseData = JSON.parse(rawText);
+    } catch (_) {
+      // If the endpoint returned plain text, treat it as the assistant message
+      if (rawText.trim().length > 0) {
+        responseData = { assistantMessage: rawText.trim() };
+      } else {
+        throw new Error("Endpoint returned an empty response body");
+      }
+    }
 
     // Flexible response parsing: accept multiple common field names
     const assistantMessage =
