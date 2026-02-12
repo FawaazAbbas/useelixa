@@ -1,36 +1,38 @@
 
 
-## Redesign Step 3: Split Layout with Large Avatar Preview
+# Use Colorized Mascot Avatars in AI Employees Page
 
-### What changes
+Currently, the AI Employees section shows generic letter-based avatar fallbacks for agents. The plan is to replace these with the same `ColorizedMascot` component used in the developer submission form, pulling each agent's brand color from `capability_manifest.avatarColor`.
 
-**Step 3 of the Agent Submission Form** will be redesigned into a two-column layout:
-- **Left column**: Pose selection grid, color slider, custom upload toggle, and the review summary
-- **Right column**: A large, prominent live preview of the selected avatar with the agent name underneath
+## What Changes
 
-### More intense colors
+### 1. Pass `avatarColor` through the data pipeline
 
-The CSS filter will be updated from a simple `hue-rotate` to `hue-rotate(...) saturate(1.6)`, making all color shifts significantly more vibrant and punchy. The original (0 degree) option will remain unfiltered.
+The `capability_manifest` is already fetched for installed agents in `AIEmployees.tsx`. We need to:
+- Extract `avatarColor` from `capability_manifest` in the `FullInstallation` mapping
+- Add `avatarColor` to the `InstalledAgent` interface so the sidebar receives it
+- Pass `avatarColor` to the marketplace agent data as well
 
-### Technical Details
+### 2. Create a reusable `AgentAvatar` component
 
-**File:** `src/components/developer/AgentSubmissionForm.tsx`
+A small wrapper component (`src/components/ai-employees/AgentAvatar.tsx`) that:
+- If `avatarColor` exists, renders a `ColorizedMascot` at the appropriate size
+- Falls back to a letter-based `AvatarFallback` if no color is set
+- Accepts a `size` prop (mapped to pixel dimensions for consistency)
 
-1. **Layout change (Step 3 only):** Wrap the step 3 content in a `flex` / `grid grid-cols-[1fr_1fr]` container with `gap-8`:
-   - Left side: pose grid (2x2), hue slider, custom upload toggle, review summary
-   - Right side: large avatar preview image (~48-64 size, centered) with agent name and color label below it
+### 3. Replace avatars in all 4 locations
 
-2. **Intensify colors:** Change the inline filter style from:
-   ```
-   filter: hue-rotate(Xdeg)
-   ```
-   to:
-   ```
-   filter: hue-rotate(Xdeg) saturate(1.6) brightness(1.05)
-   ```
-   This applies to all three places the filter is used: the pose grid thumbnails, the large preview image, and the saved `avatarColor` value in `capability_manifest`.
+| Location | File | Current | New |
+|----------|------|---------|-----|
+| Sidebar agent list | `ChatspaceSidebar.tsx` | `Avatar` with `AvatarImage`/`AvatarFallback` | `AgentAvatar` with color |
+| Chat header + empty state + messages + loading | `AIEmployees.tsx` | `Avatar` with `AvatarImage`/`AvatarFallback` | `AgentAvatar` with color |
+| Settings panel | `AgentSettingsPanel.tsx` | `Avatar` with `AvatarImage`/`AvatarFallback` | `AgentAvatar` with color |
+| Browse marketplace cards | `AgentMarketplace.tsx` | `Avatar` with `AvatarImage`/`AvatarFallback` | `AgentAvatar` with color |
 
-3. **Large preview:** Replace the current small inline preview (h-16 w-16) with a large centered image (h-48 w-48 or larger) inside a styled container with a subtle background, making it the visual focal point of the step.
+## Technical Details
 
-4. **Pose grid:** Change from `grid-cols-3 sm:grid-cols-5` to `grid-cols-2` since there are only 4 poses, keeping them compact on the left side.
+- `ColorizedMascot` uses CSS `hue-rotate` + `saturate` filters on the default PNG mascot -- lightweight and performant
+- The `avatarColor` hex string is stored in `agent_submissions.capability_manifest` as `{ avatarColor: "#hex" }`
+- No database changes are needed; the data is already available
+- The `AgentAvatar` component will accept small sizes like `h-7`, `h-8`, `h-9`, `h-12`, `h-16` using Tailwind classes passed through
 
