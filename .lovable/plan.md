@@ -1,60 +1,63 @@
 
 
-# Fix Agent Avatar Colors on Developer Page
+# Enhanced Sign-Up Forms for Both User and Developer Auth
 
-## Root Cause
+## Overview
+Both sign-up forms will collect richer information. The sign-in forms stay as email + password only.
 
-The database shows that `icon_url` is `NULL` for all agents. Avatar colors are stored exclusively in `capability_manifest.avatarColor` (e.g. `#4F46E5`, `#00ff6e`, `#EF4444`). But the code in `AgentList.tsx` passes `avatarColor={agent.icon_url}` which is always null -- so every agent gets the default uncolored mascot.
+## What users will see
 
-## Changes
+**Main App Sign Up** (`/auth`) collects:
+- Full Name
+- Email
+- Password
+- Company / Organisation
+- Phone Number
 
-### 1. `src/components/developer/AgentList.tsx` (line 95)
+**Developer Sign Up** (`/developer/auth`) collects everything above, plus:
+- Website URL
 
-Read the color from `capability_manifest` instead of `icon_url`:
+## Technical Details
 
-```tsx
-// Before
-<AgentAvatar name={agent.name} avatarColor={agent.icon_url} iconUrl={agent.icon_url} className="h-10 w-10" />
+### 1. Database Migration -- Add columns to `profiles`
+Add `phone` and `company_name` columns to the `profiles` table (both nullable so existing users are unaffected).
 
-// After
-<AgentAvatar
-  name={agent.name}
-  avatarColor={(agent.capability_manifest as any)?.avatarColor || agent.icon_url}
-  iconUrl={agent.icon_url}
-  className="h-10 w-10"
-/>
+```sql
+ALTER TABLE public.profiles ADD COLUMN phone text;
+ALTER TABLE public.profiles ADD COLUMN company_name text;
 ```
 
-### 2. `src/components/developer/AgentDetailSheet.tsx`
+### 2. Update `handle_new_user` trigger
+Modify the trigger function to read `phone` and `company_name` from `raw_user_meta_data` and store them in the new profile columns:
 
-**A. Fix initialization (line 91)** -- read from manifest first since that's where data actually lives:
-
-```tsx
-setAvatarColor((manifest?.avatarColor as string) || agent.icon_url || "");
+```sql
+INSERT INTO public.profiles (id, display_name, avatar_url, phone, company_name)
+VALUES (
+  NEW.id,
+  COALESCE(NEW.raw_user_meta_data->>'display_name', NEW.email),
+  NEW.raw_user_meta_data->>'avatar_url',
+  NEW.raw_user_meta_data->>'phone',
+  NEW.raw_user_meta_data->>'company_name'
+);
 ```
 
-**B. Replace the plain text input with a native color picker + text input combo** for intuitive editing. Add an `<input type="color">` swatch next to the hex input so developers can visually pick a color. Show a larger live preview of the mascot with the selected color.
+### 3. Update `src/pages/Auth.tsx`
+- Add state for `fullName`, `companyName`, `phone`
+- Add form fields for all three on the Sign Up tab
+- Pass them as `data` metadata in `supabase.auth.signUp({ options: { data: { display_name, phone, company_name } } })`
+- Sign In tab stays as-is (email + password)
 
-**C. Fix the header avatar (line 128)** to also read from manifest:
+### 4. Update `src/pages/DeveloperAuth.tsx`
+- Add state for `fullName`, `companyName`, `phone`, `website`
+- Add form fields for all four on the Sign Up tab
+- Pass name/company/phone as user metadata in `signUp`
+- After sign-up, also update the `developer_profiles` row with `company_name` and `website`
+- Sign In tab stays as-is (email + password)
 
-```tsx
-<AgentAvatar
-  name={agent.name}
-  avatarColor={avatarColor || (agent.capability_manifest as any)?.avatarColor}
-  iconUrl={agent.icon_url}
-  className="h-12 w-12"
-/>
-```
-
-**D. Branding save (line 276-283)** -- keep writing to both `icon_url` and `capability_manifest.avatarColor` so it works regardless of which field is read.
-
-### 3. Color picker UX in Branding section
-
-Replace the current bare hex input with:
-- A native `<input type="color" />` swatch button (click to open OS color picker)
-- The hex text input beside it (for manual entry)
-- A row of preset color swatches for quick selection
-- A larger live mascot preview showing the selected color in real-time
-
-Preset colors: `#6366f1` (indigo), `#EF4444` (red), `#F59E0B` (amber), `#10B981` (green), `#3B82F6` (blue), `#8B5CF6` (purple), `#EC4899` (pink), `#F97316` (orange)
+### 5. Input Validation
+- Full Name: required, max 100 chars
+- Phone: optional, validated pattern
+- Company: required, max 200 chars
+- Website (developer only): optional, validated URL format
+- Password: min 6 chars (existing)
 
