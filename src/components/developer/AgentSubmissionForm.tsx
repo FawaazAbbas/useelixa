@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,17 @@ import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { HostingTypeSelector } from "./HostingTypeSelector";
 import { EndpointAgentFields } from "./EndpointAgentFields";
 
-import ElixaMascotSvg from "@/assets/mascots/Elixa-Mascot-ExactCopy.svg";
+import ElixaSearch from "@/assets/mascots/Elixa-Mascot-Search.png";
+import ElixaThinking from "@/assets/mascots/Elixa-Mascot-Thinking.png";
+import ElixaWaving from "@/assets/mascots/Elixa-Mascot-Waving.png";
+import ElixaDefault from "@/assets/mascots/Elixa-Mascot.png";
+
+const MASCOT_OPTIONS = [
+  { src: ElixaDefault, label: "Default" },
+  { src: ElixaWaving, label: "Waving" },
+  { src: ElixaSearch, label: "Search" },
+  { src: ElixaThinking, label: "Thinking" },
+];
 
 interface AgentSubmissionFormProps {
   onSubmit: (agent: Partial<AgentSubmission>, actions?: any[]) => Promise<any>;
@@ -28,91 +38,6 @@ const AVAILABLE_TOOLS = [
 ];
 
 const TOTAL_STEPS = 3;
-
-function hslToHex(h: number, s: number, l: number): string {
-  s /= 100;
-  l /= 100;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => {
-    const k = (n + h / 30) % 12;
-    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, "0");
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
-}
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
-    : { r: 255, g: 255, b: 255 };
-}
-
-/** Canvas-based recolored mascot preview */
-const CanvasRecoloredMascot = ({
-  avatarColor,
-  sizePx = 192,
-  className,
-}: {
-  avatarColor: string;
-  sizePx?: number;
-  className?: string;
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [loaded, setLoaded] = useState(false);
-  const imgRef = useRef<HTMLImageElement | null>(null);
-
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    const img = imgRef.current;
-    if (!canvas || !img || !img.complete) return;
-
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0);
-
-    if (avatarColor) {
-      const { r, g, b } = hexToRgb(avatarColor);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const targetR = (data[i] * r) / 255;
-        const targetG = (data[i + 1] * g) / 255;
-        const targetB = (data[i + 2] * b) / 255;
-        data[i] = data[i] * 0.75 + targetR * 0.25;
-        data[i + 1] = data[i + 1] * 0.75 + targetG * 0.25;
-        data[i + 2] = data[i + 2] * 0.75 + targetB * 0.25;
-      }
-      ctx.putImageData(imageData, 0, 0);
-    }
-  }, [avatarColor]);
-
-  useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      imgRef.current = img;
-      setLoaded(true);
-    };
-    img.src = ElixaMascotSvg;
-  }, []);
-
-  useEffect(() => {
-    if (loaded) draw();
-  }, [loaded, draw]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className={cn("object-contain rounded-xl", className)}
-      style={{ width: sizePx, height: sizePx }}
-    />
-  );
-};
 
 export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormProps) => {
   const [step, setStep] = useState(1);
@@ -134,9 +59,9 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [epCanMutate, setEpCanMutate] = useState(false);
   const [epRiskTier, setEpRiskTier] = useState<"sandbox" | "verified" | "privileged">("sandbox");
 
-  // Avatar color (hex string, empty = original)
-  const [avatarHue, setAvatarHue] = useState(0); // 0 = original, 1-360 = hue
-  const avatarColor = avatarHue > 0 ? hslToHex(avatarHue, 80, 50) : "";
+  // Avatar selection
+  const [selectedMascot, setSelectedMascot] = useState(0);
+  const [avatarHue, setAvatarHue] = useState(0); // 0-360 degrees
 
   // Custom icon (fallback)
   const [iconFile, setIconFile] = useState<File | null>(null);
@@ -173,8 +98,11 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     if (useCustomIcon && iconFile) {
       iconUrl = await uploadFile(iconFile, "icons");
     } else {
-      iconUrl = ElixaMascotSvg;
+      // Use the selected mascot path as the icon_url
+      iconUrl = MASCOT_OPTIONS[selectedMascot].src;
     }
+
+    const avatarColor = avatarHue > 0 ? `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` : "none";
 
     const payload: Partial<AgentSubmission> = {
       name,
@@ -193,8 +121,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
         toolsRequired: epToolsRequired,
         canMutate: epCanMutate,
         riskTier: epRiskTier,
-        avatarSvgPath: ElixaMascotSvg,
-        avatarColor: avatarColor || null,
+        avatarColor: avatarColor,
       },
       runtime: "endpoint",
     };
@@ -206,7 +133,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
     setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
     setIconFile(null); setIconPreview(null); setUseCustomIcon(false);
-    setAvatarHue(0);
+    setSelectedMascot(0); setAvatarHue(0);
     setSaving(false);
   };
 
@@ -284,16 +211,42 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
             {/* Left column: controls + review */}
             <div className="space-y-5">
               <div className="space-y-3">
-                <Label className="text-base font-semibold">Agent Avatar Color</Label>
-                <p className="text-xs text-muted-foreground">Slide to recolor your agent's avatar, or leave at "Original"</p>
+                <Label className="text-base font-semibold">Choose Agent Avatar</Label>
+                <p className="text-xs text-muted-foreground">Select a pose and color for your agent</p>
 
-                {/* Small preview */}
-                <div className="flex justify-center py-2">
-                  <CanvasRecoloredMascot avatarColor={avatarColor} sizePx={80} />
+                {/* Mascot pose grid 2x2 */}
+                <div className="grid grid-cols-2 gap-3">
+                  {MASCOT_OPTIONS.map((mascot, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => { setSelectedMascot(i); setUseCustomIcon(false); }}
+                      className={cn(
+                        "relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-2 transition-all hover:scale-105",
+                        selectedMascot === i && !useCustomIcon
+                          ? "border-primary bg-primary/10 shadow-md"
+                          : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      <img
+                        src={mascot.src}
+                        alt={mascot.label}
+                        className="h-14 w-14 object-contain"
+                        style={avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` } : undefined}
+                      />
+                      <span className="text-[10px] text-muted-foreground leading-tight">{mascot.label}</span>
+                      {selectedMascot === i && !useCustomIcon && (
+                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
                 </div>
 
-                {/* Hue slider */}
+                {/* Color slider */}
                 <div className="space-y-2">
+                  <Label className="text-sm">Avatar Color</Label>
                   <div className="flex items-center gap-3">
                     <input
                       type="range"
@@ -303,24 +256,13 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
                       onChange={(e) => setAvatarHue(Number(e.target.value))}
                       className="w-full h-2 rounded-full appearance-none cursor-pointer"
                       style={{
-                        background: "linear-gradient(to right, #ccc 0%, #ccc 0.5%, #ff0000 1%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)",
+                        background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
                       }}
                     />
-                    <span className="text-xs text-muted-foreground w-20 text-right shrink-0">
-                      {avatarHue === 0 ? "Original" : avatarColor}
+                    <span className="text-xs text-muted-foreground w-16 text-right">
+                      {avatarHue === 0 ? "Original" : `${avatarHue}°`}
                     </span>
                   </div>
-                  {avatarHue > 0 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-muted-foreground h-6 px-2"
-                      onClick={() => setAvatarHue(0)}
-                    >
-                      Reset to original
-                    </Button>
-                  )}
                 </div>
 
                 {/* Custom upload toggle */}
@@ -362,27 +304,22 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
                 <span className="capitalize">{epRiskTier}</span>
                 <span className="text-muted-foreground">Tools:</span>
                 <span>{epToolsRequired.length > 0 ? epToolsRequired.join(", ") : "None"}</span>
-                <span className="text-muted-foreground">Avatar Color:</span>
-                <span>{avatarColor || "Original"}</span>
               </div>
               {description && <p className="text-sm text-muted-foreground">{description}</p>}
             </div>
 
             {/* Right column: large avatar preview */}
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-muted/30 p-8">
-              {useCustomIcon && iconPreview ? (
-                <img
-                  src={iconPreview}
-                  alt="Custom avatar preview"
-                  className="h-48 w-48 object-contain drop-shadow-lg"
-                />
-              ) : (
-                <CanvasRecoloredMascot avatarColor={avatarColor} sizePx={192} className="drop-shadow-lg" />
-              )}
+              <img
+                src={useCustomIcon && iconPreview ? iconPreview : MASCOT_OPTIONS[selectedMascot].src}
+                alt="Avatar preview"
+                className="h-48 w-48 object-contain drop-shadow-lg"
+                style={!useCustomIcon && avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` } : undefined}
+              />
               <div className="text-center">
                 <p className="text-lg font-semibold">{name || "Your Agent"}</p>
                 <p className="text-sm text-muted-foreground">
-                  {useCustomIcon ? "Custom icon" : avatarColor ? `Color: ${avatarColor}` : "Original colors"}
+                  {useCustomIcon ? "Custom icon" : `${MASCOT_OPTIONS[selectedMascot].label} · ${avatarHue === 0 ? "Original" : `${avatarHue}°`}`}
                 </p>
               </div>
             </div>
