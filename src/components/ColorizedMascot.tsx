@@ -83,6 +83,25 @@ export const ColorizedMascot = ({
     };
   }, [color]);
 
+  if (crop === "head") {
+    return (
+      <div
+        className={cn(
+          sizeClasses[size],
+          "overflow-hidden relative",
+          className
+        )}
+      >
+        <img
+          src={MascotDefault}
+          alt="Elixa Mascot"
+          style={filterStyle}
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-auto"
+        />
+      </div>
+    );
+  }
+
   return (
     <img
       src={MascotDefault}
@@ -90,9 +109,7 @@ export const ColorizedMascot = ({
       style={filterStyle}
       className={cn(
         sizeClasses[size],
-        crop === "head"
-          ? "object-cover object-[center_15%] scale-[1.6]"
-          : "object-contain",
+        "object-contain",
         className
       )}
     />
