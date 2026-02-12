@@ -228,7 +228,6 @@ export const useDeveloperPortal = () => {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
 
-    // For endpoint agents, set execution_status to ready (no code validation needed)
     const isEndpoint = (agent as any).execution_mode === "endpoint";
     const executionStatus = isEndpoint ? "ready" : "building";
 
@@ -243,7 +242,6 @@ export const useDeveloperPortal = () => {
       return null;
     }
 
-    // Insert actions if provided
     if (actions && actions.length > 0 && data) {
       const actionRows = actions.map((a, i) => ({
         agent_id: data.id,
@@ -264,7 +262,6 @@ export const useDeveloperPortal = () => {
     toast({ title: isEndpoint ? "Endpoint agent created" : "Agent created — validating..." });
     await fetchAgents();
 
-    // Auto-validate platform-hosted agents with code
     if (data && agent.hosting_type === "platform" && (agent.code_file_url || data.code_file_url)) {
       validateAgent(data.id);
     }
@@ -284,6 +281,51 @@ export const useDeveloperPortal = () => {
       toast({ title: "Agent updated" });
       await fetchAgents();
     }
+  };
+
+  const duplicateAgent = async (agent: AgentSubmission) => {
+    if (!profile) return null;
+    const slug = agent.name
+      ?.toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") + "-copy-" + Date.now().toString(36);
+
+    const { data, error } = await supabase
+      .from("agent_submissions")
+      .insert({
+        developer_id: profile.id,
+        name: `${agent.name} (Copy)`,
+        slug,
+        description: agent.description,
+        category: agent.category,
+        version: agent.version,
+        system_prompt: agent.system_prompt,
+        allowed_tools: agent.allowed_tools,
+        icon_url: agent.icon_url,
+        hosting_type: agent.hosting_type,
+        runtime: agent.runtime,
+        execution_mode: agent.execution_mode || "endpoint",
+        endpoint_base_url: agent.endpoint_base_url,
+        endpoint_invoke_path: agent.endpoint_invoke_path,
+        endpoint_health_path: agent.endpoint_health_path,
+        endpoint_auth_type: agent.endpoint_auth_type,
+        endpoint_secret: agent.endpoint_secret,
+        capability_manifest: agent.capability_manifest,
+        execution_status: "ready",
+        status: "draft",
+        is_public: false,
+      } as any)
+      .select()
+      .single();
+
+    if (error) {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+      return null;
+    }
+
+    toast({ title: "Agent duplicated as draft" });
+    await fetchAgents();
+    return data;
   };
 
   const submitForReview = async (id: string) => {
@@ -314,6 +356,7 @@ export const useDeveloperPortal = () => {
     updateProfile,
     createAgent,
     updateAgent,
+    duplicateAgent,
     submitForReview,
     deleteAgent,
     fetchAgents,

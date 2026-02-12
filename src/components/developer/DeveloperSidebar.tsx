@@ -1,8 +1,10 @@
-import { BarChart3, Bot, Plus, ScrollText, BookOpen, Settings, LogOut, Code2, ChevronLeft, ChevronRight } from "lucide-react";
+import { BarChart3, Bot, Plus, ScrollText, BookOpen, Settings, LogOut, Code2, ChevronLeft, ChevronRight, Menu } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 export type DeveloperSection = "overview" | "agents" | "submit" | "logs" | "docs" | "settings";
 
@@ -22,26 +24,21 @@ interface DeveloperSidebarProps {
   onSignOut: () => void;
 }
 
-export const DeveloperSidebar = ({ activeSection, onSectionChange, userEmail, onSignOut }: DeveloperSidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
-
+const SidebarContent = ({ activeSection, onSectionChange, userEmail, onSignOut, collapsed, setCollapsed, onNavigate }: DeveloperSidebarProps & { collapsed: boolean; setCollapsed?: (v: boolean) => void; onNavigate?: () => void }) => {
   const getInitials = () => {
     if (!userEmail) return "D";
     return userEmail.charAt(0).toUpperCase();
   };
 
+  const handleSectionClick = (section: DeveloperSection) => {
+    onSectionChange(section);
+    onNavigate?.();
+  };
+
   return (
-    <div
-      className={cn(
-        "h-screen border-r bg-card flex flex-col flex-shrink-0 transition-all duration-200",
-        collapsed ? "w-[72px]" : "w-[240px]"
-      )}
-    >
+    <div className={cn("h-full flex flex-col", collapsed ? "w-[72px]" : "w-[240px]")}>
       {/* Logo Header */}
-      <div className={cn(
-        "h-16 border-b flex items-center gap-3 flex-shrink-0 px-4",
-        collapsed && "justify-center px-0"
-      )}>
+      <div className={cn("h-16 border-b flex items-center gap-3 flex-shrink-0 px-4", collapsed && "justify-center px-0")}>
         <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
           <Code2 className="h-5 w-5 text-primary" />
         </div>
@@ -60,7 +57,7 @@ export const DeveloperSidebar = ({ activeSection, onSectionChange, userEmail, on
           const button = (
             <button
               key={item.value}
-              onClick={() => onSectionChange(item.value)}
+              onClick={() => handleSectionClick(item.value)}
               className={cn(
                 "group relative flex items-center w-full rounded-lg transition-colors",
                 collapsed ? "justify-center h-10" : "gap-3 h-10 px-3",
@@ -89,32 +86,26 @@ export const DeveloperSidebar = ({ activeSection, onSectionChange, userEmail, on
         })}
       </nav>
 
-      {/* Collapse Toggle */}
-      <div className="px-2 py-1">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center justify-center w-full h-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
-      </div>
+      {/* Collapse Toggle - desktop only */}
+      {setCollapsed && (
+        <div className="px-2 py-1">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="flex items-center justify-center w-full h-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
+      )}
 
       {/* Footer */}
-      <div className={cn(
-        "border-t p-3 flex items-center gap-3",
-        collapsed && "justify-center p-2"
-      )}>
+      <div className={cn("border-t p-3 flex items-center gap-3", collapsed && "justify-center p-2")}>
         {collapsed ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                onClick={onSignOut}
-                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
-              >
+              <button onClick={onSignOut} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                    {getInitials()}
-                  </AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">{getInitials()}</AvatarFallback>
                 </Avatar>
               </button>
             </TooltipTrigger>
@@ -126,22 +117,48 @@ export const DeveloperSidebar = ({ activeSection, onSectionChange, userEmail, on
         ) : (
           <>
             <Avatar className="h-8 w-8 flex-shrink-0">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                {getInitials()}
-              </AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">{getInitials()}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-xs text-foreground truncate">{userEmail}</p>
             </div>
-            <button
-              onClick={onSignOut}
-              className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex-shrink-0"
-            >
+            <button onClick={onSignOut} className="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex-shrink-0">
               <LogOut className="h-4 w-4" />
             </button>
           </>
         )}
       </div>
     </div>
+  );
+};
+
+export const DeveloperSidebar = (props: DeveloperSidebarProps) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile hamburger */}
+      <div className="md:hidden fixed top-0 left-0 z-50 h-16 flex items-center px-4">
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-10 w-10">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-[240px]">
+            <SidebarContent {...props} collapsed={false} onNavigate={() => setMobileOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop sidebar */}
+      <div className={cn(
+        "hidden md:flex h-screen border-r bg-card flex-shrink-0 transition-all duration-200",
+        collapsed ? "w-[72px]" : "w-[240px]"
+      )}>
+        <SidebarContent {...props} collapsed={collapsed} setCollapsed={setCollapsed} />
+      </div>
+    </>
   );
 };

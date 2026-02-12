@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Code2, BarChart3, Bot, Plus, ScrollText, BookOpen, Settings } from "lucide-react";
+import { Loader2, BarChart3, Bot, Plus, ScrollText, BookOpen, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useDeveloperPortal } from "@/hooks/useDeveloperPortal";
 import { DeveloperSidebar, type DeveloperSection } from "@/components/developer/DeveloperSidebar";
@@ -11,6 +11,7 @@ import { ExecutionLogs } from "@/components/developer/ExecutionLogs";
 import { ApiDocsPage } from "@/components/developer/ApiDocsPage";
 import { DeveloperSettings } from "@/components/developer/DeveloperSettings";
 import { Badge } from "@/components/ui/badge";
+import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 
 const sectionMeta: Record<DeveloperSection, { title: string; icon: React.ElementType }> = {
   overview: { title: "Overview", icon: BarChart3 },
@@ -33,6 +34,7 @@ const DeveloperPortal = () => {
     updateProfile,
     createAgent,
     updateAgent,
+    duplicateAgent,
     submitForReview,
     deleteAgent,
     validateAgent,
@@ -59,6 +61,11 @@ const DeveloperPortal = () => {
     navigate("/developer/auth");
   };
 
+  const handleDuplicate = async (agent: AgentSubmission) => {
+    await duplicateAgent(agent);
+    setActiveSection("agents");
+  };
+
   const { title, icon: SectionIcon } = sectionMeta[activeSection];
 
   return (
@@ -70,8 +77,8 @@ const DeveloperPortal = () => {
         onSignOut={handleSignOut}
       />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header — matches PageLayout pattern */}
-        <header className="flex-shrink-0 h-16 border-b bg-card/80 backdrop-blur-sm px-6 flex items-center justify-between gap-4">
+        {/* Header */}
+        <header className="flex-shrink-0 h-16 border-b bg-card/80 backdrop-blur-sm px-6 flex items-center justify-between gap-4 md:pl-6 pl-16">
           <div className="flex items-center gap-3 min-w-0">
             <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
               <SectionIcon className="h-5 w-5 text-primary" />
@@ -90,7 +97,14 @@ const DeveloperPortal = () => {
               <DeveloperOverview agents={agents} onNavigate={setActiveSection} />
             )}
             {activeSection === "agents" && (
-              <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} onValidate={validateAgent} onUpdate={updateAgent} />
+              <AgentList
+                agents={agents}
+                onSubmitForReview={submitForReview}
+                onDelete={deleteAgent}
+                onValidate={validateAgent}
+                onUpdate={updateAgent}
+                onDuplicate={handleDuplicate}
+              />
             )}
             {activeSection === "submit" && (
               <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} />
