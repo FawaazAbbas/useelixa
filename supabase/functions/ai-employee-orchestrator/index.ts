@@ -52,8 +52,15 @@ serve(async (req) => {
           },
         });
         if (error) {
-          // Extract actual error message from the response
-          const errorDetail = data?.error || error?.message || String(error);
+          // supabase.functions.invoke puts error body in error.context (a Response)
+          let errorDetail = error?.message || String(error);
+          try {
+            const ctx = (error as any)?.context;
+            if (ctx && typeof ctx.json === "function") {
+              const body = await ctx.json();
+              errorDetail = body?.error || JSON.stringify(body);
+            }
+          } catch (_) { /* ignore parse errors */ }
           console.error("endpoint-invoke error:", errorDetail);
           throw new Error(`Endpoint agent error: ${errorDetail}`);
         }
@@ -125,7 +132,14 @@ serve(async (req) => {
           },
         });
         if (error) {
-          const errorDetail = data?.error || error?.message || String(error);
+          let errorDetail = error?.message || String(error);
+          try {
+            const ctx = (error as any)?.context;
+            if (ctx && typeof ctx.json === "function") {
+              const body = await ctx.json();
+              errorDetail = body?.error || JSON.stringify(body);
+            }
+          } catch (_) { /* ignore parse errors */ }
           console.error("endpoint-invoke error (legacy):", errorDetail);
           throw new Error(`Endpoint agent error: ${errorDetail}`);
         }
