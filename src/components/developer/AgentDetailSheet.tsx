@@ -3,9 +3,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Server, Globe, Send, Trash2, Bot, Loader2, RefreshCw, Heart, HeartCrack } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Server, Globe, Send, Trash2, Bot, Loader2, RefreshCw, Heart, HeartCrack, Pencil, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { AgentTestConsole } from "./AgentTestConsole";
 
@@ -31,12 +33,16 @@ interface AgentDetailSheetProps {
   onSubmitForReview: (id: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onValidate?: (id: string) => Promise<{ success: boolean; error?: string }>;
+  onUpdate?: (id: string, updates: Partial<AgentSubmission>) => Promise<void>;
 }
 
-export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview, onDelete, onValidate }: AgentDetailSheetProps) => {
+export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview, onDelete, onValidate, onUpdate }: AgentDetailSheetProps) => {
+  const { toast } = useToast();
   const [validating, setValidating] = useState(false);
   const [healthStatus, setHealthStatus] = useState<{ status: string; latencyMs?: number } | null>(null);
   const [checkingHealth, setCheckingHealth] = useState(false);
+  const [editingEndpoint, setEditingEndpoint] = useState(false);
+  const [endpointDraft, setEndpointDraft] = useState("");
 
   if (!agent) return null;
 
@@ -165,7 +171,58 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
             </h4>
             {isEndpoint ? (
               <>
-                <DetailRow label="Base URL" value={agent.endpoint_base_url} />
+                <div className="grid grid-cols-3 gap-2 text-sm py-1.5">
+                  <span className="text-muted-foreground">Base URL</span>
+                  <div className="col-span-2">
+                    {editingEndpoint ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={endpointDraft}
+                          onChange={(e) => setEndpointDraft(e.target.value)}
+                          className="h-7 text-xs"
+                          placeholder="https://your-endpoint.com"
+                        />
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 flex-shrink-0"
+                          onClick={async () => {
+                            if (onUpdate) {
+                              await onUpdate(agent.id, { endpoint_base_url: endpointDraft } as any);
+                            }
+                            setEditingEndpoint(false);
+                            toast({ title: "Endpoint updated" });
+                          }}
+                        >
+                          <Check className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 flex-shrink-0"
+                          onClick={() => setEditingEndpoint(false)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 group">
+                        <span className="break-all">{agent.endpoint_base_url || "—"}</span>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          onClick={() => {
+                            setEndpointDraft(agent.endpoint_base_url || "");
+                            setEditingEndpoint(true);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <DetailRow label="Invoke Path" value={agent.endpoint_invoke_path || "/invoke"} />
                 <DetailRow label="Health Path" value={agent.endpoint_health_path || "/health"} />
                 <DetailRow label="Auth Type" value={

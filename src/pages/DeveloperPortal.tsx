@@ -32,6 +32,7 @@ const DeveloperPortal = () => {
     isDeveloper,
     updateProfile,
     createAgent,
+    updateAgent,
     submitForReview,
     deleteAgent,
     validateAgent,
@@ -89,7 +90,7 @@ const DeveloperPortal = () => {
               <DeveloperOverview agents={agents} onNavigate={setActiveSection} />
             )}
             {activeSection === "agents" && (
-              <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} onValidate={validateAgent} />
+              <AgentList agents={agents} onSubmitForReview={submitForReview} onDelete={deleteAgent} onValidate={validateAgent} onUpdate={updateAgent} />
             )}
             {activeSection === "submit" && (
               <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} />
