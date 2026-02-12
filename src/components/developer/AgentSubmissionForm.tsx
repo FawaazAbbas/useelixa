@@ -6,10 +6,43 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, ChevronRight, ChevronLeft, Check, Globe } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { HostingTypeSelector } from "./HostingTypeSelector";
 import { EndpointAgentFields } from "./EndpointAgentFields";
+
+import ElixaCelebrating from "@/assets/mascots/Elixa-Mascot-Celebrating.png";
+import ElixaPointingLeft from "@/assets/mascots/Elixa-Mascot-Pointing-Left.png";
+import ElixaPointingRight from "@/assets/mascots/Elixa-Mascot-Pointing-Right.png";
+import ElixaRelaxed from "@/assets/mascots/Elixa-Mascot-Relaxed.png";
+import ElixaSearch from "@/assets/mascots/Elixa-Mascot-Search.png";
+import ElixaSitting from "@/assets/mascots/Elixa-Mascot-Sitting.png";
+import ElixaThinking from "@/assets/mascots/Elixa-Mascot-Thinking.png";
+import ElixaWaving from "@/assets/mascots/Elixa-Mascot-Waving.png";
+import ElixaDefault from "@/assets/mascots/Elixa-Mascot.png";
+
+const MASCOT_OPTIONS = [
+  { src: ElixaDefault, label: "Default" },
+  { src: ElixaWaving, label: "Waving" },
+  { src: ElixaCelebrating, label: "Celebrating" },
+  { src: ElixaThinking, label: "Thinking" },
+  { src: ElixaSearch, label: "Search" },
+  { src: ElixaRelaxed, label: "Relaxed" },
+  { src: ElixaSitting, label: "Sitting" },
+  { src: ElixaPointingLeft, label: "Pointing Left" },
+  { src: ElixaPointingRight, label: "Pointing Right" },
+];
+
+const AVATAR_COLORS = [
+  { name: "Original", value: "none", bg: "bg-transparent", ring: "ring-border" },
+  { name: "Blue", value: "hue-rotate-180", bg: "bg-blue-500/20", ring: "ring-blue-500" },
+  { name: "Purple", value: "hue-rotate-270", bg: "bg-purple-500/20", ring: "ring-purple-500" },
+  { name: "Green", value: "hue-rotate-90", bg: "bg-green-500/20", ring: "ring-green-500" },
+  { name: "Orange", value: "hue-rotate-30 saturate-150", bg: "bg-orange-500/20", ring: "ring-orange-500" },
+  { name: "Pink", value: "hue-rotate-315 saturate-150", bg: "bg-pink-500/20", ring: "ring-pink-500" },
+  { name: "Cyan", value: "hue-rotate-150", bg: "bg-cyan-500/20", ring: "ring-cyan-500" },
+];
 
 interface AgentSubmissionFormProps {
   onSubmit: (agent: Partial<AgentSubmission>, actions?: any[]) => Promise<any>;
@@ -46,9 +79,14 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [epCanMutate, setEpCanMutate] = useState(false);
   const [epRiskTier, setEpRiskTier] = useState<"sandbox" | "verified" | "privileged">("sandbox");
 
-  // Icon
+  // Avatar selection
+  const [selectedMascot, setSelectedMascot] = useState(0);
+  const [selectedColor, setSelectedColor] = useState(0);
+
+  // Custom icon (fallback)
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [useCustomIcon, setUseCustomIcon] = useState(false);
 
   const toggleEpTool = (tool: string) => {
     setEpToolsRequired((prev) =>
@@ -77,7 +115,14 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const handleSubmit = async () => {
     setSaving(true);
     let iconUrl: string | null = null;
-    if (iconFile) iconUrl = await uploadFile(iconFile, "icons");
+    if (useCustomIcon && iconFile) {
+      iconUrl = await uploadFile(iconFile, "icons");
+    } else {
+      // Use the selected mascot path as the icon_url
+      iconUrl = MASCOT_OPTIONS[selectedMascot].src;
+    }
+
+    const avatarColor = AVATAR_COLORS[selectedColor].value;
 
     const payload: Partial<AgentSubmission> = {
       name,
@@ -96,6 +141,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
         toolsRequired: epToolsRequired,
         canMutate: epCanMutate,
         riskTier: epRiskTier,
+        avatarColor: avatarColor,
       },
       runtime: "endpoint",
     };
@@ -106,7 +152,8 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     setStep(1); setName(""); setDescription(""); setCategory(""); setVersion("1.0.0");
     setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
     setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
-    setIconFile(null); setIconPreview(null);
+    setIconFile(null); setIconPreview(null); setUseCustomIcon(false);
+    setSelectedMascot(0); setSelectedColor(0);
     setSaving(false);
   };
 
@@ -180,14 +227,102 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
         )}
 
         {step === 3 && (
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label>Agent Icon</Label>
-              <Input type="file" accept="image/*" onChange={handleIconChange} />
-              {iconPreview && (
-                <img src={iconPreview} alt="Preview" className="h-20 w-20 rounded-lg object-cover mt-2" />
-              )}
+          <div className="space-y-5">
+            {/* Avatar Picker */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Choose Agent Avatar</Label>
+              <p className="text-xs text-muted-foreground">Select an Elixa pose and color for your agent's avatar</p>
+              
+              {/* Mascot pose grid */}
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                {MASCOT_OPTIONS.map((mascot, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setSelectedMascot(i); setUseCustomIcon(false); }}
+                    className={cn(
+                      "relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-2 transition-all hover:scale-105",
+                      selectedMascot === i && !useCustomIcon
+                        ? "border-primary bg-primary/10 shadow-md"
+                        : "border-border bg-card hover:border-primary/50"
+                    )}
+                  >
+                    <img
+                      src={mascot.src}
+                      alt={mascot.label}
+                      className={cn(
+                        "h-14 w-14 object-contain",
+                        AVATAR_COLORS[selectedColor].value !== "none" && `filter ${AVATAR_COLORS[selectedColor].value}`
+                      )}
+                    />
+                    <span className="text-[10px] text-muted-foreground leading-tight">{mascot.label}</span>
+                    {selectedMascot === i && !useCustomIcon && (
+                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Color picker */}
+              <div className="space-y-2">
+                <Label className="text-sm">Avatar Color</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {AVATAR_COLORS.map((color, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setSelectedColor(i)}
+                      className={cn(
+                        "h-8 w-8 rounded-full ring-2 ring-offset-2 ring-offset-background transition-all",
+                        color.bg,
+                        selectedColor === i ? color.ring : "ring-transparent hover:ring-muted-foreground/50"
+                      )}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
+                <img
+                  src={useCustomIcon && iconPreview ? iconPreview : MASCOT_OPTIONS[selectedMascot].src}
+                  alt="Avatar preview"
+                  className={cn(
+                    "h-16 w-16 rounded-xl object-contain bg-background p-1",
+                    !useCustomIcon && AVATAR_COLORS[selectedColor].value !== "none" && `filter ${AVATAR_COLORS[selectedColor].value}`
+                  )}
+                />
+                <div className="text-sm">
+                  <p className="font-medium">{name || "Your Agent"}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {useCustomIcon ? "Custom icon" : `${MASCOT_OPTIONS[selectedMascot].label} · ${AVATAR_COLORS[selectedColor].name}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Custom upload toggle */}
+              <div className="pt-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => setUseCustomIcon(!useCustomIcon)}
+                >
+                  {useCustomIcon ? "← Use Elixa avatar instead" : "Or upload a custom icon →"}
+                </Button>
+                {useCustomIcon && (
+                  <div className="mt-2">
+                    <Input type="file" accept="image/*" onChange={handleIconChange} />
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Review summary */}
             <h3 className="font-semibold">Review your agent</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <span className="text-muted-foreground">Name:</span><span className="font-medium">{name}</span>
@@ -207,7 +342,8 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
               <span className="capitalize">{epRiskTier}</span>
               <span className="text-muted-foreground">Tools:</span>
               <span>{epToolsRequired.length > 0 ? epToolsRequired.join(", ") : "None"}</span>
-              <span className="text-muted-foreground">Icon:</span><span>{iconFile ? iconFile.name : "None"}</span>
+              <span className="text-muted-foreground">Avatar:</span>
+              <span>{useCustomIcon ? (iconFile?.name || "Custom") : `${MASCOT_OPTIONS[selectedMascot].label} (${AVATAR_COLORS[selectedColor].name})`}</span>
             </div>
             {description && <p className="text-sm text-muted-foreground">{description}</p>}
           </div>
