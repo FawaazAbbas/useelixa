@@ -102,7 +102,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
       iconUrl = MASCOT_OPTIONS[selectedMascot].src;
     }
 
-    const avatarColor = avatarHue > 0 ? `hue-rotate(${avatarHue}deg)` : "none";
+    const avatarColor = avatarHue > 0 ? `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` : "none";
 
     const payload: Partial<AgentSubmission> = {
       name,
@@ -207,122 +207,122 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
         )}
 
         {step === 3 && (
-          <div className="space-y-5">
-            {/* Avatar Picker */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Choose Agent Avatar</Label>
-              <p className="text-xs text-muted-foreground">Select an Elixa pose and color for your agent's avatar</p>
-              
-              {/* Mascot pose grid */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                {MASCOT_OPTIONS.map((mascot, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => { setSelectedMascot(i); setUseCustomIcon(false); }}
-                    className={cn(
-                      "relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-2 transition-all hover:scale-105",
-                      selectedMascot === i && !useCustomIcon
-                        ? "border-primary bg-primary/10 shadow-md"
-                        : "border-border bg-card hover:border-primary/50"
-                    )}
-                  >
-                    <img
-                      src={mascot.src}
-                      alt={mascot.label}
-                      className="h-14 w-14 object-contain"
-                      style={avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg)` } : undefined}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left column: controls + review */}
+            <div className="space-y-5">
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Choose Agent Avatar</Label>
+                <p className="text-xs text-muted-foreground">Select a pose and color for your agent</p>
+
+                {/* Mascot pose grid 2x2 */}
+                <div className="grid grid-cols-2 gap-3">
+                  {MASCOT_OPTIONS.map((mascot, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => { setSelectedMascot(i); setUseCustomIcon(false); }}
+                      className={cn(
+                        "relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-2 transition-all hover:scale-105",
+                        selectedMascot === i && !useCustomIcon
+                          ? "border-primary bg-primary/10 shadow-md"
+                          : "border-border bg-card hover:border-primary/50"
+                      )}
+                    >
+                      <img
+                        src={mascot.src}
+                        alt={mascot.label}
+                        className="h-14 w-14 object-contain"
+                        style={avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` } : undefined}
+                      />
+                      <span className="text-[10px] text-muted-foreground leading-tight">{mascot.label}</span>
+                      {selectedMascot === i && !useCustomIcon && (
+                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Color slider */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Avatar Color</Label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      value={avatarHue}
+                      onChange={(e) => setAvatarHue(Number(e.target.value))}
+                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                      style={{
+                        background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
+                      }}
                     />
-                    <span className="text-[10px] text-muted-foreground leading-tight">{mascot.label}</span>
-                    {selectedMascot === i && !useCustomIcon && (
-                      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Color slider */}
-              <div className="space-y-2">
-                <Label className="text-sm">Avatar Color</Label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={0}
-                    max={360}
-                    value={avatarHue}
-                    onChange={(e) => setAvatarHue(Number(e.target.value))}
-                    className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                    style={{
-                      background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
-                    }}
-                  />
-                  <span className="text-xs text-muted-foreground w-16 text-right">
-                    {avatarHue === 0 ? "Original" : `${avatarHue}°`}
-                  </span>
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
-                <img
-                  src={useCustomIcon && iconPreview ? iconPreview : MASCOT_OPTIONS[selectedMascot].src}
-                  alt="Avatar preview"
-                  className="h-16 w-16 rounded-xl object-contain bg-background p-1"
-                  style={!useCustomIcon && avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg)` } : undefined}
-                />
-                <div className="text-sm">
-                  <p className="font-medium">{name || "Your Agent"}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {useCustomIcon ? "Custom icon" : `${MASCOT_OPTIONS[selectedMascot].label} · ${avatarHue === 0 ? "Original" : `${avatarHue}°`}`}
-                  </p>
-                </div>
-              </div>
-
-              {/* Custom upload toggle */}
-              <div className="pt-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-muted-foreground"
-                  onClick={() => setUseCustomIcon(!useCustomIcon)}
-                >
-                  {useCustomIcon ? "← Use Elixa avatar instead" : "Or upload a custom icon →"}
-                </Button>
-                {useCustomIcon && (
-                  <div className="mt-2">
-                    <Input type="file" accept="image/*" onChange={handleIconChange} />
+                    <span className="text-xs text-muted-foreground w-16 text-right">
+                      {avatarHue === 0 ? "Original" : `${avatarHue}°`}
+                    </span>
                   </div>
-                )}
+                </div>
+
+                {/* Custom upload toggle */}
+                <div className="pt-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground"
+                    onClick={() => setUseCustomIcon(!useCustomIcon)}
+                  >
+                    {useCustomIcon ? "← Use Elixa avatar instead" : "Or upload a custom icon →"}
+                  </Button>
+                  {useCustomIcon && (
+                    <div className="mt-2">
+                      <Input type="file" accept="image/*" onChange={handleIconChange} />
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Review summary */}
+              <h3 className="font-semibold">Review your agent</h3>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <span className="text-muted-foreground">Name:</span><span className="font-medium">{name}</span>
+                <span className="text-muted-foreground">Category:</span><span>{category || "None"}</span>
+                <span className="text-muted-foreground">Version:</span><span>{version}</span>
+                <span className="text-muted-foreground">Hosting:</span>
+                <span className="flex items-center gap-1">
+                  <Globe className="h-3 w-3" /> Endpoint Agent
+                </span>
+                <span className="text-muted-foreground">Base URL:</span>
+                <span className="truncate">{epBaseUrl}</span>
+                <span className="text-muted-foreground">Auth:</span>
+                <span className="capitalize">{epAuthType === "api_key" ? "API Key" : epAuthType === "hmac" ? "HMAC" : "None"}</span>
+                <span className="text-muted-foreground">Invoke:</span>
+                <span className="font-mono text-xs">{epInvokePath}</span>
+                <span className="text-muted-foreground">Risk Tier:</span>
+                <span className="capitalize">{epRiskTier}</span>
+                <span className="text-muted-foreground">Tools:</span>
+                <span>{epToolsRequired.length > 0 ? epToolsRequired.join(", ") : "None"}</span>
+              </div>
+              {description && <p className="text-sm text-muted-foreground">{description}</p>}
             </div>
 
-            {/* Review summary */}
-            <h3 className="font-semibold">Review your agent</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-muted-foreground">Name:</span><span className="font-medium">{name}</span>
-              <span className="text-muted-foreground">Category:</span><span>{category || "None"}</span>
-              <span className="text-muted-foreground">Version:</span><span>{version}</span>
-              <span className="text-muted-foreground">Hosting:</span>
-              <span className="flex items-center gap-1">
-                <Globe className="h-3 w-3" /> Endpoint Agent
-              </span>
-              <span className="text-muted-foreground">Base URL:</span>
-              <span className="truncate">{epBaseUrl}</span>
-              <span className="text-muted-foreground">Auth:</span>
-              <span className="capitalize">{epAuthType === "api_key" ? "API Key" : epAuthType === "hmac" ? "HMAC" : "None"}</span>
-              <span className="text-muted-foreground">Invoke:</span>
-              <span className="font-mono text-xs">{epInvokePath}</span>
-              <span className="text-muted-foreground">Risk Tier:</span>
-              <span className="capitalize">{epRiskTier}</span>
-              <span className="text-muted-foreground">Tools:</span>
-              <span>{epToolsRequired.length > 0 ? epToolsRequired.join(", ") : "None"}</span>
-              <span className="text-muted-foreground">Avatar:</span>
-              <span>{useCustomIcon ? (iconFile?.name || "Custom") : `${MASCOT_OPTIONS[selectedMascot].label} (${avatarHue === 0 ? "Original" : avatarHue + "°"})`}</span>
+            {/* Right column: large avatar preview */}
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-muted/30 p-8">
+              <img
+                src={useCustomIcon && iconPreview ? iconPreview : MASCOT_OPTIONS[selectedMascot].src}
+                alt="Avatar preview"
+                className="h-48 w-48 object-contain drop-shadow-lg"
+                style={!useCustomIcon && avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` } : undefined}
+              />
+              <div className="text-center">
+                <p className="text-lg font-semibold">{name || "Your Agent"}</p>
+                <p className="text-sm text-muted-foreground">
+                  {useCustomIcon ? "Custom icon" : `${MASCOT_OPTIONS[selectedMascot].label} · ${avatarHue === 0 ? "Original" : `${avatarHue}°`}`}
+                </p>
+              </div>
             </div>
-            {description && <p className="text-sm text-muted-foreground">{description}</p>}
           </div>
         )}
 
