@@ -107,7 +107,7 @@ const DeveloperPortal = () => {
               />
             )}
             {activeSection === "submit" && (
-              <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} />
+              <AgentSubmissionForm onSubmit={createAgent} userId={user?.id} onSuccess={() => setActiveSection("agents")} />
             )}
             {activeSection === "logs" && profile && (
               <ExecutionLogs agents={agents} developerId={profile.id} />

@@ -16,6 +16,7 @@ import { ColorizedMascot } from "@/components/ColorizedMascot";
 interface AgentSubmissionFormProps {
   onSubmit: (agent: Partial<AgentSubmission>, actions?: any[]) => Promise<any>;
   userId?: string;
+  onSuccess?: () => void;
 }
 
 const CATEGORIES = ["productivity", "sales", "research", "customer-support", "marketing", "engineering", "hr", "finance", "other"];
@@ -28,7 +29,7 @@ const AVAILABLE_TOOLS = [
 
 const TOTAL_STEPS = 3;
 
-export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormProps) => {
+export const AgentSubmissionForm = ({ onSubmit, userId, onSuccess }: AgentSubmissionFormProps) => {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -89,13 +90,18 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     };
 
     await onSubmit(payload);
-
-    // Reset
-    setStep(1); setName(""); setDescription(""); setCategory(""); setVersion("1.0.0");
-    setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
-    setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
-    setAvatarColor("#4F46E5");
     setSaving(false);
+
+    // Navigate to agents list to see the newly created agent
+    if (onSuccess) {
+      onSuccess();
+    } else {
+      // Fallback: reset form
+      setStep(1); setName(""); setDescription(""); setCategory(""); setVersion("1.0.0");
+      setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
+      setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
+      setAvatarColor("#4F46E5");
+    }
   };
 
   const canProceed = () => {
