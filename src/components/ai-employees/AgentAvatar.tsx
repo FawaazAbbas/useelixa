@@ -14,25 +14,29 @@ interface AgentAvatarProps {
  * icon_url image when available, or letter fallback otherwise.
  */
 export function AgentAvatar({ name, avatarColor, iconUrl, className }: AgentAvatarProps) {
-  if (avatarColor) {
+  // If there's a real image URL (not a hex color), show it
+  const isHex = iconUrl?.startsWith("#");
+  if (iconUrl && !isHex) {
     return (
-      <div className={cn("rounded-full bg-muted flex items-center justify-center overflow-hidden", className)}>
-        <ColorizedMascot
-          color={avatarColor}
-          crop="head"
-          size="sm"
-          className="rounded-full overflow-hidden"
-        />
-      </div>
+      <Avatar className={className}>
+        <AvatarImage src={iconUrl} />
+        <AvatarFallback className="bg-muted">
+          <ColorizedMascot crop="head" size="sm" className="rounded-full overflow-hidden" />
+        </AvatarFallback>
+      </Avatar>
     );
   }
 
+  // Always show mascot — colorized if a color exists, default otherwise
+  const color = avatarColor || (isHex ? iconUrl : undefined) || undefined;
   return (
-    <Avatar className={className}>
-      <AvatarImage src={iconUrl || undefined} />
-      <AvatarFallback className="bg-primary/10 text-primary">
-        {name.slice(0, 2).toUpperCase()}
-      </AvatarFallback>
-    </Avatar>
+    <div className={cn("rounded-full bg-muted flex items-center justify-center overflow-hidden", className)}>
+      <ColorizedMascot
+        color={color}
+        crop="head"
+        size="sm"
+        className="rounded-full overflow-hidden"
+      />
+    </div>
   );
 }
