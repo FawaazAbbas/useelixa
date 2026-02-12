@@ -15,6 +15,10 @@ const DeveloperAuth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [website, setWebsite] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -45,6 +49,11 @@ const DeveloperAuth = () => {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/developer`,
+        data: {
+          display_name: fullName,
+          phone,
+          company_name: companyName,
+        },
       },
     });
 
@@ -54,9 +63,17 @@ const DeveloperAuth = () => {
       return;
     }
 
-    // Assign developer role if user was created
+    // Assign developer role and update developer profile if user was created
     if (authData.user) {
       await supabase.from("user_roles").insert({ user_id: authData.user.id, role: "developer" });
+
+      // Update developer_profiles with extra fields
+      if (companyName || website) {
+        await supabase
+          .from("developer_profiles")
+          .update({ company_name: companyName || null, website: website || null })
+          .eq("user_id", authData.user.id);
+      }
     }
 
     setLoading(false);
@@ -133,12 +150,28 @@ const DeveloperAuth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="dev-signup-name">Full Name</Label>
+                  <Input id="dev-signup-name" type="text" placeholder="Jane Smith" value={fullName} onChange={(e) => setFullName(e.target.value)} required maxLength={100} />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="dev-signup-email">Email</Label>
                   <Input id="dev-signup-email" type="email" placeholder="dev@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dev-signup-password">Password</Label>
                   <Input id="dev-signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dev-signup-company">Company / Organisation</Label>
+                  <Input id="dev-signup-company" type="text" placeholder="Acme Inc." value={companyName} onChange={(e) => setCompanyName(e.target.value)} required maxLength={200} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dev-signup-phone">Phone Number <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Input id="dev-signup-phone" type="tel" placeholder="+44 7700 900000" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dev-signup-website">Website URL <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Input id="dev-signup-website" type="url" placeholder="https://yoursite.com" value={website} onChange={(e) => setWebsite(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

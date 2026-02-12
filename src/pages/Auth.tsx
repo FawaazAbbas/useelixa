@@ -16,6 +16,9 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -46,6 +49,11 @@ const Auth = () => {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/chat`,
+        data: {
+          display_name: fullName,
+          phone,
+          company_name: companyName,
+        },
       },
     });
 
@@ -134,6 +142,18 @@ const Auth = () => {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    maxLength={100}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
                     id="signup-email"
@@ -153,6 +173,28 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-company">Company / Organisation</Label>
+                  <Input
+                    id="signup-company"
+                    type="text"
+                    placeholder="Acme Inc."
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    required
+                    maxLength={200}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-phone">Phone Number <span className="text-muted-foreground text-xs">(optional)</span></Label>
+                  <Input
+                    id="signup-phone"
+                    type="tel"
+                    placeholder="+44 7700 900000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
