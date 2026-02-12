@@ -11,18 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { AgentSubmission } from "@/hooks/useDeveloperPortal";
 import { HostingTypeSelector } from "./HostingTypeSelector";
 import { EndpointAgentFields } from "./EndpointAgentFields";
-
-import ElixaSearch from "@/assets/mascots/Elixa-Mascot-Search.png";
-import ElixaThinking from "@/assets/mascots/Elixa-Mascot-Thinking.png";
-import ElixaWaving from "@/assets/mascots/Elixa-Mascot-Waving.png";
-import ElixaDefault from "@/assets/mascots/Elixa-Mascot.png";
-
-const MASCOT_OPTIONS = [
-  { src: ElixaDefault, label: "Default" },
-  { src: ElixaWaving, label: "Waving" },
-  { src: ElixaSearch, label: "Search" },
-  { src: ElixaThinking, label: "Thinking" },
-];
+import { ColorizedMascot } from "@/components/ColorizedMascot";
 
 interface AgentSubmissionFormProps {
   onSubmit: (agent: Partial<AgentSubmission>, actions?: any[]) => Promise<any>;
@@ -59,9 +48,8 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   const [epCanMutate, setEpCanMutate] = useState(false);
   const [epRiskTier, setEpRiskTier] = useState<"sandbox" | "verified" | "privileged">("sandbox");
 
-  // Avatar selection
-  const [selectedMascot, setSelectedMascot] = useState(0);
-  const [avatarHue, setAvatarHue] = useState(0); // 0-360 degrees
+  // Avatar color selection
+  const [avatarColor, setAvatarColor] = useState<string>("#4F46E5"); // Default indigo
 
   // Custom icon (fallback)
   const [iconFile, setIconFile] = useState<File | null>(null);
@@ -98,11 +86,9 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     if (useCustomIcon && iconFile) {
       iconUrl = await uploadFile(iconFile, "icons");
     } else {
-      // Use the selected mascot path as the icon_url
-      iconUrl = MASCOT_OPTIONS[selectedMascot].src;
+      // Use the colorized mascot SVG
+      iconUrl = "/src/assets/mascots/Elixa-Mascot-Colorizable.svg";
     }
-
-    const avatarColor = avatarHue > 0 ? `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` : "none";
 
     const payload: Partial<AgentSubmission> = {
       name,
@@ -133,7 +119,7 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
     setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
     setIconFile(null); setIconPreview(null); setUseCustomIcon(false);
-    setSelectedMascot(0); setAvatarHue(0);
+    setAvatarColor("#4F46E5");
     setSaving(false);
   };
 
@@ -211,56 +197,21 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
             {/* Left column: controls + review */}
             <div className="space-y-5">
               <div className="space-y-3">
-                <Label className="text-base font-semibold">Choose Agent Avatar</Label>
-                <p className="text-xs text-muted-foreground">Select a pose and color for your agent</p>
+                <Label className="text-base font-semibold">Customize Agent Avatar</Label>
+                <p className="text-xs text-muted-foreground">Choose a color for your agent</p>
 
-                {/* Mascot pose grid 2x2 */}
-                <div className="grid grid-cols-2 gap-3">
-                  {MASCOT_OPTIONS.map((mascot, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => { setSelectedMascot(i); setUseCustomIcon(false); }}
-                      className={cn(
-                        "relative flex flex-col items-center gap-1.5 rounded-xl border-2 p-2 transition-all hover:scale-105",
-                        selectedMascot === i && !useCustomIcon
-                          ? "border-primary bg-primary/10 shadow-md"
-                          : "border-border bg-card hover:border-primary/50"
-                      )}
-                    >
-                      <img
-                        src={mascot.src}
-                        alt={mascot.label}
-                        className="h-14 w-14 object-contain"
-                        style={avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` } : undefined}
-                      />
-                      <span className="text-[10px] text-muted-foreground leading-tight">{mascot.label}</span>
-                      {selectedMascot === i && !useCustomIcon && (
-                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="h-2.5 w-2.5 text-primary-foreground" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Color slider */}
+                {/* Color picker */}
                 <div className="space-y-2">
                   <Label className="text-sm">Avatar Color</Label>
                   <div className="flex items-center gap-3">
                     <input
-                      type="range"
-                      min={0}
-                      max={360}
-                      value={avatarHue}
-                      onChange={(e) => setAvatarHue(Number(e.target.value))}
-                      className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                      style={{
-                        background: "linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)",
-                      }}
+                      type="color"
+                      value={avatarColor}
+                      onChange={(e) => setAvatarColor(e.target.value)}
+                      className="h-10 w-16 rounded cursor-pointer border border-border"
                     />
-                    <span className="text-xs text-muted-foreground w-16 text-right">
-                      {avatarHue === 0 ? "Original" : `${avatarHue}°`}
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {avatarColor.toUpperCase()}
                     </span>
                   </div>
                 </div>
@@ -310,16 +261,19 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
 
             {/* Right column: large avatar preview */}
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-muted/30 p-8">
-              <img
-                src={useCustomIcon && iconPreview ? iconPreview : MASCOT_OPTIONS[selectedMascot].src}
-                alt="Avatar preview"
-                className="h-48 w-48 object-contain drop-shadow-lg"
-                style={!useCustomIcon && avatarHue > 0 ? { filter: `hue-rotate(${avatarHue}deg) saturate(1.6) brightness(1.05)` } : undefined}
-              />
+              {useCustomIcon && iconPreview ? (
+                <img
+                  src={iconPreview}
+                  alt="Avatar preview"
+                  className="h-48 w-48 object-contain drop-shadow-lg"
+                />
+              ) : (
+                <ColorizedMascot color={avatarColor} size="2xl" />
+              )}
               <div className="text-center">
                 <p className="text-lg font-semibold">{name || "Your Agent"}</p>
                 <p className="text-sm text-muted-foreground">
-                  {useCustomIcon ? "Custom icon" : `${MASCOT_OPTIONS[selectedMascot].label} · ${avatarHue === 0 ? "Original" : `${avatarHue}°`}`}
+                  {useCustomIcon ? "Custom icon" : `Elixa Avatar · ${avatarColor.toUpperCase()}`}
                 </p>
               </div>
             </div>
