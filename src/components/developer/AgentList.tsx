@@ -92,7 +92,7 @@ export const AgentList = ({ agents, onSubmitForReview, onDelete, onValidate, onU
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3 min-w-0">
-                    <AgentAvatar name={agent.name} avatarColor={agent.icon_url} iconUrl={agent.icon_url} className="h-10 w-10" />
+                    <AgentAvatar name={agent.name} avatarColor={(agent.capability_manifest as any)?.avatarColor || agent.icon_url} iconUrl={agent.icon_url} className="h-10 w-10" />
                     <div className="min-w-0">
                       <CardTitle className="text-sm truncate">{agent.name}</CardTitle>
                       <CardDescription className="text-xs flex items-center gap-1.5 flex-wrap mt-0.5">

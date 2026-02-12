@@ -88,7 +88,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
       const manifest = agent.capability_manifest as any;
       setCanMutate(manifest?.canMutate || false);
       setRiskTier(manifest?.riskTier || "sandbox");
-      setAvatarColor(agent.icon_url || (manifest?.avatarColor as string) || "");
+      setAvatarColor((manifest?.avatarColor as string) || agent.icon_url || "");
     }
   }, [agent]);
 
@@ -125,7 +125,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader className="pb-4">
           <div className="flex items-center gap-3">
-            <AgentAvatar name={agent.name} avatarColor={avatarColor} iconUrl={agent.icon_url} className="h-12 w-12" />
+            <AgentAvatar name={agent.name} avatarColor={avatarColor || (agent.capability_manifest as any)?.avatarColor} iconUrl={agent.icon_url} className="h-12 w-12" />
             <div>
               <SheetTitle>{agent.name}</SheetTitle>
               <SheetDescription>{agent.description || "No description"}</SheetDescription>
@@ -255,26 +255,61 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
 
           {/* Branding */}
           <CollapsibleSection title="Branding">
-            <div className="space-y-3">
+            <div className="space-y-4">
+              {/* Live preview */}
+              <div className="flex flex-col items-center gap-2 py-3">
+                <AgentAvatar name={agent.name} avatarColor={avatarColor || (agent.capability_manifest as any)?.avatarColor} iconUrl={agent.icon_url} className="h-20 w-20" />
+                <span className="text-xs text-muted-foreground">{avatarColor || "Default mascot"}</span>
+              </div>
+
+              {/* Color picker + hex input */}
               <div>
-                <Label className="text-xs mb-2 block">Avatar Color (Hex)</Label>
-                <div className="flex gap-2 items-end">
+                <Label className="text-xs mb-2 block">Brand Color</Label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="color"
+                    value={avatarColor || "#6366f1"}
+                    onChange={(e) => setAvatarColor(e.target.value)}
+                    className="h-9 w-9 rounded border border-border cursor-pointer bg-transparent p-0.5 shrink-0"
+                    title="Pick a color"
+                  />
                   <Input 
                     value={avatarColor} 
                     onChange={(e) => setAvatarColor(e.target.value)} 
-                    className="h-9" 
+                    className="h-9 font-mono" 
                     placeholder="#6366f1"
                     maxLength={7}
                   />
-                  <AgentAvatar name={agent.name} avatarColor={avatarColor} iconUrl={agent.icon_url} className="h-12 w-12" />
+                  {avatarColor && (
+                    <Button variant="ghost" size="sm" className="shrink-0 text-xs h-9 px-2" onClick={() => setAvatarColor("")}>
+                      Clear
+                    </Button>
+                  )}
                 </div>
               </div>
+
+              {/* Preset swatches */}
+              <div>
+                <Label className="text-xs mb-2 block">Presets</Label>
+                <div className="flex gap-1.5 flex-wrap">
+                  {["#6366f1", "#EF4444", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6", "#EC4899", "#F97316"].map((color) => (
+                    <button
+                      key={color}
+                      className={`h-7 w-7 rounded-full border-2 transition-all hover:scale-110 ${avatarColor === color ? "border-foreground ring-2 ring-primary/30" : "border-transparent"}`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setAvatarColor(color)}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+
               <Button
                 size="sm"
                 className="w-full"
                 disabled={saving === "branding"}
                 onClick={() => handleSave("branding", {
-                  icon_url: avatarColor,
+                  icon_url: avatarColor || null,
                   capability_manifest: {
                     ...(agent.capability_manifest as any || {}),
                     avatarColor: avatarColor || null,
