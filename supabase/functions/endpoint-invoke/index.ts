@@ -148,15 +148,17 @@ serve(async (req) => {
     }
 
     // Flexible response parsing: accept multiple common field names
+    // Use nullish coalescing (??) so empty strings are preserved
     const assistantMessage =
-      responseData.assistantMessage ||
-      responseData.response ||
-      responseData.output ||
-      responseData.message ||
-      responseData.text ||
+      responseData.assistantMessage ??
+      responseData.response ??
+      responseData.output ??
+      responseData.message ??
+      responseData.text ??
       (typeof responseData === "string" ? responseData : null);
 
-    if (!assistantMessage || typeof assistantMessage !== "string") {
+    // Allow empty string responses (e.g. when tool_calls carry the real content)
+    if (assistantMessage === null || assistantMessage === undefined) {
       console.error("Unexpected endpoint response shape:", JSON.stringify(responseData).slice(0, 500));
       throw new Error("Endpoint response missing a recognizable message field (tried: assistantMessage, response, output, message, text)");
     }
