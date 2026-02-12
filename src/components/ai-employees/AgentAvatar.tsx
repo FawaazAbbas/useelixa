@@ -18,7 +18,8 @@ export function AgentAvatar({ name, avatarColor, iconUrl, className }: AgentAvat
     return (
       <ColorizedMascot
         color={avatarColor}
-        className={cn("rounded-full", className)}
+        crop="head"
+        className={cn("rounded-full overflow-hidden", className)}
       />
     );
   }
