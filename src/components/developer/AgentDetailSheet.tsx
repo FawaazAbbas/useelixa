@@ -88,7 +88,7 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
       const manifest = agent.capability_manifest as any;
       setCanMutate(manifest?.canMutate || false);
       setRiskTier(manifest?.riskTier || "sandbox");
-      setAvatarColor(agent.icon_url || "");
+      setAvatarColor(agent.icon_url || (manifest?.avatarColor as string) || "");
     }
   }, [agent]);
 
@@ -273,7 +273,13 @@ export const AgentDetailSheet = ({ agent, open, onOpenChange, onSubmitForReview,
                 size="sm"
                 className="w-full"
                 disabled={saving === "branding"}
-                onClick={() => handleSave("branding", { icon_url: avatarColor } as any)}
+                onClick={() => handleSave("branding", {
+                  icon_url: avatarColor,
+                  capability_manifest: {
+                    ...(agent.capability_manifest as any || {}),
+                    avatarColor: avatarColor || null,
+                  },
+                } as any)}
               >
                 {saving === "branding" ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Palette className="h-3 w-3 mr-1" />}
                 Save Branding

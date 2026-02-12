@@ -2,14 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, Bot } from "lucide-react";
+import { Send, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import type { AIEmployee } from "@/pages/AIEmployees";
+import { AgentAvatar } from "./AgentAvatar";
 
 interface Message {
   id: string;
@@ -37,7 +38,6 @@ export function EmployeeChat({ open, onOpenChange, employee }: EmployeeChatProps
 
   useEffect(() => {
     if (open) {
-      // Add initial greeting
       setMessages([
         {
           id: "greeting",
@@ -70,7 +70,6 @@ export function EmployeeChat({ open, onOpenChange, employee }: EmployeeChatProps
     setIsLoading(true);
 
     try {
-      // Call the AI employee orchestrator
       const { data, error } = await supabase.functions.invoke("ai-employee-orchestrator", {
         body: {
           employeeId: employee.id,
@@ -123,12 +122,12 @@ export function EmployeeChat({ open, onOpenChange, employee }: EmployeeChatProps
       <SheetContent className="w-full sm:max-w-lg flex flex-col p-0">
         <SheetHeader className="p-4 border-b">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={employee.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {employee.name.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <AgentAvatar
+              name={employee.name}
+              avatarColor={employee.avatarColor}
+              iconUrl={employee.avatar_url}
+              className="h-10 w-10"
+            />
             <div>
               <SheetTitle>{employee.name}</SheetTitle>
               <Badge variant="secondary" className="text-xs">
@@ -149,12 +148,12 @@ export function EmployeeChat({ open, onOpenChange, employee }: EmployeeChatProps
                 }`}
               >
                 {message.role === "assistant" && (
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage src={employee.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {employee.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AgentAvatar
+                    name={employee.name}
+                    avatarColor={employee.avatarColor}
+                    iconUrl={employee.avatar_url}
+                    className="h-8 w-8 flex-shrink-0"
+                  />
                 )}
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
@@ -190,12 +189,12 @@ export function EmployeeChat({ open, onOpenChange, employee }: EmployeeChatProps
             ))}
             {isLoading && (
               <div className="flex gap-3">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src={employee.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                    {employee.name.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <AgentAvatar
+                  name={employee.name}
+                  avatarColor={employee.avatarColor}
+                  iconUrl={employee.avatar_url}
+                  className="h-8 w-8 flex-shrink-0"
+                />
                 <div className="bg-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
