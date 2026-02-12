@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Loader2, Bot, Users, PanelRight } from "lucide-react";
+import { Send, Loader2, Bot, Users, PanelRight, User, Copy, Check, Trash2, RefreshCw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { CodeBlock } from "@/components/chat/CodeBlock";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { MainNavSidebar } from "@/components/MainNavSidebar";
@@ -392,7 +393,7 @@ export default function AIEmployees() {
 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              <div className="space-y-4 max-w-3xl mx-auto">
+              <div className="space-y-6 px-4">
                 {messages.length === 0 && !isLoading && (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <AgentAvatar
@@ -408,72 +409,93 @@ export default function AIEmployees() {
                   </div>
                 )}
 
-                {messages.map((msg) => (
-                  <div key={msg.id}>
-                    <div
-                      className={cn(
-                        "flex gap-3",
-                        msg.role === "user" ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      {msg.role === "assistant" && (
-                        <AgentAvatar
-                          name={selected.name}
-                          avatarColor={(selected.capabilityManifest as any)?.avatarColor}
-                          iconUrl={selected.iconUrl}
-                          className="h-7 w-7 flex-shrink-0 mt-1"
-                        />
-                      )}
-                      <div
-                        className={cn(
-                          "max-w-[75%] rounded-xl px-4 py-2.5 text-sm",
-                          msg.role === "user"
-                            ? "bg-primary text-primary-foreground whitespace-pre-wrap"
-                            : "bg-muted text-foreground"
-                        )}
-                      >
-                        {msg.role === "assistant" ? (
-                          <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-base [&>h2]:text-sm [&>h3]:text-sm [&>h1]:my-2 [&>h2]:my-1.5 [&>h3]:my-1 [&>li]:my-0.5">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {msg.content}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          msg.content
-                        )}
-                      </div>
-                    </div>
+                {messages.map((msg, index) => {
+                  const isUser = msg.role === "user";
 
-                    {/* Render proposals from metadata */}
-                    {msg.metadata &&
-                      Array.isArray((msg.metadata as any).actions) &&
-                      (msg.metadata as any).actions
-                        .filter((a: any) => a.type === "proposal")
-                        .map((proposal: any, idx: number) => (
-                          <div key={idx} className="ml-10 mt-2">
-                            <ProposalCard
-                              proposalId={proposal.proposalId || `proposal-${idx}`}
-                              title={proposal.title || "Action Required"}
-                              summary={proposal.summary}
-                              status={proposal.status || "pending"}
-                            />
-                          </div>
-                        ))}
-                  </div>
-                ))}
+                  // Time divider logic
+                  const showTimeDivider = index > 0 && (() => {
+                    const prevTime = new Date(messages[index - 1].created_at);
+                    const currentTime = new Date(msg.created_at);
+                    return (currentTime.getTime() - prevTime.getTime()) / (1000 * 60) > 30;
+                  })();
+
+                  const formatDividerTime = (timestamp: string) => {
+                    const date = new Date(timestamp);
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (date.toDateString() === today.toDateString()) {
+                      return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                    } else if (date.toDateString() === yesterday.toDateString()) {
+                      return `Yesterday at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                    }
+                    return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                  };
+
+                  return (
+                    <div key={msg.id}>
+                      {showTimeDivider && (
+                        <div className="flex items-center gap-4 my-6">
+                          <div className="flex-1 h-px bg-border" />
+                          <span className="text-xs text-muted-foreground px-2">
+                            {formatDividerTime(msg.created_at)}
+                          </span>
+                          <div className="flex-1 h-px bg-border" />
+                        </div>
+                      )}
+                      <AgentMessageBubble
+                        msg={msg}
+                        isUser={isUser}
+                        agentName={selected.name}
+                        agentAvatarColor={(selected.capabilityManifest as any)?.avatarColor}
+                        agentIconUrl={selected.iconUrl}
+                        onDelete={async () => {
+                          await supabase.from("agent_messages").delete().eq("id", msg.id);
+                          setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+                        }}
+                        onRetry={!isUser ? async () => {
+                          // Find preceding user message
+                          let userIdx = index - 1;
+                          while (userIdx >= 0 && messages[userIdx].role !== "user") userIdx--;
+                          if (userIdx < 0) return;
+                          // Delete assistant msg, then resend
+                          await supabase.from("agent_messages").delete().eq("id", msg.id);
+                          setMessages((prev) => prev.filter((m) => m.id !== msg.id));
+                          setInput(messages[userIdx].content);
+                        } : undefined}
+                      />
+
+                      {/* Render proposals from metadata */}
+                      {msg.metadata &&
+                        Array.isArray((msg.metadata as any).actions) &&
+                        (msg.metadata as any).actions
+                          .filter((a: any) => a.type === "proposal")
+                          .map((proposal: any, idx: number) => (
+                            <div key={idx} className="ml-12 mt-2">
+                              <ProposalCard
+                                proposalId={proposal.proposalId || `proposal-${idx}`}
+                                title={proposal.title || "Action Required"}
+                                summary={proposal.summary}
+                                status={proposal.status || "pending"}
+                              />
+                            </div>
+                          ))}
+                    </div>
+                  );
+                })}
 
                 {isLoading && (
-                  <div className="flex gap-3">
+                  <div className="flex items-start gap-3">
                     <AgentAvatar
                       name={selected.name}
                       avatarColor={(selected.capabilityManifest as any)?.avatarColor}
                       iconUrl={selected.iconUrl}
-                      className="h-7 w-7 flex-shrink-0 mt-1"
+                      className="h-9 w-9 flex-shrink-0 border-2 border-muted"
                     />
-                    <div className="bg-muted rounded-xl px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Thinking…</span>
+                    <div className="bg-muted rounded-2xl px-4 py-3">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Thinking…</span>
                       </div>
                     </div>
                   </div>
@@ -482,29 +504,34 @@ export default function AIEmployees() {
             </ScrollArea>
 
             {/* Composer */}
-            <div className="p-4 border-t flex-shrink-0">
-              <div className="flex gap-2 max-w-3xl mx-auto">
-                <Textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={`Message ${selected.name}…`}
-                  className="min-h-[44px] max-h-[120px] resize-none"
-                  disabled={isLoading}
-                  rows={1}
-                />
-                <Button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || isLoading}
-                  size="icon"
-                  className="self-end h-[44px] w-[44px] flex-shrink-0"
-                >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
+            <div className="border-t bg-card/80 backdrop-blur-sm p-4 flex-shrink-0">
+              <div className="w-full px-4">
+                <div className="flex gap-3 items-end">
+                  <Textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={`Message ${selected.name}…`}
+                    className="min-h-[48px] max-h-[200px] resize-none rounded-xl"
+                    disabled={isLoading}
+                    rows={1}
+                  />
+                  <Button
+                    onClick={sendMessage}
+                    disabled={!input.trim() || isLoading}
+                    size="icon"
+                    className="h-12 w-12 rounded-xl flex-shrink-0"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Press Enter to send, Shift+Enter for new line
+                </p>
               </div>
             </div>
           </>
@@ -559,6 +586,101 @@ export default function AIEmployees() {
           />
         </DialogContent>
       </Dialog>
+      </div>
+    </div>
+  );
+}
+
+// ── Message bubble component matching Chat.tsx UX ──
+
+interface AgentMessageBubbleProps {
+  msg: AgentMessage;
+  isUser: boolean;
+  agentName: string;
+  agentAvatarColor?: string | null;
+  agentIconUrl?: string | null;
+  onDelete?: () => void;
+  onRetry?: () => void;
+}
+
+function AgentMessageBubble({ msg, isUser, agentName, agentAvatarColor, agentIconUrl, onDelete, onRetry }: AgentMessageBubbleProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(msg.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [msg.content]);
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const markdownComponents = {
+    code({ className, children, ...props }: { className?: string; children?: React.ReactNode }) {
+      const match = /language-(\w+)/.exec(className || '');
+      const codeContent = String(children).replace(/\n$/, '');
+      const isBlock = match || codeContent.includes('\n');
+      if (isBlock) {
+        return <CodeBlock language={match?.[1] || 'text'}>{codeContent}</CodeBlock>;
+      }
+      return (
+        <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+          {children}
+        </code>
+      );
+    }
+  };
+
+  return (
+    <div className={cn("group flex items-start gap-3 w-full", isUser && "flex-row-reverse")}>
+      {isUser ? (
+        <div className="h-9 w-9 rounded-full bg-muted border-2 border-muted flex items-center justify-center flex-shrink-0">
+          <User className="h-5 w-5 text-muted-foreground" />
+        </div>
+      ) : (
+        <AgentAvatar
+          name={agentName}
+          avatarColor={agentAvatarColor}
+          iconUrl={agentIconUrl}
+          className="h-9 w-9 flex-shrink-0 border-2 border-muted"
+        />
+      )}
+      <div className={cn("max-w-[85%]", isUser ? "ml-auto" : "mr-auto")}>
+        <div className="rounded-2xl px-4 py-3 bg-muted">
+          {isUser ? (
+            <p className="whitespace-pre-wrap">{msg.content}</p>
+          ) : (
+            <div className="prose prose-sm dark:prose-invert max-w-none [&_pre]:p-0 [&_pre]:m-0 [&_pre]:bg-transparent">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {msg.content || " "}
+              </ReactMarkdown>
+            </div>
+          )}
+        </div>
+
+        {/* Timestamp and actions */}
+        <div className={cn(
+          "flex items-center gap-2 mt-1 text-xs text-muted-foreground",
+          isUser ? "flex-row-reverse justify-start" : "justify-start"
+        )}>
+          <span>{formatTime(msg.created_at)}</span>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy} title="Copy message">
+              {copied ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
+            </Button>
+            {!isUser && onRetry && (
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onRetry} title="Regenerate response">
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+            )}
+            {onDelete && (
+              <Button variant="ghost" size="icon" className="h-6 w-6 hover:text-destructive" onClick={onDelete} title="Delete message">
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
