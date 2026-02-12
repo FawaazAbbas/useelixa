@@ -1,36 +1,74 @@
 
 
-## Redesign Step 3: Split Layout with Large Avatar Preview
+## Single Mascot Avatar with True Color Selection
+
+### The SVG situation
+
+The uploaded SVG is actually a raster image (PNG) embedded inside an SVG container -- it doesn't contain vector paths with `fill` attributes. This means we cannot directly change path colors via SVG fills.
+
+### Solution: CSS `mix-blend-mode` for true recoloring
+
+Instead of the current `hue-rotate` filter (which only shifts existing colors), we'll use a proven technique that produces **genuine color changes**:
+
+1. Convert the mascot image to grayscale using `filter: grayscale(100%) brightness(1.1)`
+2. Overlay a colored `div` on top using `mix-blend-mode: color`
+3. The result maps the chosen color's hue and saturation onto the mascot's luminosity -- producing a true recolor effect
+
+This works with PNG/raster images and gives far better results than hue-rotate.
 
 ### What changes
 
-**Step 3 of the Agent Submission Form** will be redesigned into a two-column layout:
-- **Left column**: Pose selection grid, color slider, custom upload toggle, and the review summary
-- **Right column**: A large, prominent live preview of the selected avatar with the agent name underneath
-
-### More intense colors
-
-The CSS filter will be updated from a simple `hue-rotate` to `hue-rotate(...) saturate(1.6)`, making all color shifts significantly more vibrant and punchy. The original (0 degree) option will remain unfiltered.
-
-### Technical Details
-
 **File:** `src/components/developer/AgentSubmissionForm.tsx`
 
-1. **Layout change (Step 3 only):** Wrap the step 3 content in a `flex` / `grid grid-cols-[1fr_1fr]` container with `gap-8`:
-   - Left side: pose grid (2x2), hue slider, custom upload toggle, review summary
-   - Right side: large avatar preview image (~48-64 size, centered) with agent name and color label below it
+1. **Remove all four mascot pose options** -- use only the single uploaded SVG mascot (copied to `src/assets/mascots/Elixa-Mascot-SVG.svg`)
 
-2. **Intensify colors:** Change the inline filter style from:
-   ```
-   filter: hue-rotate(Xdeg)
-   ```
-   to:
-   ```
-   filter: hue-rotate(Xdeg) saturate(1.6) brightness(1.05)
-   ```
-   This applies to all three places the filter is used: the pose grid thumbnails, the large preview image, and the saved `avatarColor` value in `capability_manifest`.
+2. **Replace the hue slider with a proper color picker** that maps to actual hex colors, but presented as a slider for simplicity. The slider will output HSL values converted to hex, giving developers a full spectrum of true colors.
 
-3. **Large preview:** Replace the current small inline preview (h-16 w-16) with a large centered image (h-48 w-48 or larger) inside a styled container with a subtle background, making it the visual focal point of the step.
+3. **Recoloring technique** -- wrap the mascot image in a container:
 
-4. **Pose grid:** Change from `grid-cols-3 sm:grid-cols-5` to `grid-cols-2` since there are only 4 poses, keeping them compact on the left side.
+```text
++----------------------------+
+|  <div> (relative, overflow-hidden, rounded)
+|    <img> (grayscale filter)
+|    <div> (absolute overlay, chosen color bg, mix-blend-mode: color)
++----------------------------+
+```
+
+4. **Left column** stays the same layout (no pose grid since there's only one mascot now, just the color controls and review summary)
+
+5. **Right column** shows the large recolored preview
+
+6. **Data storage** -- save both `avatarSvgPath` (the SVG asset path) and `avatarColor` (hex value like `#FF5733`) in the `capability_manifest` JSON
+
+7. **State changes:**
+   - Remove `selectedMascot` state (only one mascot now)
+   - Change `avatarHue` (0-360) to `avatarColor` (hex string, default empty for original)
+   - Add a helper to convert slider position to HSL to hex
+
+### Technical details
+
+**New recolor component pattern:**
+```text
+<div style="position: relative; overflow: hidden">
+  <img 
+    src={mascotSvg} 
+    style="filter: grayscale(100%) brightness(1.1)"
+  />
+  <div 
+    style="position: absolute; inset: 0; background: #chosen-color; mix-blend-mode: color; pointer-events: none"
+  />
+</div>
+```
+
+When no color is selected (original), the overlay is hidden and the grayscale filter is removed, showing the mascot in its original colors.
+
+**Slider to hex conversion:**
+- Slider outputs a hue value 0-360
+- Convert to HSL with fixed saturation (80%) and lightness (50%)
+- Convert HSL to hex for storage and display
+- Position 0 on the slider means "Original" (no recolor)
+
+**Files to modify:**
+- Copy `user-uploads://Elixa-Mascot-SVG.svg` to `src/assets/mascots/Elixa-Mascot-SVG.svg`
+- Edit `src/components/developer/AgentSubmissionForm.tsx` -- remove pose grid, implement mix-blend-mode recoloring, update data storage
 
