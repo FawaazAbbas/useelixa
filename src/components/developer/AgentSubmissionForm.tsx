@@ -80,9 +80,12 @@ const CanvasRecoloredMascot = ({
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
-        data[i] = (data[i] * r) / 255;
-        data[i + 1] = (data[i + 1] * g) / 255;
-        data[i + 2] = (data[i + 2] * b) / 255;
+        const targetR = (data[i] * r) / 255;
+        const targetG = (data[i + 1] * g) / 255;
+        const targetB = (data[i + 2] * b) / 255;
+        data[i] = data[i] * 0.5 + targetR * 0.5;
+        data[i + 1] = data[i + 1] * 0.5 + targetG * 0.5;
+        data[i + 2] = data[i + 2] * 0.5 + targetB * 0.5;
       }
       ctx.putImageData(imageData, 0, 0);
     }
