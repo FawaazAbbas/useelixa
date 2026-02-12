@@ -51,10 +51,10 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
   // Avatar color selection
   const [avatarColor, setAvatarColor] = useState<string>("#4F46E5"); // Default indigo
 
-  // Custom icon (fallback)
-  const [iconFile, setIconFile] = useState<File | null>(null);
-  const [iconPreview, setIconPreview] = useState<string | null>(null);
-  const [useCustomIcon, setUseCustomIcon] = useState(false);
+  const PRESET_COLORS = [
+    "#4F46E5", "#7C3AED", "#EC4899", "#EF4444", "#F97316",
+    "#EAB308", "#22C55E", "#06B6D4", "#3B82F6", "#6366F1",
+  ];
 
   const toggleEpTool = (tool: string) => {
     setEpToolsRequired((prev) =>
@@ -62,40 +62,16 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     );
   };
 
-  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIconFile(file);
-      setIconPreview(URL.createObjectURL(file));
-    }
-  };
 
-  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
-    if (!userId) return null;
-    const ext = file.name.split(".").pop();
-    const path = `${userId}/${folder}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("agent-assets").upload(path, file);
-    if (error) return null;
-    const { data } = supabase.storage.from("agent-assets").getPublicUrl(path);
-    return data.publicUrl;
-  };
 
   const handleSubmit = async () => {
     setSaving(true);
-    let iconUrl: string | null = null;
-    if (useCustomIcon && iconFile) {
-      iconUrl = await uploadFile(iconFile, "icons");
-    } else {
-      // Use the colorized mascot SVG
-      iconUrl = "/src/assets/mascots/Elixa-Mascot-Colorizable.svg";
-    }
-
     const payload: Partial<AgentSubmission> = {
       name,
       description,
       category,
       version,
-      icon_url: iconUrl,
+      icon_url: null,
       hosting_type: "endpoint",
       execution_mode: "endpoint",
       endpoint_base_url: epBaseUrl,
@@ -118,7 +94,6 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
     setStep(1); setName(""); setDescription(""); setCategory(""); setVersion("1.0.0");
     setEpBaseUrl(""); setEpAuthType("none"); setEpSecret(""); setEpInvokePath("/invoke"); setEpHealthPath("/health");
     setEpToolsRequired([]); setEpCanMutate(false); setEpRiskTier("sandbox");
-    setIconFile(null); setIconPreview(null); setUseCustomIcon(false);
     setAvatarColor("#4F46E5");
     setSaving(false);
   };
@@ -194,87 +169,74 @@ export const AgentSubmissionForm = ({ onSubmit, userId }: AgentSubmissionFormPro
 
         {step === 3 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left column: controls + review */}
+            {/* Left column: color + review */}
             <div className="space-y-5">
               <div className="space-y-3">
-                <Label className="text-base font-semibold">Customize Agent Avatar</Label>
-                <p className="text-xs text-muted-foreground">Choose a color for your agent</p>
+                <Label className="text-base font-semibold">Agent Brand Color</Label>
+                <p className="text-xs text-muted-foreground">Pick a color that represents your agent's identity</p>
 
-                {/* Color picker */}
-                <div className="space-y-2">
-                  <Label className="text-sm">Avatar Color</Label>
-                  <div className="flex items-center gap-3">
+                {/* Preset swatches */}
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setAvatarColor(c)}
+                      className={cn(
+                        "h-9 w-9 rounded-full border-2 transition-all hover:scale-110",
+                        avatarColor === c ? "border-foreground ring-2 ring-primary/40 scale-110" : "border-transparent"
+                      )}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                  {/* Custom color */}
+                  <label
+                    className={cn(
+                      "h-9 w-9 rounded-full border-2 border-dashed border-muted-foreground/40 flex items-center justify-center cursor-pointer hover:border-muted-foreground transition-colors",
+                      !PRESET_COLORS.includes(avatarColor) && "border-foreground ring-2 ring-primary/40"
+                    )}
+                    style={!PRESET_COLORS.includes(avatarColor) ? { backgroundColor: avatarColor } : undefined}
+                    title="Custom color"
+                  >
                     <input
                       type="color"
                       value={avatarColor}
                       onChange={(e) => setAvatarColor(e.target.value)}
-                      className="h-10 w-16 rounded cursor-pointer border border-border"
+                      className="sr-only"
                     />
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {avatarColor.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Custom upload toggle */}
-                <div className="pt-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground"
-                    onClick={() => setUseCustomIcon(!useCustomIcon)}
-                  >
-                    {useCustomIcon ? "← Use Elixa avatar instead" : "Or upload a custom icon →"}
-                  </Button>
-                  {useCustomIcon && (
-                    <div className="mt-2">
-                      <Input type="file" accept="image/*" onChange={handleIconChange} />
-                    </div>
-                  )}
+                    {PRESET_COLORS.includes(avatarColor) && (
+                      <span className="text-muted-foreground text-xs font-bold">+</span>
+                    )}
+                  </label>
                 </div>
               </div>
 
               {/* Review summary */}
-              <h3 className="font-semibold">Review your agent</h3>
+              <h3 className="font-semibold pt-2">Review</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <span className="text-muted-foreground">Name:</span><span className="font-medium">{name}</span>
                 <span className="text-muted-foreground">Category:</span><span>{category || "None"}</span>
                 <span className="text-muted-foreground">Version:</span><span>{version}</span>
                 <span className="text-muted-foreground">Hosting:</span>
                 <span className="flex items-center gap-1">
-                  <Globe className="h-3 w-3" /> Endpoint Agent
+                  <Globe className="h-3 w-3" /> Endpoint
                 </span>
                 <span className="text-muted-foreground">Base URL:</span>
                 <span className="truncate">{epBaseUrl}</span>
                 <span className="text-muted-foreground">Auth:</span>
                 <span className="capitalize">{epAuthType === "api_key" ? "API Key" : epAuthType === "hmac" ? "HMAC" : "None"}</span>
-                <span className="text-muted-foreground">Invoke:</span>
-                <span className="font-mono text-xs">{epInvokePath}</span>
                 <span className="text-muted-foreground">Risk Tier:</span>
                 <span className="capitalize">{epRiskTier}</span>
-                <span className="text-muted-foreground">Tools:</span>
-                <span>{epToolsRequired.length > 0 ? epToolsRequired.join(", ") : "None"}</span>
               </div>
               {description && <p className="text-sm text-muted-foreground">{description}</p>}
             </div>
 
-            {/* Right column: large avatar preview */}
+            {/* Right column: live preview */}
             <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border bg-muted/30 p-8">
-              {useCustomIcon && iconPreview ? (
-                <img
-                  src={iconPreview}
-                  alt="Avatar preview"
-                  className="h-48 w-48 object-contain drop-shadow-lg"
-                />
-              ) : (
-                <ColorizedMascot color={avatarColor} size="2xl" />
-              )}
+              <ColorizedMascot color={avatarColor} size="2xl" />
               <div className="text-center">
                 <p className="text-lg font-semibold">{name || "Your Agent"}</p>
-                <p className="text-sm text-muted-foreground">
-                  {useCustomIcon ? "Custom icon" : `Elixa Avatar · ${avatarColor.toUpperCase()}`}
-                </p>
+                <p className="text-sm text-muted-foreground font-mono">{avatarColor.toUpperCase()}</p>
               </div>
             </div>
           </div>
