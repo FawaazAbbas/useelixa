@@ -104,7 +104,7 @@ serve(async (req) => {
     };
 
     // Build outbound request
-    const invokeUrl = `${agent.endpoint_base_url.replace(/\/$/, "")}${agent.endpoint_invoke_path || "/invoke"}`;
+    const invokeUrl = `${agent.endpoint_base_url.replace(/\/$/, "")}${agent.endpoint_invoke_path ?? "/invoke"}`;
     const rawBody = JSON.stringify(payload);
     const headers: Record<string, string> = { "Content-Type": "application/json" };
 
