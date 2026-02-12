@@ -92,7 +92,7 @@ export const ColorizedMascot = ({
           style={{
             ...filterStyle,
             transformOrigin: "center 20%",
-            transform: "scale(2.2)",
+            transform: "scale(1.7)",
           }}
           className="w-full h-full object-contain"
         />
