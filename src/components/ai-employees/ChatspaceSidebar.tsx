@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AgentAvatar } from "./AgentAvatar";
 
 export interface InstalledAgent {
   installationId: string;
   agentId: string;
   name: string;
   iconUrl: string | null;
+  avatarColor?: string | null;
   category: string | null;
   executionStatus: string;
   deployedAt: string | null;
@@ -80,12 +80,12 @@ export function ChatspaceSidebar({ agents, selectedId, onSelect, onBrowse }: Cha
                 )}
               >
                 <div className="relative flex-shrink-0">
-                  <Avatar className="h-9 w-9">
-                    <AvatarImage src={agent.iconUrl || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {agent.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <AgentAvatar
+                    name={agent.name}
+                    avatarColor={agent.avatarColor}
+                    iconUrl={agent.iconUrl}
+                    className="h-9 w-9"
+                  />
                   <span
                     className={cn(
                       "absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card",
