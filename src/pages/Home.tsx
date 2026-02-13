@@ -1,5 +1,5 @@
-import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
-import { TalentPoolFooter } from "@/components/TalentPoolFooter";
+import { PublicNavbar } from "@/components/PublicNavbar";
+import { PublicFooter } from "@/components/PublicFooter";
 import {
   HeroSection,
   WorkspaceFeaturesSection,
@@ -13,7 +13,7 @@ import {
 const Home = () => {
   return (
     <div className="min-h-screen bg-background">
-      <TalentPoolNavbar showSearch={false} />
+      <PublicNavbar showSearch={false} />
       
       <main>
         <HeroSection />
@@ -25,7 +25,7 @@ const Home = () => {
         <FinalCTASection />
       </main>
 
-      <TalentPoolFooter />
+      <PublicFooter />
     </div>
   );
 };

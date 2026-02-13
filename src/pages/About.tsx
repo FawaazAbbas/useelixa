@@ -1,12 +1,12 @@
-import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
-import { TalentPoolFooter } from "@/components/TalentPoolFooter";
+import { PublicNavbar } from "@/components/PublicNavbar";
+import { PublicFooter } from "@/components/PublicFooter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, Zap, Shield, Target, Sparkles, Bot } from "lucide-react";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      <TalentPoolNavbar showSearch={false} />
+      <PublicNavbar showSearch={false} />
       
       <main className="pt-28 sm:pt-24 pb-16">
         {/* Hero Section */}
@@ -128,7 +128,7 @@ const About = () => {
 
       </main>
 
-      <TalentPoolFooter />
+      <PublicFooter />
     </div>
   );
 };

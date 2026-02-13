@@ -1,11 +1,11 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ElixaLogo } from "@/components/ElixaLogo";
 
-interface TalentPoolFooterProps {
+interface PublicFooterProps {
   hideTopSpacing?: boolean;
 }
 
-export const TalentPoolFooter = ({ hideTopSpacing = false }: TalentPoolFooterProps) => {
+export const PublicFooter = ({ hideTopSpacing = false }: PublicFooterProps) => {
   const navigate = useNavigate();
 
   return (

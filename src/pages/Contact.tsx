@@ -1,5 +1,5 @@
-import { TalentPoolNavbar } from "@/components/TalentPoolNavbar";
-import { TalentPoolFooter } from "@/components/TalentPoolFooter";
+import { PublicNavbar } from "@/components/PublicNavbar";
+import { PublicFooter } from "@/components/PublicFooter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +70,7 @@ const Contact = () => {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-        <TalentPoolNavbar />
+        <PublicNavbar />
         
         <main className="pt-24 pb-16">
           <div className="max-w-xl mx-auto px-4 sm:px-6 text-center">
@@ -89,14 +89,14 @@ const Contact = () => {
           </div>
         </main>
 
-        <TalentPoolFooter />
+        <PublicFooter />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      <TalentPoolNavbar showSearch={false} />
+      <PublicNavbar showSearch={false} />
       
       <main className="pt-28 sm:pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
@@ -237,7 +237,7 @@ const Contact = () => {
         </div>
       </main>
 
-      <TalentPoolFooter />
+      <PublicFooter />
     </div>
   );
 };
