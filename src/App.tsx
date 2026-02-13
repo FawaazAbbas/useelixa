@@ -42,73 +42,72 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   useGlobalButtonTracking();
-  
+
   return (
     <>
       <ScrollToTop />
       <RouteTracker />
       <MobileRedirect />
-      
-        <Routes>
-          {/* Home (main landing) */}
-          <Route path="/" element={<Home />} />
-          
-          {/* Legacy redirects - redirect old routes to home */}
-          <Route path="/tool-library" element={<Navigate to="/" replace />} />
-          <Route path="/talent-pool" element={<Navigate to="/" replace />} />
-          <Route path="/talent-pool/*" element={<Navigate to="/" replace />} />
-          <Route path="/agent/*" element={<Navigate to="/" replace />} />
-          <Route path="/publish" element={<Navigate to="/" replace />} />
-          <Route path="/developers" element={<Navigate to="/" replace />} />
-          <Route path="/signup" element={<Navigate to="/auth" replace />} />
-          <Route path="/waitlist" element={<Navigate to="/auth" replace />} />
-          <Route path="/referral" element={<Navigate to="/" replace />} />
-          
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/oauth/callback" element={<OAuthCallback />} />
 
-          {/* Back-compat: old demo link */}
-          <Route path="/workspace/demo" element={<Navigate to="/chat" replace />} />
-          <Route path="/workspace" element={<Navigate to="/chat" replace />} />
+      <Routes>
+        {/* Home (main landing) */}
+        <Route path="/" element={<Home />} />
 
-          {/* Chat route - main AI interface */}
-          <Route path="/chat" element={<Chat />} />
-          
-          {/* Shared chat - public view */}
-          <Route path="/shared/:shareToken" element={<SharedChat />} />
+        {/* Legacy redirects - redirect old routes to home */}
+        <Route path="/tool-library" element={<Navigate to="/" replace />} />
+        <Route path="/talent-pool" element={<Navigate to="/" replace />} />
+        <Route path="/talent-pool/*" element={<Navigate to="/" replace />} />
+        <Route path="/agent/*" element={<Navigate to="/" replace />} />
+        <Route path="/publish" element={<Navigate to="/" replace />} />
 
-          {/* App routes - all use PageLayout internally */}
-          <Route path="/tasks" element={<Tasks />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/knowledge-base" element={<KnowledgeBase />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/email" element={<Email />} />
-          <Route path="/logs" element={<Logs />} />
-          <Route path="/connections" element={<Connections />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/analytics" element={<Logs />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/workflows" element={<Workflows />} />
-          <Route path="/ai-employees" element={<AIEmployees />} />
-          <Route path="/digest" element={<Digest />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/contact" element={<Contact />} />
-          
-          
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/pitch-deck" element={<PitchDeck />} />
-          <Route path="/developer/auth" element={<DeveloperAuth />} />
-          <Route path="/developer" element={<DeveloperPortal />} />
-          
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </>
-    );
+        <Route path="/signup" element={<Navigate to="/auth" replace />} />
+        <Route path="/waitlist" element={<Navigate to="/auth" replace />} />
+        <Route path="/referral" element={<Navigate to="/" replace />} />
+
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+        {/* Back-compat: old demo link */}
+        <Route path="/workspace/demo" element={<Navigate to="/chat" replace />} />
+        <Route path="/workspace" element={<Navigate to="/chat" replace />} />
+
+        {/* Chat route - main AI interface */}
+        <Route path="/chat" element={<Chat />} />
+
+        {/* Shared chat - public view */}
+        <Route path="/shared/:shareToken" element={<SharedChat />} />
+
+        {/* App routes - all use PageLayout internally */}
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/knowledge-base" element={<KnowledgeBase />} />
+        <Route path="/notes" element={<Notes />} />
+        <Route path="/email" element={<Email />} />
+        <Route path="/logs" element={<Logs />} />
+        <Route path="/connections" element={<Connections />} />
+        <Route path="/team" element={<Team />} />
+        <Route path="/billing" element={<Billing />} />
+        <Route path="/analytics" element={<Logs />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/workflows" element={<Workflows />} />
+        <Route path="/ai-employees" element={<AIEmployees />} />
+        <Route path="/digest" element={<Digest />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/contact" element={<Contact />} />
+
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/pitch-deck" element={<PitchDeck />} />
+        <Route path="/developer/auth" element={<DeveloperAuth />} />
+        <Route path="/developer" element={<DeveloperPortal />} />
+
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
 };
 
 const App = () => (
