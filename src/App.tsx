@@ -5,8 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import TalentPool from "./pages/TalentPool";
-import Workspace from "./pages/Workspace";
 import Tasks from "./pages/Tasks";
 import Calendar from "./pages/Calendar";
 import KnowledgeBase from "./pages/KnowledgeBase";
@@ -25,8 +23,6 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
 import Notifications from "./pages/Notifications";
 import SharedChat from "./pages/SharedChat";
 import Email from "./pages/Email";
@@ -102,9 +98,7 @@ const AppContent = () => {
           <Route path="/terms" element={<Terms />} />
           <Route path="/contact" element={<Contact />} />
           
-          {/* Blog routes hidden for now */}
-          {/* <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogPost />} /> */}
+          
           <Route path="/admin" element={<Admin />} />
           <Route path="/pitch-deck" element={<PitchDeck />} />
           <Route path="/developer/auth" element={<DeveloperAuth />} />

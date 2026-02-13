@@ -6,19 +6,19 @@ import { ElixaLogo } from "@/components/ElixaLogo";
 import { trackNavClick } from "@/utils/analytics";
 import { useAuth } from "@/hooks/useAuth";
 
-interface TalentPoolNavbarProps {
+interface PublicNavbarProps {
   searchQuery?: string;
   onSearchChange?: (value: string) => void;
   onClearSearch?: () => void;
   showSearch?: boolean;
 }
 
-export const TalentPoolNavbar = ({
+export const PublicNavbar = ({
   searchQuery = "",
   onSearchChange,
   onClearSearch,
   showSearch = true,
-}: TalentPoolNavbarProps) => {
+}: PublicNavbarProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -197,11 +197,11 @@ interface BreadcrumbItem {
   href?: string;
 }
 
-interface TalentPoolBreadcrumbProps {
+interface PublicBreadcrumbProps {
   items: BreadcrumbItem[];
 }
 
-export const TalentPoolBreadcrumb = ({ items }: TalentPoolBreadcrumbProps) => {
+export const PublicBreadcrumb = ({ items }: PublicBreadcrumbProps) => {
   const navigate = useNavigate();
 
   return (
