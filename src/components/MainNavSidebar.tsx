@@ -180,7 +180,7 @@ export const MainNavSidebar = () => {
 
   const handleSignOut = async () => {
     if (user) await signOut();
-    navigate("/talent-pool");
+    navigate("/");
   };
 
   const getUserInitials = () => {
