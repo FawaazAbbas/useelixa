@@ -1,132 +1,147 @@
 
 
-# Platform Cleanup: Dead Code, Unused Dependencies, and Legacy Remnants
+# Connecting Developer Agents to User OAuth: End-to-End Plan
 
-## Summary
+## The Problem
 
-After auditing the full codebase, here is everything that is dead, unused, or inefficient -- grouped by severity.
+Right now there are three disconnected pieces:
+
+1. **Developer Side**: When submitting an agent, the developer selects "Tools Required" (e.g. Gmail, Google Sheets, Slack) in the capability manifest -- but there's no guidance on what code to write to actually *use* those tools via the Tool Gateway.
+
+2. **User Side**: When a user installs an agent from the marketplace, the system doesn't check whether they have the required OAuth connections. The agent gets installed, then fails silently when it tries to call the Tool Gateway for an integration the user hasn't connected.
+
+3. **Runtime**: The Tool Gateway checks permissions from the session token but doesn't verify whether the user actually has valid OAuth credentials for the requested integration.
+
+## The Solution
+
+Wire up all three layers so that:
+- Developers get clear, copy-paste code examples for calling the Tool Gateway
+- Users see exactly which connections an agent needs *before* installing, and are prompted to connect missing ones
+- The Tool Gateway validates credential availability at runtime and returns a clear error if missing
 
 ---
 
-## 1. Completely Unused Component Files (safe to delete)
+## Phase 1: Improve Developer Docs and Submission UX
 
-These files are never imported anywhere in the codebase:
+### 1a. Enhanced API Docs -- Tool Gateway Code Samples
 
-| File | Reason |
+Update `src/components/developer/ApiDocsPage.tsx` to add a new section with **language-specific code examples** showing how an agent should call the Tool Gateway from its `/invoke` handler:
+
+```text
+# From your /invoke handler, use the toolGateway object:
+
+POST {toolGateway.baseUrl}
+Authorization: Bearer {toolGateway.sessionToken}
+
+Body:
+{
+  "integration": "gmail",
+  "action": "list_messages",
+  "params": { "maxResults": 10 }
+}
+```
+
+Include examples in Python (requests), Node.js (fetch), and a curl snippet. List all available integrations and their supported actions.
+
+### 1b. Submission Form -- Integration Picker with Descriptions
+
+Update `src/components/developer/EndpointAgentFields.tsx` to show each tool badge with a tooltip explaining what it unlocks (e.g. "Gmail -- read/send emails via Tool Gateway"). This helps developers understand what selecting a tool actually means.
+
+---
+
+## Phase 2: Pre-Install OAuth Check for Users
+
+### 2a. Marketplace Card -- Show Required Connections
+
+Update `src/components/ai-employees/AgentMarketplace.tsx` to display the `toolsRequired` from each agent's `capability_manifest`. Show badges like "Requires: Gmail, Slack" on each card.
+
+### 2b. Install Flow -- Check and Prompt for Missing OAuth
+
+Update the `installAgent` function in `src/pages/AIEmployees.tsx`:
+
+1. Before inserting into `agent_installations`, fetch the agent's `capability_manifest.toolsRequired`
+2. Cross-reference against the user's `user_credentials` to find missing connections
+3. If connections are missing, show a dialog listing what's needed with "Connect" buttons that link to `/connections`
+4. Allow the user to proceed anyway (with a warning) or connect first
+
+Create a new component `src/components/ai-employees/MissingConnectionsDialog.tsx`:
+- Lists required integrations with their logos
+- Shows green checkmarks for connected ones, red X for missing
+- "Connect Now" buttons that navigate to `/connections` with a return parameter
+- "Install Anyway" button with a warning that the agent may not work fully
+
+### 2c. Agent Detail / Settings -- Connection Status
+
+Update `src/components/ai-employees/AgentSettingsPanel.tsx` to show a "Required Connections" section that displays the status of each OAuth connection the agent needs, with quick-connect links.
+
+---
+
+## Phase 3: Runtime Credential Validation in Tool Gateway
+
+### 3a. Add Credential Check to Tool Gateway
+
+Update `supabase/functions/tool-gateway/index.ts`:
+
+Before routing to the integration function, check that the user has valid credentials:
+
+```text
+1. Extract userId from the session token
+2. Look up user_credentials for the requested integration
+3. If no credential found, return 403 with a clear message:
+   { "error": "missing_connection", "integration": "gmail",
+     "message": "User has not connected Gmail. Please connect it in Settings > Connections." }
+4. If credential is expired, attempt auto-refresh; if refresh fails, return the same error
+```
+
+This prevents cryptic failures deep in integration functions.
+
+### 3b. Surface Gateway Errors in Chat
+
+Update the chat UI to handle `missing_connection` errors from agent responses gracefully -- showing a toast or inline prompt to connect the missing service rather than a generic error.
+
+---
+
+## Phase 4: OAuth Credential Mapping Table
+
+Create a shared mapping (used by both frontend and backend) that connects:
+
+```text
+Tool Gateway integration name --> credential_type --> OAuth provider --> bundle_type
+```
+
+For example:
+| Gateway Integration | credential_type    | OAuth Provider | bundle_type      |
+|--------------------|--------------------|----------------|------------------|
+| gmail              | googleOAuth2Api    | google         | gmail            |
+| google_sheets      | googleOAuth2Api    | google         | google_sheets    |
+| slack              | slackOAuth2Api     | slack          | (none)           |
+| notion             | notionApi          | notion         | (none)           |
+| shopify            | shopifyApi         | shopify        | (none)           |
+| stripe             | stripeApi          | stripe         | (none)           |
+
+This mapping currently exists partially in `Connections.tsx` (frontend) and `tool-gateway/index.ts` (backend) but they're not aligned. We'll create a shared config file.
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/components/ai-employees/MissingConnectionsDialog.tsx` | Pre-install OAuth check dialog |
+| `src/config/integrationMapping.ts` | Shared integration-to-credential mapping |
+
+## Files to Modify
+
+| File | Change |
 |------|--------|
-| `src/components/AuthDialog.tsx` | Zero imports -- replaced by the `/auth` page |
-| `src/components/LoadingSkeleton.tsx` | Zero imports -- pages use inline Skeleton or Loader2 |
-| `src/components/FileIcon.tsx` | Zero imports |
-| `src/components/SidebarActionButton.tsx` | Zero imports |
-| `src/components/SidebarActionMenu.tsx` | Zero imports |
-| `src/components/MascotAvatar.tsx` | Zero imports |
-| `src/components/developer/PlatformHostedFields.tsx` | Zero imports -- legacy hosting model removed |
-| `src/components/developer/SelfHostedFields.tsx` | Zero imports -- legacy hosting model removed |
-| `src/components/developer/DeveloperStats.tsx` | Zero imports |
-| `src/components/developer/DeveloperProfileForm.tsx` | Zero imports |
-| `src/components/ai-employees/CreateEmployeeDialog.tsx` | Zero imports -- replaced by agent submission flow |
+| `src/components/developer/ApiDocsPage.tsx` | Add Tool Gateway code examples (Python, Node, curl) |
+| `src/components/developer/EndpointAgentFields.tsx` | Add tool descriptions/tooltips |
+| `src/components/ai-employees/AgentMarketplace.tsx` | Show required connections on cards |
+| `src/pages/AIEmployees.tsx` | Pre-install credential check + dialog trigger |
+| `src/components/ai-employees/AgentSettingsPanel.tsx` | Show connection status for installed agent |
+| `supabase/functions/tool-gateway/index.ts` | Add credential existence check before routing |
 
-**Total: 11 dead component files**
+## No Database Changes Required
 
----
-
-## 2. Dead Pages (routed but redirect-only or hidden)
-
-| Page File | Status |
-|-----------|--------|
-| `src/pages/TalentPool.tsx` | Route redirects to `/` -- page code is never rendered |
-| `src/pages/Workspace.tsx` | Route redirects to `/chat` -- page code is never rendered |
-| `src/pages/Blog.tsx` | Routes are commented out in App.tsx -- never reachable |
-| `src/pages/BlogPost.tsx` | Routes are commented out in App.tsx -- never reachable |
-| `src/pages/PitchDeck.tsx` | Internal-only, not in navigation -- consider if still needed |
-
-**Action:** Delete TalentPool.tsx, Workspace.tsx, Blog.tsx, and BlogPost.tsx since they are unreachable. Confirm PitchDeck status with you.
-
----
-
-## 3. Unused npm Dependencies
-
-These packages are installed but never imported anywhere in the source:
-
-| Package | Reason |
-|---------|--------|
-| `react-pull-to-refresh` | Zero imports |
-| `react-infinite-scroll-component` | Zero imports |
-| `react-swipeable` | Zero imports |
-| `@playwright/test` | Test framework -- only used in config files, not runtime. Can keep if tests are planned |
-
-**Action:** Uninstall the first 3 packages to reduce bundle size.
-
----
-
-## 4. Legacy Backend Functions (no longer called)
-
-| Edge Function | Status |
-|---------------|--------|
-| `execute-python-agent` | Legacy self-hosted model removed -- never invoked |
-| `test-agent` | Legacy agent testing -- never invoked |
-| `ai-employee-orchestrator` | References deprecated `ai_employees` table |
-
-**Action:** Delete `execute-python-agent` and `test-agent`. Review `ai-employee-orchestrator` for whether it should be updated or removed.
-
----
-
-## 5. Blog Infrastructure (hidden but still present)
-
-The blog routes are commented out, but all supporting code remains:
-
-- `src/pages/Blog.tsx`
-- `src/pages/BlogPost.tsx`  
-- `src/components/admin/AdminBlogTab.tsx`
-- `src/components/admin/RichTextEditor.tsx`
-- `src/components/admin/BlogCoverUpload.tsx`
-- Related tiptap dependencies (`@tiptap/*`)
-- Database table `blog_posts` still exists
-
-**Action:** If Blog is permanently shelved, delete the 5 files and uninstall the 6 tiptap packages. If it may return, leave as-is but note the bloat.
-
----
-
-## 6. Naming Inconsistency: "TalentPool" Components
-
-`TalentPoolNavbar` and `TalentPoolFooter` are used by Home, About, Contact, Privacy, Terms (the public-facing pages) -- not by any "Talent Pool" feature. The name is a legacy leftover.
-
-**Action:** Rename to `PublicNavbar` and `PublicFooter` for clarity.
-
----
-
-## 7. Duplicate Toast Systems
-
-The project imports both:
-- `@/components/ui/toaster` (Radix-based toast)  
-- `sonner` (Sonner toast)
-
-Both are mounted in `App.tsx` and used inconsistently across the codebase.
-
-**Action:** Standardise on one (recommend Sonner as it's simpler and already used more broadly), then remove the Radix toast system.
-
----
-
-## Implementation Plan
-
-### Phase 1 -- Delete dead files (zero risk)
-Delete the 11 unused component files listed in section 1.
-
-### Phase 2 -- Delete dead pages
-Delete `TalentPool.tsx`, `Workspace.tsx`, `Blog.tsx`, `BlogPost.tsx`.
-
-### Phase 3 -- Remove unused npm packages
-Uninstall `react-pull-to-refresh`, `react-infinite-scroll-component`, `react-swipeable`.
-
-### Phase 4 -- Delete legacy edge functions
-Delete `execute-python-agent` and `test-agent` functions.
-
-### Phase 5 -- Rename TalentPool components
-Rename `TalentPoolNavbar` to `PublicNavbar` and `TalentPoolFooter` to `PublicFooter`, updating all imports.
-
-### Phase 6 -- Blog decision
-Pending your decision: keep or remove the blog infrastructure entirely.
-
-### Phase 7 -- Toast consolidation
-Standardise on Sonner and remove the Radix toast setup (lower priority, more files to touch).
+The `capability_manifest` JSON column on `agent_submissions` already stores `toolsRequired`. The `user_credentials` table already tracks connected services. We just need to connect these two pieces.
 
