@@ -148,19 +148,117 @@ X-Elixa-Request-Id: uuid`} />
             Each invoke request includes a <code className="text-xs bg-muted px-1 rounded">toolGateway</code> object with a short-lived JWT session token (15 minutes). 
             Use it to call the gateway:
           </p>
-          <CodeBlock code={`// Call the Tool Gateway from your agent
-POST {{gatewayUrl}}
-Authorization: Bearer {{sessionToken}}
-Content-Type: application/json
 
-{
-  "tool": "google_ads",
-  "action": "get_campaigns",
-  "params": { "customer_id": "123-456-7890" }
+          {/* Available Integrations */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2">Available Integrations</h4>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {[
+                { key: "gmail", label: "Gmail", actions: "list_messages, send_email" },
+                { key: "google_ads", label: "Google Ads", actions: "get_campaigns, get_reports" },
+                { key: "google_analytics", label: "Analytics", actions: "run_report, get_realtime" },
+                { key: "google_sheets", label: "Sheets", actions: "read_range, write_range" },
+                { key: "shopify", label: "Shopify", actions: "list_products, get_orders" },
+                { key: "stripe", label: "Stripe", actions: "list_charges, get_subscription" },
+                { key: "notion", label: "Notion", actions: "search, query_database" },
+              ].map((i) => (
+                <div key={i.key} className="rounded-lg border p-2">
+                  <p className="text-sm font-medium">{i.label}</p>
+                  <p className="text-xs text-muted-foreground">{i.actions}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Python Example */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2">Python <Badge variant="secondary" className="text-xs ml-1">requests</Badge></h4>
+            <CodeBlock language="python" code={`import requests
+
+def call_tool_gateway(gateway_url, session_token, integration, action, params=None):
+    """Call Elixa Tool Gateway from your /invoke handler."""
+    response = requests.post(
+        gateway_url,
+        headers={
+            "Authorization": f"Bearer {session_token}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "integration": integration,  # e.g. "gmail", "shopify"
+            "action": action,            # e.g. "list_messages", "list_products"
+            "params": params or {},
+        },
+    )
+    response.raise_for_status()
+    return response.json()
+
+# Usage in your /invoke handler:
+def handle_invoke(request_body):
+    gateway = request_body["toolGateway"]
+    emails = call_tool_gateway(
+        gateway["gatewayUrl"],
+        gateway["sessionToken"],
+        "gmail",
+        "list_messages",
+        {"maxResults": 10},
+    )
+    return {"response": f"Found {len(emails.get('messages', []))} emails"}`} />
+          </div>
+
+          {/* Node.js Example */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2">Node.js <Badge variant="secondary" className="text-xs ml-1">fetch</Badge></h4>
+            <CodeBlock language="javascript" code={`async function callToolGateway(gatewayUrl, sessionToken, integration, action, params = {}) {
+  const res = await fetch(gatewayUrl, {
+    method: "POST",
+    headers: {
+      "Authorization": \`Bearer \${sessionToken}\`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ integration, action, params }),
+  });
+  if (!res.ok) throw new Error(\`Gateway error: \${res.status}\`);
+  return res.json();
+}
+
+// In your /invoke handler:
+export async function handleInvoke(body) {
+  const { toolGateway } = body;
+  const data = await callToolGateway(
+    toolGateway.gatewayUrl,
+    toolGateway.sessionToken,
+    "shopify",
+    "list_products",
+    { limit: 5 }
+  );
+  return { response: \`Found \${data.products?.length || 0} products\` };
 }`} />
-          <div className="rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-900/30 dark:bg-yellow-900/10 p-3">
-            <p className="text-sm text-yellow-800 dark:text-yellow-400">
-              <strong>HITL Gating:</strong> Mutating actions (write/delete) are automatically held for user approval. Your agent receives a "pending" status, and the action executes only after the user confirms.
+          </div>
+
+          {/* cURL Example */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2">cURL</h4>
+            <CodeBlock language="bash" code={`curl -X POST "{{gatewayUrl}}" \\
+  -H "Authorization: Bearer {{sessionToken}}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "integration": "gmail",
+    "action": "list_messages",
+    "params": { "maxResults": 10 }
+  }'`} />
+          </div>
+
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-900/30 dark:bg-amber-900/10 p-3">
+            <p className="text-sm text-amber-800 dark:text-amber-400">
+              <strong>HITL Gating:</strong> Mutating actions (write/delete) are automatically held for user approval. Your agent receives a <code className="text-xs bg-muted px-1 rounded">pending_approval</code> status and a <code className="text-xs bg-muted px-1 rounded">proposalId</code>. The action executes only after the user confirms.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-900/30 dark:bg-blue-900/10 p-3">
+            <p className="text-sm text-blue-800 dark:text-blue-400">
+              <strong>Missing Connections:</strong> If the user hasn't connected the required OAuth service, the gateway returns a <code className="text-xs bg-muted px-1 rounded">403</code> with <code className="text-xs bg-muted px-1 rounded">{`{"error": "missing_connection"}`}</code>. Handle this gracefully in your agent's response.
             </p>
           </div>
         </CardContent>

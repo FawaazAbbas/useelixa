@@ -104,6 +104,43 @@ serve(async (req) => {
       });
     }
 
+    // ── Phase 3: Credential existence check ──
+    const credentialMapping: Record<string, { credentialType: string; bundleType?: string }> = {
+      gmail: { credentialType: "googleOAuth2Api", bundleType: "gmail" },
+      google_ads: { credentialType: "googleOAuth2Api", bundleType: "google_ads" },
+      google_analytics: { credentialType: "googleOAuth2Api", bundleType: "google_analytics" },
+      google_sheets: { credentialType: "googleOAuth2Api", bundleType: "google_sheets" },
+      shopify: { credentialType: "shopifyApi" },
+      stripe: { credentialType: "stripeApi" },
+      notion: { credentialType: "notionApi" },
+    };
+
+    const credMap = credentialMapping[integration];
+    if (credMap) {
+      let credQuery = supabase
+        .from("user_credentials")
+        .select("id, expires_at")
+        .eq("user_id", tokenPayload.userId as string)
+        .eq("credential_type", credMap.credentialType);
+
+      if (credMap.bundleType) {
+        credQuery = credQuery.eq("bundle_type", credMap.bundleType);
+      }
+
+      const { data: creds } = await credQuery.limit(1);
+      if (!creds || creds.length === 0) {
+        const integrationLabel = integration.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+        return new Response(JSON.stringify({
+          error: "missing_connection",
+          integration,
+          message: `User has not connected ${integrationLabel}. Please connect it in Settings > Connections.`,
+        }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const { data, error } = await supabase.functions.invoke(fnName, {
       body: { action, ...params, userId: tokenPayload.userId },
     });

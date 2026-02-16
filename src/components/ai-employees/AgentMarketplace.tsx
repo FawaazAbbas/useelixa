@@ -98,6 +98,27 @@ export function AgentMarketplace({
                     </p>
                   )}
 
+                  {/* Required integrations from capability manifest */}
+                  {(() => {
+                    const manifest = (agent as any).capabilityManifest || (agent as any).capability_manifest;
+                    const toolsRequired = manifest?.toolsRequired as string[] | undefined;
+                    if (toolsRequired && toolsRequired.length > 0) {
+                      return (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-medium">Requires:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {toolsRequired.map((tool) => (
+                              <Badge key={tool} variant="secondary" className="text-xs gap-1">
+                                {tool.replace(/_/g, " ")}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {agent.allowed_tools && agent.allowed_tools.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {agent.allowed_tools.slice(0, 3).map((tool) => (

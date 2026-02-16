@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Shield, Key, Hash } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { INTEGRATION_MAPPINGS } from "@/config/integrationMapping";
 
 interface EndpointAgentFieldsProps {
   baseUrl: string;
@@ -112,18 +114,34 @@ export const EndpointAgentFields = ({
 
       <div className="space-y-2">
         <Label>Tools Required</Label>
-        <div className="flex flex-wrap gap-1.5">
-          {availableTools.map((tool) => (
-            <Badge
-              key={tool}
-              variant={toolsRequired.includes(tool) ? "default" : "outline"}
-              className="cursor-pointer text-xs"
-              onClick={() => onToggleTool(tool)}
-            >
-              {tool}
-            </Badge>
-          ))}
-        </div>
+        <p className="text-xs text-muted-foreground">Select the OAuth integrations your agent needs via the Tool Gateway.</p>
+        <TooltipProvider>
+          <div className="flex flex-wrap gap-1.5">
+            {availableTools.map((tool) => {
+              const mapping = INTEGRATION_MAPPINGS.find((m) => m.gatewayKey === tool);
+              return (
+                <Tooltip key={tool}>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant={toolsRequired.includes(tool) ? "default" : "outline"}
+                      className="cursor-pointer text-xs"
+                      onClick={() => onToggleTool(tool)}
+                    >
+                      {mapping?.label || tool.replace(/_/g, " ")}
+                    </Badge>
+                  </TooltipTrigger>
+                  {mapping && (
+                    <TooltipContent side="bottom" className="max-w-[220px]">
+                      <p className="font-medium text-xs">{mapping.label}</p>
+                      <p className="text-xs text-muted-foreground">{mapping.description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Actions: {mapping.exampleActions.join(", ")}</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
       </div>
 
       <div className="flex items-center justify-between">
