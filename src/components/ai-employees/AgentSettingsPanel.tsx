@@ -2,11 +2,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Trash2, Activity, Shield, Loader2, X } from "lucide-react";
+import { Trash2, Activity, Shield, Loader2, X, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { AgentAvatar } from "./AgentAvatar";
+import { INTEGRATION_MAPPINGS } from "@/config/integrationMapping";
+import { useAuth } from "@/hooks/useAuth";
 
 interface AgentSettingsPanelProps {
   name: string;
@@ -35,7 +38,29 @@ export function AgentSettingsPanel({
   onUninstall,
   onClose,
 }: AgentSettingsPanelProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [healthStatus, setHealthStatus] = useState<"idle" | "checking" | "healthy" | "unhealthy">("idle");
+  const [connectedKeys, setConnectedKeys] = useState<string[]>([]);
+
+  const toolsRequired = (capabilityManifest as any)?.toolsRequired as string[] | undefined;
+
+  useEffect(() => {
+    if (!user || !toolsRequired?.length) return;
+    supabase
+      .from("user_credentials")
+      .select("credential_type, bundle_type")
+      .eq("user_id", user.id)
+      .then(({ data }) => {
+        const keys = (data || []).map((c: any) => {
+          const match = INTEGRATION_MAPPINGS.find(
+            (m) => m.credentialType === c.credential_type && (!m.bundleType || m.bundleType === c.bundle_type)
+          );
+          return match?.gatewayKey;
+        }).filter(Boolean) as string[];
+        setConnectedKeys(keys);
+      });
+  }, [user, toolsRequired]);
 
   const testHealth = async () => {
     setHealthStatus("checking");
@@ -140,6 +165,44 @@ export function AgentSettingsPanel({
               </div>
             </div>
           </div>
+
+          {/* Required Connections */}
+          {toolsRequired && toolsRequired.length > 0 && (
+            <>
+              <div className="space-y-2">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Required Connections
+                </h4>
+                <div className="space-y-1.5">
+                  {toolsRequired.map((key) => {
+                    const mapping = INTEGRATION_MAPPINGS.find((m) => m.gatewayKey === key);
+                    const isConnected = connectedKeys.includes(key);
+                    return (
+                      <div key={key} className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          {mapping?.label || key.replace(/_/g, " ")}
+                        </span>
+                        {isConnected ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 gap-1 text-xs text-destructive"
+                            onClick={() => navigate("/connections")}
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                            Connect
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
 
           <Separator />
 

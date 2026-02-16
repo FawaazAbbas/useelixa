@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { ChatspaceSidebar, type InstalledAgent } from "@/components/ai-employees/ChatspaceSidebar";
 import { AgentSettingsPanel } from "@/components/ai-employees/AgentSettingsPanel";
 import { AgentMarketplace } from "@/components/ai-employees/AgentMarketplace";
+import { MissingConnectionsDialog } from "@/components/ai-employees/MissingConnectionsDialog";
+import { INTEGRATION_MAPPINGS } from "@/config/integrationMapping";
 import { ProposalCard } from "@/components/ai-employees/ProposalCard";
 import { AgentAvatar } from "@/components/ai-employees/AgentAvatar";
 import { cn } from "@/lib/utils";
@@ -76,6 +78,13 @@ export default function AIEmployees() {
   const [showSettings, setShowSettings] = useState(false);
   const [installingId, setInstallingId] = useState<string | null>(null);
   const [allAgents, setAllAgents] = useState<AIEmployee[]>([]);
+  const [missingDialog, setMissingDialog] = useState<{
+    open: boolean;
+    agentId: string;
+    agentName: string;
+    required: string[];
+    connected: string[];
+  }>({ open: false, agentId: "", agentName: "", required: [], connected: [] });
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const selected = installations.find((i) => i.installationId === selectedId) || null;
@@ -137,6 +146,7 @@ export default function AIEmployees() {
         source: "endpoint" as const,
         developer_name: (agent.developer_profiles as any)?.company_name || undefined,
         avatarColor: (agent.capability_manifest as any)?.avatarColor || null,
+        capabilityManifest: agent.capability_manifest || null,
       }));
       setAllAgents(agents);
     } catch (err) {
@@ -277,6 +287,44 @@ export default function AIEmployees() {
       toast.error("No workspace found.");
       return;
     }
+
+    // Check required integrations from capability_manifest
+    const agent = allAgents.find((a) => a.id === agentId);
+    const manifest = (agent as any)?.capabilityManifest || (agent as any)?.capability_manifest;
+    const toolsRequired = (manifest?.toolsRequired || []) as string[];
+
+    if (toolsRequired.length > 0) {
+      // Fetch user credentials to check which are connected
+      const { data: creds } = await supabase
+        .from("user_credentials")
+        .select("credential_type, bundle_type")
+        .eq("user_id", user.id);
+
+      const connectedKeys = (creds || []).map((c: any) => {
+        const match = INTEGRATION_MAPPINGS.find(
+          (m) => m.credentialType === c.credential_type && (!m.bundleType || m.bundleType === c.bundle_type)
+        );
+        return match?.gatewayKey;
+      }).filter(Boolean) as string[];
+
+      const missing = toolsRequired.filter((k) => !connectedKeys.includes(k));
+      if (missing.length > 0) {
+        setMissingDialog({
+          open: true,
+          agentId,
+          agentName: agent?.name || "Agent",
+          required: toolsRequired,
+          connected: connectedKeys,
+        });
+        return;
+      }
+    }
+
+    await doInstall(agentId);
+  };
+
+  const doInstall = async (agentId: string) => {
+    if (!workspaceId || !user) return;
     try {
       setInstallingId(agentId);
       const { error } = await supabase.from("agent_installations").insert({
@@ -586,6 +634,20 @@ export default function AIEmployees() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Missing Connections Dialog */}
+      <MissingConnectionsDialog
+        open={missingDialog.open}
+        onOpenChange={(open) => setMissingDialog((prev) => ({ ...prev, open }))}
+        agentName={missingDialog.agentName}
+        requiredIntegrations={missingDialog.required}
+        connectedIntegrations={missingDialog.connected}
+        onInstallAnyway={() => {
+          setMissingDialog((prev) => ({ ...prev, open: false }));
+          doInstall(missingDialog.agentId);
+        }}
+        installing={installingId === missingDialog.agentId}
+      />
       </div>
     </div>
   );
