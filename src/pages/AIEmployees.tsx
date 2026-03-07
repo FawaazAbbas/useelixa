@@ -19,6 +19,9 @@ import { MissingConnectionsDialog } from "@/components/ai-employees/MissingConne
 import { INTEGRATION_MAPPINGS } from "@/config/integrationMapping";
 import { ProposalCard } from "@/components/ai-employees/ProposalCard";
 import { AgentAvatar } from "@/components/ai-employees/AgentAvatar";
+import { StreamingMessage } from "@/components/ai-employees/StreamingMessage";
+import { AgentFileOutput } from "@/components/ai-employees/AgentFileOutput";
+import { useAgentStream } from "@/hooks/useAgentStream";
 import { cn } from "@/lib/utils";
 
 export interface AIEmployee {
@@ -85,9 +88,11 @@ export default function AIEmployees() {
     required: string[];
     connected: string[];
   }>({ open: false, agentId: "", agentName: "", required: [], connected: [] });
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const selected = installations.find((i) => i.installationId === selectedId) || null;
+  const stream = useAgentStream(conversationId);
 
   // Fetch installations + all public agents
   const fetchData = useCallback(async () => {
@@ -161,13 +166,15 @@ export default function AIEmployees() {
     fetchData();
   }, [fetchData]);
 
-  // Load messages when selection changes
+  // Load messages when selection changes, reset conversation stream
   useEffect(() => {
     if (!selectedId) {
       setMessages([]);
+      setConversationId(null);
       return;
     }
     loadMessages(selectedId);
+    setConversationId(null);
   }, [selectedId]);
 
   // Auto-scroll
@@ -202,19 +209,24 @@ export default function AIEmployees() {
     setInput("");
     setIsLoading(true);
 
+    // Generate a conversation ID for this session on first message
+    const convId = conversationId ?? crypto.randomUUID();
+    if (!conversationId) setConversationId(convId);
+
     // Optimistically add user message
-    const tempId = `temp-${Date.now()}`;
-    const userMsg: AgentMessage = {
-      id: tempId,
-      role: "user",
-      content: text,
-      metadata: null,
-      created_at: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `temp-${Date.now()}`,
+        role: "user",
+        content: text,
+        metadata: null,
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     try {
-      // Persist user message
+      // Persist user message (keep installation_id for history compatibility)
       await supabase.from("agent_messages").insert({
         workspace_id: selected.workspaceId,
         installation_id: selectedId,
@@ -222,19 +234,36 @@ export default function AIEmployees() {
         content: text,
       });
 
-      // Call orchestrator with deterministic routing
-      const { data, error } = await supabase.functions.invoke("ai-employee-orchestrator", {
-        body: {
-          actorType: "installed_agent",
-          actorId: selectedId,
-          message: text,
-          userId: user.id,
+      // Call the Python orchestration service
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+
+      const orchestratorUrl = import.meta.env.VITE_ORCHESTRATOR_URL ?? "http://localhost:8000";
+      const response = await fetch(`${orchestratorUrl}/api/v1/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          workspace_id: selected.workspaceId,
+          user_id: user.id,
+          message: text,
+          agent_id: selected.agentId,
+          conversation_id: convId,
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error((body as { detail?: string }).detail ?? `Request failed: ${response.status}`);
+      }
 
-      const assistantContent = data?.response || "I couldn't process that request.";
+      const data = await response.json();
+      const assistantContent = (data.message as string) || "I couldn't process that request.";
+      const toolCalls: string[] = data.tool_calls_made || [];
+      const outputFiles: { name: string; url: string; type: string }[] = data.files || [];
 
       // Persist assistant message
       await supabase.from("agent_messages").insert({
@@ -242,7 +271,7 @@ export default function AIEmployees() {
         installation_id: selectedId,
         role: "assistant",
         content: assistantContent,
-        metadata: { tools_used: data?.tools_used || [], actions: data?.actions || [] },
+        metadata: { tool_calls: toolCalls, files: outputFiles },
       });
 
       setMessages((prev) => [
@@ -251,7 +280,7 @@ export default function AIEmployees() {
           id: `asst-${Date.now()}`,
           role: "assistant",
           content: assistantContent,
-          metadata: { tools_used: data?.tools_used || [], actions: data?.actions || [] },
+          metadata: { tool_calls: toolCalls, files: outputFiles },
           created_at: new Date().toISOString(),
         },
       ]);
@@ -533,20 +562,15 @@ export default function AIEmployees() {
                 })}
 
                 {isLoading && (
-                  <div className="flex items-start gap-3">
-                    <AgentAvatar
-                      name={selected.name}
-                      avatarColor={(selected.capabilityManifest as any)?.avatarColor}
-                      iconUrl={selected.iconUrl}
-                      className="h-9 w-9 flex-shrink-0 border-2 border-muted"
-                    />
-                    <div className="bg-muted rounded-2xl px-4 py-3">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">Thinking…</span>
-                      </div>
-                    </div>
-                  </div>
+                  <StreamingMessage
+                    agentName={selected.name}
+                    agentAvatarColor={(selected.capabilityManifest as any)?.avatarColor}
+                    streamedText={stream.streamedText}
+                    isStreaming={stream.isStreaming || isLoading}
+                    activeToolCall={stream.activeToolCall}
+                    toolCallHistory={stream.toolCallHistory}
+                    error={stream.error}
+                  />
                 )}
               </div>
             </ScrollArea>
@@ -720,6 +744,9 @@ function AgentMessageBubble({ msg, isUser, agentName, agentAvatarColor, agentIco
             </div>
           )}
         </div>
+        {!isUser && msg.metadata && Array.isArray((msg.metadata as any).files) && (
+          <AgentFileOutput files={(msg.metadata as any).files} />
+        )}
 
         {/* Timestamp and actions */}
         <div className={cn(
