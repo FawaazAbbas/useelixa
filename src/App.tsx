@@ -33,6 +33,7 @@ import PitchDeck from "./pages/PitchDeck";
 import DeveloperAuth from "./pages/DeveloperAuth";
 import DeveloperPortal from "./pages/DeveloperPortal";
 import JoinWorkspace from "./pages/JoinWorkspace";
+import Hierarchy from "./pages/Hierarchy";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -73,8 +74,8 @@ const AppContent = () => {
         <Route path="/workspace/demo" element={<Navigate to="/chat" replace />} />
         <Route path="/workspace" element={<Navigate to="/chat" replace />} />
 
-        {/* Chat route - main AI interface */}
-        <Route path="/chat" element={<Chat />} />
+        {/* Chat route - redirect to unified chats */}
+        <Route path="/chat" element={<Navigate to="/ai-employees" replace />} />
 
         {/* Shared chat - public view */}
         <Route path="/shared/:shareToken" element={<SharedChat />} />
@@ -95,6 +96,7 @@ const AppContent = () => {
         <Route path="/workflows" element={<Workflows />} />
         <Route path="/ai-employees" element={<AIEmployees />} />
         <Route path="/digest" element={<Digest />} />
+        <Route path="/hierarchy" element={<Hierarchy />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, Building2, Upload, CreditCard } from "lucide-react";
+import { ArrowLeft, User, Lock, Building2, Upload, CreditCard, Key, Copy, Check, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,9 @@ const Settings = () => {
   const [orgName, setOrgName] = useState("");
   const [orgId, setOrgId] = useState<string | null>(null);
   const [isOrgOwner, setIsOrgOwner] = useState(false);
+  const [joinCode, setJoinCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -73,6 +76,53 @@ const Settings = () => {
         setOrgName(org.name);
       }
     }
+
+    // Fetch workspace join code
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membership) {
+      const { data: ws } = await supabase
+        .from("workspaces")
+        .select("join_code")
+        .eq("id", membership.workspace_id)
+        .maybeSingle();
+      if (ws) setJoinCode(ws.join_code);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (joinCode) {
+      navigator.clipboard.writeText(joinCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
+
+  const handleRegenerateCode = async () => {
+    if (!user) return;
+    setRegenerating(true);
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membership) {
+      const { data, error } = await supabase.rpc("regenerate_workspace_join_code", {
+        p_workspace_id: membership.workspace_id,
+      });
+      if (!error && data) {
+        setJoinCode(data as string);
+        toast.success("Join code regenerated!");
+      } else {
+        toast.error("Failed to regenerate code");
+      }
+    }
+    setRegenerating(false);
   };
 
   const handleUpdateProfile = async () => {
@@ -298,7 +348,7 @@ const Settings = () => {
                     Manage your organization details and preferences
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="orgName" className="text-sm">Organization Name</Label>
                     <Input
@@ -324,6 +374,38 @@ const Settings = () => {
                     >
                       {loading ? "Saving..." : "Update Organization"}
                     </Button>
+                  )}
+
+                  {/* Workspace Join Code */}
+                  {joinCode && (
+                    <div className="space-y-2 pt-4 border-t">
+                      <Label className="text-sm flex items-center gap-2">
+                        <Key className="h-4 w-4" />
+                        Workspace Join Code
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Share this code with colleagues so they can join your workspace.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-muted border border-dashed border-primary/30">
+                          <code className="flex-1 text-center text-lg font-mono font-bold tracking-wider text-primary">
+                            {joinCode}
+                          </code>
+                          <Button variant="ghost" size="icon" onClick={handleCopyCode} className="shrink-0">
+                            {codeCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        {isOrgOwner && (
+                          <Button variant="outline" size="sm" onClick={handleRegenerateCode} disabled={regenerating}>
+                            <RefreshCw className={`h-4 w-4 mr-1 ${regenerating ? "animate-spin" : ""}`} />
+                            Regenerate
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Anyone with this code can join your workspace. Regenerating invalidates the old code.
+                      </p>
+                    </div>
                   )}
                 </CardContent>
               </Card>

@@ -1,84 +1,147 @@
 
 
-# Five Feature Updates
+# Connecting Developer Agents to User OAuth: End-to-End Plan
 
-## 1. Workspace Join Code in Settings > Org Tab
+## The Problem
 
-Add the workspace join code display (with copy + regenerate for owners) to the Organization tab in `src/pages/Settings.tsx`. Reuse the same logic already in `Team.tsx`.
+Right now there are three disconnected pieces:
 
-**Files modified:** `src/pages/Settings.tsx`
+1. **Developer Side**: When submitting an agent, the developer selects "Tools Required" (e.g. Gmail, Google Sheets, Slack) in the capability manifest -- but there's no guidance on what code to write to actually *use* those tools via the Tool Gateway.
 
----
+2. **User Side**: When a user installs an agent from the marketplace, the system doesn't check whether they have the required OAuth connections. The agent gets installed, then fails silently when it tries to call the Tool Gateway for an integration the user hasn't connected.
 
-## 2. Auto-Create DM Chats When Users Join Workspace
+3. **Runtime**: The Tool Gateway checks permissions from the session token but doesn't verify whether the user actually has valid OAuth credentials for the requested integration.
 
-When a new user joins a workspace via code, automatically create a direct-message thread between them and every existing workspace member. These DMs appear in the sidebar alongside agent chats.
+## The Solution
 
-**Database changes:**
-- Create a `workspace_dms` table: `id`, `workspace_id`, `user_a`, `user_b`, `created_at` with a unique constraint on `(workspace_id, user_a, user_b)` (normalized so user_a < user_b)
-- Create a `dm_messages` table: `id`, `dm_id`, `sender_id`, `content`, `created_at`
-- RLS: users can only see/insert DMs where they are user_a or user_b
-- Update the `join_workspace_by_code` RPC to insert DM rows for each existing member
-
-**Frontend changes:**
-- Update `ChatspaceSidebar.tsx` to show both agents AND DM contacts (two sections: "People" and "Agents")
-- Create a DM chat view in the center pane of `AIEmployees.tsx` that loads from `dm_messages`
-- Show user avatars, display names, and online indicators for people
-
-**Files created:** None (inline in existing components)
-**Files modified:** `src/components/ai-employees/ChatspaceSidebar.tsx`, `src/pages/AIEmployees.tsx`, `src/pages/JoinWorkspace.tsx`
+Wire up all three layers so that:
+- Developers get clear, copy-paste code examples for calling the Tool Gateway
+- Users see exactly which connections an agent needs *before* installing, and are prompted to connect missing ones
+- The Tool Gateway validates credential availability at runtime and returns a clear error if missing
 
 ---
 
-## 3. Merge AI Chat into AI Employees as "Chats"
+## Phase 1: Improve Developer Docs and Submission UX
 
-Move the main Elixa AI chat experience into the AI Employees page as just another chat in the sidebar (the first/default one). Rename the section from "AI Employees" to "Chats" across nav and page title.
+### 1a. Enhanced API Docs -- Tool Gateway Code Samples
 
-**Changes:**
-- In `MainNavSidebar.tsx`: rename "AI Chat" to "Chats", point to `/ai-employees`. Remove separate `/chat` nav item, keep `/chat` route as redirect to `/ai-employees`
-- In `AIEmployees.tsx` sidebar: add "Elixa AI" as the first item (always present, not an installed agent). When selected, render the existing Chat.tsx experience (session list, message thread, model selector, etc.) inside the center pane
-- Keep existing Chat.tsx logic but extract the core chat UI into a reusable component that can be embedded
+Update `src/components/developer/ApiDocsPage.tsx` to add a new section with **language-specific code examples** showing how an agent should call the Tool Gateway from its `/invoke` handler:
 
-**Files modified:** `src/components/MainNavSidebar.tsx`, `src/pages/AIEmployees.tsx`, `src/components/ai-employees/ChatspaceSidebar.tsx`, `src/App.tsx`
-**Files created:** `src/components/chat/EmbeddedChat.tsx` (extracted from Chat.tsx)
+```text
+# From your /invoke handler, use the toolGateway object:
 
----
+POST {toolGateway.baseUrl}
+Authorization: Bearer {toolGateway.sessionToken}
 
-## 4. Show Empty Kanban Board When No Tasks Exist
+Body:
+{
+  "integration": "gmail",
+  "action": "list_messages",
+  "params": { "maxResults": 10 }
+}
+```
 
-Instead of showing the empty state mascot when there are no tasks, render the actual `KanbanBoard` component with empty columns plus the `TaskStatsHeader` showing zeroes. This gives users a visual preview of the board structure.
+Include examples in Python (requests), Node.js (fetch), and a curl snippet. List all available integrations and their supported actions.
 
-**Files modified:** `src/pages/Tasks.tsx`
+### 1b. Submission Form -- Integration Picker with Descriptions
 
-Change: Remove the `tasks.length === 0` empty state branch. Always show `TaskStatsHeader` and `KanbanBoard` (with `filteredTasks` which will be empty). The columns will render with their headers and "No tasks" placeholder.
-
----
-
-## 5. Organization Hierarchy Section
-
-Create a new "Hierarchy" page or section within Team that visualizes the org structure as a tree/org-chart.
-
-**Database changes:**
-- Add `reports_to UUID REFERENCES profiles(id)` and `job_title TEXT` columns to `org_members` table
-- This allows building a tree: owner at root, admins/members arranged by reporting lines
-
-**Frontend:**
-- Create a new route `/hierarchy` with a visual org chart component
-- Add to nav sidebar (or as a tab within Team page)
-- Tree layout: each node shows avatar, name, role, job title
-- Admins can edit reporting lines via drag or dropdown
-
-**Files created:** `src/pages/Hierarchy.tsx`, `src/components/team/OrgChart.tsx`
-**Files modified:** `src/App.tsx`, `src/components/MainNavSidebar.tsx`, `src/pages/Team.tsx`
+Update `src/components/developer/EndpointAgentFields.tsx` to show each tool badge with a tooltip explaining what it unlocks (e.g. "Gmail -- read/send emails via Tool Gateway"). This helps developers understand what selecting a tool actually means.
 
 ---
 
-## Implementation Order
+## Phase 2: Pre-Install OAuth Check for Users
 
-1. Database migrations (workspace_dms, dm_messages, org_members columns)
-2. Settings join code (small, independent)
-3. Tasks empty board (small, independent)
-4. Hierarchy page
-5. DM auto-creation on workspace join
-6. Merge AI Chat into Chats section (largest change)
+### 2a. Marketplace Card -- Show Required Connections
+
+Update `src/components/ai-employees/AgentMarketplace.tsx` to display the `toolsRequired` from each agent's `capability_manifest`. Show badges like "Requires: Gmail, Slack" on each card.
+
+### 2b. Install Flow -- Check and Prompt for Missing OAuth
+
+Update the `installAgent` function in `src/pages/AIEmployees.tsx`:
+
+1. Before inserting into `agent_installations`, fetch the agent's `capability_manifest.toolsRequired`
+2. Cross-reference against the user's `user_credentials` to find missing connections
+3. If connections are missing, show a dialog listing what's needed with "Connect" buttons that link to `/connections`
+4. Allow the user to proceed anyway (with a warning) or connect first
+
+Create a new component `src/components/ai-employees/MissingConnectionsDialog.tsx`:
+- Lists required integrations with their logos
+- Shows green checkmarks for connected ones, red X for missing
+- "Connect Now" buttons that navigate to `/connections` with a return parameter
+- "Install Anyway" button with a warning that the agent may not work fully
+
+### 2c. Agent Detail / Settings -- Connection Status
+
+Update `src/components/ai-employees/AgentSettingsPanel.tsx` to show a "Required Connections" section that displays the status of each OAuth connection the agent needs, with quick-connect links.
+
+---
+
+## Phase 3: Runtime Credential Validation in Tool Gateway
+
+### 3a. Add Credential Check to Tool Gateway
+
+Update `supabase/functions/tool-gateway/index.ts`:
+
+Before routing to the integration function, check that the user has valid credentials:
+
+```text
+1. Extract userId from the session token
+2. Look up user_credentials for the requested integration
+3. If no credential found, return 403 with a clear message:
+   { "error": "missing_connection", "integration": "gmail",
+     "message": "User has not connected Gmail. Please connect it in Settings > Connections." }
+4. If credential is expired, attempt auto-refresh; if refresh fails, return the same error
+```
+
+This prevents cryptic failures deep in integration functions.
+
+### 3b. Surface Gateway Errors in Chat
+
+Update the chat UI to handle `missing_connection` errors from agent responses gracefully -- showing a toast or inline prompt to connect the missing service rather than a generic error.
+
+---
+
+## Phase 4: OAuth Credential Mapping Table
+
+Create a shared mapping (used by both frontend and backend) that connects:
+
+```text
+Tool Gateway integration name --> credential_type --> OAuth provider --> bundle_type
+```
+
+For example:
+| Gateway Integration | credential_type    | OAuth Provider | bundle_type      |
+|--------------------|--------------------|----------------|------------------|
+| gmail              | googleOAuth2Api    | google         | gmail            |
+| google_sheets      | googleOAuth2Api    | google         | google_sheets    |
+| slack              | slackOAuth2Api     | slack          | (none)           |
+| notion             | notionApi          | notion         | (none)           |
+| shopify            | shopifyApi         | shopify        | (none)           |
+| stripe             | stripeApi          | stripe         | (none)           |
+
+This mapping currently exists partially in `Connections.tsx` (frontend) and `tool-gateway/index.ts` (backend) but they're not aligned. We'll create a shared config file.
+
+---
+
+## Files to Create
+
+| File | Purpose |
+|------|---------|
+| `src/components/ai-employees/MissingConnectionsDialog.tsx` | Pre-install OAuth check dialog |
+| `src/config/integrationMapping.ts` | Shared integration-to-credential mapping |
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/components/developer/ApiDocsPage.tsx` | Add Tool Gateway code examples (Python, Node, curl) |
+| `src/components/developer/EndpointAgentFields.tsx` | Add tool descriptions/tooltips |
+| `src/components/ai-employees/AgentMarketplace.tsx` | Show required connections on cards |
+| `src/pages/AIEmployees.tsx` | Pre-install credential check + dialog trigger |
+| `src/components/ai-employees/AgentSettingsPanel.tsx` | Show connection status for installed agent |
+| `supabase/functions/tool-gateway/index.ts` | Add credential existence check before routing |
+
+## No Database Changes Required
+
+The `capability_manifest` JSON column on `agent_submissions` already stores `toolsRequired`. The `user_credentials` table already tracks connected services. We just need to connect these two pieces.
 

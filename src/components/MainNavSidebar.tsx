@@ -1,4 +1,4 @@
-import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon, Workflow, Newspaper } from "lucide-react";
+import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon, Workflow, Newspaper, MessageSquare, GitBranch } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -16,18 +16,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { ElixaMascot } from "@/components/ElixaMascot";
+
 
 type NavItem = {
-  icon?: LucideIcon;
-  isMascot?: boolean;
+  icon: LucideIcon;
   label: string;
   path: string;
 };
 
 const navItems: NavItem[] = [
-  { label: "AI Chat", path: "/chat", isMascot: true },
-  { icon: Users, label: "AI Employees", path: "/ai-employees" },
+  { icon: MessageSquare, label: "Chats", path: "/ai-employees" },
   { icon: CheckSquare, label: "Tasks", path: "/tasks" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: FileText, label: "Notes", path: "/notes" },
@@ -35,6 +33,7 @@ const navItems: NavItem[] = [
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Plug, label: "Connections", path: "/connections" },
   { icon: Activity, label: "Logs", path: "/logs" },
+  { icon: GitBranch, label: "Hierarchy", path: "/hierarchy" },
   { icon: CreditCard, label: "Billing", path: "/billing" },
 ];
 
@@ -209,13 +208,7 @@ export const MainNavSidebar = () => {
                 className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 activeClassName="bg-primary/10 text-primary"
               >
-                {item.isMascot ? (
-                  <div className="h-9 w-9 rounded-full border-2 border-muted bg-muted flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
-                    <ElixaMascot pose="default" size="xs" className="scale-[1.1]" />
-                  </div>
-                ) : item.icon ? (
-                  <item.icon className="w-5 h-5" />
-                ) : null}
+                {item.icon && <item.icon className="w-5 h-5" />}
               </NavLink>
             </TooltipTrigger>
             <TooltipContent side="right">
