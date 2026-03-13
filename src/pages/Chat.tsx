@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen, MessageCircle } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen, MessageCircle, History } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
