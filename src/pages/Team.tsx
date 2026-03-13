@@ -337,6 +337,42 @@ const Team = () => {
       actions={isAdmin ? <InviteMemberDialog onSuccess={refetch} /> : undefined}
     >
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Workspace Join Code */}
+        {joinCode && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Workspace Join Code
+              </CardTitle>
+              <CardDescription>
+                Share this code with colleagues so they can join your workspace.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-muted border border-dashed border-primary/30">
+                  <code className="flex-1 text-center text-xl font-mono font-bold tracking-wider text-primary">
+                    {joinCode}
+                  </code>
+                  <Button variant="ghost" size="icon" onClick={handleCopyCode} className="shrink-0">
+                    {codeCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={handleRegenerateCode} disabled={regenerating}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${regenerating ? "animate-spin" : ""}`} />
+                    Regenerate
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Anyone with this code can join your workspace. Regenerating will invalidate the old code.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Pending Invitations */}
         <PendingInvitationsCard orgId={organization?.id} isAdmin={isAdmin} />
         
