@@ -1139,6 +1139,38 @@ export type Database = {
         }
         Relationships: []
       }
+      dm_messages: {
+        Row: {
+          content: string
+          created_at: string
+          dm_id: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          dm_id: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          dm_id?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_messages_dm_id_fkey"
+            columns: ["dm_id"]
+            isOneToOne: false
+            referencedRelation: "workspace_dms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_templates: {
         Row: {
           body_html: string
@@ -1466,19 +1498,25 @@ export type Database = {
       org_members: {
         Row: {
           created_at: string
+          job_title: string | null
           org_id: string
+          reports_to: string | null
           role: Database["public"]["Enums"]["org_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
+          job_title?: string | null
           org_id: string
+          reports_to?: string | null
           role?: Database["public"]["Enums"]["org_role"]
           user_id: string
         }
         Update: {
           created_at?: string
+          job_title?: string | null
           org_id?: string
+          reports_to?: string | null
           role?: Database["public"]["Enums"]["org_role"]
           user_id?: string
         }
@@ -2349,6 +2387,38 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_dms: {
+        Row: {
+          created_at: string
+          id: string
+          user_a: string
+          user_b: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_a: string
+          user_b: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_a?: string
+          user_b?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_dms_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
