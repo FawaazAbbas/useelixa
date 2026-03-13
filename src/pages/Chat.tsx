@@ -389,6 +389,7 @@ const Chat = ({ embedded = false }: ChatProps = {}) => {
     if (sessionId === activeSessionId) return;
     setActiveSessionId(sessionId);
     setSidebarOpen(false);
+    setHistoryOpen(false);
   };
 
   const handleDeleteClick = (session: ChatSession, e?: React.MouseEvent) => {
