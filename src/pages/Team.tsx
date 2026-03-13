@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Users, Crown, Shield, User, MoreVertical, Trash2, UserPlus, Mail } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, Crown, Shield, User, MoreVertical, Trash2, UserPlus, Mail, Copy, Check, RefreshCw, Key } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -263,7 +263,62 @@ const InviteMemberDialog = ({ onSuccess }: { onSuccess: () => void }) => {
 const Team = () => {
   const { user } = useAuth();
   const { organization, members, loading, isAdmin, updateMemberRole, removeMember, refetch } = useTeam();
+  const [joinCode, setJoinCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
+  // Fetch workspace join code
+  useEffect(() => {
+    if (!user) return;
+    const fetchCode = async () => {
+      const { data: membership } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (membership) {
+        const { data: ws } = await supabase
+          .from("workspaces")
+          .select("join_code")
+          .eq("id", membership.workspace_id)
+          .maybeSingle();
+        if (ws) setJoinCode(ws.join_code);
+      }
+    };
+    fetchCode();
+  }, [user]);
+
+  const handleCopyCode = () => {
+    if (joinCode) {
+      navigator.clipboard.writeText(joinCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
+
+  const handleRegenerateCode = async () => {
+    if (!user) return;
+    setRegenerating(true);
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membership) {
+      const { data, error } = await supabase.rpc("regenerate_workspace_join_code", {
+        p_workspace_id: membership.workspace_id,
+      });
+      if (!error && data) {
+        setJoinCode(data as string);
+        toast.success("Join code regenerated! The old code no longer works.");
+      } else {
+        toast.error("Failed to regenerate code");
+      }
+    }
+    setRegenerating(false);
+  };
   if (loading) {
     return (
       <PageLayout title="Team" icon={Users}>
@@ -282,6 +337,42 @@ const Team = () => {
       actions={isAdmin ? <InviteMemberDialog onSuccess={refetch} /> : undefined}
     >
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Workspace Join Code */}
+        {joinCode && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Workspace Join Code
+              </CardTitle>
+              <CardDescription>
+                Share this code with colleagues so they can join your workspace.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-muted border border-dashed border-primary/30">
+                  <code className="flex-1 text-center text-xl font-mono font-bold tracking-wider text-primary">
+                    {joinCode}
+                  </code>
+                  <Button variant="ghost" size="icon" onClick={handleCopyCode} className="shrink-0">
+                    {codeCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={handleRegenerateCode} disabled={regenerating}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${regenerating ? "animate-spin" : ""}`} />
+                    Regenerate
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Anyone with this code can join your workspace. Regenerating will invalidate the old code.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Pending Invitations */}
         <PendingInvitationsCard orgId={organization?.id} isAdmin={isAdmin} />
         

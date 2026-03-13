@@ -25,7 +25,7 @@ const Auth = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/chat");
+        navigate("/join-workspace");
       }
     };
     checkAuth();
@@ -33,7 +33,7 @@ const Auth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/chat");
+        navigate("/join-workspace");
       }
     });
 
@@ -48,7 +48,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/chat`,
+        emailRedirectTo: `${window.location.origin}/join-workspace`,
         data: {
           display_name: fullName,
           phone,

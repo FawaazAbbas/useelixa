@@ -32,6 +32,7 @@ import Digest from "./pages/Digest";
 import PitchDeck from "./pages/PitchDeck";
 import DeveloperAuth from "./pages/DeveloperAuth";
 import DeveloperPortal from "./pages/DeveloperPortal";
+import JoinWorkspace from "./pages/JoinWorkspace";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -65,6 +66,7 @@ const AppContent = () => {
         <Route path="/referral" element={<Navigate to="/" replace />} />
 
         <Route path="/auth" element={<Auth />} />
+        <Route path="/join-workspace" element={<JoinWorkspace />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
 
         {/* Back-compat: old demo link */}

@@ -2443,6 +2443,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          join_code: string
           name: string
           owner_id: string
           updated_at: string
@@ -2451,6 +2452,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          join_code?: string
           name: string
           owner_id: string
           updated_at?: string
@@ -2459,6 +2461,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          join_code?: string
           name?: string
           owner_id?: string
           updated_at?: string
@@ -2482,7 +2485,12 @@ export type Database = {
         Args: { sender_email: string }
         Returns: boolean
       }
+      create_workspace_with_code: {
+        Args: { p_description?: string; p_name: string }
+        Returns: Json
+      }
       generate_referral_code: { Args: never; Returns: string }
+      generate_workspace_join_code: { Args: never; Returns: string }
       get_referral_leaderboard: {
         Args: { limit_count?: number }
         Returns: Json
@@ -2511,6 +2519,7 @@ export type Database = {
       }
       is_org_admin: { Args: { _org_id: string }; Returns: boolean }
       is_org_member: { Args: { _org_id: string }; Returns: boolean }
+      join_workspace_by_code: { Args: { p_code: string }; Returns: string }
       mark_messages_read: {
         Args: { p_chat_id: string; p_user_id: string }
         Returns: undefined
@@ -2548,6 +2557,10 @@ export type Database = {
       record_invite: {
         Args: { recipient_email: string; sender_email: string }
         Returns: undefined
+      }
+      regenerate_workspace_join_code: {
+        Args: { p_workspace_id: string }
+        Returns: string
       }
     }
     Enums: {
