@@ -48,7 +48,7 @@ const Auth = () => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/chat`,
+        emailRedirectTo: `${window.location.origin}/join-workspace`,
         data: {
           display_name: fullName,
           phone,

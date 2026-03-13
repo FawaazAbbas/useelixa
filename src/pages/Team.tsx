@@ -262,7 +262,62 @@ const InviteMemberDialog = ({ onSuccess }: { onSuccess: () => void }) => {
 const Team = () => {
   const { user } = useAuth();
   const { organization, members, loading, isAdmin, updateMemberRole, removeMember, refetch } = useTeam();
+  const [joinCode, setJoinCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
+  // Fetch workspace join code
+  useEffect(() => {
+    if (!user) return;
+    const fetchCode = async () => {
+      const { data: membership } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (membership) {
+        const { data: ws } = await supabase
+          .from("workspaces")
+          .select("join_code")
+          .eq("id", membership.workspace_id)
+          .maybeSingle();
+        if (ws) setJoinCode(ws.join_code);
+      }
+    };
+    fetchCode();
+  }, [user]);
+
+  const handleCopyCode = () => {
+    if (joinCode) {
+      navigator.clipboard.writeText(joinCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
+
+  const handleRegenerateCode = async () => {
+    if (!user) return;
+    setRegenerating(true);
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membership) {
+      const { data, error } = await supabase.rpc("regenerate_workspace_join_code", {
+        p_workspace_id: membership.workspace_id,
+      });
+      if (!error && data) {
+        setJoinCode(data as string);
+        toast.success("Join code regenerated! The old code no longer works.");
+      } else {
+        toast.error("Failed to regenerate code");
+      }
+    }
+    setRegenerating(false);
+  };
   if (loading) {
     return (
       <PageLayout title="Team" icon={Users}>
