@@ -340,7 +340,10 @@ export default function AIEmployees() {
       const toolCalls: string[] = data.tool_calls_made || [];
       const outputFiles: { name: string; url: string; type: string }[] = data.files || [];
 
+      const asstMsgId = crypto.randomUUID();
+
       await supabase.from("agent_messages").insert({
+        id: asstMsgId,
         workspace_id: selected.workspaceId,
         installation_id: selectedId,
         role: "assistant",
@@ -350,7 +353,7 @@ export default function AIEmployees() {
 
       setMessages((prev) => [
         ...prev,
-        { id: `asst-${Date.now()}`, role: "assistant", content: assistantContent, metadata: { tool_calls: toolCalls, files: outputFiles }, created_at: new Date().toISOString() },
+        { id: asstMsgId, role: "assistant", content: assistantContent, metadata: { tool_calls: toolCalls, files: outputFiles }, created_at: new Date().toISOString() },
       ]);
     } catch (err) {
       console.error("Error sending message:", err);
