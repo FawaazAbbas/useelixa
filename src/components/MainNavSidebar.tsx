@@ -19,8 +19,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ElixaMascot } from "@/components/ElixaMascot";
 
 type NavItem = {
-  icon?: LucideIcon;
-  isMascot?: boolean;
+  icon: LucideIcon;
   label: string;
   path: string;
 };
