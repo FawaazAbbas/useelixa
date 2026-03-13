@@ -66,6 +66,7 @@ const AppContent = () => {
         <Route path="/referral" element={<Navigate to="/" replace />} />
 
         <Route path="/auth" element={<Auth />} />
+        <Route path="/join-workspace" element={<JoinWorkspace />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
 
         {/* Back-compat: old demo link */}
