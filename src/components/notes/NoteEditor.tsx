@@ -65,7 +65,7 @@ const ToolbarButton = ({
 const ToolbarDivider = () => <div className="w-px h-5 bg-border mx-1" />;
 
 export const NoteEditor = ({ note, onUpdate, onDelete, saving }: NoteEditorProps) => {
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const [localTitle, setLocalTitle] = useState(note.title);
   const [isPinned, setIsPinned] = useState(note.is_pinned || false);
