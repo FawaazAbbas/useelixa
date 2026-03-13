@@ -96,6 +96,7 @@ const AppContent = () => {
         <Route path="/workflows" element={<Workflows />} />
         <Route path="/ai-employees" element={<AIEmployees />} />
         <Route path="/digest" element={<Digest />} />
+        <Route path="/hierarchy" element={<Hierarchy />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
