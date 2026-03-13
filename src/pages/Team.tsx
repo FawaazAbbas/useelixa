@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { Users, Crown, Shield, User, MoreVertical, Trash2, UserPlus, Mail } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect } from "react";
+import { Users, Crown, Shield, User, MoreVertical, Trash2, UserPlus, Mail, Copy, Check, RefreshCw, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
