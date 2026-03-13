@@ -48,12 +48,17 @@ interface ChatSession {
   folder_id?: string | null;
 }
 
-const Chat = () => {
+interface ChatProps {
+  embedded?: boolean;
+}
+
+const Chat = ({ embedded = false }: ChatProps = {}) => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
