@@ -235,7 +235,19 @@ export default function AIEmployees() {
         table: 'dm_messages',
         filter: `dm_id=eq.${selectedId}`,
       }, (payload) => {
-        setDmMessages(prev => [...prev, payload.new as DMMessage]);
+        const newMsg = payload.new as DMMessage;
+        setDmMessages(prev => {
+          // Skip if already present (optimistic or duplicate)
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          // Replace optimistic temp message from same sender with matching content
+          const tempIdx = prev.findIndex(m => m.id.startsWith('temp-') && m.sender_id === newMsg.sender_id && m.content === newMsg.content);
+          if (tempIdx !== -1) {
+            const updated = [...prev];
+            updated[tempIdx] = newMsg;
+            return updated;
+          }
+          return [...prev, newMsg];
+        });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -285,13 +297,16 @@ export default function AIEmployees() {
     const convId = conversationId ?? crypto.randomUUID();
     if (!conversationId) setConversationId(convId);
 
+    const userMsgId = crypto.randomUUID();
+
     setMessages((prev) => [
       ...prev,
-      { id: `temp-${Date.now()}`, role: "user", content: text, metadata: null, created_at: new Date().toISOString() },
+      { id: userMsgId, role: "user", content: text, metadata: null, created_at: new Date().toISOString() },
     ]);
 
     try {
       await supabase.from("agent_messages").insert({
+        id: userMsgId,
         workspace_id: selected.workspaceId,
         installation_id: selectedId,
         role: "user",
@@ -325,7 +340,10 @@ export default function AIEmployees() {
       const toolCalls: string[] = data.tool_calls_made || [];
       const outputFiles: { name: string; url: string; type: string }[] = data.files || [];
 
+      const asstMsgId = crypto.randomUUID();
+
       await supabase.from("agent_messages").insert({
+        id: asstMsgId,
         workspace_id: selected.workspaceId,
         installation_id: selectedId,
         role: "assistant",
@@ -335,7 +353,7 @@ export default function AIEmployees() {
 
       setMessages((prev) => [
         ...prev,
-        { id: `asst-${Date.now()}`, role: "assistant", content: assistantContent, metadata: { tool_calls: toolCalls, files: outputFiles }, created_at: new Date().toISOString() },
+        { id: asstMsgId, role: "assistant", content: assistantContent, metadata: { tool_calls: toolCalls, files: outputFiles }, created_at: new Date().toISOString() },
       ]);
     } catch (err) {
       console.error("Error sending message:", err);
