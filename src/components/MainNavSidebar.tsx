@@ -1,4 +1,4 @@
-import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon, Workflow, Newspaper } from "lucide-react";
+import { CheckSquare, Calendar, Activity, Plug, BookOpen, Settings as SettingsIcon, LogOut, FileText, Bell, CreditCard, Coins, Mail, Users, Table, LucideIcon, Workflow, Newspaper, MessageSquare, GitBranch } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
