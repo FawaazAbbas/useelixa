@@ -208,13 +208,7 @@ export const MainNavSidebar = () => {
                 className="group relative flex items-center justify-center h-10 w-full rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 activeClassName="bg-primary/10 text-primary"
               >
-                {item.isMascot ? (
-                  <div className="h-9 w-9 rounded-full border-2 border-muted bg-muted flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
-                    <ElixaMascot pose="default" size="xs" className="scale-[1.1]" />
-                  </div>
-                ) : item.icon ? (
-                  <item.icon className="w-5 h-5" />
-                ) : null}
+                {item.icon && <item.icon className="w-5 h-5" />}
               </NavLink>
             </TooltipTrigger>
             <TooltipContent side="right">
