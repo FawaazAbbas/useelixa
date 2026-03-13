@@ -25,7 +25,7 @@ const Auth = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/chat");
+        navigate("/join-workspace");
       }
     };
     checkAuth();
