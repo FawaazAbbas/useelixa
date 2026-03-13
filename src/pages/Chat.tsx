@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen, MessageCircle } from "lucide-react";
+import { MessageSquare, Plus, Send, Loader2, User, Menu, Trash2, Paperclip, X, FileText, Image as ImageIcon, Copy, Check, RefreshCw, Pin, PinOff, Search, Share2, FolderOpen, MessageCircle, History } from "lucide-react";
 import ElixaThinking from "@/assets/Elixa-Thinking.png";
 import ElixaResponded from "@/assets/Elixa-Responded.png";
 import { Button } from "@/components/ui/button";
@@ -48,12 +48,17 @@ interface ChatSession {
   folder_id?: string | null;
 }
 
-const Chat = () => {
+interface ChatProps {
+  embedded?: boolean;
+}
+
+const Chat = ({ embedded = false }: ChatProps = {}) => {
   const { user } = useAuth();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -384,6 +389,7 @@ const Chat = () => {
     if (sessionId === activeSessionId) return;
     setActiveSessionId(sessionId);
     setSidebarOpen(false);
+    setHistoryOpen(false);
   };
 
   const handleDeleteClick = (session: ChatSession, e?: React.MouseEvent) => {
@@ -597,26 +603,32 @@ const Chat = () => {
   );
 
   return (
-    <div className="flex h-screen bg-background">
-      <MainNavSidebar />
+    <div className={cn("flex h-screen bg-background", embedded && "h-full")}>
+      {!embedded && <MainNavSidebar />}
       
-      <div className="hidden md:flex w-72 border-r flex-col">
-        <SessionList />
-      </div>
+      {/* Desktop sidebar - only when NOT embedded */}
+      {!embedded && (
+        <div className="hidden md:flex w-72 border-r flex-col">
+          <SessionList />
+        </div>
+      )}
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex-shrink-0 h-16 border-b bg-card/80 backdrop-blur-sm px-4 flex items-center gap-3">
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <SheetHeader className="sr-only"><SheetTitle>Chat Sessions</SheetTitle></SheetHeader>
-              <SessionList />
-            </SheetContent>
-          </Sheet>
+          {/* Mobile menu - left sheet for mobile, or when not embedded */}
+          {!embedded && (
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                <SheetHeader className="sr-only"><SheetTitle>Chat Sessions</SheetTitle></SheetHeader>
+                <SessionList />
+              </SheetContent>
+            </Sheet>
+          )}
           <div className="p-1 bg-muted rounded-full flex-shrink-0">
             <img src={ElixaResponded} alt="Elixa" className="h-8 w-8 rounded-full object-cover border-2 border-muted" />
           </div>
@@ -647,6 +659,21 @@ const Chat = () => {
                 onAnalyze={() => setAnalysisOpen(true)}
               />
             </>
+          )}
+
+          {/* History toggle - right side Sheet (shown when embedded) */}
+          {embedded && (
+            <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="Chat history">
+                  <History className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80 p-0">
+                <SheetHeader className="sr-only"><SheetTitle>Chat History</SheetTitle></SheetHeader>
+                <SessionList />
+              </SheetContent>
+            </Sheet>
           )}
         </header>
 
