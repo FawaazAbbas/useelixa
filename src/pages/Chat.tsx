@@ -602,26 +602,32 @@ const Chat = ({ embedded = false }: ChatProps = {}) => {
   );
 
   return (
-    <div className="flex h-screen bg-background">
-      <MainNavSidebar />
+    <div className={cn("flex h-screen bg-background", embedded && "h-full")}>
+      {!embedded && <MainNavSidebar />}
       
-      <div className="hidden md:flex w-72 border-r flex-col">
-        <SessionList />
-      </div>
+      {/* Desktop sidebar - only when NOT embedded */}
+      {!embedded && (
+        <div className="hidden md:flex w-72 border-r flex-col">
+          <SessionList />
+        </div>
+      )}
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="flex-shrink-0 h-16 border-b bg-card/80 backdrop-blur-sm px-4 flex items-center gap-3">
-          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              <SheetHeader className="sr-only"><SheetTitle>Chat Sessions</SheetTitle></SheetHeader>
-              <SessionList />
-            </SheetContent>
-          </Sheet>
+          {/* Mobile menu - left sheet for mobile, or when not embedded */}
+          {!embedded && (
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                <SheetHeader className="sr-only"><SheetTitle>Chat Sessions</SheetTitle></SheetHeader>
+                <SessionList />
+              </SheetContent>
+            </Sheet>
+          )}
           <div className="p-1 bg-muted rounded-full flex-shrink-0">
             <img src={ElixaResponded} alt="Elixa" className="h-8 w-8 rounded-full object-cover border-2 border-muted" />
           </div>
@@ -652,6 +658,21 @@ const Chat = ({ embedded = false }: ChatProps = {}) => {
                 onAnalyze={() => setAnalysisOpen(true)}
               />
             </>
+          )}
+
+          {/* History toggle - right side Sheet (shown when embedded) */}
+          {embedded && (
+            <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9" title="Chat history">
+                  <History className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80 p-0">
+                <SheetHeader className="sr-only"><SheetTitle>Chat History</SheetTitle></SheetHeader>
+                <SessionList />
+              </SheetContent>
+            </Sheet>
           )}
         </header>
 
