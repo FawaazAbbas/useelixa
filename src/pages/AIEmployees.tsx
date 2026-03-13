@@ -297,13 +297,16 @@ export default function AIEmployees() {
     const convId = conversationId ?? crypto.randomUUID();
     if (!conversationId) setConversationId(convId);
 
+    const userMsgId = crypto.randomUUID();
+
     setMessages((prev) => [
       ...prev,
-      { id: `temp-${Date.now()}`, role: "user", content: text, metadata: null, created_at: new Date().toISOString() },
+      { id: userMsgId, role: "user", content: text, metadata: null, created_at: new Date().toISOString() },
     ]);
 
     try {
       await supabase.from("agent_messages").insert({
+        id: userMsgId,
         workspace_id: selected.workspaceId,
         installation_id: selectedId,
         role: "user",
