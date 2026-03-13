@@ -32,6 +32,7 @@ import Digest from "./pages/Digest";
 import PitchDeck from "./pages/PitchDeck";
 import DeveloperAuth from "./pages/DeveloperAuth";
 import DeveloperPortal from "./pages/DeveloperPortal";
+import JoinWorkspace from "./pages/JoinWorkspace";
 import { MobileRedirect } from "./components/MobileRedirect";
 
 import { ScrollToTop } from "./components/ScrollToTop";
