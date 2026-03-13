@@ -766,14 +766,9 @@ export default function AIEmployees() {
 
 // ── Embedded Chat wrapper (renders Chat without its own MainNavSidebar) ──
 function EmbeddedChatWrapper() {
-  // We render Chat but it includes MainNavSidebar. 
-  // Instead, we use an iframe-like approach: just render the chat content area.
-  // Since Chat.tsx renders MainNavSidebar internally, we need a lightweight embedded version.
-  // For now, redirect approach - render the full Chat page inline minus sidebar.
-  // The simplest approach: just render the Chat page and hide the sidebar via CSS.
   return (
-    <div className="flex-1 flex overflow-hidden [&>div>div:first-child]:hidden [&>div]:flex-1 [&>div]:flex [&>div]:h-full">
-      <Chat />
+    <div className="flex-1 flex overflow-hidden">
+      <Chat embedded />
     </div>
   );
 }
