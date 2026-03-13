@@ -235,7 +235,19 @@ export default function AIEmployees() {
         table: 'dm_messages',
         filter: `dm_id=eq.${selectedId}`,
       }, (payload) => {
-        setDmMessages(prev => [...prev, payload.new as DMMessage]);
+        const newMsg = payload.new as DMMessage;
+        setDmMessages(prev => {
+          // Skip if already present (optimistic or duplicate)
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          // Replace optimistic temp message from same sender with matching content
+          const tempIdx = prev.findIndex(m => m.id.startsWith('temp-') && m.sender_id === newMsg.sender_id && m.content === newMsg.content);
+          if (tempIdx !== -1) {
+            const updated = [...prev];
+            updated[tempIdx] = newMsg;
+            return updated;
+          }
+          return [...prev, newMsg];
+        });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
