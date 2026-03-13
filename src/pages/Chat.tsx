@@ -603,7 +603,7 @@ const Chat = ({ embedded = false }: ChatProps = {}) => {
   );
 
   return (
-    <div className={cn("flex h-screen bg-background", embedded && "h-full")}>
+    <div className={cn("flex bg-background", embedded ? "h-full w-full flex-1" : "h-screen")}>
       {!embedded && <MainNavSidebar />}
       
       {/* Desktop sidebar - only when NOT embedded */}
