@@ -348,7 +348,7 @@ const Settings = () => {
                     Manage your organization details and preferences
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="orgName" className="text-sm">Organization Name</Label>
                     <Input
@@ -374,6 +374,38 @@ const Settings = () => {
                     >
                       {loading ? "Saving..." : "Update Organization"}
                     </Button>
+                  )}
+
+                  {/* Workspace Join Code */}
+                  {joinCode && (
+                    <div className="space-y-2 pt-4 border-t">
+                      <Label className="text-sm flex items-center gap-2">
+                        <Key className="h-4 w-4" />
+                        Workspace Join Code
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Share this code with colleagues so they can join your workspace.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 flex items-center gap-2 p-3 rounded-lg bg-muted border border-dashed border-primary/30">
+                          <code className="flex-1 text-center text-lg font-mono font-bold tracking-wider text-primary">
+                            {joinCode}
+                          </code>
+                          <Button variant="ghost" size="icon" onClick={handleCopyCode} className="shrink-0">
+                            {codeCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        {isOrgOwner && (
+                          <Button variant="outline" size="sm" onClick={handleRegenerateCode} disabled={regenerating}>
+                            <RefreshCw className={`h-4 w-4 mr-1 ${regenerating ? "animate-spin" : ""}`} />
+                            Regenerate
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Anyone with this code can join your workspace. Regenerating invalidates the old code.
+                      </p>
+                    </div>
                   )}
                 </CardContent>
               </Card>

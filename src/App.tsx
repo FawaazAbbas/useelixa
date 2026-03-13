@@ -73,8 +73,8 @@ const AppContent = () => {
         <Route path="/workspace/demo" element={<Navigate to="/chat" replace />} />
         <Route path="/workspace" element={<Navigate to="/chat" replace />} />
 
-        {/* Chat route - main AI interface */}
-        <Route path="/chat" element={<Chat />} />
+        {/* Chat route - redirect to unified chats */}
+        <Route path="/chat" element={<Navigate to="/ai-employees" replace />} />
 
         {/* Shared chat - public view */}
         <Route path="/shared/:shareToken" element={<SharedChat />} />

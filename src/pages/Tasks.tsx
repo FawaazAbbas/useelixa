@@ -456,8 +456,8 @@ const Tasks = () => {
         </div>
       }
     >
-      {/* Stats Header */}
-      {!loading && tasks.length > 0 && <TaskStatsHeader tasks={tasks} />}
+      {/* Stats Header - always show */}
+      {!loading && <TaskStatsHeader tasks={tasks} />}
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
@@ -468,18 +468,6 @@ const Tasks = () => {
           icon={Search}
           title="No tasks match your search"
           description="Try adjusting your search query."
-        />
-      ) : tasks.length === 0 ? (
-        <PageEmptyState
-          icon={CheckSquare}
-          title="No tasks yet"
-          description="Create your first task to get started organizing your work."
-          action={
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Task
-          </Button>
-          }
         />
       ) : viewMode === "kanban" ? (
         <KanbanBoard

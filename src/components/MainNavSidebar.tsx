@@ -34,6 +34,7 @@ const navItems: NavItem[] = [
   { icon: BookOpen, label: "Knowledge", path: "/knowledge-base" },
   { icon: Plug, label: "Connections", path: "/connections" },
   { icon: Activity, label: "Logs", path: "/logs" },
+  { icon: GitBranch, label: "Hierarchy", path: "/hierarchy" },
   { icon: CreditCard, label: "Billing", path: "/billing" },
 ];
 
