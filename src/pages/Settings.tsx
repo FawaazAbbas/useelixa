@@ -76,6 +76,53 @@ const Settings = () => {
         setOrgName(org.name);
       }
     }
+
+    // Fetch workspace join code
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membership) {
+      const { data: ws } = await supabase
+        .from("workspaces")
+        .select("join_code")
+        .eq("id", membership.workspace_id)
+        .maybeSingle();
+      if (ws) setJoinCode(ws.join_code);
+    }
+  };
+
+  const handleCopyCode = () => {
+    if (joinCode) {
+      navigator.clipboard.writeText(joinCode);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
+
+  const handleRegenerateCode = async () => {
+    if (!user) return;
+    setRegenerating(true);
+    const { data: membership } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", user.id)
+      .limit(1)
+      .maybeSingle();
+    if (membership) {
+      const { data, error } = await supabase.rpc("regenerate_workspace_join_code", {
+        p_workspace_id: membership.workspace_id,
+      });
+      if (!error && data) {
+        setJoinCode(data as string);
+        toast.success("Join code regenerated!");
+      } else {
+        toast.error("Failed to regenerate code");
+      }
+    }
+    setRegenerating(false);
   };
 
   const handleUpdateProfile = async () => {
