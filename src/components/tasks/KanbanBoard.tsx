@@ -93,9 +93,13 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskEdit, onTaskDelete }: Kan
       }
     });
     
-    // Sort by position within each column
+    // Sort by priority (high → medium → low), then by position
+    const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
     Object.keys(grouped).forEach((status) => {
-      grouped[status as Task["status"]].sort((a, b) => a.position - b.position);
+      grouped[status as Task["status"]].sort((a, b) => {
+        const pDiff = (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
+        return pDiff !== 0 ? pDiff : a.position - b.position;
+      });
     });
     
     return grouped;
