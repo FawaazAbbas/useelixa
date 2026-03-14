@@ -35,7 +35,7 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
             <div className="flex items-center gap-2 mb-1">
               <div className={cn("w-2 h-2 rounded-full flex-shrink-0", priorityColors[task.priority])} />
               <h4 className={cn(
-                "text-sm font-medium truncate",
+                "text-sm font-medium break-words",
                 task.status === "completed" && "line-through"
               )}>
                 {task.title}
