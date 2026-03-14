@@ -538,11 +538,22 @@ const Tasks = () => {
                         Due {format(new Date(task.due_date), "MMM d")}
                       </p>
                     )}
+                    {task.assigned_user_name && (
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {task.assigned_user_name}
+                      </p>
+                    )}
                   </div>
                 </div>
-                {task.assigned_to === "ai" && (
-                  <Bot className="h-4 w-4 text-primary" />
-                )}
+                <div className="flex items-center gap-2">
+                  {task.assigned_user_name && (
+                    <span className="text-xs text-muted-foreground hidden sm:inline">{task.assigned_user_name}</span>
+                  )}
+                  {task.assigned_to === "ai" && (
+                    <Bot className="h-4 w-4 text-primary" />
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
