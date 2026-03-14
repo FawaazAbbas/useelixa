@@ -132,6 +132,8 @@ const Tasks = () => {
       .reduce((max, t) => Math.max(max, t.position), 0);
 
     const selectedMember = members.find(m => m.user_id === formData.assigned_user_id);
+    const currentUserName = user.user_metadata?.display_name || user.user_metadata?.full_name || user.email || "Me";
+    const assignedName = selectedMember?.display_name || currentUserName;
 
     const taskData = {
       title: formData.title,
@@ -142,8 +144,8 @@ const Tasks = () => {
       user_id: user.id,
       position: editingTask ? editingTask.position : maxPosition + 1,
       assigned_to: formData.assigned_to,
-      assigned_user_id: formData.assigned_user_id || null,
-      assigned_user_name: selectedMember?.display_name || null,
+      assigned_user_id: formData.assigned_user_id || user.id,
+      assigned_user_name: assignedName,
       scheduled_at: formData.assigned_to === "ai" && formData.scheduled_at 
         ? new Date(formData.scheduled_at).toISOString() : null,
       ai_tools_allowed: formData.assigned_to === "ai" ? formData.ai_tools_allowed : [],
