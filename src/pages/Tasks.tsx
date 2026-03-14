@@ -370,6 +370,32 @@ const Tasks = () => {
                   </Select>
                 )}
 
+                {/* Assign to workspace member */}
+                {members.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <User className="h-3.5 w-3.5" />
+                      Assign to team member
+                    </Label>
+                    <Select
+                      value={formData.assigned_user_id}
+                      onValueChange={(v) => setFormData({ ...formData, assigned_user_id: v === "none" ? "" : v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Unassigned" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Unassigned</SelectItem>
+                        {members.map((member) => (
+                          <SelectItem key={member.user_id} value={member.user_id}>
+                            {member.display_name || member.email || "Unknown"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="space-y-3 pt-2">
                   <Label className="text-sm font-medium">Assign to</Label>
                   <div className="flex gap-2">
