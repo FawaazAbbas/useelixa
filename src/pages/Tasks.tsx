@@ -192,6 +192,7 @@ const Tasks = () => {
       priority: task.priority,
       due_date: task.due_date ? task.due_date.split("T")[0] : "",
       assigned_to: (task.assigned_to === "ai" ? "ai" : "user") as "user" | "ai",
+      assigned_user_id: task.assigned_user_id || "",
       scheduled_at: task.scheduled_at ? task.scheduled_at.slice(0, 16) : "",
       ai_tools_allowed: task.ai_tools_allowed || [],
       ai_context: task.ai_context || "",
