@@ -131,6 +131,8 @@ const Tasks = () => {
       .filter(t => t.status === finalStatus)
       .reduce((max, t) => Math.max(max, t.position), 0);
 
+    const selectedMember = members.find(m => m.user_id === formData.assigned_user_id);
+
     const taskData = {
       title: formData.title,
       description: formData.description || null,
@@ -140,6 +142,8 @@ const Tasks = () => {
       user_id: user.id,
       position: editingTask ? editingTask.position : maxPosition + 1,
       assigned_to: formData.assigned_to,
+      assigned_user_id: formData.assigned_user_id || null,
+      assigned_user_name: selectedMember?.display_name || null,
       scheduled_at: formData.assigned_to === "ai" && formData.scheduled_at 
         ? new Date(formData.scheduled_at).toISOString() : null,
       ai_tools_allowed: formData.assigned_to === "ai" ? formData.ai_tools_allowed : [],
