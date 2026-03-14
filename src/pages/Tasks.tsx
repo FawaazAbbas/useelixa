@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock, Search } from "lucide-react";
+import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useTeam } from "@/hooks/useTeam";
 import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
 import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
 import { TaskStatsHeader } from "@/components/tasks/TaskStatsHeader";
@@ -38,6 +39,7 @@ const RECURRENCE_OPTIONS = [
 const Tasks = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { members } = useTeam();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,6 +53,7 @@ const Tasks = () => {
     priority: "medium" as Task["priority"],
     due_date: "",
     assigned_to: "user" as "user" | "ai",
+    assigned_user_id: "" as string,
     scheduled_at: "",
     ai_tools_allowed: [] as string[],
     ai_context: "",
