@@ -233,7 +233,7 @@ const Tasks = () => {
   const resetForm = () => {
     setFormData({ 
       title: "", description: "", status: "todo", priority: "medium", due_date: "",
-      assigned_to: "user", scheduled_at: "", ai_tools_allowed: [], ai_context: "", schedule: "",
+      assigned_to: "user", assigned_user_id: "", scheduled_at: "", ai_tools_allowed: [], ai_context: "", schedule: "",
       is_recurring: false, recurrence_pattern: "",
     });
     setEditingTask(null);
