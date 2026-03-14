@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock, Search } from "lucide-react";
+import { CheckSquare, Plus, LayoutGrid, List, Bot, Clock, RefreshCw, CalendarClock, Search, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useTeam } from "@/hooks/useTeam";
 import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
 import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
 import { TaskStatsHeader } from "@/components/tasks/TaskStatsHeader";
@@ -38,6 +39,7 @@ const RECURRENCE_OPTIONS = [
 const Tasks = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { members } = useTeam();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,6 +53,7 @@ const Tasks = () => {
     priority: "medium" as Task["priority"],
     due_date: "",
     assigned_to: "user" as "user" | "ai",
+    assigned_user_id: "" as string,
     scheduled_at: "",
     ai_tools_allowed: [] as string[],
     ai_context: "",
@@ -128,6 +131,8 @@ const Tasks = () => {
       .filter(t => t.status === finalStatus)
       .reduce((max, t) => Math.max(max, t.position), 0);
 
+    const selectedMember = members.find(m => m.user_id === formData.assigned_user_id);
+
     const taskData = {
       title: formData.title,
       description: formData.description || null,
@@ -137,6 +142,8 @@ const Tasks = () => {
       user_id: user.id,
       position: editingTask ? editingTask.position : maxPosition + 1,
       assigned_to: formData.assigned_to,
+      assigned_user_id: formData.assigned_user_id || null,
+      assigned_user_name: selectedMember?.display_name || null,
       scheduled_at: formData.assigned_to === "ai" && formData.scheduled_at 
         ? new Date(formData.scheduled_at).toISOString() : null,
       ai_tools_allowed: formData.assigned_to === "ai" ? formData.ai_tools_allowed : [],
@@ -185,6 +192,7 @@ const Tasks = () => {
       priority: task.priority,
       due_date: task.due_date ? task.due_date.split("T")[0] : "",
       assigned_to: (task.assigned_to === "ai" ? "ai" : "user") as "user" | "ai",
+      assigned_user_id: task.assigned_user_id || "",
       scheduled_at: task.scheduled_at ? task.scheduled_at.slice(0, 16) : "",
       ai_tools_allowed: task.ai_tools_allowed || [],
       ai_context: task.ai_context || "",
@@ -225,7 +233,7 @@ const Tasks = () => {
   const resetForm = () => {
     setFormData({ 
       title: "", description: "", status: "todo", priority: "medium", due_date: "",
-      assigned_to: "user", scheduled_at: "", ai_tools_allowed: [], ai_context: "", schedule: "",
+      assigned_to: "user", assigned_user_id: "", scheduled_at: "", ai_tools_allowed: [], ai_context: "", schedule: "",
       is_recurring: false, recurrence_pattern: "",
     });
     setEditingTask(null);
@@ -360,6 +368,32 @@ const Tasks = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                )}
+
+                {/* Assign to workspace member */}
+                {members.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <User className="h-3.5 w-3.5" />
+                      Assign to team member
+                    </Label>
+                    <Select
+                      value={formData.assigned_user_id}
+                      onValueChange={(v) => setFormData({ ...formData, assigned_user_id: v === "none" ? "" : v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Unassigned" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Unassigned</SelectItem>
+                        {members.map((member) => (
+                          <SelectItem key={member.user_id} value={member.user_id}>
+                            {member.display_name || member.email || "Unknown"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
 
                 <div className="space-y-3 pt-2">
@@ -504,11 +538,22 @@ const Tasks = () => {
                         Due {format(new Date(task.due_date), "MMM d")}
                       </p>
                     )}
+                    {task.assigned_user_name && (
+                      <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {task.assigned_user_name}
+                      </p>
+                    )}
                   </div>
                 </div>
-                {task.assigned_to === "ai" && (
-                  <Bot className="h-4 w-4 text-primary" />
-                )}
+                <div className="flex items-center gap-2">
+                  {task.assigned_user_name && (
+                    <span className="text-xs text-muted-foreground hidden sm:inline">{task.assigned_user_name}</span>
+                  )}
+                  {task.assigned_to === "ai" && (
+                    <Bot className="h-4 w-4 text-primary" />
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

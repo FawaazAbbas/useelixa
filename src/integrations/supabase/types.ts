@@ -1873,6 +1873,8 @@ export type Database = {
           ai_context: string | null
           ai_tools_allowed: string[] | null
           assigned_to: string | null
+          assigned_user_id: string | null
+          assigned_user_name: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -1895,6 +1897,8 @@ export type Database = {
           ai_context?: string | null
           ai_tools_allowed?: string[] | null
           assigned_to?: string | null
+          assigned_user_id?: string | null
+          assigned_user_name?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -1917,6 +1921,8 @@ export type Database = {
           ai_context?: string | null
           ai_tools_allowed?: string[] | null
           assigned_to?: string | null
+          assigned_user_id?: string | null
+          assigned_user_name?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null

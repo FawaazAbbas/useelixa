@@ -25,6 +25,8 @@ export interface Task {
   position: number;
   created_at: string;
   assigned_to: string | null;
+  assigned_user_id: string | null;
+  assigned_user_name: string | null;
   scheduled_at: string | null;
   ai_tools_allowed: string[] | null;
   ai_context: string | null;

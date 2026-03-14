@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit2, Trash2, GripVertical, Bot, Clock, RefreshCw } from "lucide-react";
+import { Edit2, Trash2, GripVertical, Bot, Clock, RefreshCw, User } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { Task } from "./KanbanBoard";
@@ -20,6 +20,28 @@ const priorityColors: Record<Task["priority"], string> = {
 };
 
 export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) {
+  // Linkify URLs in description
+  const renderDescription = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) =>
+      urlRegex.test(part) ? (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline underline-offset-2 hover:text-primary/80 break-all"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      ) : (
+        <span key={i}>{part}</span>
+      )
+    );
+  };
+
   return (
     <Card
       className={cn(
@@ -32,7 +54,7 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
         <div className="flex items-start gap-2">
           <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <div className={cn("w-2 h-2 rounded-full flex-shrink-0", priorityColors[task.priority])} />
               <h4 className={cn(
                 "text-sm font-medium break-words",
@@ -51,9 +73,15 @@ export function TaskCard({ task, onEdit, onDelete, isDragging }: TaskCardProps) 
               )}
             </div>
             {task.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                {task.description}
+              <p className="text-xs text-muted-foreground line-clamp-3 mb-2 break-words">
+                {renderDescription(task.description)}
               </p>
+            )}
+            {task.assigned_user_name && (
+              <div className="flex items-center gap-1 mb-1.5">
+                <User className="h-3 w-3 text-muted-foreground" />
+                <span className="text-[11px] text-muted-foreground">{task.assigned_user_name}</span>
+              </div>
             )}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-wrap">
