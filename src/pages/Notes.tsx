@@ -48,13 +48,10 @@ const Notes = () => {
     return success;
   };
 
-  // Keep selected note in sync with notes array
+  // Only sync selectedNote if it was deleted from the array
   useEffect(() => {
-    if (selectedNote) {
-      const updated = notes.find(n => n.id === selectedNote.id);
-      if (updated && JSON.stringify(updated) !== JSON.stringify(selectedNote)) {
-        setSelectedNote(updated);
-      }
+    if (selectedNote && !notes.find(n => n.id === selectedNote.id)) {
+      setSelectedNote(null);
     }
   }, [notes, selectedNote]);
 
