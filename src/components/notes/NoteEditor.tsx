@@ -109,14 +109,16 @@ export const NoteEditor = ({ note, onUpdate, onDelete, saving }: NoteEditorProps
     },
   });
 
-  // Update editor content when note changes
+  // Only reset editor content when switching to a different note
+  const prevNoteIdRef = useRef(note.id);
   useEffect(() => {
-    if (editor && note.content !== editor.getHTML()) {
+    if (editor && prevNoteIdRef.current !== note.id) {
       editor.commands.setContent(note.content);
+      prevNoteIdRef.current = note.id;
     }
     setLocalTitle(note.title);
     setIsPinned(note.is_pinned || false);
-  }, [note.id, note.content, note.is_pinned, editor]);
+  }, [note.id, note.is_pinned, editor]);
 
   // Calculate initial counts
   useEffect(() => {
