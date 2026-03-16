@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useTeam } from "@/hooks/useTeam";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
 import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
 import { TaskStatsHeader } from "@/components/tasks/TaskStatsHeader";
@@ -40,6 +41,7 @@ const Tasks = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { members } = useTeam();
+  const { workspaceId } = useWorkspace();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -74,7 +76,7 @@ const Tasks = () => {
 
   useEffect(() => {
     if (user) fetchTasks();
-  }, [user]);
+  }, [user, workspaceId]);
 
   useEffect(() => {
     if (!user) return;
@@ -100,10 +102,16 @@ const Tasks = () => {
   }, [user]);
 
   const fetchTasks = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("tasks")
       .select("*")
       .order("position", { ascending: true });
+
+    if (workspaceId) {
+      query = query.or(`workspace_id.eq.${workspaceId},and(workspace_id.is.null,user_id.eq.${user!.id})`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       toast({ title: "Error fetching tasks", description: error.message, variant: "destructive" });
@@ -142,6 +150,7 @@ const Tasks = () => {
       priority: formData.priority,
       due_date: formData.due_date || null,
       user_id: user.id,
+      workspace_id: workspaceId || null,
       position: editingTask ? editingTask.position : maxPosition + 1,
       assigned_to: formData.assigned_to,
       assigned_user_id: formData.assigned_user_id || user.id,
