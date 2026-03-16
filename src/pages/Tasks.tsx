@@ -76,7 +76,7 @@ const Tasks = () => {
 
   useEffect(() => {
     if (user) fetchTasks();
-  }, [user]);
+  }, [user, workspaceId]);
 
   useEffect(() => {
     if (!user) return;
