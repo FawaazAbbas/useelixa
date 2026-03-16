@@ -150,6 +150,7 @@ const Tasks = () => {
       priority: formData.priority,
       due_date: formData.due_date || null,
       user_id: user.id,
+      workspace_id: workspaceId || null,
       position: editingTask ? editingTask.position : maxPosition + 1,
       assigned_to: formData.assigned_to,
       assigned_user_id: formData.assigned_user_id || user.id,
