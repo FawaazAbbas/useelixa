@@ -102,10 +102,16 @@ const Tasks = () => {
   }, [user]);
 
   const fetchTasks = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from("tasks")
       .select("*")
       .order("position", { ascending: true });
+
+    if (workspaceId) {
+      query = query.or(`workspace_id.eq.${workspaceId},and(workspace_id.is.null,user_id.eq.${user!.id})`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       toast({ title: "Error fetching tasks", description: error.message, variant: "destructive" });
