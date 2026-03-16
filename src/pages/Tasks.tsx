@@ -41,6 +41,7 @@ const Tasks = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { members } = useTeam();
+  const { workspaceId } = useWorkspace();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
