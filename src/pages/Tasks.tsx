@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useTeam } from "@/hooks/useTeam";
+import { useWorkspace } from "@/hooks/useWorkspace";
 import { KanbanBoard, Task, columns } from "@/components/tasks/KanbanBoard";
 import { ScheduledTasksPanel } from "@/components/tasks/ScheduledTasksPanel";
 import { TaskStatsHeader } from "@/components/tasks/TaskStatsHeader";
